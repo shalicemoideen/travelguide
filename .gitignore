@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if any)
+node_modules/
+
+# PHP vendor
+vendor/
+
+# Environment
+.env
+
+# Logs
+*.log
+
+# Docker
+mysql_data/
+*.pid
+
+# IDE
+.vscode/
+.idea/
+
+# CodeIgniter cache
+application/cache/*
+!application/cache/index.html
+
+# Uploaded files (optional)
+uploads/
