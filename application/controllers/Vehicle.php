@@ -44,17 +44,6 @@ class Vehicle extends MY_Controller {
 		$param['vehicle_id'] =(isset($_REQUEST['vehicle_id']))?$_REQUEST['vehicle_id']:'';
 		$param['vehicle_createdby_user_id'] =(isset($_REQUEST['vehicle_createdby_user_id']))?$_REQUEST['vehicle_createdby_user_id']:'';
 
-		if (!has_permission('VEHICLE_VIEW')) {
-	        echo json_encode([
-	            "draw" => intval($this->input->post('draw')),
-	            "recordsTotal" => 0,
-	            "recordsFiltered" => 0,
-	            "data" => []
-	        ]);
-	        return;
-	    }
-
-
 		
     	$data = $this->Vehicle_model->getVehicleTable($param);
     	$json_data = json_encode($data);

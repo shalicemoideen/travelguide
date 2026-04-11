@@ -1,7 +1,6 @@
 <?php 
  $currentusertype = $this->session->userdata('user_type');
  ?>
-
 <!--**********************************
 			Sidebar start
 		***********************************-->
@@ -13,82 +12,39 @@
 							<span class="nav-text">Dashboard</span>
 						</a>
 					</li>
-					<?php if (has_any_permission([
-					    'STAFF_VIEW',
-					    'STAFF_CREATE',
-					    'STAFF_UPDATE',
-					    'STAFF_DELETE'
-					])): ?>
 					<li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
 						<i class="flaticon-038-gauge"></i>
 							<span class="nav-text">Staff Managment</span>
 						</a>
 						<ul aria-expanded="false">
 							<li class="<?php if($this->uri->segment(1)=="Staff"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Staff">Staff</a></li>
+							<!-- <li class="<?php if($this->uri->segment(1)=="Designation"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Designation">Designation</a></li>
+							<li class="<?php if($this->uri->segment(1)=="Role"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Role">Role</a></li> -->
 						</ul>
 					</li>
-					<?php endif; ?>
 					<li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
 						<i class="flaticon-050-info"></i>
 							<span class="nav-text">Masters</span>
 						</a>
 						<ul aria-expanded="false">
-							<?php if (has_any_permission([
-							    'PROPERTY_VIEW',
-							    'PROPERTY_CREATE',
-							    'PROPERTY_UPDATE',
-							    'PROPERTY_DELETE'
-							])): ?>
 							<li><a class="has-arrow" href="javascript:void()" aria-expanded="false">Property</a>
 								<ul aria-expanded="false">
 									<li><a class="<?php if($this->uri->segment(1)=="Property_registration"){echo "active";}?>" href="<?php echo base_url();?>index.php/Property_registration">My properties</a></li>
 									<li class="<?php if($this->uri->segment(1)=="Property_category"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Property_category">Property category</a></li>
 								</ul>
 							</li>
-							<?php endif; 
-							if (has_any_permission([
-							    'DESTINATION_VIEW',
-							    'DESTINATION_CREATE',
-							    'DESTINATION_UPDATE',
-							    'DESTINATION_DELETE'
-							])): ?>
 							<li class="<?php if($this->uri->segment(1)=="Destination"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Destination">Destination</a></li>
-						<?php endif; 
-							if (has_any_permission([
-							    'VEHICLE_VIEW',
-							    'VEHICLE_CREATE',
-							    'VEHICLE_UPDATE',
-							    'VEHICLE_DELETE'
-							])): ?>
 							<li><a class="has-arrow" href="javascript:void()" aria-expanded="false">Vehicles</a>
 								<ul aria-expanded="false">
 									<li class="<?php if($this->uri->segment(1)=="Vehicle"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Vehicle">Vehicle models</a></li>
 									<li class="<?php if($this->uri->segment(1)=="Transporter"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Transporter">Transporter</a></li>
 								</ul>
 							</li>
-						<?php endif; 
-							if (has_any_permission([
-							    'B2B_PARTNER_VIEW',
-							    'B2B_PARTNER_CREATE',
-							    'B2B_PARTNER_UPDATE',
-							    'B2B_PARTNER_DELETE'
-							])): ?>
 							<li><a class="has-arrow" href="javascript:void()" aria-expanded="false">Partners</a>
 								<ul aria-expanded="false">
 									<li class="<?php if($this->uri->segment(1)=="B2b_partner"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/B2b_partner">B2B partner</a></li>
 								</ul>
 							</li>
-						<?php endif;
-
-							if (has_any_permission([
-							    'B2B_PARTNER_VIEW',
-							    'B2B_PARTNER_CREATE',
-							    'B2B_PARTNER_UPDATE',
-							    'B2B_PARTNER_DELETE'
-							])): ?>
-							<li class="<?php if($this->uri->segment(1)=="Roles"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Role">Roles</a></li>
-
-							<?php endif; ?>
 						</ul>
 					</li>
 					<li><a class="has-arrow " href="javascript:void()" aria-expanded="false">

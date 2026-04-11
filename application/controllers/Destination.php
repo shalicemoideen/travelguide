@@ -9,7 +9,6 @@ class Destination extends MY_Controller {
         if(! $this->is_logged_in()){
           redirect('/login');
         }
-
 		
         $this->currentuserid = $this->session->userdata('user_id');
         $this->currentusertype = $this->session->userdata('user_type');
@@ -34,10 +33,6 @@ class Destination extends MY_Controller {
 	}
 
 	public function get(){
-		if (!has_permission('VIEW_DESTINATION')) {
-        show_error('Unauthorized access', 403);
-    }
-
 		$this->load->model('Destination_model');
     	$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
         $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10'; 

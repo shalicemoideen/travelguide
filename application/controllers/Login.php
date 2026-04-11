@@ -21,11 +21,8 @@ class Login extends CI_Controller{
 				// echo json_encode($data);
 				$response_text = 'Logged in successfully';
                 if($result){
-
-                    
+					
 					// $this->session->set_flashdata('response', "{&quot;text&quot;:&quot;$response_text&quot;,&quot;layout&quot;:&quot;topRight&quot;,&quot;type&quot;:&quot;success&quot;}");
-
-                    
 
                     $user_type = $this->session->userdata['user_type'];
                     $currentusername = $this->session->userdata('admin_name');
@@ -42,14 +39,6 @@ class Login extends CI_Controller{
                     
                     $date1 = date('Y-m-d h:i:s a', time());                
                     $sessionid = session_id();
-
-                    $role_id = $this->session->userdata('role_id_fk');
-                    // ✅ get permissions from role id model
-                    $permissions = $this->Loginmodel->get_user_permissions($role_id);
-
-                    $this->session->set_userdata([
-                            'permissions' => $permissions
-                    ]);
 
                     $log_data = array(
                             'login_logs_user_id_fk' => $currentuserid,

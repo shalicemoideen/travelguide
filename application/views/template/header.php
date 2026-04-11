@@ -70,14 +70,6 @@
 </head>
 <body>
 
- <script>
-    const USER_PERMISSIONS = <?= json_encode($this->session->userdata('permissions')) ?>;
-
-    function hasPermission(permission) {
-	    return USER_PERMISSIONS.includes(permission);
-	}
-</script>
-
 	<!--*******************
 		Preloader start
 	********************-->

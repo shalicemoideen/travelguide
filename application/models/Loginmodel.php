@@ -104,17 +104,5 @@ class Loginmodel extends CI_Model{
 		
         return $query->num_rows();
     }
-
-    public function get_user_permissions($role_id)
-    {
-        $this->db->select('p.name');
-        $this->db->from('tr_permissions p');
-        $this->db->join('tr_role_permissions rp', 'rp.permission_id = p.id');
-        $this->db->where('rp.role_id', $role_id);
-
-        $result = $this->db->get()->result_array();
-
-        return array_column($result, 'name');
-    }
 }
 ?>

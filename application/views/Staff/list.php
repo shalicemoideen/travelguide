@@ -202,7 +202,7 @@
                                                 <option value="">Please Select Role</option>                            
                                                 <?php foreach($roles as $row) {
                                                     // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                    echo '<option value="'.$row->id.'">'.$row->name.'</option>';
+                                                    echo '<option value="'.$row->roles_id.'">'.$row->roles_name.'</option>';
                                                 } ?>
                                             </select>
                                             <span class="help-block" style="color:red"></span>

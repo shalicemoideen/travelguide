@@ -84,9 +84,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Vehicle Details</h4>
-                                <?php if (has_permission('VEHICLE_CREATE')): ?>
                                 <a onclick="add_vehicle()"  data-bs-target="#VehicleModal" class="btn btn-rounded btn-secondary btn-md">+ New Vehicle</a> 
-                            <?php endif; ?>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">

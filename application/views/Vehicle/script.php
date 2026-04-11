@@ -107,23 +107,7 @@ var table;
 
 			// $('td', row).eq(5).html('<div class="form-button-action"><a  data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" href="javascript:void(0)" onclick="edit_role('+data['roles_id']+')"><i class="fa fa-edit"></i></a><button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove" href="javascript:void(0)" onclick="return delete_role('+data['roles_id']+')"><i class="fa fa-times"></i></button></div>');
 
-           let actionHtml = '<div class="d-flex">';
-
-            // Edit button
-            if (hasPermission('VEHICLE_UPDATE')) {
-                actionHtml += '<a href="javascript:void(0)" onclick="edit_vehicle('+data['vehicle_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
-            }
-
-            // Delete button
-            if (hasPermission('VEHICLE_DELETE')) {
-                actionHtml += '<a href="javascript:void(0)" onclick="return delete_vehicle('+data['vehicle_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
-            }
-
-            actionHtml += '</div>';
-
-            $('td', row).eq(5).html(actionHtml);
-
-			// $('td', row).eq(5).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_vehicle('+data['vehicle_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_vehicle('+data['vehicle_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
+			$('td', row).eq(5).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_vehicle('+data['vehicle_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_vehicle('+data['vehicle_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
             
            },

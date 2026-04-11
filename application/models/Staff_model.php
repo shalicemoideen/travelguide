@@ -48,9 +48,9 @@ class Staff_model extends CI_Model{
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*,tr_roles.name roles_name,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining');
+		$this->db->select('*,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining');
 		$this->db->from('user_details');
-		$this->db->join('tr_roles', 'tr_roles.id = user_details.role_id_fk','left');
+		$this->db->join('roles', 'roles.roles_id = user_details.role_id_fk','left');
 		$this->db->join('designation', 'designation.designation_id = user_details.designation_id_fk','left');
 		$this->db->order_by('user_id', 'DESC');
         $query = $this->db->get();
@@ -90,9 +90,9 @@ class Staff_model extends CI_Model{
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*,tr_roles.name role_name,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining');
+		$this->db->select('*,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining');
 		$this->db->from('user_details');
-		$this->db->join('tr_roles', 'tr_roles.id = user_details.role_id_fk','left');
+		$this->db->join('roles', 'roles.roles_id = user_details.role_id_fk','left');
 		$this->db->join('designation', 'designation.designation_id = user_details.designation_id_fk','left');
 		$this->db->where("user_status",1);
         $this->db->where("user_type",'S');
@@ -106,10 +106,10 @@ class Staff_model extends CI_Model{
 
 	function fetch_roles()
 	{
-		$this->db->order_by("id", "ASC");
-		$this->db->where("status",1);
+		$this->db->order_by("roles_id", "ASC");
+		$this->db->where("roles_status",1);
 		// $this->db->where("user_type",'S');
-		$query = $this->db->get("tr_roles");
+		$query = $this->db->get("roles");
 		return $query->result();
 	}
 
