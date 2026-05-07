@@ -1,8 +1,3 @@
-<style>
-.rolemodal{
-  max-width: 95%;
-}
-</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -23,9 +18,19 @@
                                                 <div class="col-sm-6 col-md-5">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="state_id_filter" name="state_id_filter" required>  
+                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="designation_id" name="designation_id" required>  
                             
-                                                                    
+                                                                    <option value="">Please Select Designation</option>
+                                                                    <?php
+
+                                                                    foreach($designation as $row)
+                                                                    {
+                                                                        
+                                                                        echo '<option value="'.$row->designation_id.'" '.$sel.'>'.$row->designation_name.'</option>';
+
+                                                                    }
+
+                                                                    ?>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -33,11 +38,12 @@
                                                 <div class="col-sm-6 col-md-5 staff-do-not-show">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select name="permission_status" id="permission_status_search" class="form-control input-lg lst-flt-select2" required>                                     
-                                                                <option value="">Please Select Status</option>
-                                                                <option value="1">Active</option>
-                                                                <option value="0">Inactive</option>                                                        
-                                                               
+                                                            <select name="designation_created_by_user_id" id="designation_created_by_user_id" class="form-control input-lg lst-flt-select2" required>                                     
+                                                                <option value="">Please Select Created by</option>                            
+                                                                <?php foreach($staff as $row) {
+                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
+                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
+                                                                    } ?>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -54,7 +60,7 @@
                                                 </div>
                                                 <div class="col-sm-2 col-md-3">
                                                     <div class="card">
-                                                        <a href="<?php echo base_url();?>index.php/Role">
+                                                        <a href="<?php echo base_url();?>index.php/Designation">
                                                         <button type="button" class="btn btn-secondary btn-md" id="search">
                                                             <span class="btn-label">
                                                                 <i class="icon-refresh"></i>
@@ -72,22 +78,25 @@
                                     </form>
 
                 <div class="row">
-                    
-                    
 					<div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Role Details</h4>
-                                <a onclick="add_role()"  data-bs-target="#RoleModal" class="btn btn-rounded btn-secondary btn-md">+ New Role</a> 
+                                <h4 class="card-title">Designation Details</h4>
+                                    
+                                        <a onclick="add_designation()"  data-bs-target="#designationModal" class="btn btn-rounded btn-secondary btn-md">+ New Designation</a> 
+                                   
+                                    
+                              
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table id="Role_table" class="display" style="min-width: 845px">
+                                    <table id="designation_table" class="display" style="min-width: 845px">
                                         <thead>
                                             <tr>
                                                 <th>Sl.no</th>
-                                                <th>Name</th>
+                                                <th>Designation</th>
                                                 <th>Description</th>
+                                                <th>Created by</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -109,12 +118,12 @@
         ***********************************-->
 
         <!-- Modal -->
-        <div class="modal fade" id="RoleModal" role="dialog" data-backdrop="static"  data-keyboard="false">
-            <div class="modal-dialog modal-lg rolemodal" role="document">
+        <div class="modal fade" id="designationModal" role="dialog" data-backdrop="static"  data-keyboard="false">
+            <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title"></h5>
-                        <button type="button" class="btn-close" onclick="RoleModalclose()" data-bs-dismiss="modal">
+                        <button type="button" class="btn-close" onclick="Designationmodalclose()" data-bs-dismiss="modal">
                         </button>
                     </div>
                     <div class="modal-body">
@@ -122,92 +131,33 @@
                         <form class="needs-validation" action="#" id="form" >
                             <input type="hidden" value="" name="id" id="id"/> 
                             <div class="row">
-                                <div class="col-xl-12">
+                                <div class="col-xl-9">
                                     <div class="mb-3 row form-group">
-                                        <label class="col-lg-4 col-form-label" for="role_name">Name
+                                        <label class="col-lg-4 col-form-label" for="designation_name">Name
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <div class="col-lg-8 role_name">
-                                            <input type="text" class="form-control" name="role_name" id="permission_name" placeholder="Enter Role" required>
+                                        <div class="col-lg-8 designation_name">
+                                            <input type="text" class="form-control" name="designation_name" id="designation_name" placeholder="Enter designation name" required>
                                             <span class="help-block" style="color:red"></span>
-                                            <b><span id="role_name_alert" style="color: red"></span></b>
+                                            <b><span id="designation_name_alert" style="color: red"></span></b>
                                         </div>
                                     </div>
                                     <div class="mb-3 row">
-                                        <label class="col-lg-4 col-form-label" for="role_description">Description 
+                                        <label class="col-lg-4 col-form-label" for="designation_description">Description 
                                         </label>
                                         <div class="col-lg-8">
-                                            <textarea class="form-control" name="role_description" id="role_description"  rows="5" placeholder="Enter Description" required></textarea>
+                                            <textarea class="form-control" name="designation_description" id="designation_description"  rows="5" placeholder="Enter Description" required></textarea>
                                             <div class="invalid-feedback">
                                                 Please enter a Description.
                                             </div>
                                         </div>
                                     </div>
-
-
-                                    <div class="mb-3 row" id="permissions_group">
-                                    <?php foreach ($permissions as $module => $submodules): ?>
-
-                                    <div class="card mb-2">
-                                        <div class="card-header">
-                                            <strong><?= $module ?></strong>
-                                        </div>
-
-                                        <div class="card-body">
-
-                                            <?php foreach ($submodules as $sub => $perms): ?>
-
-                                                <div style="margin-bottom:10px;">
-                                                    <strong><?= $sub ?></strong><br>
-
-                                                    <?php foreach ($perms as $perm): ?>
-                                                        <label style="margin-right:15px;">
-                                                            <input type="checkbox" name="permissions_name[]" value="<?= $perm->id ?>">
-                                                            <?= str_replace([$module.'_',$sub.'_'], '', $perm->name) ?>
-                                                        </label>
-                                                    <?php endforeach; ?>
-
-                                                </div>
-
-                                            <?php endforeach; ?>
-
-                                        </div>
-                                    </div>
-
-                                    <?php endforeach; ?>
-                                    <span class="help-block" style="color:red"></span>
-                                    <b><span class="text-danger" style="color: red"></span></b>
-                                </div>
-
-
-                                    <!-- <div class="row" id="permissions_group">
-                                        
-                                        <?php foreach($permissions as $permission) { ?>
-                                            <div class="col-md-6 mb-2">
-                                                <div class="form-check" >
-                                                    <input 
-                                                        type="checkbox" 
-                                                        id="perm_<?php echo $permission->id; ?>" 
-                                                        class="form-check-input sc_chkbox"
-                                                        name="permissions_name[]" 
-                                                        value="<?php echo $permission->id; ?>"
-                                                    >
-                                                    
-                                                    <b><label class="form-check-label" for="perm_<?php echo $permission->id; ?>">
-                                                        <?php echo $permission->name; ?>
-                                                    </label></b>
-                                                </div>
-                                            </div>
-                                        <?php } ?>
-                                        <span class="help-block" style="color:red"></span>
-                                        <b><span class="text-danger" style="color: red"></span></b>
-                                    </div> -->
                                 </div>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger light" onclick="RoleModalclose()" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger light" onclick="Designationmodalclose()" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" id="btnSave" onclick="save()" >Save</button>
                     </div>
                 </div>
@@ -227,16 +177,14 @@
             <div class="modal-body">
                 
                 <form class="needs-validation" action="#" id="form1" >
-                    <input type="hidden" value="" name="role_id_delete" id="role_id_delete"/> 
-                    <div class="form-group">
-                        <label>Role Name: <span name="role_name_delete" id="role_name_label" class="fw-bold"></span></label>
-                    </div>
+                    <input type="hidden" value="" name="id" id="id1"/> 
+                    <input type="hidden" value="" name="designation_name" id="designation_name1"/>
                     
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger light" onclick="RoleModalclose()" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="btnSave1" onclick="delete_permission_action()" >Delete</button>
+                <button type="button" class="btn btn-danger light" onclick="Vehiclemodalclose()" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSave1" onclick="delete_designation_action()" >Delete</button>
             </div>
         </div>
     </div>
