@@ -48,10 +48,11 @@ class Staff_model extends CI_Model{
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining');
+		$this->db->select('*,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining, l1.language_name as primary_language_name');
 		$this->db->from('user_details');
 		$this->db->join('roles', 'roles.roles_id = user_details.role_id_fk','left');
 		$this->db->join('designation', 'designation.designation_id = user_details.designation_id_fk','left');
+		$this->db->join('languages l1', 'l1.language_id = user_details.primary_language_id','left');
 		$this->db->order_by('user_id', 'DESC');
         $query = $this->db->get();
         
@@ -90,10 +91,11 @@ class Staff_model extends CI_Model{
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining');
+		$this->db->select('*,DATE_FORMAT(user_date_of_joining,\'%d-%m-%Y\') as user_date_of_joining, l1.language_name as primary_language_name');
 		$this->db->from('user_details');
 		$this->db->join('roles', 'roles.roles_id = user_details.role_id_fk','left');
 		$this->db->join('designation', 'designation.designation_id = user_details.designation_id_fk','left');
+		$this->db->join('languages l1', 'l1.language_id = user_details.primary_language_id','left');
 		$this->db->where("user_status",1);
         $this->db->where("user_type",'S');
         $this->db->order_by('user_id', 'DESC');
@@ -119,6 +121,14 @@ class Staff_model extends CI_Model{
 		$this->db->where("designation_status",1);
 		// $this->db->where("user_type",'S');
 		$query = $this->db->get("designation");
+		return $query->result();
+	}
+
+	function fetch_languages()
+	{
+		$this->db->order_by("language_id", "ASC");
+		$this->db->where("language_status",1);
+		$query = $this->db->get("languages");
 		return $query->result();
 	}
 

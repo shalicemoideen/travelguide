@@ -24,6 +24,8 @@ $("#role_id_filter").select2();
 $("#designation_id_filter").select2();
 $("#role_id_fk").select2();
 $("#designation_id_fk").select2();
+$("#primary_language_id").select2();
+$("#basic_language_id").select2();
 
 ////***Latest dropdown select2*****///
 
@@ -84,19 +86,19 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5]
+                                        columns: [0, 1, 2, 3, 4, 5, 10]
                                     }
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5]
+                                        columns: [0, 1, 2, 3, 4, 5, 10]
                                     }
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5]
+                                        columns: [0 ,1, 2, 3, 4, 5, 10]
                                     }
                                 },
                                
@@ -126,7 +128,7 @@ var table;
 
 			// $('td', row).eq(5).html('<div class="form-button-action"><a  data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" href="javascript:void(0)" onclick="edit_role('+data['roles_id']+')"><i class="fa fa-edit"></i></a><button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove" href="javascript:void(0)" onclick="return delete_role('+data['roles_id']+')"><i class="fa fa-times"></i></button></div>');
 
-			$('td', row).eq(10).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_staff('+data['user_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_staff('+data['user_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
+			$('td', row).eq(11).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_staff('+data['user_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_staff('+data['user_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
            
             
@@ -142,14 +144,15 @@ var table;
             { "data": "user_address", "orderable": false },
             { "data": "user_email_address", "orderable": false },
             { "data": "user_phone_number", "orderable": false },
-            { "data": "roles_name", "orderable": false },   
-            { "data": "designation_name", "orderable": false },   
-            { "data": "user_date_of_joining", "orderable": false },   
-            { "data": "user_name", "orderable": false }, 
-            { "data": "password", "orderable": false },                      
+            { "data": "roles_name", "orderable": false },
+            { "data": "designation_name", "orderable": false },
+            { "data": "user_date_of_joining", "orderable": false },
+            { "data": "user_name", "orderable": false },
+            { "data": "password", "orderable": false },
+            { "data": "primary_language_name", "orderable": false },
             { "data": "user_id", "orderable": false }
-            
-            
+
+
         ]
         
     });
@@ -172,6 +175,8 @@ function Staffmodalclose()
     $('#user_address').val('');
     $('#role_id_fk').val('').change();
     $('#designation_id_fk').val('').change();
+    $('#primary_language_id').val('').change();
+    $('#basic_language_id').val('').change();
 	$('#category_name_alert').hide();
 	$('.submit').removeAttr('disabled');
 	$('.form-group').removeClass('input-success-o');
@@ -249,7 +254,9 @@ function edit_staff(id)
             $('[name="user_date_of_joining"]').val(data.user_date_of_joining);
             $('[name="user_name"]').val(data.user_name);
             $('[name="password"]').val(data.password);
-            $('[name="user_description"]').val(data.user_description);  
+            $('[name="user_description"]').val(data.user_description);
+            $('[id="primary_language_id"]').val(data.primary_language_id).trigger('change.select2');
+            $('[id="basic_language_id"]').val(data.basic_language_id).trigger('change.select2');
             $('#StaffModal').modal('show'); // show bootstrap modal when complete loaded
             $('.modal-title').text('Edit staff Details'); // Set title to Bootstrap modal title
 			$('#btnSave').text('update');

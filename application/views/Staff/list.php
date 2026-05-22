@@ -129,6 +129,7 @@
                                                 <th>Date of joining</th>
                                                 <th>User name</th>
                                                 <th>Password</th>
+                                                <th>Primary Language</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -298,6 +299,35 @@
                                         
                                             <textarea class="form-control" name="user_description" id="user_description"  rows="5" placeholder="Enter Address" required></textarea>
                                         
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-lg-5 col-form-label" for="primary_language_id">Primary Language
+                                        </label>
+                                            <select name="primary_language_id" id="primary_language_id" class="form-control input-lg lst-flt-select2">
+                                                <option value="">Please Select Primary Language</option>
+                                                <?php foreach($languages as $row) {
+                                                    echo '<option value="'.$row->language_id.'">'.$row->language_name.'</option>';
+                                                } ?>
+                                            </select>
+                                            <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-lg-5 col-form-label" for="basic_language_id">Basic Language
+                                        </label>
+                                            <select name="basic_language_id" id="basic_language_id" class="form-control input-lg lst-flt-select2">
+                                                <option value="">Please Select Basic Language</option>
+                                                <?php foreach($languages as $row) {
+                                                    echo '<option value="'.$row->language_id.'">'.$row->language_name.'</option>';
+                                                } ?>
+                                            </select>
+                                            <span class="help-block" style="color:red"></span>
                                     </div>
                                 </div>
                             </div>

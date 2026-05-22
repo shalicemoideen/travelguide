@@ -27,6 +27,7 @@ class Staff extends MY_Controller {
 		
 		$template['roles'] = $this->Staff_model->fetch_roles();
         $template['designation'] = $this->Staff_model->fetch_designation();
+		$template['languages'] = $this->Staff_model->fetch_languages();
 		$template['staff'] = $this->Staff_model->fetch_staff_details();
 		$template['body'] = 'Staff/list';
 		$template['script'] = 'Staff/script';
@@ -123,9 +124,11 @@ class Staff extends MY_Controller {
                 'user_name' => $this->input->post('user_name'),
                 'password' => $this->input->post('password'),
                 'user_description' => $this->input->post('user_description'),
-                // 'user_profile_pic' => $file,                		
-				'user_created_date' => $date,			
-				'user_created_time' => $time,			
+                'primary_language_id' => $this->input->post('primary_language_id'),
+                'basic_language_id' => $this->input->post('basic_language_id'),
+                // 'user_profile_pic' => $file,
+				'user_created_date' => $date,
+				'user_created_time' => $time,
 				'user_type' => 'S',
                 'user_status' => 1
 			);
@@ -250,9 +253,11 @@ class Staff extends MY_Controller {
                 'user_name' => $this->input->post('user_name'),
                 'password' => $this->input->post('password'),
                 'user_description' => $this->input->post('user_description'),
-                // 'user_profile_pic' => $file,	
-				// 'user_created_date' => $date,			
-				// 'user_created_time' => $time,			
+                'primary_language_id' => $this->input->post('primary_language_id'),
+                'basic_language_id' => $this->input->post('basic_language_id'),
+                // 'user_profile_pic' => $file,
+				// 'user_created_date' => $date,
+				// 'user_created_time' => $time,
 				// 'user_type' => 'S',
                 // 'user_status' => 1
 			);

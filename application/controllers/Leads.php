@@ -808,6 +808,202 @@ public function meta_webhook()
         return $decoded;
     }
 
+    private function get_next_staff($form_id, $mapped)
+    {
+        // STEP 1 campaign
+        $campaign = $this->db
+            ->where('facebook_form_id', $form_id)
+            ->get('meta_ads_setting')
+            ->row();
+
+        if (!$campaign) return 1;
+
+        $campaign_id = $campaign->meta_ads_setting_id;
+
+        // STEP 2 get active shifts based on current time
+        $current_time = date('H:i:s');
+        $active_shifts = $this->get_active_shifts($current_time);
+
+        // STEP 3 get staff list for campaign and active shifts
+        $this->db->select('soa.staff_id_fk, soa.staff_order, soa.shift_id_fk, u.tamil_speak, u.meta_force_stop');
+        $this->db->from('staff_order_assign soa');
+        $this->db->join('user_details u', 'u.user_id = soa.staff_id_fk');
+        $this->db->where('soa.meta_campain_id_fk', $campaign_id);
+
+        // Filter by active shifts if any
+        if (!empty($active_shifts)) {
+            $shift_ids = array_column($active_shifts, 'shift_id');
+            $this->db->where_in('soa.shift_id_fk', $shift_ids);
+        }
+
+        $this->db->order_by('soa.staff_order', 'ASC');
+        $staff_list = $this->db->get()->result();
+
+        // STEP 4 if no staff in active shifts, get all staff for campaign
+        if (empty($staff_list)) {
+            $this->db->select('soa.staff_id_fk, soa.staff_order, soa.shift_id_fk, u.tamil_speak, u.meta_force_stop');
+            $this->db->from('staff_order_assign soa');
+            $this->db->join('user_details u', 'u.user_id = soa.staff_id_fk');
+            $this->db->where('soa.meta_campain_id_fk', $campaign_id);
+            $this->db->order_by('soa.staff_order', 'ASC');
+            $staff_list = $this->db->get()->result();
+        }
+
+        if (empty($staff_list)) return 1;
+
+        // STEP 5 filter out staff with meta_force_stop = 'Y'
+        $filtered = array();
+        foreach ($staff_list as $s) {
+            if ($s->meta_force_stop == 'Y') continue;
+            $filtered[] = $s;
+        }
+
+        if (empty($filtered)) return 1;
+
+        // STEP 6 language-based filtering with priority order
+        $lead_language = $this->extract_lead_language($mapped);
+        $filtered = $this->apply_language_priority($filtered, $lead_language);
+
+        if (empty($filtered)) return 1;
+
+        // STEP 7 round robin assignment
+        return $this->assign_round_robin($filtered);
+    }
+
+    /**
+     * Get active shifts based on current time
+     * Shift1: 08:30 AM - 06:30 PM
+     * Shift2: 12:30 PM - 08:30 PM
+     */
+    private function get_active_shifts($current_time)
+    {
+        $active_shifts = array();
+
+        // Check Shift1 (08:30 - 18:30)
+        if ($current_time >= '08:30:00' && $current_time <= '18:30:00') {
+            $shift1 = $this->db
+                ->where('shift_start_time <=', '08:30:00')
+                ->where('shift_end_time >=', '18:30:00')
+                ->where('shift_status', 1)
+                ->get('shift')
+                ->row();
+            
+            if ($shift1) {
+                $active_shifts[] = $shift1;
+            }
+        }
+
+        // Check Shift2 (12:30 - 20:30)
+        if ($current_time >= '12:30:00' && $current_time <= '20:30:00') {
+            $shift2 = $this->db
+                ->where('shift_start_time <=', '12:30:00')
+                ->where('shift_end_time >=', '20:30:00')
+                ->where('shift_status', 1)
+                ->get('shift')
+                ->row();
+            
+            if ($shift2) {
+                $active_shifts[] = $shift2;
+            }
+        }
+
+        return $active_shifts;
+    }
+
+    /**
+     * Extract language from lead data
+     */
+    private function extract_lead_language($mapped)
+    {
+        $language = 'english'; // default language
+
+        if (isset($mapped['language'])) {
+            $lang = strtolower(trim($mapped['language']));
+            if ($lang === 'tamil' || $lang === 'tamil language' || strpos($lang, 'tamil') !== false) {
+                $language = 'tamil';
+            } elseif ($lang === 'hindi' || $lang === 'hindi language' || strpos($lang, 'hindi') !== false) {
+                $language = 'hindi';
+            } elseif ($lang === 'malayalam' || $lang === 'malayalam language' || strpos($lang, 'malayalam') !== false) {
+                $language = 'malayalam';
+            } elseif ($lang === 'english' || $lang === 'english language' || strpos($lang, 'english') !== false) {
+                $language = 'english';
+            }
+        }
+
+        return $language;
+    }
+
+    /**
+     * Apply language priority order to staff list
+     * Priority: matching language speakers first, then others
+     */
+    private function apply_language_priority($staff_list, $lead_language)
+    {
+        $language_priority = array();
+        $other_staff = array();
+
+        foreach ($staff_list as $staff) {
+            $matches_language = false;
+
+            switch ($lead_language) {
+                case 'tamil':
+                    if ($staff->tamil_speak == 'Y') {
+                        $matches_language = true;
+                    }
+                    break;
+                // Add more language cases as needed
+                case 'hindi':
+                case 'malayalam':
+                case 'english':
+                default:
+                    // For now, only Tamil is specifically tracked in database
+                    // Other languages can be added as new columns
+                    if ($lead_language === 'english' || $staff->tamil_speak == 'N') {
+                        $matches_language = true;
+                    }
+                    break;
+            }
+
+            if ($matches_language) {
+                $language_priority[] = $staff;
+            } else {
+                $other_staff[] = $staff;
+            }
+        }
+
+        // Combine: language-matching staff first, then others
+        return array_merge($language_priority, $other_staff);
+    }
+
+    /**
+     * Assign lead using round robin logic
+     */
+    private function assign_round_robin($filtered_staff)
+    {
+        // Get last assigned staff
+        $this->db->select('staff_id_fk');
+        $this->db->order_by('leads_id', 'DESC');
+        $this->db->limit(1);
+        $last = $this->db->get('leads')->row();
+        $last_staff = $last ? $last->staff_id_fk : 0;
+
+        // Round robin assignment
+        $next_staff = $filtered_staff[0]->staff_id_fk;
+        $found = false;
+
+        for ($i = 0; $i < count($filtered_staff); $i++) {
+            if ($found) {
+                return $filtered_staff[$i]->staff_id_fk;
+            }
+
+            if ($filtered_staff[$i]->staff_id_fk == $last_staff) {
+                $found = true;
+            }
+        }
+
+        return $next_staff;
+    }
+
     /**
      * Convert Meta lead fields and insert into your leads table
      */
@@ -924,15 +1120,15 @@ public function meta_webhook()
 
         // IMPORTANT:
         // Change these IDs based on your system master data
-        $staff_id_fk            = 1;
-        $source_id_fk           = 1; // Facebook / Meta source ID
+        $staff_id_fk            = $this->get_next_staff($form_id, $mapped);
+        $source_id_fk           = 12; // Facebook / Meta source ID
         $package_id_fk          = 0;
-        $country_id_fk          = 0;
+        $country_id_fk          = 99;
         $priority_status_id_fk  = 1;
         $stage_id_fk            = 1;
         $agent_id_fk            = 0;
         $created_user_id        = 1;
-        $created_user_name      = 'Meta Webhook';
+        $created_user_name      = 'Meta Facebook';
 
         $insert = array(
             'staff_id_fk'               => $staff_id_fk,
