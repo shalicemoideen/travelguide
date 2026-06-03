@@ -1,0 +1,114 @@
+2026-05-25 19:34:26 | HIT START
+2026-05-25 19:34:26 | METHOD: POST
+2026-05-25 19:34:26 | RAW: {
+  "entry": [
+    {
+      "id": "521436764394620",
+      "time": 1779683033,
+      "changes": [
+        {
+          "value": {
+            "adgroup_id": "120243560899210209",
+            "ad_id": "120243560899210209",
+            "created_time": 1779683029,
+            "leadgen_id": "1319538792871428",
+            "page_id": "521436764394620",
+            "form_id": "973249842060968"
+          },
+          "field": "leadgen"
+        }
+      ]
+    }
+  ],
+  "object": "page"
+}
+
+2026-05-25 19:34:26 | leadgen_id: 1319538792871428
+2026-05-25 19:34:26 | meta_lead_logs insert: SUCCESS | {"code":0,"message":""}
+2026-05-25 19:34:27 | fetch_meta_lead: {"id":"1319538792871428","created_time":"2026-05-25T04:23:49+0000","ad_id":"120243560899210209","form_id":"973249842060968","field_data":[{"name":"travel_category?","values":["friends"]},{"name":"travel_date?","values":["26 mat"]},{"name":"how_many_days_planning?","values":["3-4 Days"]},{"name":"how_many_adults?_number_of_children_&_their_ages?","values":["6 adults"]},{"name":"whatapp_number?","values":["8712388507"]},{"name":"full_name","values":["Arun"]},{"name":"phone_number","values":["+917013701437"]},{"name":"city","values":["Gooty"]}]}
+2026-05-25 19:34:27 | leads insert result: FAILED
+2026-05-25 19:34:27 | END
+
+2026-05-26 10:34:56 | HIT START
+2026-05-26 10:34:56 | METHOD: POST
+2026-05-26 10:34:56 | RAW: {
+  "entry": [
+    {
+      "id": "521436764394620",
+      "time": 1779683033,
+      "changes": [
+        {
+          "value": {
+            "adgroup_id": "120243560899210209",
+            "ad_id": "120243560899210209",
+            "created_time": 1779683029,
+            "leadgen_id": "1319538792871428",
+            "page_id": "521436764394620",
+            "form_id": "973249842060968"
+          },
+          "field": "leadgen"
+        }
+      ]
+    }
+  ],
+  "object": "page"
+}
+
+2026-05-26 10:34:56 | leadgen_id: 1319538792871428
+2026-05-26 10:45:27 | HIT START
+2026-05-26 10:45:27 | METHOD: POST
+2026-05-26 10:45:27 | RAW: {
+  "entry": [
+    {
+      "id": "521436764394620",
+      "time": 1779683033,
+      "changes": [
+        {
+          "value": {
+            "adgroup_id": "120243560899210209",
+            "ad_id": "120243560899210209",
+            "created_time": 1779683029,
+            "leadgen_id": "1319538792871428",
+            "page_id": "521436764394620",
+            "form_id": "973249842060968"
+          },
+          "field": "leadgen"
+        }
+      ]
+    }
+  ],
+  "object": "page"
+}
+
+2026-05-26 10:45:27 | leadgen_id: 1319538792871428
+2026-05-26 10:46:57 | HIT START
+2026-05-26 10:46:57 | METHOD: POST
+2026-05-26 10:46:57 | RAW: {
+  "entry": [
+    {
+      "id": "521436764394620",
+      "time": 1779683033,
+      "changes": [
+        {
+          "value": {
+            "adgroup_id": "120243560899210209",
+            "ad_id": "120243560899210209",
+            "created_time": 1779683029,
+            "leadgen_id": "1319538792871428",
+            "page_id": "521436764394620",
+            "form_id": "973249842060968"
+          },
+          "field": "leadgen"
+        }
+      ]
+    }
+  ],
+  "object": "page"
+}
+
+2026-05-26 10:46:57 | leadgen_id: 1319538792871428
+2026-05-26 10:46:57 | meta_lead_logs insert: SUCCESS | {"code":0,"message":""}
+2026-05-26 10:46:57 | fetch_meta_lead: {"id":"1319538792871428","created_time":"2026-05-25T04:23:49+0000","ad_id":"120243560899210209","form_id":"973249842060968","field_data":[{"name":"travel_category?","values":["friends"]},{"name":"travel_date?","values":["26 mat"]},{"name":"how_many_days_planning?","values":["3-4 Days"]},{"name":"how_many_adults?_number_of_children_&_their_ages?","values":["6 adults"]},{"name":"whatapp_number?","values":["8712388507"]},{"name":"full_name","values":["Arun"]},{"name":"phone_number","values":["+917013701437"]},{"name":"city","values":["Gooty"]}]}
+2026-05-26 10:46:57 | leads insert result: FAILED
+2026-05-26 10:46:57 | END
+

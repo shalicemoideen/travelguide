@@ -1,0 +1,138 @@
+
+Staff order assign functionality
+
+
+Changes Made to application/controllers/Leads.php:
+Updated get_next_staff() function (lines 1389-1518):
+Step 1-3: Existing logic to get campaign and current shift
+
+Step 4 - NEW: Fallback logic
+
+If no staff found in the current shift, the system now fetches all staff assigned to the campaign (any shift)
+This ensures leads are always assigned even when no one is on duty in the current shift
+Step 5: Filter out staff with meta_force_stop = 'Y'
+
+Step 6 - UPDATED: Language filtering (replaced old tamil_speak checkbox)
+
+Extracts language from lead data
+Looks up language ID from languages table (supports both language name and code)
+Filters staff who speak the lead's language using the new staff_languages table
+Falls back to all filtered staff if no language match found
+Step 7-8: Existing round-robin distribution logic
+
+Gets last assigned staff
+Distributes to next staff in the filtered list using round-robin
+How It Works:
+Shift-based assignment: First tries to assign to staff in the current shift
+Fallback: If no staff in shift, expands to all staff assigned to the campaign
+Language matching: Within the available staff, filters by language if lead has language data
+Round-robin: Distributes leads evenly among eligible staff
+Example Flow:
+Lead arrives with language "Tamil"
+System checks current shift (e.g., 9 AM - 6 PM)
+Gets staff in that shift for the campaign
+Filters out staff with meta_force_stop
+Filters for Tamil-speaking staff
+Assigns to next Tamil-speaking staff in round-robin order
+If no Tamil speakers in shift, falls back to all Tamil speakers in campaign
+The system is now ready to handle Meta leads with intelligent shift and language-based distribution.
+
+
+
+
+
+Load Data from meta
+
+{
+  "id": "1319538792871428",
+  "created_time": "2026-05-25T04:23:49+0000",
+  "ad_id": "120243560899210209",
+  "form_id": "973249842060968",
+  "field_data": [
+    {"name": "travel_category?", "values": ["friends"]},
+    {"name": "travel_date?", "values": ["26 mat"]},
+    {"name": "how_many_days_planning?", "values": ["3-4 Days"]},
+    {"name": "how_many_adults?number_of_children&_their_ages?", "values": ["6 adults"]},
+    {"name": "whatapp_number?", "values": ["8712388507"]},
+    {"name": "full_name", "values": ["Arun"]},
+    {"name": "phone_number", "values": ["+917013701437"]},
+    {"name": "city", "values": ["Gooty"]}
+  ]
+}
+
+
+
+curl -X POST http://localhost:8080/Travels-software-latest/index.php/Leads/meta_webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+  "entry": [
+    {
+      "id": "521436764394620",
+      "time": 1779683033,
+      "changes": [
+        {
+          "value": {
+            "adgroup_id": "120243560899210209",
+            "ad_id": "120243560899210209",
+            "created_time": 1779683029,
+            "leadgen_id": "1319538792871428",
+            "page_id": "521436764394620",
+            "form_id": "973249842060968"
+          },
+          "field": "leadgen"
+        }
+      ]
+    }
+  ],
+  "object": "page"
+}'
+
+
+
+
+Client confirmation details
+
+
+
+
+I've successfully implemented the client confirmation system for quotations. Here's what was created:
+
+Database Schema (db/migration_client_confirmation.sql):
+client_confirmation - Main table for confirmation records
+client_confirmation_days - Stores which property is confirmed for each day
+client_confirmation_rooms - Stores which room category is confirmed for each property
+Model (application/models/Client_confirmation_model.php):
+Methods to fetch confirmations by token, quotation ID
+Methods to get confirmation details with days and rooms
+Methods to save/update confirmations
+Methods to fetch quotation properties for confirmation
+Controller (application/controllers/Client_confirmation.php):
+view($token) - Public view for clients to confirm their quotation
+submit_confirmation() - Process client confirmation submissions
+index() - Admin list view of all confirmations
+view_confirmation($id) - Admin view of specific confirmation details
+generate_confirmation($quotation_id) - Generate confirmation link for a quotation
+Views:
+client_view.php - Client-facing confirmation page with option/property/room selection
+admin_list.php - Admin list of all confirmations
+admin_view.php - Admin view of confirmation details
+admin_script.php - DataTable initialization for admin list
+Next Steps:
+Run the database migration:
+bash
+mysql -u your_username -p your_database < /home/shalice/Documents/TravelGuide/src/Travels-software-latest/db/migration_client_confirmation.sql
+Generate confirmation link from the quotation page (you'll need to integrate the generate_confirmation() method into your quotation controller)
+Test the system by:
+Generating a confirmation link for a quotation
+Opening the link as a client
+Selecting options, properties, and rooms
+Submitting the confirmation
+Viewing the confirmation in the admin panel
+The system allows clients to:
+
+View their quotation details
+Select their preferred option
+Choose which property to book for each day
+Select room categories for each property
+Provide contact details and comments
+Submit their confirmation
