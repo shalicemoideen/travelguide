@@ -1497,7 +1497,13 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 		// STEP 7 assign based on staff_order (priority order)
 		// The staff_order_assign table already defines the priority order
 		// We assign to the first staff in the order, then cycle through
+		// Track round-robin per campaign+shift combination
+
+		$shift_id = $shift ? $shift->shift_id : 0;
+
+		// Get last assigned staff for this specific campaign+shift combination
 		$this->db->select('staff_id_fk');
+		$this->db->where('meta_form_id', $form_id);
 		$this->db->order_by('leads_id', 'DESC');
 		$this->db->limit(1);
 
@@ -1642,10 +1648,12 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
                 $description .= "\n" . $k . ': ' . $v;
             }
         }
+        // print_r($mapped);exit();
 
         // IMPORTANT:
         // Change these IDs based on your system master data
        	$staff_id_fk = $this->get_next_staff($form_id, $mapped);
+
         $source_id_fk           = 12; // Facebook / Meta source ID
         $package_id_fk          = 0;
         $country_id_fk          = 99;
@@ -1686,8 +1694,13 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
             'leads_created_time'        => $now_time,
             'leads_createdby_userid'    => $created_user_id,
             'leads_createdby_username'  => $created_user_name,
-			'lead_current_status' => 1,
-            'leads_status'              => 1
+			'lead_current_status'       => 1,
+            'leads_status'              => 1,
+            'meta_leadgen_id'           => $leadgen_id,
+            'meta_page_id'              => $page_id,
+            'meta_form_id'              => $form_id,
+            'meta_ad_id'                => $ad_id,
+            'raw_meta_json'             => $description
         );
 
         $result = $this->db->insert('leads', $insert);

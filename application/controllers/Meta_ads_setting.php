@@ -196,14 +196,14 @@ class Meta_ads_setting extends MY_Controller {
             if (!empty($userdetails)) {
                 $actual_shift_id = (int)$userdetails->shift_id_fk;
 
-                // 1. Insert actual shift row
-                $next_order_actual = $this->Meta_ads_setting_model->get_next_staff_order($actual_shift_id, $insert);
+                // Insert staff only to their actual shift
+                $next_order = $this->Meta_ads_setting_model->get_next_staff_order($actual_shift_id, $insert);
 
-                $staff_order_data_actual = array(
+                $staff_order_data = array(
                     'shift_id_fk'                            => $actual_shift_id,
                     'meta_campain_id_fk'                    => $insert,
                     'staff_id_fk'                           => $staff_id,
-                    'staff_order'                           => $next_order_actual,
+                    'staff_order'                           => $next_order,
                     'staff_order_assign_created_date'       => $date,
                     'staff_order_assign_created_time'       => $time,
                     'staff_order_assign_creaded_by_user_id' => $currentuserid,
@@ -211,25 +211,7 @@ class Meta_ads_setting extends MY_Controller {
                     'staff_order_assign_status'             => 1
                 );
 
-                $this->General_model->add('staff_order_assign', $staff_order_data_actual);
-
-                // 2. Insert default shift_id = 3 row
-                $default_shift_id = 3;
-                $next_order_default = $this->Meta_ads_setting_model->get_next_staff_order($default_shift_id, $insert);
-
-                $staff_order_data_default = array(
-                    'shift_id_fk'                            => $default_shift_id,
-                    'meta_campain_id_fk'                    => $insert,
-                    'staff_id_fk'                           => $staff_id,
-                    'staff_order'                           => $next_order_default,
-                    'staff_order_assign_created_date'       => $date,
-                    'staff_order_assign_created_time'       => $time,
-                    'staff_order_assign_creaded_by_user_id' => $currentuserid,
-                    'staff_order_assign_created_by_username'=> $currentusername,
-                    'staff_order_assign_status'             => 1
-                );
-
-                $this->General_model->add('staff_order_assign', $staff_order_data_default);
+                $this->General_model->add('staff_order_assign', $staff_order_data);
             }
         }
     }
