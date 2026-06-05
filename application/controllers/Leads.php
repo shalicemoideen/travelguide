@@ -1401,22 +1401,29 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 		// STEP 2 shift
 		$current_time = date('H:i:s');
 
-		$shift = $this->db
+		// Get ALL active shifts (multiple shifts can overlap)
+		$shifts = $this->db
 			->where('shift_start_time <=', $current_time)
 			->where('shift_end_time >=', $current_time)
 			->where('shift_status', 1)
+			->order_by('shift_id', 'ASC')
 			->get('shift')
-			->row();
+			->result();
 
 		// STEP 3 staff list
-		$this->db->select('soa.staff_id_fk, soa.staff_order, u.meta_force_stop');
+		$this->db->select('soa.staff_id_fk, soa.staff_order, soa.shift_id_fk, u.meta_force_stop');
 		$this->db->from('staff_order_assign soa');
 		$this->db->join('user_details u', 'u.user_id = soa.staff_id_fk');
 
 		$this->db->where('soa.meta_campain_id_fk', $campaign_id);
 
-		if ($shift) {
-			$this->db->where('soa.shift_id_fk', $shift->shift_id);
+		if (!empty($shifts)) {
+			// Get shift IDs from active shifts
+			$shift_ids = array();
+			foreach ($shifts as $s) {
+				$shift_ids[] = $s->shift_id;
+			}
+			$this->db->where_in('soa.shift_id_fk', $shift_ids);
 		}
 
 		$this->db->order_by('soa.staff_order', 'ASC');
@@ -1424,9 +1431,9 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 		$staff_list = $this->db->get()->result();
 
 		// STEP 4 fallback to all staff if no one in shift
-		if (empty($staff_list) && $shift) {
+		if (empty($staff_list) && !empty($shifts)) {
 			// Get all staff for this campaign (any shift)
-			$this->db->select('soa.staff_id_fk, soa.staff_order, u.meta_force_stop');
+			$this->db->select('soa.staff_id_fk, soa.staff_order, soa.shift_id_fk, u.meta_force_stop');
 			$this->db->from('staff_order_assign soa');
 			$this->db->join('user_details u', 'u.user_id = soa.staff_id_fk');
 			$this->db->where('soa.meta_campain_id_fk', $campaign_id);
@@ -1489,19 +1496,55 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 
 		if (empty($filtered)) return 1;
 
-		// STEP 6.5 - Re-sort filtered staff by staff_order to maintain priority
-		usort($filtered, function($a, $b) {
-			return $a->staff_order - $b->staff_order;
-		});
+		// STEP 6.5 - Interleave staff from multiple shifts if applicable
+		if (!empty($shifts) && count($shifts) > 1) {
+			// Group staff by shift_id and sort each group by its own staff_order
+			$staff_by_shift = array();
+			foreach ($filtered as $staff) {
+				$shift_id = $staff->shift_id_fk;
+				if (!isset($staff_by_shift[$shift_id])) {
+					$staff_by_shift[$shift_id] = array();
+				}
+				$staff_by_shift[$shift_id][] = $staff;
+			}
+
+			// Sort each shift's staff by their own staff_order (maintains per-shift ordering)
+			foreach ($staff_by_shift as $shift_id => $shift_staff) {
+				usort($staff_by_shift[$shift_id], function($a, $b) {
+					return $a->staff_order - $b->staff_order;
+				});
+			}
+
+			// Interleave: take one from each shift in order
+			$interleaved = array();
+			$max_count = 0;
+			foreach ($staff_by_shift as $shift_staff) {
+				$max_count = max($max_count, count($shift_staff));
+			}
+
+			for ($i = 0; $i < $max_count; $i++) {
+				foreach ($shifts as $shift) {
+					$shift_id = $shift->shift_id;
+					if (isset($staff_by_shift[$shift_id]) && isset($staff_by_shift[$shift_id][$i])) {
+						$interleaved[] = $staff_by_shift[$shift_id][$i];
+					}
+				}
+			}
+
+			$filtered = $interleaved;
+		} else {
+			// Single shift or no shifts: sort by staff_order
+			usort($filtered, function($a, $b) {
+				return $a->staff_order - $b->staff_order;
+			});
+		}
 
 		// STEP 7 assign based on staff_order (priority order)
 		// The staff_order_assign table already defines the priority order
 		// We assign to the first staff in the order, then cycle through
-		// Track round-robin per campaign+shift combination
+		// Track round-robin for the interleaved staff sequence
 
-		$shift_id = $shift ? $shift->shift_id : 0;
-
-		// Get last assigned staff for this specific campaign+shift combination
+		// Get last assigned staff for this form (works for both single and multiple shifts)
 		$this->db->select('staff_id_fk');
 		$this->db->where('meta_form_id', $form_id);
 		$this->db->order_by('leads_id', 'DESC');
