@@ -1496,79 +1496,121 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 
 		if (empty($filtered)) return 1;
 
-		// STEP 6.5 - Interleave staff from multiple shifts if applicable
-		if (!empty($shifts) && count($shifts) > 1) {
-			// Group staff by shift_id and sort each group by its own staff_order
-			$staff_by_shift = array();
-			foreach ($filtered as $staff) {
-				$shift_id = $staff->shift_id_fk;
-				if (!isset($staff_by_shift[$shift_id])) {
-					$staff_by_shift[$shift_id] = array();
-				}
-				$staff_by_shift[$shift_id][] = $staff;
+		// STEP 6.5 - Group staff by shift for per-shift round-robin assignment
+		// Instead of interleaving, we maintain separate round-robin for each shift
+		$staff_by_shift = array();
+		foreach ($filtered as $staff) {
+			$shift_id = $staff->shift_id_fk;
+			if (!isset($staff_by_shift[$shift_id])) {
+				$staff_by_shift[$shift_id] = array();
 			}
+			$staff_by_shift[$shift_id][] = $staff;
+		}
 
-			// Sort each shift's staff by their own staff_order (maintains per-shift ordering)
-			foreach ($staff_by_shift as $shift_id => $shift_staff) {
-				usort($staff_by_shift[$shift_id], function($a, $b) {
-					return $a->staff_order - $b->staff_order;
-				});
-			}
+		// Sort each shift's staff by their own staff_order
+		foreach ($staff_by_shift as $shift_id => $shift_staff) {
+			usort($staff_by_shift[$shift_id], function($a, $b) {
+				return $a->staff_order - $b->staff_order;
+			});
+		}
 
-			// Interleave: take one from each shift in order
-			$interleaved = array();
-			$max_count = 0;
-			foreach ($staff_by_shift as $shift_staff) {
-				$max_count = max($max_count, count($shift_staff));
-			}
-
-			for ($i = 0; $i < $max_count; $i++) {
-				foreach ($shifts as $shift) {
-					$shift_id = $shift->shift_id;
-					if (isset($staff_by_shift[$shift_id]) && isset($staff_by_shift[$shift_id][$i])) {
-						$interleaved[] = $staff_by_shift[$shift_id][$i];
-					}
-				}
-			}
-
-			$filtered = $interleaved;
-		} else {
-			// Single shift or no shifts: sort by staff_order
+		// If no shifts or single shift, use the first available group
+		if (empty($shifts)) {
+			// Use all staff in staff_order
 			usort($filtered, function($a, $b) {
 				return $a->staff_order - $b->staff_order;
 			});
 		}
 
-		// STEP 7 assign based on staff_order (priority order)
-		// The staff_order_assign table already defines the priority order
-		// We assign to the first staff in the order, then cycle through
-		// Track round-robin for the interleaved staff sequence
-
-		// Get last assigned staff for this form (works for both single and multiple shifts)
+		// STEP 7 assign based on staff_order with shift-aware round-robin
+		// When multiple shifts are active, we maintain separate round-robin for each shift
+		// When a shift becomes active, assignment starts from its first staff
+		
+		// Get last assigned staff for this form
 		$this->db->select('staff_id_fk');
 		$this->db->where('meta_form_id', $form_id);
 		$this->db->order_by('leads_id', 'DESC');
 		$this->db->limit(1);
 
 		$last = $this->db->get('leads')->row();
-
 		$last_staff = $last ? $last->staff_id_fk : 0;
 
-		// STEP 8 round robin based on staff_order
-		// Find the last assigned staff in the filtered list and return the next one
-		$next_staff = $filtered[0]->staff_id_fk; // Default to first in order
-		$found = false;
-
-		for ($i = 0; $i < count($filtered); $i++) {
-			if ($found) {
-				return $filtered[$i]->staff_id_fk;
+		// If no shifts are active, use simple round-robin on all staff
+		if (empty($shifts)) {
+			$next_staff = $filtered[0]->staff_id_fk;
+			$found = false;
+			for ($i = 0; $i < count($filtered); $i++) {
+				if ($found) {
+					return $filtered[$i]->staff_id_fk;
+				}
+				if ($filtered[$i]->staff_id_fk == $last_staff) {
+					$found = true;
+				}
 			}
-			if ($filtered[$i]->staff_id_fk == $last_staff) {
-				$found = true;
+			return $next_staff;
+		}
+
+		// If shifts are active, use shift-based assignment
+		// Get the shift of the last assigned staff
+		$last_shift_id = null;
+		if ($last_staff > 0) {
+			$last_staff_shift = $this->db
+				->select('shift_id_fk')
+				->where('staff_id_fk', $last_staff)
+				->where('meta_campain_id_fk', $campaign_id)
+				->get('staff_order_assign')
+				->row();
+			
+			if ($last_staff_shift) {
+				$last_shift_id = $last_staff_shift->shift_id_fk;
 			}
 		}
 
-		return $next_staff;
+		// Check if the last assigned staff's shift is currently active
+		$last_shift_is_active = false;
+		if ($last_shift_id !== null) {
+			foreach ($shifts as $shift) {
+				if ($shift->shift_id == $last_shift_id) {
+					$last_shift_is_active = true;
+					break;
+				}
+			}
+		}
+
+		// If last shift is not active (or no last staff), start from first staff of first active shift
+		if (!$last_shift_is_active) {
+			$first_shift_id = $shifts[0]->shift_id;
+			if (isset($staff_by_shift[$first_shift_id]) && !empty($staff_by_shift[$first_shift_id])) {
+				return $staff_by_shift[$first_shift_id][0]->staff_id_fk;
+			}
+		}
+
+		// If last shift is still active, continue round-robin within that shift
+		if ($last_shift_is_active && isset($staff_by_shift[$last_shift_id])) {
+			$shift_staff = $staff_by_shift[$last_shift_id];
+			$found = false;
+			for ($i = 0; $i < count($shift_staff); $i++) {
+				if ($found) {
+					return $shift_staff[$i]->staff_id_fk;
+				}
+				if ($shift_staff[$i]->staff_id_fk == $last_staff) {
+					$found = true;
+				}
+			}
+			// If reached end of shift staff, cycle back to first staff of this shift
+			if (!empty($shift_staff)) {
+				return $shift_staff[0]->staff_id_fk;
+			}
+		}
+
+		// Fallback: return first staff of first active shift
+		$first_shift_id = $shifts[0]->shift_id;
+		if (isset($staff_by_shift[$first_shift_id]) && !empty($staff_by_shift[$first_shift_id])) {
+			return $staff_by_shift[$first_shift_id][0]->staff_id_fk;
+		}
+
+		// Ultimate fallback: return first staff in filtered list
+		return $filtered[0]->staff_id_fk;
 	}
     /**
      * Convert Meta lead fields and insert into your leads table

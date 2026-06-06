@@ -249,6 +249,12 @@ class Staff extends MY_Controller {
 		
 		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
+		$new_shift_id = $this->input->post('shift_id_fk');
+		
+		// Get current shift to check if it changed
+		$current_staff = $this->Staff_model->get_by_id($id);
+		$old_shift_id = $current_staff->shift_id_fk;
+		
 		// echo $ip;
 
 		$activity_data = array(
@@ -283,7 +289,7 @@ class Staff extends MY_Controller {
 				'meta_force_stop' => ($this->input->post('meta_force_stop') == 'Y') ? 'Y' : 'N',
 
 
-				'shift_id_fk' => $this->input->post('shift_id_fk'),
+				'shift_id_fk' => $new_shift_id,
                 'user_description' => $this->input->post('user_description'),
                 // 'user_profile_pic' => $file,	
 				// 'user_created_date' => $date,			
@@ -293,6 +299,34 @@ class Staff extends MY_Controller {
 			);
 			// print_r($data);exit();
 		$this->Staff_model->update(array('user_id' => $this->input->post('id')), $data);
+
+		// Update staff_order_assign table if shift changed
+		if ($old_shift_id != $new_shift_id) {
+			// Get all staff_order_assign entries for this staff
+			$staff_order_assigns = $this->db
+				->where('staff_id_fk', $id)
+				->get('staff_order_assign')
+				->result();
+
+			if (!empty($staff_order_assigns)) {
+				foreach ($staff_order_assigns as $assign) {
+					// Get next order for the new shift in this campaign
+					$this->db->select_max('staff_order');
+					$this->db->where('shift_id_fk', $new_shift_id);
+					$this->db->where('meta_campain_id_fk', $assign->meta_campain_id_fk);
+					$max_order = $this->db->get('staff_order_assign')->row();
+					
+					$next_order = ($max_order && $max_order->staff_order) ? ($max_order->staff_order + 1) : 1;
+
+					// Update the staff_order_assign entry with new shift and order
+					$this->db->where('staff_order_assign_id', $assign->staff_order_assign_id);
+					$this->db->update('staff_order_assign', array(
+						'shift_id_fk' => $new_shift_id,
+						'staff_order' => $next_order
+					));
+				}
+			}
+		}
 
 		// Save staff languages
 		$languages = $this->input->post('languages');
