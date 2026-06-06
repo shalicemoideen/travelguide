@@ -29,6 +29,7 @@
 	***********************************-->
 	<!-- Required vendors -->
 	<script src="<?php echo base_url();?>assets/vendor/global/global.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
 	<script src="<?php echo base_url();?>assets/vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
 	

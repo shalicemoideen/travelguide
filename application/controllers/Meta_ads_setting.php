@@ -179,6 +179,39 @@ class Meta_ads_setting extends MY_Controller {
     $meta_ads_setting_staff_id_fk = $this->input->post('meta_ads_setting_staff_id_fk');
 
     if (!empty($meta_ads_setting_staff_id_fk)) {
+        // Get existing staff orders for this shift to preserve order
+        $shift_staff_orders = array();
+        foreach ($meta_ads_setting_staff_id_fk as $staff_id) {
+            $userdetails = $this->Meta_ads_setting_model->get_user_shift($staff_id);
+            if (!empty($userdetails)) {
+                $actual_shift_id = (int)$userdetails->shift_id_fk;
+
+                // Get existing order for this staff in this shift (from any campaign)
+                $existing_order = $this->db
+                    ->select('staff_order')
+                    ->from('staff_order_assign')
+                    ->where('shift_id_fk', $actual_shift_id)
+                    ->where('staff_id_fk', $staff_id)
+                    ->where('staff_order_assign_status', 1)
+                    ->order_by('CAST(staff_order AS UNSIGNED)', 'ASC')
+                    ->limit(1)
+                    ->get()
+                    ->row();
+
+                if ($existing_order) {
+                    $shift_staff_orders[$staff_id] = $existing_order->staff_order;
+                }
+            }
+        }
+
+        // Sort staff by their existing order
+        uasort($meta_ads_setting_staff_id_fk, function($a, $b) use ($shift_staff_orders) {
+            $order_a = isset($shift_staff_orders[$a]) ? $shift_staff_orders[$a] : 999999;
+            $order_b = isset($shift_staff_orders[$b]) ? $shift_staff_orders[$b] : 999999;
+            return $order_a - $order_b;
+        });
+
+        $order_counter = 1;
         foreach ($meta_ads_setting_staff_id_fk as $staff_id) {
 
             // save selected staff in meta_ads_setting_staff table
@@ -196,14 +229,12 @@ class Meta_ads_setting extends MY_Controller {
             if (!empty($userdetails)) {
                 $actual_shift_id = (int)$userdetails->shift_id_fk;
 
-                // Insert staff only to their actual shift
-                $next_order = $this->Meta_ads_setting_model->get_next_staff_order($actual_shift_id, $insert);
-
+                // Use sequential order based on sorted staff
                 $staff_order_data = array(
                     'shift_id_fk'                            => $actual_shift_id,
                     'meta_campain_id_fk'                    => $insert,
                     'staff_id_fk'                           => $staff_id,
-                    'staff_order'                           => $next_order,
+                    'staff_order'                           => $order_counter,
                     'staff_order_assign_created_date'       => $date,
                     'staff_order_assign_created_time'       => $time,
                     'staff_order_assign_creaded_by_user_id' => $currentuserid,
@@ -212,6 +243,7 @@ class Meta_ads_setting extends MY_Controller {
                 );
 
                 $this->General_model->add('staff_order_assign', $staff_order_data);
+                $order_counter++;
             }
         }
     }
@@ -245,25 +277,24 @@ class Meta_ads_setting extends MY_Controller {
 	public function ajax_update()
 	{
 		$this->_validate();
-		
+
 		$this->load->helper('date');
 		if(function_exists('date_default_timezone_set')) {
 			date_default_timezone_set("Asia/Kolkata");
 		}
 		$date = date('Y-m-d');
-		$time = date('h:i:sa');
-		
-		$date1 = date('Y-m-d h:i:s a', time());
-		
+		$time = date('H:i:s');
+		$date1 = date('Y-m-d H:i:s');
+
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 		$currentusername = $this->session->userdata('admin_name');
-		
-		
-		
+
+
+
 		$meta_ads_setting_name = $this->input->post('meta_ads_setting_name');
-		
-		
+
+
 		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
 		// echo $ip;
@@ -276,22 +307,22 @@ class Meta_ads_setting extends MY_Controller {
 				'activity_action' => 'Edit',
 				'activity_by_userid' => $currentuserid,
 				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
+				'activity_date_time	' => $date1,
+				'activity_date' => $date,
 				'activity_status' => 1,
 			);
-		
+
 		$this->General_model->add($this->activity,$activity_data);
-		
+
 		$data = array(
-				
+
 				'meta_ads_setting_name' => $this->input->post('meta_ads_setting_name'),
 				'facebook_form_id' => $this->input->post('facebook_form_id'),
-				'meta_ads_setting_description' => $this->input->post('meta_ads_setting_description'),				
-				// 'meta_ads_setting_created_by_userid' => $currentuserid,			
-				// 'meta_ads_setting_created_by_username' => $currentusername,			
-				// 'meta_ads_setting_created_by_date' => $date,			
-				// 'meta_ads_setting_created_by_time' => $time,			
+				'meta_ads_setting_description' => $this->input->post('meta_ads_setting_description'),
+				// 'meta_ads_setting_created_by_userid' => $currentuserid,
+				// 'meta_ads_setting_created_by_username' => $currentusername,
+				// 'meta_ads_setting_created_by_date' => $date,
+				// 'meta_ads_setting_created_by_time' => $time,
 				// 'meta_ads_setting_status' => 1
 			);
 			// print_r($data);exit();
@@ -299,35 +330,81 @@ class Meta_ads_setting extends MY_Controller {
 
 		$this->General_model->delete($this->meta_ads_setting_staff,'meta_ads_setting_id_fk',$id);
 
-			// $vehicle_id_fk = $this->input->post('vehicle_id_fk');
-
-			// foreach ($vehicle_id_fk as $key => $value) {		
-					
-			// 		$vehicle_id = $value;
-
-			// 		$vehicle_list = array(
-			// 		'transporter_id_fk' => $id,
-			// 		'vehicle_id_fk' => $vehicle_id,
-			// 		'transporter_vehicle_status' => '1',
-			// 		);
-
-			// 		$this->General_model->add($this->transporter_vehicle,$vehicle_list);
-			// }
+		// Delete existing staff_order_assign entries for this campaign
+		$this->db->where('meta_campain_id_fk', $id);
+		$this->db->delete('staff_order_assign');
 
         $meta_ads_setting_staff_id_fk = $this->input->post('meta_ads_setting_staff_id_fk');
 
-			foreach ($meta_ads_setting_staff_id_fk as $key => $value) {		
-					
-					$staff_id = $value;
+		if (!empty($meta_ads_setting_staff_id_fk)) {
+			// Get existing staff orders for this shift to preserve order
+			$shift_staff_orders = array();
+			foreach ($meta_ads_setting_staff_id_fk as $staff_id) {
+				$userdetails = $this->Meta_ads_setting_model->get_user_shift($staff_id);
+				if (!empty($userdetails)) {
+					$actual_shift_id = (int)$userdetails->shift_id_fk;
 
-					$staff_list = array(
-					'meta_ads_setting_id_fk' => $id,
-					'meta_ads_setting_staff_id_fk' => $staff_id,
-					'meta_ads_setting_staff_status' => '1',
+					// Get existing order for this staff in this shift (from any campaign)
+					$existing_order = $this->db
+						->select('staff_order')
+						->from('staff_order_assign')
+						->where('shift_id_fk', $actual_shift_id)
+						->where('staff_id_fk', $staff_id)
+						->where('staff_order_assign_status', 1)
+						->order_by('CAST(staff_order AS UNSIGNED)', 'ASC')
+						->limit(1)
+						->get()
+						->row();
+
+					if ($existing_order) {
+						$shift_staff_orders[$staff_id] = $existing_order->staff_order;
+					}
+				}
+			}
+
+			// Sort staff by their existing order
+			uasort($meta_ads_setting_staff_id_fk, function($a, $b) use ($shift_staff_orders) {
+				$order_a = isset($shift_staff_orders[$a]) ? $shift_staff_orders[$a] : 999999;
+				$order_b = isset($shift_staff_orders[$b]) ? $shift_staff_orders[$b] : 999999;
+				return $order_a - $order_b;
+			});
+
+			$order_counter = 1;
+			foreach ($meta_ads_setting_staff_id_fk as $staff_id) {
+
+				// save selected staff in meta_ads_setting_staff table
+				$staff_list = array(
+				'meta_ads_setting_id_fk' => $id,
+				'meta_ads_setting_staff_id_fk' => $staff_id,
+				'meta_ads_setting_staff_status' => 1,
+				);
+
+				$this->General_model->add($this->meta_ads_setting_staff,$staff_list);
+
+				// get staff shift from userdetails table
+				$userdetails = $this->Meta_ads_setting_model->get_user_shift($staff_id);
+
+				if (!empty($userdetails)) {
+					$actual_shift_id = (int)$userdetails->shift_id_fk;
+
+					// Use sequential order based on sorted staff
+					$staff_order_data = array(
+						'shift_id_fk'                            => $actual_shift_id,
+						'meta_campain_id_fk'                    => $id,
+						'staff_id_fk'                           => $staff_id,
+						'staff_order'                           => $order_counter,
+						'staff_order_assign_created_date'       => $date,
+						'staff_order_assign_created_time'       => $time,
+						'staff_order_assign_creaded_by_user_id' => $currentuserid,
+						'staff_order_assign_created_by_username'=> $currentusername,
+						'staff_order_assign_status'             => 1
 					);
 
-					$this->General_model->add($this->meta_ads_setting_staff,$staff_list);
+					$this->General_model->add('staff_order_assign', $staff_order_data);
+					$order_counter++;
+				}
 			}
+		}
 		echo json_encode(array("status" => TRUE));
 	}
 

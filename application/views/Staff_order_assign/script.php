@@ -44,10 +44,10 @@ function formatTime12Hour(timeStr)
 
 function bindCampaignChange()
 {
-    $('.campaign-dropdown').off('change').on('change', function() {
+    $('.campaign-dropdown').off('select2:select').on('select2:select', function(e) {
         let $this = $(this);
         let shift_id = String($this.data('shift-id'));
-        let campaign_id = $this.val();
+        let campaign_id = e.params.data.id;
 
         // keep selected value in memory
         selectedCampaigns[shift_id] = campaign_id;
@@ -55,15 +55,20 @@ function bindCampaignChange()
         // also keep selected value in element attribute
         $this.attr('data-selected-campaign', campaign_id);
 
-        // force select2 to keep selected text
-        $this.val(campaign_id).trigger('change.select2');
-
-        if (campaign_id == '') {
-            $('#staff_sortable_' + shift_id).html('<div class="text-muted">Please select campaign</div>');
-            return;
-        }
-
         loadStaffList(shift_id, campaign_id);
+    });
+
+    $('.campaign-dropdown').off('select2:unselect').on('select2:unselect', function(e) {
+        let $this = $(this);
+        let shift_id = String($this.data('shift-id'));
+
+        // clear selected value from memory
+        selectedCampaigns[shift_id] = '';
+
+        // clear selected value from element attribute
+        $this.attr('data-selected-campaign', '');
+
+        $('#staff_sortable_' + shift_id).html('<div class="text-muted">Please select campaign</div>');
     });
 }
 
@@ -219,19 +224,11 @@ function loadShiftBlocks()
 
                     $('#shiftBlocksContainer').html(html);
 
+                    // Initialize Select2 - it will automatically pick up the selected option from the HTML
                     $('.shift-campaign-select').select2({
                         width: '100%',
-                        placeholder: 'Please select campaign'
-                    });
-
-                    $('.campaign-dropdown').each(function() {
-                        let $this = $(this);
-                        let shift_id = String($this.data('shift-id'));
-                        let selected_campaign = selectedCampaigns[shift_id] || $this.attr('data-selected-campaign') || '';
-
-                        if (selected_campaign !== '') {
-                            $this.val(String(selected_campaign)).trigger('change.select2');
-                        }
+                        placeholder: 'Please select campaign',
+                        dropdownParent: $(document.body)
                     });
 
                     bindCampaignChange();
