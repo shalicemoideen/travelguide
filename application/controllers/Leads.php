@@ -1585,19 +1585,52 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 			}
 		}
 
-		// If last shift is still active, continue round-robin within that shift
+		// If last shift is still active, check if multiple shifts are active
+		// If multiple shifts are active, continue round-robin within current shift
+		// Only rotate to next shift after completing full cycle in current shift
 		if ($last_shift_is_active && isset($staff_by_shift[$last_shift_id])) {
 			$shift_staff = $staff_by_shift[$last_shift_id];
 			$found = false;
+			$next_staff_id = null;
+
+			// Find next staff in the same shift
 			for ($i = 0; $i < count($shift_staff); $i++) {
 				if ($found) {
-					return $shift_staff[$i]->staff_id_fk;
+					$next_staff_id = $shift_staff[$i]->staff_id_fk;
+					break;
 				}
 				if ($shift_staff[$i]->staff_id_fk == $last_staff) {
 					$found = true;
 				}
 			}
-			// If reached end of shift staff, cycle back to first staff of this shift
+
+			// If next staff found in same shift, assign to them
+			if ($next_staff_id !== null) {
+				return $next_staff_id;
+			}
+
+			// If reached end of shift staff (completed cycle), rotate to next shift
+			if (count($shifts) > 1) {
+				// Find the index of the last shift in the active shifts array
+				$last_shift_index = -1;
+				for ($i = 0; $i < count($shifts); $i++) {
+					if ($shifts[$i]->shift_id == $last_shift_id) {
+						$last_shift_index = $i;
+						break;
+					}
+				}
+
+				// Move to the next shift in the active shifts array
+				$next_shift_index = ($last_shift_index + 1) % count($shifts);
+				$next_shift_id = $shifts[$next_shift_index]->shift_id;
+
+				// Return first staff of the next shift
+				if (isset($staff_by_shift[$next_shift_id]) && !empty($staff_by_shift[$next_shift_id])) {
+					return $staff_by_shift[$next_shift_id][0]->staff_id_fk;
+				}
+			}
+
+			// If only one shift or rotation failed, cycle back to first staff of current shift
 			if (!empty($shift_staff)) {
 				return $shift_staff[0]->staff_id_fk;
 			}
