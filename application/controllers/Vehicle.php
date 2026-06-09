@@ -41,9 +41,7 @@ class Vehicle extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['vehicle_id'] =(isset($_REQUEST['vehicle_id']))?$_REQUEST['vehicle_id']:'';
-		$param['vehicle_createdby_user_id'] =(isset($_REQUEST['vehicle_createdby_user_id']))?$_REQUEST['vehicle_createdby_user_id']:'';
-
+		
 		if (!has_permission('VEHICLE_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -85,32 +83,11 @@ class Vehicle extends MY_Controller {
 				'vehicle_name' => $this->input->post('vehicle_name'),
 				'vehicle_number_seat' => $this->input->post('vehicle_number_seat'),
 				'vehicle_description' => $this->input->post('vehicle_description'),						
-				'vehicle_createdby_user_id' => $currentuserid,			
-				'vehicle_createdby_user_name' => $currentusername,			
-				'vehicle_created_date' => $date,			
-				'vehicle_created_time' => $time,			
+				'vehicle_createdby_user_id' => $currentuserid,						
+				'vehicle_created_at' => $date1,					
 				'vehicle_status' => 1
 			);
 		$insert = $this->Vehicle_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added vehicle: '.$vehicle_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Vehicle_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -142,37 +119,16 @@ class Vehicle extends MY_Controller {
 		
 		
 		$vehicle_name = $this->input->post('vehicle_name');
-		
-		
-		$ip = $this->input->ip_address();
-		$id = $this->input->post('id');
-		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited vehicle: '.$vehicle_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Vehicle_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
+		$id = $this->input->post('id');
 		
 		$data = array(
 				
 				'vehicle_name' => $this->input->post('vehicle_name'),
 				'vehicle_number_seat' => $this->input->post('vehicle_number_seat'),
 				'vehicle_description' => $this->input->post('vehicle_description'),						
-				// 'vehicle_createdby_user_id' => $currentuserid,			
-				// 'vehicle_createdby_user_name' => $currentusername,			
-				// 'vehicle_created_date' => $date,			
-				// 'vehicle_created_time' => $time,			
-				// 'vehicle_status' => 1
+				'vehicle_updatedby_user_id' => $currentuserid,					
+				'vehicle_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Vehicle_model->update(array('vehicle_id' => $this->input->post('id')), $data);
@@ -222,21 +178,21 @@ class Vehicle extends MY_Controller {
 		$vehicle_name = $this->input->post('vehicle_name');
 		$ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted vehicle '.$vehicle_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Vehicle_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted vehicle '.$vehicle_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Vehicle_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

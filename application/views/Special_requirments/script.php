@@ -11,8 +11,6 @@ $(document).ready(function () {
 
 ////***Filter button hide and show*****///
 
-$("#special_requirements_id").select2();
-$("#special_requirements_createdby_user_id").select2();
 
 ////***searching button*****///
 
@@ -58,7 +56,7 @@ var table;
     $table = $('#Special_requirments_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -67,20 +65,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4]
-                                    }
+                                        columns: [0, 1, 2, 3]
+                                    },
+                                    title: 'Special requirment details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4]
-                                    }
+                                        columns: [0, 1, 2, 3]
+                                    },
+                                    title: 'Special requirment details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4]
-                                    }
+                                        columns: [0 ,1, 2, 3]
+                                    },
+                                    title: 'Special requirment details'
                                 },
                                
 			],
@@ -88,8 +89,8 @@ var table;
             "url": "<?php echo base_url();?>index.php/Special_requirments/get/",
             "type": "POST",
             "data" : function (d) {
-						d.special_requirements_id = $("#special_requirements_id").val();
-						d.special_requirements_createdby_user_id = $("#special_requirements_createdby_user_id").val();
+						// d.special_requirements_id = $("#special_requirements_id").val();
+						// d.special_requirements_createdby_user_id = $("#special_requirements_createdby_user_id").val();
            }			
         },
 		// "ajax": {
@@ -123,7 +124,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(5).html(actionHtml);
+            $('td', row).eq(4).html(actionHtml);
             
            },
 
@@ -135,8 +136,7 @@ var table;
             { "data": "special_requirements_status", "orderable": false },
             { "data": "special_requirements_name", "orderable": false },
             { "data": "special_requirements_cost", "orderable": false },
-            { "data": "special_requirements_description", "orderable": false },
-            { "data": "special_requirements_createdby_user_name", "orderable": false },                      
+            { "data": "special_requirements_description", "orderable": false },                     
             { "data": "special_requirements_id", "orderable": false }
             
             

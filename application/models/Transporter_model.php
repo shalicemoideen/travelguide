@@ -9,24 +9,10 @@ class Transporter_model extends CI_Model{
     }
 	
 	public function getTransporterTable($param){
-		$arOrder = array('','roles_name');
-		$transporter_id =(isset($param['transporter_id']))?$param['transporter_id']:'';
-		$transporter_base_station_id_fk =(isset($param['transporter_base_station_id_fk']))?$param['transporter_base_station_id_fk']:'';
-		$vehicle_id_fk =(isset($param['vehicle_id_fk']))?$param['vehicle_id_fk']:'';
-		$transporter_createdby_user_id =(isset($param['transporter_createdby_user_id']))?$param['transporter_createdby_user_id']:'';
-		
-		
-		if($transporter_id){
-            $this->db->where('transporter_id', $transporter_id); 
-        }
-		if($transporter_base_station_id_fk){
-            $this->db->where('transporter_base_station_id_fk', $transporter_base_station_id_fk); 
-        }
-        if($vehicle_id_fk){
-            $this->db->where_in('vehicle_id_fk', $vehicle_id_fk); 
-        }
-        if($transporter_createdby_user_id){
-            $this->db->where('transporter_createdby_user_id', $transporter_createdby_user_id); 
+		$arOrder = array('','transporter_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('transporter_name', $searchValue); 
         }
         $this->db->where("transporter_status",1);
 
@@ -63,23 +49,9 @@ class Transporter_model extends CI_Model{
 
 	public function getTransporterTotalCount($param = NULL){
 
-		$transporter_id =(isset($param['transporter_id']))?$param['transporter_id']:'';
-		$transporter_base_station_id_fk =(isset($param['transporter_base_station_id_fk']))?$param['transporter_base_station_id_fk']:'';
-		$vehicle_id_fk =(isset($param['vehicle_id_fk']))?$param['vehicle_id_fk']:'';
-		$transporter_createdby_user_id =(isset($param['transporter_createdby_user_id']))?$param['transporter_createdby_user_id']:'';
-		
-		
-		if($transporter_id){
-            $this->db->where('transporter_id', $transporter_id); 
-        }
-		if($transporter_base_station_id_fk){
-            $this->db->where('transporter_base_station_id_fk', $transporter_base_station_id_fk); 
-        }
-        if($vehicle_id_fk){
-            $this->db->where_in('vehicle_id_fk', $vehicle_id_fk); 
-        }
-        if($transporter_createdby_user_id){
-            $this->db->where('transporter_createdby_user_id', $transporter_createdby_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('transporter_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

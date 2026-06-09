@@ -8,231 +8,241 @@
         ***********************************-->
         <div class="content-body">
             <div class="container-fluid">
-				<button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
-				<!-- <div class="row page-titles">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item active"><a href="javascript:void(0)">Table</a></li>
-						<li class="breadcrumb-item"><a href="javascript:void(0)">Datatable</a></li>
-					</ol>
-                </div> -->
-                <!-- row --><input type="hidden" id="counter_edit2" value="">
-                <form id="exampleValidation" method="POST" action="" enctype="multipart/form-data">
-                                    <div class="card-header" id="Create" style="display:none">
-                                        <div class="d-flex align-items-center">
-                                            <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                <div class="col-sm-6 col-md-5">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="cancellation_policies_id" name="cancellation_policies_id" required>  
-                            
-                                                                    <option value="">Please Select cancellation policies</option>
-                                                                    <?php
+				
 
-                                                                    foreach($cancellation as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->cancellation_policies_id.'" '.$sel.'>'.$row->cancellation_policies_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>  
-                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select name="cancellation_policies_createdby_user_id" id="cancellation_policies_createdby_user_id" class="form-control input-lg lst-flt-select2" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($staff as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <button type="button" class="btn btn-warning btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="fas fa-search"></i>
-                                                            </span>
-                                                            Search
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <a href="<?php echo base_url();?>Cancellation_policies">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="icon-refresh"></i>
-                                                            </span>
-                                                            Refresh
-                                                        </button>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                
-                                            </div>
-                                        
-                                        </div>
-                                    </div>
-                                    </form>
-
+                <!-- ============================================
+                     CANCELLATION POLICY LIST PAGE
+                ============================================ -->
                 <div class="row">
-                    
-                    
-					<div class="col-12">
+
+                    <div class="col-12">
+
                         <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Cancellation and policies Details</h4>                                
+
+                            <!-- HEADER -->
+                            <div class="card-header d-flex justify-content-between align-items-center">
+
+                                <h4 class="card-title mb-0">
+                                    Cancellation policy Details
+                                </h4>
+
+                               
+
                                 <?php if (has_permission('CANCELLATION_AND_POLICY_CREATE')): ?>
-                                        <a onclick="add_Cancellation_policies()"  data-bs-target="#Cancellation_policiesModal" class="btn btn-rounded btn-secondary btn-md">+ New Cancellation and policies</a> 
+                                         <!-- ADD NEW BUTTON -->
+                                <button type="button"
+                                        onclick="add_cancellation_policy()"
+                                        class="btn btn-rounded btn-secondary btn-md">
+                                    + New Cancellation policy
+                                </button>
                                 <?php endif; ?>
+
                             </div>
+
+
+                            <!-- BODY -->
                             <div class="card-body">
+
+                                <!-- FLASH MESSAGE -->
+                                <div id="flash_message"></div>
+
+                                <!-- ============================================
+                                     SEARCH + RESET FILTERS
+                                     Add this ABOVE the table inside card-body
+                                ============================================ -->
+                                <div class="row mb-3">
+
+                                    <!-- SEARCH BY POLICY NAME -->
+                                    <!-- <div class="col-md-4">
+                                        <input type="text"
+                                               id="cancellation_policies_name_filter"
+                                               class="form-control"
+                                               placeholder="Search cancellation policy Name">
+                                    </div>
+
+                                     BUTTONS 
+                                    <div class="col-md-4">
+
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                onclick="search_payment_policies()">
+                                            Search
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-secondary"
+                                                onclick="reset_filters()">
+                                            Reset
+                                        </button>
+
+                                    </div>
+
+                                </div> -->
+
+
+                                <!-- TABLE -->
                                 <div class="table-responsive">
-                                    <table id="Cancellation_policies_table" class="display" style="min-width: 845px">
+
+                                    <table id="Cancellation_policy_table"
+                                           class="display table table-bordered table-striped"
+                                           style="width:100%">
+
                                         <thead>
                                             <tr>
-                                                <th>Sl.no</th>
-                                                <th>Name</th>
-                                                <th>Created by</th>
-                                                <th>Action</th>
+                                                <th style="width:5%;">Sl.No</th>
+                                                <th style="width:25%;">Cancellation Name</th>
+                                                <!-- <th style="width:25%;">Created By</th> -->
+                                                <th style="width:5%;">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            
-                                        </tbody>
+
+                                        <tbody></tbody>
+
                                     </table>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
-					
-					
-				</div>
+
+                </div>
             </div>
         </div>
         <!--**********************************
             Content body end
         ***********************************-->
 
-        <!-- Modal -->
-        <div class="modal fade" id="Cancellation_policiesModal" role="dialog" data-backdrop="static"  data-keyboard="false">
-            <div class="modal-dialog modal-lg" role="document">
+
+
+        <!-- ADD / EDIT MODAL -->
+        <div class="modal fade" id="Cancellation_policyModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
+
                     <div class="modal-header">
-                        <h5 class="modal-title"></h5>
-                        <button type="button" class="btn-close" onclick="Cancellation_policiesmodalclose()" data-bs-dismiss="modal">
-                        </button>
+                        <h4 class="modal-title">Cancellation Policy</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
+
                     <div class="modal-body">
-                        
-                        <form class="needs-validation sl-cust-validation" action="#" id="form" >
-                            <input type="hidden" value="" name="id" id="id"/> 
-                            <input type="hidden" name="removed_cancellation_policies_id" id="removed_cancellation_policies_id"  value=""/>
+                        <form id="form">
+
+                            <!-- Hidden ID -->
+                            <input type="hidden" name="cancellation_policies_id" id="cancellation_policies_id">
+
+                            <!-- Main Cancel Name -->
+                            <div class="mb-3">
+                                <label>Cancellation Policy Name</label>
+                                <input type="text"
+                                       class="form-control"
+                                       name="cancellation_policies_name"
+                                       id="cancellation_policies_name"
+                                       placeholder="Enter Cancellation Policy Name">
+
+                                <span class="help-block text-danger"></span>
+                            </div>
+
+                            <!-- Dynamic Items -->
                             <div class="row">
-                                <div class="col-md-8">
-                                    <div class=" form-group">
-                                        <label class="col-lg-3 col-form-label" for="cancellation_policies_name">Name <span class="text-danger">*</span>
-                                        </label>
-                                        
-                                            <input type="text" class="form-control" name="cancellation_policies_name" id="cancellation_policies_name" placeholder="Enter cancellation and policies title" required>
-                                            <span class="help-block" style="color:red"></span>
-                                            <input type="hidden" id="counter_edit1" >
-                                        
-                                    </div>
+                                <div class="col-md-12">
+                                    <label>Cancellation Policy Items</label>
+
+                                    <div id="product1"></div>
+
+                                    <button type="button"
+                                            class="btn btn-success mt-2"
+                                            id="add_more_btn">
+                                        + Add New Item
+                                    </button>
                                 </div>
                             </div>
-                                    <div class="col-md-21" >
 
-                    <div class="card">      
-
-                            <div class="box-body no-padding">
-
-                                
-
-                                <div id="product" class="box-body no-padding">
-                                    
-                                   
-                                    <div class="row">
-                                                            <div class="col-xl-12 col-lg-12">
-                                        <div class="card">
-                                            <!-- <div class="card-header">
-                                                <h4 class="card-title"></h4>
-                                            </div> -->
-                                            <div class="card-body">
-                                                <div class="basic-form">
-                                                    
-                                                
-                                      
-                                                       <div class="row" id="product1">
-                                                            <!-- <div class="mb-3 col-md-8">
-                                                                 <input type="hidden" name="terms_condition_id_fk[1]" id="terms_condition_id_fk_1"/>
-                                                                 <textarea class="form-control" name="terms_condition_items_name[1]" id="terms_condition_items_name_1"  rows="5" placeholder="Enter Terms and condition" required></textarea>
-                                                            <span class="help-block" style="color:red"></span>
-                                                            </div>
-                                                            <div class="mb-3 col-md-3">
-                                                                <button class="btn btn-primary add" type="button" id="submit" onClick="addMore();" >+ Add new</button>
-                                                            </div> -->
-                                                            
-                                                            
-                                                        </div> 
-                                                    
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div></div>
-                                </div>
-
-                                <div class="col-sm-2"></div>
-
-                                <button class="btn btn-primary add" type="button" id="submit" style="margin-left:10%;" onClick="addMore();">New Items</button>
-
-                                
-                              </div>
-                            </div>
-
-                                </div>
-
-
-                            
                         </form>
                     </div>
+
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger light" onclick="Cancellation_policiesmodalclose()" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="btnSave" onclick="save()" >Save</button>
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="btnSave"
+                                onclick="save(event)">
+                            Save
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            Cancel
+                        </button>
                     </div>
+
                 </div>
             </div>
         </div>
 
+        
 
-<!-- Modal -->
-<div class="modal fade" id="deleterowModal" role="dialog" data-backdrop="static"  data-keyboard="false">
-    <div class="modal-dialog" role="document">
+
+<!-- ============================================
+     DELETE CONFIRMATION MODAL
+============================================ -->
+<div class="modal fade" id="deleterowModal" tabindex="-1">
+
+    <div class="modal-dialog modal-md">
+
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title1"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal">
-                </button>
+
+            <!-- HEADER -->
+            <div class="modal-header bg-danger text-white">
+
+                <h5 class="modal-title modal-title1">
+                    Delete Confirmation
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"></button>
+
             </div>
+
+            <!-- BODY -->
             <div class="modal-body">
-                
-                <form class="needs-validation" action="#" id="form1" >
-                    <input type="hidden" value="" name="id" id="id1"/> 
-                    <input type="hidden" value="" name="cancellation_policies_name" id="cancellation_policies_name1"/>
-                    
-                </form>
+
+                <!-- HIDDEN DELETE ID -->
+                <input type="hidden" name="delete_id" id="delete_id">
+
+                <p class="mb-2">
+                    Are you sure you want to delete this Cancellation Policy?
+                </p>
+
+                <div class="alert alert-warning mb-0">
+                    <strong id="delete_cancel_name"></strong>
+                </div>
+
             </div>
+
+            <!-- FOOTER -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger light" onclick="Cancellation_policiesmodalclose()" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="btnSave1" onclick="delete_cancellation_policies_action()" >Delete</button>
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn btn-danger"
+                        id="btnSave1"
+                        onclick="confirm_delete_cancellation_policy()">
+                    Delete
+                </button>
+
             </div>
+
         </div>
+
     </div>
+
 </div>

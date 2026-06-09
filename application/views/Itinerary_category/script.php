@@ -11,9 +11,6 @@ $(document).ready(function () {
 
 ////***Filter button hide and show*****///
 
-$("#itinerary_category_id").select2();
-$("#itinerary_category_createdby_user_id").select2();
-
 ////***searching button*****///
 
 $('#search').click(function () {
@@ -58,7 +55,7 @@ var table;
     $table = $('#Itinerary_category_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -67,20 +64,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3]
-                                    }
+                                        columns: [0, 1, 2]
+                                    },
+                                    title: 'Itinerary category details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3]
-                                    }
+                                        columns: [0, 1, 2]
+                                    },
+                                    title: 'Itinerary category details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3]
-                                    }
+                                        columns: [0 ,1, 2]
+                                    },
+                                    title: 'Itinerary category details'
                                 },
                                
 			],
@@ -88,8 +88,8 @@ var table;
             "url": "<?php echo base_url();?>index.php/Itinerary_category/get/",
             "type": "POST",
             "data" : function (d) {
-						d.itinerary_category_id = $("#itinerary_category_id").val();
-						d.itinerary_category_createdby_user_id = $("#itinerary_category_createdby_user_id").val();
+						// d.itinerary_category_id = $("#itinerary_category_id").val();
+						// d.itinerary_category_createdby_user_id = $("#itinerary_category_createdby_user_id").val();
            }			
         },
 		// "ajax": {
@@ -123,7 +123,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(4).html(actionHtml);
+            $('td', row).eq(3).html(actionHtml);
 
            },
 
@@ -134,8 +134,7 @@ var table;
         "columns": [
             { "data": "itinerary_category_status", "orderable": false },
             { "data": "itinerary_category_name", "orderable": false },
-            { "data": "itinerary_category_description", "orderable": false },
-            { "data": "itinerary_category_createdby_user_name", "orderable": false },                      
+            { "data": "itinerary_category_description", "orderable": false },                    
             { "data": "itinerary_category_id", "orderable": false }
             
             

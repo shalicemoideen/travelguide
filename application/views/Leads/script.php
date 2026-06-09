@@ -1673,7 +1673,7 @@ var table1;
           });
           
           
-            
+            $('td', row).eq(4).html('<center>'+data['start_date']+'-'+data['leads_created_time']+'</center>');
             
            },
 
@@ -3088,6 +3088,8 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
         
 
            $('td', row).eq(1).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a></center>');
+
+           $('td', row).eq(4).html('<center>'+data['lead_register_date']+'|'+data['leads_created_time']+'</center>');
             
             
            },

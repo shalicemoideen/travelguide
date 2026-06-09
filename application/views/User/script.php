@@ -12,6 +12,22 @@ $("#user_name").on('click',function(){
       var options = $.parseJSON(response);
       noty(options);
   }
+
+$(document).ready(function () {
+    var flashVal = $('#flash_response').val();
+    if (flashVal) {
+        var flashData = $.parseJSON(flashVal);
+        var options = {
+            'title': '',
+            'style': flashData.type === 'success' ? 'success' : 'error',
+            'message': flashData.text,
+            'icon': flashData.type === 'success' ? 'fas fa-check' : 'fas fa-times'
+        };
+        var n1 = new notify(options);
+        n1.show();
+        setTimeout(function () { n1.hide(); }, 5000);
+    }
+});
   var param = '';
   var arMonth = {'2':'Supervisor','3':'Accountant','4':'employees'};
   var $customerList=[ {'columnName':'customer_name','label':'Customer'} ];
@@ -180,5 +196,50 @@ if(user_id == ''){
 });
 
 ////***Checking User name already existing*****///
+
+////***File Saving Toggle*****///
+$(document).ready(function () {
+    $('#btn_toggle_file_saving').on('click', function () {
+        var $btn = $(this);
+        var currentValue = $btn.data('current');
+        var isStopped = (currentValue === 'Y');
+
+        $('#fileSavingModalTitle').text(isStopped ? 'Confirm Enable' : 'Confirm Stop');
+        $('#fileSavingModalMsg').text(isStopped ? 'Do you want to enable force stop meta leads?' : 'Do you want to stop meta leads?');
+        $('#fileSavingConfirmModal').modal('show');
+    });
+
+    $('#btnFileSavingConfirmYes').on('click', function () {
+        $('#fileSavingConfirmModal').modal('hide');
+
+        var $btn = $('#btn_toggle_file_saving');
+        var currentValue = $btn.data('current');
+
+        $.ajax({
+            url: '<?php echo base_url(); ?>index.php/User/toggle_file_saving',
+            type: 'POST',
+            data: { current_value: currentValue },
+            dataType: 'json',
+            success: function (res) {
+                if (res.status) {
+                    var newValue = res.new_value;
+                    var isStopped = (newValue === 'Y');
+
+                    $btn.data('current', newValue);
+
+                    if (isStopped) {
+                        $btn.removeClass('btn-success').addClass('btn-danger').text('Force Stopped (Click to Enable meta leads)');
+                    } else {
+                        $btn.removeClass('btn-danger').addClass('btn-success').text('Meta leads Enabled (Click to Stop)');
+                    }
+                }
+            },
+            error: function () {
+                alert('Failed to update file saving status.');
+            }
+        });
+    });
+});
+////***File Saving Toggle*****///
   
 </script>

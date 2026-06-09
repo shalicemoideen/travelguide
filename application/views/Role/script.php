@@ -1,4 +1,29 @@
 <script>
+
+// Module select all
+$(document).on('change', '.module-select-all', function () {
+
+    let card = $(this).closest('.permission-card');
+
+    card.find('.permission-checkbox')
+        .prop('checked', $(this).is(':checked'));
+
+});
+
+
+// Auto update module select all checkbox
+$(document).on('change', '.permission-checkbox', function () {
+
+    let card = $(this).closest('.permission-card');
+
+    let total = card.find('.permission-checkbox').length;
+    let checked = card.find('.permission-checkbox:checked').length;
+
+    card.find('.module-select-all')
+        .prop('checked', total === checked);
+
+});
+
 // Select / Unselect all permissions
 $(document).on('change', '#select_all_permissions', function () {
 
@@ -83,20 +108,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3]
-                                    }
+                                        columns: [0, 1, 2]
+                                    },
+                                    title: 'Role details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3]
-                                    }
+                                        columns: [0, 1, 2]
+                                    },
+                                    title: 'Role details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3]
-                                    }
+                                        columns: [0 ,1, 2]
+                                    },
+                                    title: 'Role details'
                                 },
                                
 			],

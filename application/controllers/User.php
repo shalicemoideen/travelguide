@@ -122,10 +122,10 @@ class User extends MY_Controller {
                     
                 }
 				if($result){
-	            $this->session->set_flashdata('response', "{&quot;text&quot;:&quot;$response_text&quot;,&quot;layout&quot;:&quot;topRight&quot;,&quot;type&quot;:&quot;success&quot;}");
+	            $this->session->set_flashdata('response', json_encode(['text' => $response_text, 'type' => 'success']));
 				}
 				else{
-	            $this->session->set_flashdata('response', '{&quot;text&quot;:&quot;Something went wrong,please try again later&quot;,&quot;layout&quot;:&quot;bottomRight&quot;,&quot;type&quot;:&quot;error&quot;}');
+	            $this->session->set_flashdata('response', json_encode(['text' => 'Something went wrong, please try again later', 'type' => 'error']));
 				}
 				
 	        redirect('/User/', 'refresh');
@@ -205,4 +205,37 @@ class User extends MY_Controller {
             echo $json_data;
             
         }
+
+	public function toggle_file_saving()
+	{
+		$user_id = $this->session->userdata('user_id');
+		$current_value = $this->input->post('current_value');
+
+		if (function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$datetime = date('Y-m-d H:i:s');
+
+		$new_value = ($current_value === 'Y') ? 'N' : 'Y';
+		$action    = ($new_value === 'Y') ? 'STOPPED' : 'ENABLED';
+
+		$this->db->where('user_id', $user_id)->update('user_details', ['meta_force_stop' => $new_value]);
+
+		$this->db->insert('force_stop_log', [
+			'log_user_id_fk'    => $user_id,
+			'log_action'        => $action,
+			'log_action_datetime' => $datetime,
+			'log_status'        => 1
+		]);
+
+		echo json_encode(['status' => TRUE, 'new_value' => $new_value, 'action' => $action]);
+	}
+
+	public function get_file_saving_status()
+	{
+		$user_id = $this->session->userdata('user_id');
+		$query = $this->db->select('meta_force_stop')->where('user_id', $user_id)->get('user_details');
+		$row = $query->row();
+		echo json_encode(['meta_force_stop' => $row ? $row->meta_force_stop : 'N']);
+	}
 }

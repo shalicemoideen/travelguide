@@ -1,5 +1,73 @@
 <script>
 
+function initCommonSelect2(scope) {
+
+    scope = scope || document;
+
+    $(scope).find('.lst-flt-select2').each(function () {
+
+        let $select = $(this);
+
+        // avoid re-initializing
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        // find nearest opened modal if this select is inside modal
+        let $modal = $select.closest('.modal');
+
+        let options = {
+            width: '100%',
+            minimumResultsForSearch: 0
+        };
+
+        // only set dropdownParent when inside modal
+        if ($modal.length) {
+            options.dropdownParent = $modal;
+        }
+
+        $select.select2(options);
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
+});
+
+// initialize page select2
+$(document).ready(function () {
+    initCommonSelect2(document);
+});
+
+// call this after opening any modal
+$('#DestinationModal').on('shown.bs.modal', function () {
+    initCommonSelect2(this);
+});
+
+// Clear error class when select2 value changes
+$(document).on('select2:select', function(e) {
+    var $element = $(e.target);
+    if ($element.hasClass('select2-hidden-accessible')) {
+        $element.next('.select2-container').removeClass('input-warning-o');
+        $element.parent().find('.help-block').text('');
+    }
+});
+
+// Clear error class when select2 is cleared
+$(document).on('select2:unselect', function(e) {
+    var $element = $(e.target);
+    if ($element.hasClass('select2-hidden-accessible')) {
+        $element.next('.select2-container').removeClass('input-warning-o');
+        $element.parent().find('.help-block').text('');
+    }
+});
+
 ////***Filter button hide and show*****///
 
 $(document).ready(function () {
@@ -10,9 +78,6 @@ $(document).ready(function () {
 
 
 ////***Filter button hide and show*****///
-
-$("#state_id_filter").select2();
-$("#state_created_user_id").select2();
 
 ////***searching button*****///
 
@@ -58,38 +123,41 @@ var table;
     $table = $('#Destination_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
 			buttons: [
-				
+
                                 {
                                     extend: 'excel',
                                     exportOptions: {
                                         columns: [0, 1, 2, 3]
-                                    }
+                                    },
+                                    title: 'Desitination details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
                                         columns: [0, 1, 2, 3]
-                                    }
+                                    },
+                                    title: 'Desitination details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
                                         columns: [0 ,1, 2, 3]
-                                    }
+                                    },
+                                    title: 'Desitination details'
                                 },
-                               
+
 			],
         "ajax": {
             "url": "<?php echo base_url();?>index.php/Destination/get/",
             "type": "POST",
             "data" : function (d) {
-						d.state_id_filter = $("#state_id_filter").val();
-						d.state_created_user_id = $("#state_created_user_id").val();
+						// d.state_id_filter = $("#state_id_filter").val();
+						// d.state_created_user_id = $("#state_created_user_id").val();
            }			
         },
 		// "ajax": {
@@ -124,8 +192,8 @@ var table;
             $('td', row).eq(4).html(actionHtml);
 
 			// $('td', row).eq(4).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_destination('+data['state_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_destination('+data['state_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
-			
-            
+
+
            },
 
            "drawCallback": function( settings ) {
@@ -134,12 +202,12 @@ var table;
 
         "columns": [
             { "data": "state_status", "orderable": false },
+            { "data": "location_name", "orderable": false },
             { "data": "state_name", "orderable": false },
             { "data": "state_description", "orderable": false },
-            { "data": "state_created_user_name", "orderable": false },                      
             { "data": "state_id", "orderable": false }
-            
-            
+
+
         ]
         
     });
@@ -156,14 +224,17 @@ function Destinationmodalclose()
 {
 
     $('#DestinationModal').modal('hide');
-   
+
 	//$( "div" ).remove( ".modal-backdrop" );
+    $('#location_id_fk').val('').trigger('change');
     $('#state_name').val('');
     $('#state_description').val('');
 	$('#category_name_alert').hide();
 	$('.submit').removeAttr('disabled');
 	$('.form-group').removeClass('input-success-o');
 	$('.form-group').removeClass('input-warning-o');
+	$('.location_id_fk').removeClass('input-success-o');
+	$('.location_id_fk').removeClass('input-warning-o');
 	$('.state_name').removeClass('input-success-o');
 	$('.state_name').removeClass('input-warning-o');
     $('.state_description').removeClass('input-success-o');
@@ -190,12 +261,13 @@ $('#PackagecategoryModal').on('shown.bs.modal', function () {
 ////***For open modal of Package category adding form  *****///
 	
 function add_destination()
-{ 
+{
     save_method = 'add';
     $("#id").val('');
     $('#form')[0].reset(); // reset form on modals
     $('.form-group').removeClass('input-warning-o'); // clear error class
     $('.help-block').empty(); // clear error string
+    $('.select2-container').removeClass('input-warning-o'); // clear select2 error class
     $('#DestinationModal').modal('show'); // show bootstrap modal
     $('.modal-title').text('Add Destination Details'); // Set Title to Bootstrap modal title
 	$('#btnSave').text('save');
@@ -211,6 +283,7 @@ function edit_destination(id)
     $('#form')[0].reset(); // reset form on modals
     $('.form-group').removeClass('input-warning-o'); // clear error class
     $('.help-block').empty(); // clear error string
+    $('.select2-container').removeClass('input-warning-o'); // clear select2 error class
 
     //Ajax Load data from ajax
     $.ajax({
@@ -221,8 +294,9 @@ function edit_destination(id)
         {
 
             $('[name="id"]').val(data.state_id);
+            $('[name="location_id_fk"]').val(data.location_id_fk).trigger('change');
             $('[name="state_name"]').val(data.state_name);
-            $('[name="state_description"]').val(data.state_description);      
+            $('[name="state_description"]').val(data.state_description);
             $('#DestinationModal').modal('show'); // show bootstrap modal when complete loaded
             $('.modal-title').text('Edit Destination Details'); // Set title to Bootstrap modal title
 			$('#btnSave').text('update');
@@ -359,10 +433,29 @@ function save()
             }
             else
             {
-                for (var i = 0; i < data.inputerror.length; i++) 
+                for (var i = 0; i < data.inputerror.length; i++)
                 {
-                    $('[name="'+data.inputerror[i]+'"]').parent().parent().addClass('input-warning-o'); //select parent twice to select div form-group class and add has-error class
-                    $('[name="'+data.inputerror[i]+'"]').next().text(data.error_string[i]); //select span help-block class set text error string
+                    var $element = $('[name="'+data.inputerror[i]+'"]');
+
+                    // Check if this is a select2 element
+                    if ($element.hasClass('select2-hidden-accessible')) {
+                        // For select2, add error class to the select2 container
+                        $element.next('.select2-container').addClass('input-warning-o');
+                        // Show error message
+                        if($element.parent().find('.help-block').length) {
+                            $element.parent().find('.help-block').text(data.error_string[i]);
+                        } else {
+                            $element.next().text(data.error_string[i]);
+                        }
+                    } else {
+                        // For regular elements
+                        $element.parent().parent().addClass('input-warning-o');
+                        if($element.parent().find('.help-block').length) {
+                            $element.parent().find('.help-block').text(data.error_string[i]);
+                        } else {
+                            $element.next().text(data.error_string[i]);
+                        }
+                    }
                 }
             }
             $('#btnSave').text('save'); //change button text

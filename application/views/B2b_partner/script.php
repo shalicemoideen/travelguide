@@ -13,64 +13,60 @@ $(document).ready(function () {
 
 ////***Latest dropdown select2*****///
 
-$("#b2b_partner_id").select2();
-$("#b2b_partner_createdby_user_id").select2();
-$("#b2b_partner_country_id_fk").select2();
-$("#b2b_partner_location_id_fk").select2();
-$("#b2b_partner_country_id_fk1").select2();
-$("#b2b_partner_location_id_fk1").select2();
+function initCommonSelect2(scope) {
+
+    scope = scope || document;
+
+    $(scope).find('.lst-flt-select2').each(function () {
+
+        let $select = $(this);
+
+        // avoid re-initializing
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        // find nearest opened modal if this select is inside modal
+        let $modal = $select.closest('.modal');
+
+        let options = {
+            width: '100%',
+            minimumResultsForSearch: 0
+        };
+
+        // only set dropdownParent when inside modal
+        if ($modal.length) {
+            options.dropdownParent = $modal;
+        }
+
+        $select.select2(options);
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
+});
+
+// initialize page select2
+$(document).ready(function () {
+    initCommonSelect2(document);
+});
+
+// call this after opening any modal
+$('#B2BpartnerModal').on('shown.bs.modal', function () {
+    initCommonSelect2(this);
+});
+
+// $("#b2b_partner_country_id_fk").select2();
+// $("#b2b_partner_location_id_fk").select2();
+
 ////***Latest dropdown select2*****///
-
-////***Ajax drop down add*****///
-
-$('#b2b_partner_country_id_fk').change(function() {
-    // alert("oo");
-        var country_id = $('#b2b_partner_country_id_fk').val();
-        if(country_id != '') {
-            $.ajax({
-                url: "<?php echo base_url(); ?>index.php/B2b_partner/fetch_state",
-                method: "POST",
-                data: {
-                    country_id: country_id
-                },
-                success: function(data) {
-                    $('#b2b_partner_location_id_fk').html(data);
-                    // $('#city').html('<option value="">Select City</option>');
-                }
-            });
-        } else {
-            $('#b2b_partner_location_id_fk').html('<option value="0"> Please Select Location </option>');
-            // $('#city').html('<option value="">Select City</option>');
-        }
-    });
-
-////***Ajax drop down add*****///
-
-////***Ajax drop down listing*****///
-
-$('#b2b_partner_country_id_fk1').change(function() {
-    // alert("oo");
-        var country_id = $('#b2b_partner_country_id_fk1').val();
-
-        if(country_id != '') {
-            $.ajax({
-                url: "<?php echo base_url(); ?>index.php/B2b_partner/fetch_state",
-                method: "POST",
-                data: {
-                    country_id: country_id
-                },
-                success: function(data) {
-                    $('#b2b_partner_location_id_fk1').html(data);
-                    // $('#city').html('<option value="">Select City</option>');
-                }
-            });
-        } else {
-            $('#b2b_partner_location_id_fk').html('<option value="0"> Please Select Location </option>');
-            // $('#city').html('<option value="">Select City</option>');
-        }
-    });
-
-////***Ajax drop down listing*****///
 
 ////***searching button*****///
 
@@ -79,13 +75,13 @@ $('#search').click(function () {
         $table.ajax.reload();
     });
 
-$( "#b2b_partner_person_name1" ).keypress(function() {
-            $table.ajax.reload();
-});
+// $( "#b2b_partner_person_name1" ).keypress(function() {
+//             $table.ajax.reload();
+// });
 
-$( "#b2b_partner_contact_number1" ).keypress(function() {
-            $table.ajax.reload();
-});
+// $( "#b2b_partner_contact_number1" ).keypress(function() {
+//             $table.ajax.reload();
+// });
 ////***searching button*****///
 
 ////***Latest Jquery form validation for adding form*****///
@@ -123,7 +119,7 @@ var table;
     $table = $('#B2B_partner_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -132,20 +128,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                    }
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                                    },
+                                    title: 'B2B partner details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                    }
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                                    },
+                                    title: 'B2B partner details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                    }
+                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7, 8]
+                                    },
+                                    title: 'B2B partner details'
                                 },
                                
 			],
@@ -153,12 +152,12 @@ var table;
             "url": "<?php echo base_url();?>index.php/B2b_partner/get/",
             "type": "POST",
             "data" : function (d) {
-						d.b2b_partner_id = $("#b2b_partner_id").val();
-						d.b2b_partner_createdby_user_id = $("#b2b_partner_createdby_user_id").val();
-                        d.b2b_partner_country_id_fk = $("#b2b_partner_country_id_fk1").val();
-                        d.b2b_partner_location_id_fk = $("#b2b_partner_location_id_fk1").val();
-                        d.b2b_partner_person_name = $("#b2b_partner_person_name1").val();
-                        d.b2b_partner_contact_number = $("#b2b_partner_contact_number1").val();
+						// d.b2b_partner_id = $("#b2b_partner_id").val();
+						// d.b2b_partner_createdby_user_id = $("#b2b_partner_createdby_user_id").val();
+                        // d.b2b_partner_country_id_fk = $("#b2b_partner_country_id_fk1").val();
+                        // d.b2b_partner_location_id_fk = $("#b2b_partner_location_id_fk1").val();
+                        // d.b2b_partner_person_name = $("#b2b_partner_person_name1").val();
+                        // d.b2b_partner_contact_number = $("#b2b_partner_contact_number1").val();
            }			
         },
 		// "ajax": {
@@ -192,7 +191,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(10).html(actionHtml);
+            $('td', row).eq(9).html(actionHtml);
 
            },
 
@@ -209,8 +208,7 @@ var table;
             { "data": "b2b_partner_person_name", "orderable": false },
             { "data": "b2b_partner_contact_number", "orderable": false },
             { "data": "b2b_partner_email_address", "orderable": false },
-            { "data": "b2b_partner_description", "orderable": false },
-            { "data": "b2b_partner_createdby_user_name", "orderable": false },                      
+            { "data": "b2b_partner_description", "orderable": false },                     
             { "data": "b2b_partner_id", "orderable": false }
             
             
@@ -251,6 +249,12 @@ $('#B2BpartnerModal').on('shown.bs.modal', function () {
     // $("#state_id_fk").select2('open');
 	$('#b2b_partner_agent_name').focus();
     $('#category_name_alert').hide();
+     var id = $("#id").val();
+    if(id == '')
+    {
+        $('#b2b_partner_country_id_fk').val('').change();
+        $('#b2b_partner_location_id_fk').val('').change();
+    }
 	// $(".submit").attr("disabled", "disabled");
 	$('.form-group').removeClass('input-success-o');
 	$('.form-group').removeClass('input-warning-o');
@@ -293,12 +297,13 @@ function edit_b2bpartner(id)
         dataType: "JSON",
         success: function(data)
         {
-            country_id=data.b2b_partner_country_id_fk;state_id=data.b2b_partner_location_id_fk;
+            
             $('[name="id"]').val(data.b2b_partner_id);
             $('[name="b2b_partner_agent_name"]').val(data.b2b_partner_agent_name);
             $('[name="b2b_partner_address"]').val(data.b2b_partner_address);
-            $('[id="b2b_partner_country_id_fk"]').val(data.b2b_partner_country_id_fk).trigger('change.select2');;
-            $('[id="b2b_partner_location_id_fk"]').val(data.b2b_partner_location_id_fk);
+            $('[id="b2b_partner_country_id_fk"]').val(data.b2b_partner_country_id_fk).trigger('change.select2');
+            $('#b2b_partner_location_id_fk').val(data.b2b_partner_location_id_fk).trigger('change.select2');
+            // $('[id="b2b_partner_location_id_fk"]').val(data.b2b_partner_location_id_fk);
             $('[id="b2b_partner_person_name"]').val(data.b2b_partner_person_name);
             $('[id="b2b_partner_contact_number"]').val(data.b2b_partner_contact_number);  
             $('[name="b2b_partner_email_address"]').val(data.b2b_partner_email_address); 
@@ -307,17 +312,7 @@ function edit_b2bpartner(id)
             $('.modal-title').text('Edit B2B partner Details'); // Set title to Bootstrap modal title
 			$('#btnSave').text('update');
 
-            $.ajax({
-                url: "<?php echo base_url(); ?>index.php/B2b_partner/fetch_state",
-                method: "POST",
-                data: {
-                    country_id: country_id,state_id:state_id
-                },
-                success: function(data) {
-                    $('#b2b_partner_location_id_fk').html(data);
-                    // $('#city').html('<option value="">Select City</option>');
-                }
-            });
+           
         },
         error: function (jqXHR, textStatus, errorThrown)
         {

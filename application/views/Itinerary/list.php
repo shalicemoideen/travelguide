@@ -18,6 +18,21 @@
   margin-left: 20px !important;
 }
 </style>
+<style>
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -38,19 +53,7 @@
                                                 <div class="col-sm-6 col-md-5">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class=" input-lg lst-flt-select2" id="itineraries_id_filter" name="itineraries_id_filter" required>  
-                            
-                                                                    <option value="">Please Select itinerary</option>
-                                                                    <?php
-
-                                                                    foreach($itineraries as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->itineraries_id.'" '.$sel.'>'.$row->itineraries_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
+                                                            <select class=" input-lg lst-flt-select2" id="itineraries_id_filter" name="itineraries_id_filter">
                                                             </select>
                                                         </div>
                                                     </div>
@@ -58,19 +61,7 @@
                                                 <div class="col-sm-6 col-md-5">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="itineraries_category_id_filter" name="itineraries_category_id_filter" required>  
-                            
-                                                                    <option value="">Please Select itinerary category</option>
-                                                                    <?php
-
-                                                                    foreach($itinerary_category as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->itinerary_category_id.'" '.$sel.'>'.$row->itinerary_category_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
+                                                            <select class="form-control input-lg lst-flt-select2" id="itineraries_category_id_filter" name="itineraries_category_id_filter">
                                                             </select>
                                                         </div>
                                                     </div>
@@ -78,39 +69,22 @@
                                                 <div class="col-sm-6 col-md-5">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <input type="text" class="form-control" name="itineraries_duration_nights_filter" id="itineraries_duration_nights_filter" placeholder="Enter duration in nights" required>
+                                                            <input type="text" class="form-control" name="itineraries_duration_nights_filter" id="itineraries_duration_nights_filter" placeholder="Enter duration in nights">
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-6 col-md-5">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="itineraries_days_destination_id_fk_filter" name="itineraries_days_destination_id_fk_filter" required>  
-                            
-                                                                    <option value="">Please Select destination</option>
-                                                                    <?php
-
-                                                                    foreach($destination as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->state_id.'" '.$sel.'>'.$row->state_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
+                                                            <select class="form-control input-lg lst-flt-select2" id="itineraries_days_destination_id_fk_filter" name="itineraries_days_destination_id_fk_filter">
                                                             </select>
                                                         </div>
                                                     </div>
-                                                </div>   
+                                                </div>
                                                 <div class="col-sm-6 col-md-5 staff-do-not-show">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select name="itineraries_createdby_user_id" id="itineraries_createdby_user_id" class="form-control input-lg lst-flt-select2" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($staff as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
+                                                            <select name="itineraries_createdby_user_id" id="itineraries_createdby_user_id" class="form-control input-lg lst-flt-select2">
                                                             </select>
                                                         </div>
                                                     </div>
@@ -127,14 +101,12 @@
                                                 </div>
                                                 <div class="col-sm-2 col-md-3">
                                                     <div class="card">
-                                                        <a href="<?php echo base_url();?>Itinerary">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
+                                                        <button type="button" class="btn btn-secondary btn-md" id="refresh">
                                                             <span class="btn-label">
                                                                 <i class="icon-refresh"></i>
                                                             </span>
                                                             Refresh
                                                         </button>
-                                                        </a>
                                                     </div>
                                                 </div>
                                                 

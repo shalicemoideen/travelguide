@@ -9,16 +9,10 @@ class Priority_status_model extends CI_Model{
     }
 	
 	public function getPriortystatusTable($param){
-		$arOrder = array('','roles_name');
-		$priority_status_id =(isset($param['priority_status_id']))?$param['priority_status_id']:'';
-		$priority_status_created_user_id =(isset($param['priority_status_created_user_id']))?$param['priority_status_created_user_id']:'';
-		
-		
-		if($priority_status_id){
-            $this->db->where('priority_status_id', $priority_status_id); 
-        }
-		if($priority_status_created_user_id){
-            $this->db->where('priority_status_created_user_id', $priority_status_created_user_id); 
+		$arOrder = array('','priority_status_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('priority_status_name', $searchValue); 
         }
         $this->db->where("priority_status_created_status",1);
 
@@ -52,15 +46,9 @@ class Priority_status_model extends CI_Model{
 
 	public function getPrioritystatusTotalCount($param = NULL){
 
-		$priority_status_id =(isset($param['priority_status_id']))?$param['priority_status_id']:'';
-		$priority_status_created_user_id =(isset($param['priority_status_created_user_id']))?$param['priority_status_created_user_id']:'';
-		
-		
-		if($priority_status_id){
-            $this->db->where('priority_status_id', $priority_status_id); 
-        }
-		if($priority_status_created_user_id){
-            $this->db->where('priority_status_created_user_id', $priority_status_created_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('priority_status_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

@@ -40,9 +40,6 @@ class Itinerary_category extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['itinerary_category_id'] =(isset($_REQUEST['itinerary_category_id']))?$_REQUEST['itinerary_category_id']:'';
-		$param['itinerary_category_createdby_user_id'] =(isset($_REQUEST['itinerary_category_createdby_user_id']))?$_REQUEST['itinerary_category_createdby_user_id']:'';
-
 		if (!has_permission('CATEGORY_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -81,32 +78,11 @@ class Itinerary_category extends MY_Controller {
 
 				'itinerary_category_name' => $this->input->post('itinerary_category_name'),
 				'itinerary_category_description' => $this->input->post('itinerary_category_description'),					
-				'itinerary_category_createdby_user_id' => $currentuserid,			
-				'itinerary_category_createdby_user_name' => $currentusername,			
-				'itinerary_category_created_date' => $date,			
-				'itinerary_category_created_time' => $time,			
+				'itinerary_category_createdby_user_id' => $currentuserid,						
+				'itinerary_category_created_at' => $date1,					
 				'itinerary_category_status' => 1
 			);
 		$insert = $this->Itinerary_category_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added itinerary category: '.$itinerary_category_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Itinerary_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -139,35 +115,16 @@ class Itinerary_category extends MY_Controller {
 		
 		$itinerary_category_name = $this->input->post('itinerary_category_name');
 		
-		
-		$ip = $this->input->ip_address();
-		$id = $this->input->post('id');
-		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited itinerary category: '.$itinerary_category_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Itinerary_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
+		$id = $this->input->post('id');
+
 		
 		$data = array(
 				
 				'itinerary_category_name' => $this->input->post('itinerary_category_name'),
 				'itinerary_category_description' => $this->input->post('itinerary_category_description'),					
-				// 'itinerary_category_createdby_user_id' => $currentuserid,			
-				// 'itinerary_category_createdby_user_name' => $currentusername,			
-				// 'itinerary_category_created_date' => $date,			
-				// 'itinerary_category_created_time' => $time,			
-				// 'itinerary_category_status' => 1
+				'itinerary_category_updatedby_user_id' => $currentuserid,						
+				'itinerary_category_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Itinerary_category_model->update(array('itinerary_category_id' => $this->input->post('id')), $data);
@@ -214,24 +171,24 @@ class Itinerary_category extends MY_Controller {
 		
 		$this->Itinerary_category_model->update(array('itinerary_category_id' => $this->input->post('id')), $updateData);
 
-		$itinerary_category_name = $this->input->post('itinerary_category_name');
-		$ip = $this->input->ip_address();
+		// $itinerary_category_name = $this->input->post('itinerary_category_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted itinerary category '.$itinerary_category_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Itinerary_category_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted itinerary category '.$itinerary_category_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Itinerary_category_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

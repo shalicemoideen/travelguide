@@ -41,9 +41,7 @@ class Designation extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['designation_id'] =(isset($_REQUEST['designation_id']))?$_REQUEST['designation_id']:'';
-		$param['designation_created_by_user_id'] =(isset($_REQUEST['designation_created_by_user_id']))?$_REQUEST['designation_created_by_user_id']:'';
-
+		
 		if (!has_permission('DESIGNATION_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -84,32 +82,11 @@ class Designation extends MY_Controller {
 
 				'designation_name' => $this->input->post('designation_name'),
 				'designation_description' => $this->input->post('designation_description'),						
-				'designation_created_by_user_id' => $currentuserid,			
-				'designation_created_by_username' => $currentusername,			
-				'designation_created_date' => $date,			
-				'designation_created_time' => $time,			
+				'designation_created_by_user_id' => $currentuserid,						
+				'designation_created_at' => $date1,						
 				'designation_status' => 1
 			);
 		$insert = $this->Designation_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added designation: '.$designation_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Designation_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -142,36 +119,15 @@ class Designation extends MY_Controller {
 		
 		$designation_name = $this->input->post('designation_name');
 		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited designation: '.$designation_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Designation_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
 				
 				'designation_name' => $this->input->post('designation_name'),
 				'designation_description' => $this->input->post('designation_description'),						
-				// 'designation_created_by_user_id' => $currentuserid,			
-				// 'designation_created_by_username' => $currentusername,			
-				// 'designation_created_date' => $date,			
-				// 'designation_created_time' => $time,			
-				// 'designation_status' => 1
+				'designation_updated_by_user_id' => $currentuserid,						
+				'designation_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Designation_model->update(array('designation_id' => $this->input->post('id')), $data);
@@ -219,23 +175,23 @@ class Designation extends MY_Controller {
 		$this->Designation_model->update(array('designation_id' => $this->input->post('id')), $updateData);
 
 		$designation_name = $this->input->post('designation_name');
-		$ip = $this->input->ip_address();
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted designation '.$designation_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Designation_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted designation '.$designation_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Designation_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

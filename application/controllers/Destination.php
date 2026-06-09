@@ -27,6 +27,7 @@ class Destination extends MY_Controller {
 		
 		// $template['category'] = $this->Destination_model->fetch_itinerary_category_details();
 		$template['staff'] = $this->Destination_model->fetch_staff_details();
+		$template['location'] = $this->Destination_model->fetch_location_details();
 		$template['body'] = 'Destination/list';
 		$template['script'] = 'Destination/script';
 		$this->load->view('template', $template);
@@ -41,8 +42,6 @@ class Destination extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['state_id_filter'] =(isset($_REQUEST['state_id_filter']))?$_REQUEST['state_id_filter']:'';
-		$param['state_created_user_id'] =(isset($_REQUEST['state_created_user_id']))?$_REQUEST['state_created_user_id']:'';
 
 		if (!has_permission('DESTINATION_VIEW')) {
 	        echo json_encode([
@@ -82,33 +81,13 @@ class Destination extends MY_Controller {
 		$data = array(
 
 				'state_name' => $this->input->post('state_name'),
-				'state_description' => $this->input->post('state_description'),					
-				'state_created_user_id' => $currentuserid,			
-				'state_created_user_name' => $currentusername,			
-				'state_created_date' => $date,			
-				'state_created_time' => $time,			
+				'state_description' => $this->input->post('state_description'),
+				'location_id_fk' => $this->input->post('location_id_fk'),
+				'state_created_user_id' => $currentuserid,
+				'state_created_at' => $date1,
 				'state_status' => 1
 			);
 		$insert = $this->Destination_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added Destination: '.$state_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Destination_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -141,35 +120,16 @@ class Destination extends MY_Controller {
 		
 		$state_name = $this->input->post('state_name');
 		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
 		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited Destination: '.$state_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Destination_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
 				'state_name' => $this->input->post('state_name'),
-				'state_description' => $this->input->post('state_description'),					
-				// 'state_created_user_id' => $currentuserid,			
-				// 'state_created_user_name' => $currentusername,			
-				// 'state_created_date' => $date,			
-				// 'state_created_time' => $time,			
-				// 'state_status' => 1
+				'state_description' => $this->input->post('state_description'),
+				'location_id_fk' => $this->input->post('location_id_fk'),
+				'state_updated_user_id' => $currentuserid,
+				'state_updated_at' => $date1,
 			);
 			// print_r($data);exit();
 		$this->Destination_model->update(array('state_id' => $this->input->post('id')), $data);
@@ -198,23 +158,23 @@ class Destination extends MY_Controller {
 		$this->Destination_model->update(array('state_id' => $this->input->post('id')), $updateData);
 
 		$state_name = $this->input->post('state_name');
-		$ip = $this->input->ip_address();
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted Destination: '.$state_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Destination_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted Destination: '.$state_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Destination_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
@@ -224,6 +184,13 @@ class Destination extends MY_Controller {
 		$data['error_string'] = array();
 		$data['inputerror'] = array();
 		$data['status'] = TRUE;
+
+		if($this->input->post('location_id_fk') == '')
+		{
+			$data['inputerror'][] = 'location_id_fk';
+			$data['error_string'][] = 'Location is required';
+			$data['status'] = FALSE;
+		}
 
 		if($this->input->post('state_name') == '')
 		{

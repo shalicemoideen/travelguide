@@ -24,12 +24,17 @@ class Property_registration extends MY_Controller {
 	public function index()
 	{
 		//$name = 'PERSONAL CASH';
-		
-		$template['property'] = $this->Property_registration_model->fetch_properties_details();
-		$template['property_category'] = $this->Property_registration_model->fetch_property_category();
-		$template['country'] = $this->Property_registration_model->fetch_country();
-		$template['state'] = $this->Property_registration_model->fetch_state();
-		$template['staff'] = $this->Property_registration_model->fetch_staff_details();
+
+		// Removed filter dropdown data loading - now loaded via AJAX
+		// $template['property'] = $this->Property_registration_model->fetch_properties_details();
+		// $template['staff'] = $this->Property_registration_model->fetch_staff_details();
+
+		// Removed modal dropdown data loading - now loaded via AJAX for faster page load
+		// $template['property_category'] = $this->Property_registration_model->fetch_property_category();
+		// $template['country'] = $this->Property_registration_model->fetch_country();
+		// $template['location'] = $this->Property_registration_model->fetch_location();
+		// $template['state'] = $this->Property_registration_model->fetch_state();
+
 		$template['body'] = 'Property_registration/list';
 		$template['script'] = 'Property_registration/script';
 		$this->load->view('template', $template);
@@ -38,8 +43,7 @@ class Property_registration extends MY_Controller {
 	public function view($properties_id)
 	{
 		$template['meal_plan'] = $this->Rooms_model->fetch_meal_plan();
-		$template['inclusions'] = $this->Property_registration_model->fetch_property_inclusions();
-		// Keep initial page light: only load what Home tab needs.
+		// Load only property details for faster page load (removed meal_plan and inclusions)
 		$template['records'] = $this->Property_registration_model->get_property_view_row($properties_id);
 		$template['body'] = 'Property_registration/view';
 		$template['script'] = 'Property_registration/script';
@@ -51,10 +55,8 @@ class Property_registration extends MY_Controller {
 	 */
 	public function tab_room_details($properties_id)
 	{
+		// Removed filter dropdown data loading - now loaded via AJAX
 		$data['records'] = $this->Property_registration_model->get_property_view_row($properties_id);
-		$data['meal_plan'] = $this->Property_registration_model->fetch_meal_plan();
-		$data['room_category'] = $this->Property_registration_model->fetch_room_category_details_by_property($properties_id);
-		$data['staff'] = $this->Property_registration_model->fetch_staff_details();
 		$this->load->view('Property_registration/tab_room_details', $data);
 	}
 
@@ -63,8 +65,8 @@ class Property_registration extends MY_Controller {
 	 */
 	public function tab_upload_tariff($properties_id)
 	{
+		// Removed staff loading - now loaded via AJAX in filter dropdown
 		$data['records'] = $this->Property_registration_model->get_property_view_row($properties_id);
-		$data['staff'] = $this->Property_registration_model->fetch_staff_details();
 		$this->load->view('Property_registration/tab_upload_tariff', $data);
 	}
 
@@ -73,10 +75,8 @@ class Property_registration extends MY_Controller {
 	 */
 	public function tab_room_tariff($properties_id)
 	{
+		// Removed filter dropdown data loading - now loaded via AJAX
 		$data['records'] = $this->Property_registration_model->get_property_view_row($properties_id);
-		$data['room_category'] = $this->Property_registration_model->fetch_room_category_details_by_property($properties_id);
-		$data['property_category'] = $this->Property_registration_model->fetch_property_category();
-		$data['staff'] = $this->Property_registration_model->fetch_staff_details();
 		$this->load->view('Property_registration/tab_room_tariff', $data);
 	}
 
@@ -86,9 +86,6 @@ class Property_registration extends MY_Controller {
 	public function tab_room_hike_tariff($properties_id)
 	{
 		$data['records'] = $this->Property_registration_model->get_property_view_row($properties_id);
-		$data['room_category'] = $this->Property_registration_model->fetch_room_category_details_by_property($properties_id);
-		$data['property_category'] = $this->Property_registration_model->fetch_property_category();
-		$data['staff'] = $this->Property_registration_model->fetch_staff_details();
 		$this->load->view('Property_registration/tab_room_hike_tariff', $data);
 	}
 
@@ -97,9 +94,8 @@ class Property_registration extends MY_Controller {
 	 */
 	public function tab_property_inclusion($properties_id)
 	{
-		$data['inclusions'] = $this->Property_registration_model->fetch_property_inclusions();
+		// Removed filter dropdown data loading - now loaded via AJAX
 		$data['records'] = $this->Property_registration_model->get_property_view_row($properties_id);
-		$data['staff'] = $this->Property_registration_model->fetch_staff_details();
 		$this->load->view('Property_registration/tab_property_inclusion', $data);
 	}
 
@@ -124,7 +120,7 @@ class Property_registration extends MY_Controller {
 		$param['properties_id'] =(isset($_REQUEST['properties_id']))?$_REQUEST['properties_id']:'';
 		$param['property_category_id_fk'] =(isset($_REQUEST['property_category_id_fk']))?$_REQUEST['property_category_id_fk']:'';
 		$param['country_id_fk'] =(isset($_REQUEST['country_id_fk']))?$_REQUEST['country_id_fk']:'';
-		$param['state_id_fk'] =(isset($_REQUEST['state_id_fk']))?$_REQUEST['state_id_fk']:'';
+		$param['location_id_fk'] =(isset($_REQUEST['location_id_fk']))?$_REQUEST['location_id_fk']:'';
 		$param['properties_destination_id_fk'] =(isset($_REQUEST['properties_destination_id_fk']))?$_REQUEST['properties_destination_id_fk']:'';
 
 		
@@ -149,18 +145,28 @@ class Property_registration extends MY_Controller {
     	//print($properties_id_fk);die;
 		$this->load->model('Property_registration_model');
     	$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
-        $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10'; 
+        $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10';
         $param['start'] = (isset($_REQUEST['start']))?$_REQUEST['start']:'0';
         $param['order'] = (isset($_REQUEST['order'][0]['column']))?$_REQUEST['order'][0]['column']:'';
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
-        
+
+		if (!has_permission('ROOM_DETAILS_VIEW')) {
+	        echo json_encode([
+	            "draw" => intval($this->input->post('draw')),
+	            "recordsTotal" => 0,
+	            "recordsFiltered" => 0,
+	            "data" => []
+	        ]);
+	        return;
+	    }
+
 		$param['properties_id'] =(isset($_REQUEST['properties_id']))?$_REQUEST['properties_id']:'';
 		$param['room_meal_plan_id'] =(isset($_REQUEST['room_meal_plan_id']))?$_REQUEST['room_meal_plan_id']:'';
 		$param['properties_room_category_id'] =(isset($_REQUEST['properties_room_category_id']))?$_REQUEST['properties_room_category_id']:'';
 		$param['properties_room_category_createdby_user_id'] =(isset($_REQUEST['properties_room_category_createdby_user_id']))?$_REQUEST['properties_room_category_createdby_user_id']:'';
-		
-		
+
+
     	$data = $this->Property_registration_model->getPropertyroomcategoryTable($param,$properties_id_fk);
     	$json_data = json_encode($data);
     	echo $json_data;
@@ -170,29 +176,39 @@ class Property_registration extends MY_Controller {
     	//print($properties_id_fk);die;
 		$this->load->model('Property_registration_model');
     	$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
-        $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10'; 
+        $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10';
         $param['start'] = (isset($_REQUEST['start']))?$_REQUEST['start']:'0';
         $param['order'] = (isset($_REQUEST['order'][0]['column']))?$_REQUEST['order'][0]['column']:'';
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
-        
-		
+
+		if (!has_permission('UPLOAD_TARIFF_VIEW')) {
+	        echo json_encode([
+	            "draw" => intval($this->input->post('draw')),
+	            "recordsTotal" => 0,
+	            "recordsFiltered" => 0,
+	            "data" => []
+	        ]);
+	        return;
+	    }
+
 		$param['upload_tariff_document_created_by_user_id'] =(isset($_REQUEST['upload_tariff_document_created_by_user_id']))?$_REQUEST['upload_tariff_document_created_by_user_id']:'';
 
+		// Handle separate start_date and end_date parameters
 		$start_date=(isset($_REQUEST['start_date']))?$_REQUEST['start_date']:'';
         $end_date=(isset($_REQUEST['end_date']))?$_REQUEST['end_date']:'';
-		
+
 		if($start_date){
             $start_date = str_replace('/', '-', $start_date);
-            $param['start_date'] =  date("Y-m-d",strtotime($start_date));
+            $param['start_date'] = date("Y-m-d",strtotime($start_date));
         }
-       
+
         if($end_date){
             $end_date = str_replace('/', '-', $end_date);
-            $param['end_date'] =  date("Y-m-d",strtotime($end_date));
+            $param['end_date'] = date("Y-m-d",strtotime($end_date));
         }
-		
-		
+
+
     	$data = $this->Property_registration_model->getUploadtariffTable($param,$properties_id_fk);
     	$json_data = json_encode($data);
     	echo $json_data;
@@ -201,29 +217,39 @@ class Property_registration extends MY_Controller {
   public function Room_tariff_management($properties_id_fk){
 		$this->load->model('Property_registration_model');
 		$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
-		$param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10'; 
+		$param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10';
 		$param['start'] = (isset($_REQUEST['start']))?$_REQUEST['start']:'0';
 		$param['order'] = (isset($_REQUEST['order'][0]['column']))?$_REQUEST['order'][0]['column']:'';
 		$param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
 		$param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
-		
-		$param['properties_id'] =(isset($_REQUEST['properties_id']))?$_REQUEST['properties_id']:'';
-		$param['property_category_id_fk'] =(isset($_REQUEST['property_category_id_fk']))?$_REQUEST['property_category_id_fk']:'';
-		$param['properties_room_category_id'] =(isset($_REQUEST['properties_room_category_id']))?$_REQUEST['properties_room_category_id']:'';
-		$start_date =(isset($_REQUEST['start_date']))?$_REQUEST['start_date']:'';
-		$end_date =(isset($_REQUEST['end_date']))?$_REQUEST['end_date']:'';
+
+		if (!has_permission('ROOM_TARIFF_VIEW')) {
+	        echo json_encode([
+	            "draw" => intval($this->input->post('draw')),
+	            "recordsTotal" => 0,
+	            "recordsFiltered" => 0,
+	            "data" => []
+	        ]);
+	        return;
+	    }
+
+		// Handle separate start_date and end_date parameters
+		$start_date=(isset($_REQUEST['start_date']))?$_REQUEST['start_date']:'';
+        $end_date=(isset($_REQUEST['end_date']))?$_REQUEST['end_date']:'';
+
 		if($start_date){
-			$start_date = str_replace('/', '-', $start_date);
-			$param['start_date'] =  date("Y-m-d",strtotime($start_date));
-		}
-		
-		if($end_date){
-			$end_date = str_replace('/', '-', $end_date);
-			$param['end_date'] =  date("Y-m-d",strtotime($end_date));
-		}
+            $start_date = str_replace('/', '-', $start_date);
+            $param['start_date'] = date("Y-m-d",strtotime($start_date));
+        }
+
+        if($end_date){
+            $end_date = str_replace('/', '-', $end_date);
+            $param['end_date'] = date("Y-m-d",strtotime($end_date));
+        }
+
 		$param['room_tariff_hike_createdby_user_id'] =(isset($_REQUEST['room_tariff_hike_createdby_user_id']))?$_REQUEST['room_tariff_hike_createdby_user_id']:'';
-		
-		
+
+
 		$data = $this->Property_registration_model->getRoomtariffTable($param,$properties_id_fk);
 		$json_data = json_encode($data);
 		echo $json_data;
@@ -232,29 +258,49 @@ class Property_registration extends MY_Controller {
 	public function Room_tariff_hike_management($properties_id_fk){
 		$this->load->model('Property_registration_model');
 		$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
-		$param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10'; 
+		$param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10';
 		$param['start'] = (isset($_REQUEST['start']))?$_REQUEST['start']:'0';
 		$param['order'] = (isset($_REQUEST['order'][0]['column']))?$_REQUEST['order'][0]['column']:'';
 		$param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
 		$param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
-		
-		$param['hike_properties_id_fk_filter'] =(isset($_REQUEST['hike_properties_id_fk_filter']))?$_REQUEST['hike_properties_id_fk_filter']:'';
-		$param['hike_room_id_fk_filter'] =(isset($_REQUEST['hike_room_id_fk_filter']))?$_REQUEST['hike_room_id_fk_filter']:'';
+
+		if (!has_permission('ROOM_TARIFF_HIKE_VIEW')) {
+	        echo json_encode([
+	            "draw" => intval($this->input->post('draw')),
+	            "recordsTotal" => 0,
+	            "recordsFiltered" => 0,
+	            "data" => []
+	        ]);
+	        return;
+	    }
+
+		// Handle room tariff date range
+		$room_tariff_start_date =(isset($_REQUEST['room_tariff_start_date']))?$_REQUEST['room_tariff_start_date']:'';
+		$room_tariff_end_date =(isset($_REQUEST['room_tariff_end_date']))?$_REQUEST['room_tariff_end_date']:'';
+		if($room_tariff_start_date){
+			$room_tariff_start_date = str_replace('/', '-', $room_tariff_start_date);
+			$param['room_tariff_from_date_filter'] = date("Y-m-d",strtotime($room_tariff_start_date));
+		}
+		if($room_tariff_end_date){
+			$room_tariff_end_date = str_replace('/', '-', $room_tariff_end_date);
+			$param['room_tariff_to_date_filter'] = date("Y-m-d",strtotime($room_tariff_end_date));
+		}
+
+		// Handle hike tariff date range
+		$hike_tariff_start_date =(isset($_REQUEST['hike_tariff_start_date']))?$_REQUEST['hike_tariff_start_date']:'';
+		$hike_tariff_end_date =(isset($_REQUEST['hike_tariff_end_date']))?$_REQUEST['hike_tariff_end_date']:'';
+		if($hike_tariff_start_date){
+			$hike_tariff_start_date = str_replace('/', '-', $hike_tariff_start_date);
+			$param['hike_room_tariff_hike_from_date_filter'] = date("Y-m-d",strtotime($hike_tariff_start_date));
+		}
+		if($hike_tariff_end_date){
+			$hike_tariff_end_date = str_replace('/', '-', $hike_tariff_end_date);
+			$param['hike_room_tariff_hike_to_date_filter'] = date("Y-m-d",strtotime($hike_tariff_end_date));
+		}
+
 		$param['hike_room_tariff_hike_createdby_user_id'] =(isset($_REQUEST['hike_room_tariff_hike_createdby_user_id']))?$_REQUEST['hike_room_tariff_hike_createdby_user_id']:'';
-		$hike_room_tariff_hike_from_date_filter =(isset($_REQUEST['hike_room_tariff_hike_from_date_filter']))?$_REQUEST['hike_room_tariff_hike_from_date_filter']:'';
-		$hike_room_tariff_hike_to_date_filter =(isset($_REQUEST['hike_room_tariff_hike_to_date_filter']))?$_REQUEST['hike_room_tariff_hike_to_date_filter']:'';
-		if($hike_room_tariff_hike_from_date_filter){
-			$hike_room_tariff_hike_from_date_filter = str_replace('/', '-', $hike_room_tariff_hike_from_date_filter);
-			$param['hike_room_tariff_hike_from_date_filter'] =  date("Y-m-d",strtotime($hike_room_tariff_hike_from_date_filter));
-		}
-		
-		if($hike_room_tariff_hike_to_date_filter){
-			$hike_room_tariff_hike_to_date_filter = str_replace('/', '-', $hike_room_tariff_hike_to_date_filter);
-			$param['hike_room_tariff_hike_to_date_filter'] =  date("Y-m-d",strtotime($hike_room_tariff_hike_to_date_filter));
-		}
-		$param['room_tariff_hike_createdby_user_id'] =(isset($_REQUEST['room_tariff_hike_createdby_user_id']))?$_REQUEST['room_tariff_hike_createdby_user_id']:'';
-		
-		
+
+
 		$data = $this->Property_registration_model->getRoomHiketariffTable($param,$properties_id_fk);
 		$json_data = json_encode($data);
 		echo $json_data;
@@ -264,16 +310,26 @@ class Property_registration extends MY_Controller {
     	//print($properties_id_fk);die;
 		$this->load->model('Property_registration_model');
     	$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
-        $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10'; 
+        $param['length'] =(isset($_REQUEST['length']))?$_REQUEST['length']:'10';
         $param['start'] = (isset($_REQUEST['start']))?$_REQUEST['start']:'0';
         $param['order'] = (isset($_REQUEST['order'][0]['column']))?$_REQUEST['order'][0]['column']:'';
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
-        
+
+		if (!has_permission('PROPERTY_INCLUSION_VIEW')) {
+	        echo json_encode([
+	            "draw" => intval($this->input->post('draw')),
+	            "recordsTotal" => 0,
+	            "recordsFiltered" => 0,
+	            "data" => []
+	        ]);
+	        return;
+	    }
+
 		$param['property_inclusions_id_filter'] =(isset($_REQUEST['property_inclusions_id_filter']))?$_REQUEST['property_inclusions_id_filter']:'';
 		$param['property_inclusions_created_by_userid'] =(isset($_REQUEST['property_inclusions_created_by_userid']))?$_REQUEST['property_inclusions_created_by_userid']:'';
-		
-		
+
+
     	$data = $this->Property_registration_model->getPropertyinclusionsTable($param,$properties_id_fk);
     	$json_data = json_encode($data);
     	echo $json_data;
@@ -344,12 +400,6 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	$fileErrors = [];
 
-	// $v1 = $this->validate_upload_file('properties_hotel_logo', 2097152); ///2mb
-	// if(!$v1['ok']) $fileErrors['properties_hotel_logo'] = $v1['msg'];
-
-	// $v2 = $this->validate_upload_file('properties_photos', 2097152);
-	// if(!$v2['ok']) $fileErrors['properties_photos'] = $v2['msg'];
-
 	$v1 = $this->validate_upload_file('properties_hotel_logo', 40 * 1024 * 1024); ///40mb
 	if(!$v1['ok']) $fileErrors['properties_hotel_logo'] = $v1['msg'];
 
@@ -391,7 +441,7 @@ private function validate_upload_file($field, $maxBytes = 2097152)
     $data = [
         'property_category_id_fk' => $this->input->post('property_category_id_fk'),
         'country_id_fk'           => $this->input->post('country_id_fk'),
-        'state_id_fk'             => $this->input->post('state_id_fk'),
+        'location_id_fk'          => $this->input->post('location_id_fk'),
         'properties_destination_id_fk' => $this->input->post('properties_destination_id_fk'),
         'properties_house_boat_type'   => $this->input->post('properties_house_boat_type'),
         'properties_hotel_url'         => $this->input->post('properties_hotel_url'),
@@ -417,29 +467,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
         'properties_description'=> $this->input->post('properties_description'),
 
         'properties_createdby_userid'   => $currentuserid,
-        'properties_createdby_username' => $currentusername,
-        'properties_create_date'        => $date,
-        'properties_create_time'        => $time,
+        'properties_created_at'        => $date1,
         'properties_status'             => 1,
     ];
 
     $insert = $this->Property_registration_model->save($data);
-
-    // activity log
-    $ip = $this->input->ip_address();
-    $activity_data = [
-        'activity_description' => 'Added property: '.$properties_name,
-        'id_fk'                => $insert,
-        'activity_type'        => 'Property_registration',
-        'activity_ip'          => $ip,
-        'activity_action'      => 'Add',
-        'activity_by_userid'   => $currentuserid,
-        'activity_by_username' => $currentusername,
-        'activity_date_time '  => $date1,
-        'activity_date'        => $date,
-        'activity_status'      => 1,
-    ];
-    $this->General_model->add($this->activity, $activity_data);
 
     echo json_encode(["status" => TRUE]);
 }
@@ -504,7 +536,7 @@ private function validate_upload_file($field, $maxBytes = 2097152)
     $data = [
         'property_category_id_fk' => $this->input->post('property_category_id_fk'),
         'country_id_fk'           => $this->input->post('country_id_fk'),
-        'state_id_fk'             => $this->input->post('state_id_fk'),
+        'location_id_fk'          => $this->input->post('location_id_fk'),
         'properties_destination_id_fk' => $this->input->post('properties_destination_id_fk'),
         'properties_house_boat_type'   => $this->input->post('properties_house_boat_type'),
         'properties_hotel_url'         => $this->input->post('properties_hotel_url'),
@@ -527,25 +559,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
         'properties_hotel_logo' => $file_logo,
         'properties_photos'     => $file_photo,
         'properties_description'=> $this->input->post('properties_description'),
+		'properties_updatedby_userid'   => $currentuserid,
+        'properties_updated_at'        => $date1,
     ];
 
     $this->Property_registration_model->update(['properties_id' => $id], $data);
-
-    // activity log
-    $ip = $this->input->ip_address();
-    $activity_data = [
-        'activity_description' => 'Edited property: '.$properties_name,
-        'id_fk'                => $id,
-        'activity_type'        => 'Property_registration',
-        'activity_ip'          => $ip,
-        'activity_action'      => 'Edit',
-        'activity_by_userid'   => $currentuserid,
-        'activity_by_username' => $currentusername,
-        'activity_date_time '  => $date1,
-        'activity_date'        => $date,
-        'activity_status'      => 1,
-    ];
-    $this->General_model->add($this->activity, $activity_data);
 
     echo json_encode(["status" => TRUE]);
 }
@@ -571,29 +589,34 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 		
 		$this->Property_registration_model->update(array('properties_id' => $this->input->post('id')), $updateData);
 
-		$properties_name = $this->input->post('properties_name');
-		$ip = $this->input->ip_address();
+		// $properties_name = $this->input->post('properties_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted property: '.$properties_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Property_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted property: '.$properties_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Property_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
 	public function ajax_add_room_category()
   	{
+		if (!has_permission('ROOM_DETAILS_CREATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate1();
 		
 		$this->load->helper('date');
@@ -671,36 +694,12 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				'properties_room_category_adult_rate_applied_guest_over' => $this->input->post('properties_room_category_adult_rate_applied_guest_over_hidden'),
 				'properties_room_category_photo' => $file1,
 				'properties_room_category_description' => $this->input->post('properties_room_category_description'),
-				'properties_room_category_createdby_user_id' => $currentuserid,			
-				'properties_room_category_createdby_user_name' => $currentusername,			
-				'properties_room_category_created_date' => $date,			
-				'properties_room_category_created_time' => $time,			
+				'properties_room_category_createdby_user_id' => $currentuserid,					
+				'properties_room_category_created_at' => $date1,						
 				'properties_room_category_status' => 1
 			);
 	// print_r($data);die;
 		$insert = $this->Property_registration_model->save1($data);
-
-			
-			
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added room category: '.$properties_room_category_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Room_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -714,6 +713,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	public function ajax_update_room_category()
   	{
+		if (!has_permission('ROOM_DETAILS_UPDATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate1();
 		
 		$this->load->helper('date');
@@ -770,26 +774,9 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				}
 
 				$properties_room_category_name = $this->input->post('properties_room_category_name');
-		
-		
-				$ip = $this->input->ip_address();
-				$id = $this->input->post('id1');
-				// echo $ip;
 
-				$activity_data = array(
-						'activity_description' => 'Edited room category: '.$properties_room_category_name.'',
-						'id_fk' => $id,
-						'activity_type' => 'Room_category_registration',
-						'activity_ip' => $ip,
-						'activity_action' => 'Edit',
-						'activity_by_userid' => $currentuserid,
-						'activity_by_username' => $currentusername,
-						'activity_date_time	' => $date1,	
-						'activity_date' => $date,			
-						'activity_status' => 1,
-					);
+				$id = $this->input->post('id1');
 				
-				$this->General_model->add($this->activity,$activity_data);
 
 				$data = array(
 				'properties_id_fk' => $this->input->post('properties_id_fk'),
@@ -810,10 +797,8 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				'properties_room_category_adult_rate_applied_guest_over' => $this->input->post('properties_room_category_adult_rate_applied_guest_over_hidden'),
 				'properties_room_category_photo' => $file1,
 				'properties_room_category_description' => $this->input->post('properties_room_category_description'),
-				'properties_room_category_createdby_user_id' => $currentuserid,			
-				'properties_room_category_createdby_user_name' => $currentusername,			
-				'properties_room_category_created_date' => $date,			
-				'properties_room_category_created_time' => $time,			
+				'properties_room_category_updatedby_user_id' => $currentuserid,					
+				'properties_room_category_updated_at' => $date1,						
 				'properties_room_category_status' => 1
 			);
 				
@@ -824,6 +809,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	public function delete_room_category()
 	{
+		if (!has_permission('ROOM_DETAILS_DELETE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 		$currentusername = $this->session->userdata('admin_name');
@@ -841,29 +831,34 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 		
 		$this->Property_registration_model->update1(array('properties_room_category_id' => $this->input->post('id2')), $updateData);
 
-		$properties_room_category_name = $this->input->post('properties_room_category_name');
-		$ip = $this->input->ip_address();
+		// $properties_room_category_name = $this->input->post('properties_room_category_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted room category: '.$properties_room_category_name.'',
-				'id_fk' => $this->input->post('id2'),
-				'activity_type' => 'Room_category_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted room category: '.$properties_room_category_name.'',
+		// 		'id_fk' => $this->input->post('id2'),
+		// 		'activity_type' => 'Room_category_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
 	public function ajax_add_uploaded_tariff()
   	{
+		if (!has_permission('UPLOAD_TARIFF_CREATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate2();
 		
 		$this->load->helper('date');
@@ -940,10 +935,8 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				'upload_tariff_document_to_date' => $upload_tariff_document_to_date,				
 				'upload_tariff_document_name' => $file1,
 				'upload_tariff_document_description' => $this->input->post('upload_tariff_document_description'),
-				'upload_tariff_document_created_by_user_id' => $currentuserid,			
-				'upload_tariff_document_created_by_user_name' => $currentusername,			
-				'upload_tariff_document_created_date' => $date,			
-				'upload_tariff_document_created_time' => $time,			
+				'upload_tariff_document_created_by_user_id' => $currentuserid,					
+				'upload_tariff_document_created_at' => $date2,					
 				'upload_tariff_document_status' => 1
 			);
 	// print_r($data);die;
@@ -952,24 +945,7 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 			
 			
 
-		$ip = $this->input->ip_address();
 		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added room tariff from date: '.$upload_tariff_document_from_date.' to date '.$upload_tariff_document_to_date.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Room_tariff_document_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date2,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -983,6 +959,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	public function ajax_update_uploaded_tariff()
   	{
+		if (!has_permission('UPLOAD_TARIFF_UPDATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate2();
 		
 		$this->load->helper('date');
@@ -1053,25 +1034,9 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				}
 
 		
-		
-				$ip = $this->input->ip_address();
-				$id = $this->input->post('id3');
-				// echo $ip;
 
-				$activity_data = array(
-						'activity_description' => 'Edited room tariff from date: '.$upload_tariff_document_from_date.' to date '.$upload_tariff_document_to_date.'',
-						'id_fk' => $id,
-						'activity_type' => 'Room_tariff_document_registration',
-						'activity_ip' => $ip,
-						'activity_action' => 'Edit',
-						'activity_by_userid' => $currentuserid,
-						'activity_by_username' => $currentusername,
-						'activity_date_time	' => $date2,	
-						'activity_date' => $date,			
-						'activity_status' => 1,
-					);
+				$id = $this->input->post('id3');
 				
-				$this->General_model->add($this->activity,$activity_data);
 
 				$data = array(
 				// 'property_id_fk' => $this->input->post('properties_id_fk'),
@@ -1079,11 +1044,8 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				'upload_tariff_document_to_date' => $upload_tariff_document_to_date,				
 				'upload_tariff_document_name' => $file1,
 				'upload_tariff_document_description' => $this->input->post('upload_tariff_document_description'),
-				// 'upload_tariff_document_created_by_user_id' => $currentuserid,			
-				// 'upload_tariff_document_created_by_user_name' => $currentusername,			
-				// 'upload_tariff_document_created_date' => $date,			
-				// 'upload_tariff_document_created_time' => $time,			
-				// 'upload_tariff_document_status' => 1
+				'upload_tariff_document_updated_by_user_id' => $currentuserid,						
+				'upload_tariff_document_updated_at' => $date2,			
 			);
 				
 		$this->Property_registration_model->update2(array('upload_tariff_document_id' => $this->input->post('id3')), $data);
@@ -1093,6 +1055,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	public function delete_uploaded_tariff()
 	{
+		if (!has_permission('UPLOAD_TARIFF_DELETE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 		$currentusername = $this->session->userdata('admin_name');
@@ -1121,28 +1088,33 @@ private function validate_upload_file($field, $maxBytes = 2097152)
         $date1 = explode('/', $this->input->post('upload_tariff_document_to_date'));
 		$upload_tariff_document_to_date = $date1[2].'-'.$date1[1].'-'.$date1[0];
 		}
-		$ip = $this->input->ip_address();
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted room tariff from date: '.$upload_tariff_document_from_date.' to date '.$upload_tariff_document_to_date.'',
-				'id_fk' => $this->input->post('id4'),
-				'activity_type' => 'Room_tariff_document_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date2,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted room tariff from date: '.$upload_tariff_document_from_date.' to date '.$upload_tariff_document_to_date.'',
+		// 		'id_fk' => $this->input->post('id4'),
+		// 		'activity_type' => 'Room_tariff_document_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date2,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
 	public function ajax_add_property_inclusion()
   	{
+		if (!has_permission('PROPERTY_INCLUSION_CREATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate3();
 		
 		$this->load->helper('date');
@@ -1168,36 +1140,15 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				'property_inclusions_name' => $property_inclusions_name,
 				'property_inclusions_amount' => $this->input->post('property_inclusions_amount'),				
 				'property_inclusions_description' => $this->input->post('property_inclusions_description'),
-				'property_inclusions_created_by_userid' => $currentuserid,			
-				'property_inclusions_created_by_username' => $currentusername,			
-				'property_inclusions_created_date' => $date,			
-				'property_inclusions_created_time' => $time,			
+				'property_inclusions_created_by_userid' => $currentuserid,						
+				'property_inclusions_created_at' => $date2,						
 				'property_inclusions_status' => 1
 			);
 	// print_r($data);die;
 		$insert = $this->Property_registration_model->save3($data);
 
 			
-			
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added property inclusion: '.$property_inclusions_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Property_Inclusions_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date2,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
+	
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -1211,6 +1162,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	public function ajax_update_property_inclusions()
   	{
+		if (!has_permission('PROPERTY_INCLUSION_UPDATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate3();
 		
 		$this->load->helper('date');
@@ -1230,23 +1186,7 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 		
 		
 		
-		
-				$ip = $this->input->ip_address();
 				$id = $this->input->post('id');
-				// echo $ip;
-
-				$activity_data = array(
-						'activity_description' => 'Edited property inclusion: '.$property_inclusions_name.'',
-						'id_fk' => $id,
-						'activity_type' => 'Property_Inclusions_registration',
-						'activity_ip' => $ip,
-						'activity_action' => 'Edit',
-						'activity_by_userid' => $currentuserid,
-						'activity_by_username' => $currentusername,
-						'activity_date_time	' => $date2,	
-						'activity_date' => $date,			
-						'activity_status' => 1,
-					);
 				
 				$this->General_model->add($this->activity,$activity_data);
 
@@ -1256,11 +1196,8 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 				'property_inclusions_name' => $property_inclusions_name,
 				'property_inclusions_amount' => $this->input->post('property_inclusions_amount'),				
 				'property_inclusions_description' => $this->input->post('property_inclusions_description'),
-				// 'property_inclusions_created_by_userid' => $currentuserid,			
-				// 'property_inclusions_created_by_username' => $currentusername,			
-				// 'property_inclusions_created_date' => $date,			
-				// 'property_inclusions_created_time' => $time,			
-				// 'property_inclusions_status' => 1
+				'property_inclusions_updated_by_userid' => $currentuserid,						
+				'property_inclusions_updated_at' => $date2,			
 			);
 				
 		$this->Property_registration_model->update3(array('property_inclusions_id' => $this->input->post('id')), $data);
@@ -1270,6 +1207,11 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 
 	public function delete_property_inclusions()
 	{
+		if (!has_permission('PROPERTY_INCLUSION_DELETE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 		$currentusername = $this->session->userdata('admin_name');
@@ -1288,25 +1230,25 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 		$this->Property_registration_model->update3(array('property_inclusions_id' => $this->input->post('id')), $updateData);
 
 		
-		$ip = $this->input->ip_address();
+		// $ip = $this->input->ip_address();
 		
-		$property_inclusions_name = $this->input->post('property_inclusions_name');
+		// $property_inclusions_name = $this->input->post('property_inclusions_name');
 
-		$activity_data = array(
-				'activity_description' => 'Deleted property inclusion: '.$property_inclusions_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Property_Inclusions_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date2,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted property inclusion: '.$property_inclusions_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Property_Inclusions_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date2,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
@@ -1338,9 +1280,9 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 			$data['status'] = FALSE;
 		}
 
-		if($this->input->post('state_id_fk') == '')
+		if($this->input->post('location_id_fk') == '')
 		{
-			$data['inputerror'][] = 'state_id_fk';
+			$data['inputerror'][] = 'location_id_fk';
 			$data['error_string'][] = 'Location is required';
 			$data['status'] = FALSE;
 		}
@@ -1538,6 +1480,228 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 			echo json_encode($data);
 			exit();
 		}
+	}
+
+	// AJAX endpoints for dropdown data
+	public function get_properties_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+		
+		$this->db->select('properties_id as id, properties_name as text');
+		$this->db->from('properties');
+		$this->db->where('properties_status', 1);
+		
+		if ($search) {
+			$this->db->like('properties_name', $search);
+		}
+		
+		$this->db->order_by('properties_name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+		
+		$query = $this->db->get();
+		// echo $this->db->last_query();exit();
+		$results = $query->result();
+		
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_property_category_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+		
+		$this->db->select('property_category_id as id, property_category_name as text');
+		$this->db->from('property_category');
+		$this->db->where('property_category_status', 1);
+		
+		if ($search) {
+			$this->db->like('property_category_name', $search);
+		}
+		
+		$this->db->order_by('property_category_name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+		
+		$query = $this->db->get();
+		$results = $query->result();
+		
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_country_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+		
+		$this->db->select('id, name as text');
+		$this->db->from('country');
+		
+		if ($search) {
+			$this->db->like('name', $search);
+		}
+		
+		$this->db->order_by('name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+		
+		$query = $this->db->get();
+		$results = $query->result();
+		
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_state_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+		
+		$this->db->select('state_id as id, state_name as text');
+		$this->db->from('state');
+		$this->db->where('state_status', 1);
+		
+		if ($search) {
+			$this->db->like('state_name', $search);
+		}
+		
+		$this->db->order_by('state_name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+		
+		$query = $this->db->get();
+		$results = $query->result();
+		
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_staff_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+
+		$this->db->select('user_id as id, admin_name as text');
+		$this->db->from('user_details');
+		$this->db->where('user_status', 1);
+
+		if ($search) {
+			$this->db->like('admin_name', $search);
+		}
+
+		$this->db->order_by('admin_name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_location_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+
+		$this->db->select('location_id as id, location_name as text');
+		$this->db->from('location');
+		$this->db->where('location_status', 1);
+
+		if ($search) {
+			$this->db->like('location_name', $search);
+		}
+
+		$this->db->order_by('location_name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_destination_by_location_dropdown()
+	{
+		$location_id = $this->input->get('location_id');
+
+		$this->db->select('state_id as id, state_name as text');
+		$this->db->from('state');
+		$this->db->where('state_status', 1);
+		$this->db->where('location_id_fk', $location_id);
+
+		$this->db->order_by('state_name', 'ASC');
+
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_room_category_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+		$properties_id = $this->input->get('properties_id');
+
+		$this->db->select('properties_room_category_id as id, properties_room_category_name as text');
+		$this->db->from('properties_room_category');
+		$this->db->where('properties_room_category_status', 1);
+
+		if ($properties_id) {
+			$this->db->where('properties_id_fk', $properties_id);
+		}
+
+		if ($search) {
+			$this->db->like('properties_room_category_name', $search);
+		}
+
+		$this->db->limit(20, ($page - 1) * 20);
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_property_inclusion_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+		$properties_id = $this->input->get('properties_id');
+
+		$this->db->select('property_inclusions_id as id, property_inclusions_name as text');
+		$this->db->from('property_inclusions');
+		$this->db->where('property_inclusions_status', 1);
+
+		if ($properties_id) {
+			$this->db->where('property_id_fk', $properties_id);
+		}
+
+		if ($search) {
+			$this->db->like('property_inclusions_name', $search);
+		}
+
+		$this->db->limit(20, ($page - 1) * 20);
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_meal_plan_dropdown()
+	{
+		$search = $this->input->get('q');
+		$page = $this->input->get('page') ? $this->input->get('page') : 1;
+
+		$this->db->select('meal_plan_id as id, meal_plan_name as text');
+		$this->db->from('meal_plan');
+		$this->db->where('meal_plan_status', 1);
+
+		if ($search) {
+			$this->db->like('meal_plan_name', $search);
+		}
+
+		$this->db->order_by('meal_plan_name', 'ASC');
+		// $this->db->limit(50, ($page - 1) * 50);
+
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
 	}
 }
 ?>

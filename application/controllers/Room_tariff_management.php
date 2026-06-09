@@ -284,6 +284,11 @@ public function ajax_last_hike_tariff()
 	
   public function ajax_add()
 	{
+		if (!has_permission('ROOM_TARIFF_CREATE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate();
 		
 		$this->load->helper('date');
@@ -351,10 +356,8 @@ public function ajax_last_hike_tariff()
 				'room_tariff_hike_dinner_rate_adult' => $this->input->post('room_tariff_hike_dinner_rate_adult'),
 				'room_tariff_hike_dinner_rate_child' => $this->input->post('room_tariff_hike_dinner_rate_child'),
 				'room_tariff_hike_description' => $this->input->post('room_tariff_hike_description'),
-				'room_tariff_hike_createdby_user_id' => $currentuserid,			
-				'room_tariff_hike_createdby_user_name' => $currentusername,			
-				'room_tariff_hike_created_date' => $date,			
-				'room_tariff_hike_created_time' => $time,			
+				'room_tariff_hike_createdby_user_id' => $currentuserid,					
+				'room_tariff_hike_created_at' => $date1,						
 				'room_tariff_hike_status' => 1
 			);
 		$insert = $this->Room_tariff_management_model->save($data);
@@ -426,24 +429,7 @@ $week_day_id = $this->input->post('week_day_id');
 		}
 
 
-		$ip = $this->input->ip_address();
 		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added room tariff details of property: '.$properties_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Room_tariff_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -485,6 +471,11 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function ajax_update()
 {
+	if (!has_permission('ROOM_TARIFF_UPDATE')) {
+        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+        return;
+    }
+
     $this->_validate();
 
     $this->db->trans_begin();
@@ -526,6 +517,19 @@ $week_day_id = $this->input->post('week_day_id');
 		return;
 	}
 
+	$this->load->helper('date');
+	if(function_exists('date_default_timezone_set')) {
+		date_default_timezone_set("Asia/Kolkata");
+	}
+	$date = date('Y-m-d');
+	$time = date('h:i:sa');
+	
+	$date1 = date('Y-m-d h:i:s a', time());
+
+	$currentuserid = $this->session->userdata('user_id');
+	$currentusertype = $this->session->userdata('user_type');
+	$currentusername = $this->session->userdata('admin_name');
+
     // ---- Update header ----
     $header = array(
         'properties_id_fk' => (int)$this->input->post('properties_id_fk'),
@@ -539,6 +543,8 @@ $week_day_id = $this->input->post('week_day_id');
         'room_tariff_hike_dinner_rate_adult'    => (double)$this->input->post('room_tariff_hike_dinner_rate_adult'),
         'room_tariff_hike_dinner_rate_child'    => (double)$this->input->post('room_tariff_hike_dinner_rate_child'),
         'room_tariff_hike_description'          => $this->input->post('room_tariff_hike_description'),
+		'room_tariff_hike_updatedby_user_id' => $currentuserid,					
+		'room_tariff_hike_updated_at' => $date1,
     );
 
     $this->db->where('room_tariff_hike_id', $hike_id)->update('room_tariff_hike', $header);
@@ -668,6 +674,11 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function delete()
 	{
+		if (!has_permission('ROOM_TARIFF_DELETE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 		$currentusername = $this->session->userdata('admin_name');
@@ -694,30 +705,35 @@ $week_day_id = $this->input->post('week_day_id');
 		$updateroom_tariff_week_days_rateData = array('room_tariff_week_days_rate_status' => 0);
 		$this->db->where('week_days_room_tariff_hike_id_fk', $room_tariff_hike_rate_id)->update('room_tariff_week_days_rate', $updateroom_tariff_week_days_rateData);
 
-		$properties_name = $this->input->post('properties_name');
-		$ip = $this->input->ip_address();
+		// $properties_name = $this->input->post('properties_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted room tariff details of property: '.$properties_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Room_tariff_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted room tariff details of property: '.$properties_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Room_tariff_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
 
 	public function delete_hike()
 	{
+		if (!has_permission('ROOM_TARIFF_DELETE_HIKE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 		$currentusername = $this->session->userdata('admin_name');
@@ -872,6 +888,11 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function ajax_hike_add()
 	{
+		if (!has_permission('ROOM_TARIFF_ADD_HIKE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate(); // reuse, or create _validate_hike()
 
 		$room_tariff_hike_id_fk = (int)$this->input->post('room_tariff_hike_id_fk');
@@ -941,8 +962,17 @@ $week_day_id = $this->input->post('week_day_id');
 			return;
 		}
 
+		// $date = date('Y-m-d');
+		// $time = date('H:i:s');
+
+		$this->load->helper('date');
+	if(function_exists('date_default_timezone_set')) {
+		date_default_timezone_set("Asia/Kolkata");
+	}
 		$date = date('Y-m-d');
-		$time = date('H:i:s');
+	$time = date('h:i:sa');
+	
+	$date1 = date('Y-m-d h:i:s a', time());
 
 		$currentuserid   = $this->session->userdata('user_id');
 		$currentusername = $this->session->userdata('admin_name');
@@ -960,9 +990,7 @@ $week_day_id = $this->input->post('week_day_id');
 			'hike_room_tariff_hike_dinner_rate_child'    => $this->input->post('hike_room_tariff_hike_dinner_rate_child'),
 			'hike_room_tariff_hike_description'          => $this->input->post('hike_room_tariff_hike_description'),
 			'hike_room_tariff_hike_createdby_user_id'    => $currentuserid,
-			'hike_room_tariff_hike_createdby_user_name'  => $currentusername,
-			'hike_room_tariff_hike_created_date'         => $date,
-			'hike_room_tariff_hike_created_time'         => $time,
+			'hike_room_tariff_hike_created_at'         => $date1,
 			'hike_room_tariff_hike_status'               => 1
 		);
 
@@ -1071,6 +1099,11 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function ajax_hike_update()
 	{
+		if (!has_permission('ROOM_TARIFF_UPDATE_HIKE')) {
+	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	        return;
+	    }
+
 		$this->_validate();
 
 		$hike_id = (int)$this->input->post('hike_room_tariff_hike_id');
@@ -1139,6 +1172,15 @@ $week_day_id = $this->input->post('week_day_id');
 		// also set hike_properties_id_fk from parent (don’t trust post)
 		$_POST['hike_properties_id_fk'] = $property_id;
 
+		$this->load->helper('date');
+	if(function_exists('date_default_timezone_set')) {
+		date_default_timezone_set("Asia/Kolkata");
+	}
+	$date = date('Y-m-d');
+	$time = date('h:i:sa');
+	
+	$date1 = date('Y-m-d h:i:s a', time());
+	
 		// update header
 		$header = array(
 			'hike_room_tariff_hike_from_date' => $from_date,
@@ -1150,6 +1192,8 @@ $week_day_id = $this->input->post('week_day_id');
 			'hike_room_tariff_hike_dinner_rate_adult'    => $this->input->post('hike_room_tariff_hike_dinner_rate_adult'),
 			'hike_room_tariff_hike_dinner_rate_child'    => $this->input->post('hike_room_tariff_hike_dinner_rate_child'),
 			'hike_room_tariff_hike_description'          => $this->input->post('hike_room_tariff_hike_description'),
+			'hike_room_tariff_hike_updatedby_user_id'    => $currentuserid,
+			'hike_room_tariff_hike_updated_at'         => $date1,
 		);
 
 		$this->db->where('hike_room_tariff_hike_id', $hike_id)->update('hike_room_tariff_hike', $header);

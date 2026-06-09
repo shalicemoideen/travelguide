@@ -25,7 +25,7 @@
         <div class="content-body">
             <div class="container-fluid">
                 <div class="row">
-                    
+
                     <div class="col-xl-12">
                         <div class="card">
                             <div class="card-header">
@@ -37,10 +37,10 @@
                                 <div class="custom-tab-1  panel-body">
                                     <!-- <ul class="nav nav-tabs">
                                         <li class="nav-item prof_cls" id="Property">
-                                            <a href="#" class="nav-link active" data-page="Property_details" id="Property_details" onclick="return Property_details('<?php echo $records->properties_id ?>')"><i class="la la-home me-2"></i> Home</a> 
+                                            <a href="#" class="nav-link active" data-page="Property_details" id="Property_details" onclick="return Property_details('<?php echo $records->properties_id ?>')"><i class="la la-home me-2"></i> Home</a>
                                         </li>
                                         <li class="nav-item prof_cls" id="Rooms">
-                                            <a href="#" class="nav-link" data-page="Room_details" id="Room_details" onclick="return Room_details('<?php echo $records->properties_id ?>')"><i class="la la-user me-2"></i> Rooms</a> 
+                                            <a href="#" class="nav-link" data-page="Room_details" id="Room_details" onclick="return Room_details('<?php echo $records->properties_id ?>')"><i class="la la-user me-2"></i> Rooms</a>
                                         </li>
                                         <li class="nav-item prof_cls" id="Upload_tariff">
                                             <a href="#" class="nav-link" data-page="Upload_tariff_details" id="Upload_tariff_details" onclick="return Upload_tariff_details('<?php echo $records->properties_id ?>')"><i class="la la-user me-2"></i> Upload tariff</a>
@@ -125,7 +125,7 @@
                                             <button class="nav-link" id="rooms-tab"
                                                     data-bs-toggle="tab" data-bs-target="#Room_details"
                                                     type="button" role="tab">
-                                            Rooms
+                                            Room category
                                             </button>
                                         </li>
 
@@ -200,7 +200,7 @@
                                                                             </div>
                                                                         </div>
                                                                         <div class="mb-3 row">
-                                                                            <label class="col-lg-4 col-form-label" for="validationCustom04">State 
+                                                                            <label class="col-lg-4 col-form-label" for="validationCustom04">Location 
                                                                             </label>
                                                                             <div class="col-lg-6">
                                                                                 <?php if(isset($records->plname)) echo $records->plname ?>
@@ -301,17 +301,25 @@
                                                                             </div>
                                                                         </div>
                                                                         <div class="mb-3 row">
-                                                                            <label class="col-lg-4 col-form-label" for="validationCustom11">Hotel logo           
+                                                                            <label class="col-lg-4 col-form-label" for="validationCustom11">Hotel logo
                                                                             </label>
                                                                             <div class="col-lg-6">
-                                                                                <?php if(isset($records->properties_hotel_logo)) echo $records->properties_hotel_logo ?>
+                                                                                <?php if(isset($records->properties_hotel_logo) && $records->properties_hotel_logo): ?>
+                                                                                    <a href="<?php echo base_url(); ?>uploads/Property-doc/logo/<?php echo $records->properties_hotel_logo; ?>" target="_blank" class="btn btn-sm btn-primary">
+                                                                                        <i class="fa fa-file"></i> <?php echo $records->properties_hotel_logo; ?>
+                                                                                    </a>
+                                                                                <?php endif; ?>
                                                                             </div>
                                                                         </div>
                                                                         <div class="mb-3 row">
-                                                                            <label class="col-lg-4 col-form-label" for="validationCustom11">Property photos            
+                                                                            <label class="col-lg-4 col-form-label" for="validationCustom11">Property photos
                                                                             </label>
                                                                             <div class="col-lg-6">
-                                                                                <?php if(isset($records->properties_photos)) echo $records->properties_photos ?>
+                                                                                <?php if(isset($records->properties_photos) && $records->properties_photos): ?>
+                                                                                    <a href="<?php echo base_url(); ?>uploads/Property-doc/photo/<?php echo $records->properties_photos; ?>" target="_blank" class="btn btn-sm btn-primary">
+                                                                                        <i class="fa fa-file"></i> <?php echo $records->properties_photos; ?>
+                                                                                    </a>
+                                                                                <?php endif; ?>
                                                                             </div>
                                                                         </div>
                                                                         <div class="mb-3 row">
@@ -383,7 +391,7 @@
                                         <label class="col-lg-3 col-form-label" for="properties_room_category_name"><b>Name</b> <span class="text-danger">*</span>
                                         </label>
                                         
-                                            <input type="text" class="form-control" name="properties_room_category_name" id="properties_room_category_name" placeholder="Enter room name" required>
+                                            <input type="text" class="form-control" name="properties_room_category_name" id="properties_room_category_name" placeholder="Enter room category name" required>
                                             <span class="help-block" style="color:red"></span>
                                         
                                     </div>
@@ -407,7 +415,7 @@
                                     <div class="form-group">
                                         <label class="col-lg-6 col-form-label" for="properties_room_category_inventory"><b>Room inventory</b> 
                                         </label>
-                                            <input type="number" class="form-control" name="properties_room_category_inventory" id="properties_room_category_inventory" placeholder="Enter room Inventory" required>
+                                            <input type="number" class="form-control" name="properties_room_category_inventory" id="properties_room_category_inventory" placeholder="Enter room category Inventory" required>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
                                 </div>

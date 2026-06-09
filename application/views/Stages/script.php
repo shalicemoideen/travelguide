@@ -11,9 +11,6 @@ $(document).ready(function () {
 
 ////***Filter button hide and show*****///
 
-$("#stages_id").select2();
-$("#stages_created_user_id").select2();
-
 ////***searching button*****///
 
 $('#search').click(function () {
@@ -58,7 +55,7 @@ var table;
     $table = $('#stage_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -67,20 +64,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2]
-                                    }
+                                        columns: [0, 1, 2, 3]
+                                    },
+                                    title: 'Stage details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2]
-                                    }
+                                        columns: [0, 1, 2, 3]
+                                    },
+                                    title: 'Stage details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2]
-                                    }
+                                        columns: [0 ,1, 2, 3]
+                                    },
+                                    title: 'Stage details'
                                 },
                                
 			],
@@ -88,8 +88,8 @@ var table;
             "url": "<?php echo base_url();?>index.php/Stages/get/",
             "type": "POST",
             "data" : function (d) {
-						d.stages_id = $("#stages_id").val();
-						d.stages_created_user_id = $("#stages_created_user_id").val();
+						// d.stages_id = $("#stages_id").val();
+						// d.stages_created_user_id = $("#stages_created_user_id").val();
            }			
         },
 		// "ajax": {
@@ -121,7 +121,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(5).html(actionHtml);
+            $('td', row).eq(4).html(actionHtml);
 
 			// $('td', row).eq(5).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_vehicle('+data['vehicle_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_vehicle('+data['vehicle_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
@@ -137,7 +137,6 @@ var table;
             { "data": "stages_name", "orderable": false },
             { "data": "stages_button", "orderable": false },
             { "data": "stages_description", "orderable": false },                      
-            { "data": "stages_created_username", "orderable": false },
             { "data": "stages_id", "orderable": false }
             
             

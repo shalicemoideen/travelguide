@@ -87,13 +87,13 @@
                                     </div>
 
                                     <div class="mb-3 row">
-    <div class="col-lg-12">
-        <label>
-            <input type="checkbox" id="select_all_permissions">
-            <strong>Select All Permissions</strong>
-        </label>
-    </div>
-</div>
+                                        <div class="col-lg-12">
+                                            <label>
+                                                <input type="checkbox" id="select_all_permissions">
+                                                <strong>Select All Permissions</strong>
+                                            </label>
+                                        </div>
+                                    </div>
                                 <!-- <div class="mb-3 row" id="permissions_group">
                                     <?php foreach ($permissions as $module => $submodules): ?>
 
@@ -129,41 +129,96 @@
                                     <b><span class="text-danger" style="color: red"></span></b>
                                 </div> -->
 
-                                <div class="mb-3" id="permissions_group">
-    <div class="row">
-        <?php foreach ($permissions as $module => $submodules): ?>
+                                    <!-- <div class="mb-3" id="permissions_group">
+                                        <div class="row">
+                                            <?php foreach ($permissions as $module => $submodules): ?>
 
-            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <strong><?= $module ?></strong>
-                    </div>
+                                                <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
+                                                    <div class="card h-100">
+                                                        <div class="card-header">
+                                                            <strong><?= $module ?></strong>
+                                                        </div>
 
-                    <div class="card-body">
-                        <?php foreach ($submodules as $sub => $perms): ?>
+                                                        <div class="card-body">
+                                                            <?php foreach ($submodules as $sub => $perms): ?>
 
-                            <div class="mb-2">
-                                <strong><?= $sub ?></strong><br>
+                                                                <div class="mb-2">
+                                                                    <strong><?= $sub ?></strong><br>
 
-                                <?php foreach ($perms as $perm): ?>
-                                    <label class="me-3 mb-1">
-                                        <input type="checkbox" class="permission-checkbox" name="permissions_name[]" value="<?= $perm->id ?>">
-                                        <?= $perm->display_name ?>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
+                                                                    <?php foreach ($perms as $perm): ?>
+                                                                        <label class="me-3 mb-1">
+                                                                            <input type="checkbox" class="permission-checkbox" name="permissions_name[]" value="<?= $perm->id ?>">
+                                                                            <?= $perm->display_name ?>
+                                                                        </label>
+                                                                    <?php endforeach; ?>
+                                                                </div>
 
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-        <?php endforeach; ?>
-    </div>
+                                            <?php endforeach; ?>
+                                        </div>
 
-    <span class="help-block" style="color:red"></span>
-    <b><span class="text-danger"></span></b>
-</div>
+                                        <span class="help-block" style="color:red"></span>
+                                        <b><span class="text-danger"></span></b>
+                                    </div> -->
+                                    <div class="mb-3" id="permissions_group">
+                                        <div class="row">
+
+                                            <?php foreach ($permissions as $module => $submodules): ?>
+
+                                                <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
+
+                                                    <div class="card h-100 permission-card">
+
+                                                        <div class="card-header d-flex justify-content-between align-items-center">
+
+                                                            <strong><?= $module ?></strong>
+
+                                                            <label class="mb-0">
+                                                                <input type="checkbox" class="module-select-all">
+                                                                Select All
+                                                            </label>
+
+                                                        </div>
+
+                                                        <div class="card-body">
+
+                                                            <?php foreach ($submodules as $sub => $perms): ?>
+
+                                                                <div class="mb-3">
+
+                                                                    <strong><?= $sub ?></strong><br>
+
+                                                                    <?php foreach ($perms as $perm): ?>
+
+                                                                        <label class="me-3 mb-1">
+                                                                            <input type="checkbox"
+                                                                                class="permission-checkbox"
+                                                                                name="permissions_name[]"
+                                                                                value="<?= $perm->id ?>">
+
+                                                                            <?= $perm->display_name ?>
+                                                                        </label>
+
+                                                                    <?php endforeach; ?>
+
+                                                                </div>
+
+                                                            <?php endforeach; ?>
+
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                            <?php endforeach; ?>
+                                            <span class="help-block" style="color:red"></span>
+                                            <b><span class="text-danger" style="color: red"></span></b>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </form>

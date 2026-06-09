@@ -42,15 +42,15 @@ class Role extends MY_Controller {
         
         // $param['state_created_user_id'] =(isset($_REQUEST['state_created_user_id']))?$_REQUEST['state_created_user_id']:'';
 
-        // if (!has_permission('ROLE_VIEW')) {
-	    //     echo json_encode([
-	    //         "draw" => intval($this->input->post('draw')),
-	    //         "recordsTotal" => 0,
-	    //         "recordsFiltered" => 0,
-	    //         "data" => []
-	    //     ]);
-	    //     return;
-	    // }
+        if (!has_permission('ROLE_VIEW')) {
+	        echo json_encode([
+	            "draw" => intval($this->input->post('draw')),
+	            "recordsTotal" => 0,
+	            "recordsFiltered" => 0,
+	            "data" => []
+	        ]);
+	        return;
+	    }
         
         $data = $this->Role_model->getRoleTable($param);
         $json_data = json_encode($data);
@@ -95,25 +95,6 @@ class Role extends MY_Controller {
             );
             $this->General_model->add('tr_role_permissions',$role_permission_data);
         }
-
-        $ip = $this->input->ip_address();
-        
-        // echo $ip;
-
-        $activity_data = array(
-                'activity_description' => 'Added Role: '.$role_name.'',
-                'id_fk' => $insert,
-                'activity_type' => 'Role_registration',
-                'activity_ip' => $ip,
-                'activity_action' => 'Add',
-                'activity_by_userid' => $currentuserid,
-                'activity_by_username' => $currentusername,
-                'activity_date_time ' => $date1,
-                'activity_date' => $date,               
-                'activity_status' => 1,
-            );
-        
-        $this->General_model->add($this->activity,$activity_data);
         
         echo json_encode(array("status" => TRUE));
     }
@@ -147,21 +128,6 @@ class Role extends MY_Controller {
         $ip = $this->input->ip_address();
         $role_id = $this->input->post('id');
         // echo $ip;
-
-        $activity_data = array(
-                'activity_description' => 'Updated Role: '.$role_name.'',
-                'id_fk' => $role_id,
-                'activity_type' => 'Permission_registration',
-                'activity_ip' => $ip,
-                'activity_action' => 'Edit',
-                'activity_by_userid' => $currentuserid,
-                'activity_by_username' => $currentusername,
-                'activity_date_time ' => $date1,    
-                'activity_date' => $date,           
-                'activity_status' => 1,
-            );
-        
-        $this->General_model->add($this->activity,$activity_data);
         
         $data = array(
                 
@@ -215,24 +181,24 @@ class Role extends MY_Controller {
 
         $this->Role_model->delete_permissions_by_role($this->input->post('role_id_delete'));
 
-        $role_name = $this->input->post('role_name_delete_hidden');
-        $ip = $this->input->ip_address();
+        // $role_name = $this->input->post('role_name_delete_hidden');
+        // $ip = $this->input->ip_address();
         
-        $activity_data = array(
-                'activity_description' => 'Deleted Role: '.$role_name.'',
-                'id_fk' => $this->input->post('role_id_delete'),
-                'activity_type' => 'Role_registration',
-                // 'activity_order_number' => $invoice_order_number1,
-                'activity_ip' => $ip,
-                'activity_action' => 'Delete',
-                'activity_by_userid' => $currentuserid,
-                'activity_by_username' => $currentusername,
-                'activity_date_time ' => $date1,
-                'activity_date' => $date,
-                'activity_status' => 1,
-            );
+        // $activity_data = array(
+        //         'activity_description' => 'Deleted Role: '.$role_name.'',
+        //         'id_fk' => $this->input->post('role_id_delete'),
+        //         'activity_type' => 'Role_registration',
+        //         // 'activity_order_number' => $invoice_order_number1,
+        //         'activity_ip' => $ip,
+        //         'activity_action' => 'Delete',
+        //         'activity_by_userid' => $currentuserid,
+        //         'activity_by_username' => $currentusername,
+        //         'activity_date_time ' => $date1,
+        //         'activity_date' => $date,
+        //         'activity_status' => 1,
+        //     );
         
-        $this->General_model->add($this->activity,$activity_data);
+        // $this->General_model->add($this->activity,$activity_data);
         echo json_encode(array("status" => TRUE));
     }
 

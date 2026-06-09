@@ -41,9 +41,6 @@ class Priority_status extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['priority_status_id'] =(isset($_REQUEST['priority_status_id']))?$_REQUEST['priority_status_id']:'';
-		$param['priority_status_created_user_id'] =(isset($_REQUEST['priority_status_created_user_id']))?$_REQUEST['priority_status_created_user_id']:'';
-
 		if (!has_permission('PRIORITY_STATUS_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -87,32 +84,11 @@ class Priority_status extends MY_Controller {
 				'priority_status_name' => $this->input->post('priority_status_name'),	
                 'priority_status_button' => $button,	
                 'priority_status_description' => $this->input->post('priority_status_description'),					
-				'priority_status_created_user_id' => $currentuserid,			
-				'priority_status_created_username' => $currentusername,			
-				'priority_status_created_date' => $date,			
-				'priority_status_created_time ' => $time,			
+				'priority_status_created_user_id' => $currentuserid,					
+				'priority_status_created_at' => $date1,						
 				'priority_status_created_status' => 1
 			);
 		$insert = $this->Priority_status_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added priority status: '.$priority_status_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Priority_status_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -147,26 +123,7 @@ class Priority_status extends MY_Controller {
         $priority_status_button  = $this->input->post('priority_status_button');
 		$button = '<center><span class="btn btn-sm" style="background-color:'.$priority_status_button.'"><span style="color:white">'.$priority_status_name.'</span></span></center>';
 
-		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited priority status: '.$priority_status_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Priority_status_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
@@ -174,11 +131,8 @@ class Priority_status extends MY_Controller {
 				'priority_status_name' => $this->input->post('priority_status_name'),					
 				'priority_status_button' => $button,	
                 'priority_status_description' => $this->input->post('priority_status_description'),					
-				// 'priority_status_created_user_id' => $currentuserid,			
-				// 'priority_status_created_username' => $currentusername,			
-				// 'priority_status_created_date' => $date,			
-				// 'priority_status_created_time ' => $time,			
-				// 'priority_status_created_status' => 1
+				'priority_status_updated_user_id' => $currentuserid,					
+				'priority_status_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Priority_status_model->update(array('priority_status_id' => $this->input->post('id')), $data);
@@ -225,24 +179,24 @@ class Priority_status extends MY_Controller {
 		
 		$this->Priority_status_model->update(array('priority_status_id' => $this->input->post('id')), $updateData);
 
-		$priority_status_name = $this->input->post('priority_status_name');
-		$ip = $this->input->ip_address();
+		// $priority_status_name = $this->input->post('priority_status_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted priority status '.$priority_status_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Priority_status_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted priority status '.$priority_status_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Priority_status_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

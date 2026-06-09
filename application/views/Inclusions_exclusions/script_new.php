@@ -13,7 +13,7 @@ $(document).ready(function () {
 
         "processing": true,
         "serverSide": true,
-        "searching": false,
+        "searching": true,
         "aLengthMenu": [
             [10, 25, 50, -1],
             [10, 25, 50, "All"]
@@ -22,24 +22,27 @@ $(document).ready(function () {
         dom: 'lBfrtip',
 
         buttons: [
-            {
-                extend: 'excel',
-                exportOptions: {
-                    columns: [0, 1, 2]
-                }
-            },
-            {
-                extend: 'pdf',
-                exportOptions: {
-                    columns: [0, 1, 2]
-                }
-            },
-            {
-                extend: 'print',
-                exportOptions: {
-                    columns: [0, 1, 2]
-                }
-            }
+            // {
+            //     extend: 'excel',
+            //     exportOptions: {
+            //         columns: [0, 1]
+            //     },
+            //     title: 'Inclusion and exclusion details'
+            // },
+            // {
+            //     extend: 'pdf',
+            //     exportOptions: {
+            //         columns: [0, 1]
+            //     },
+            //     title: 'Inclusion and exclusion details'
+            // },
+            // {
+            //     extend: 'print',
+            //     exportOptions: {
+            //         columns: [0, 1]
+            //     },
+            //     title: 'Inclusion and exclusion details'
+            // }
         ],
 
         /* ============================================
@@ -49,10 +52,10 @@ $(document).ready(function () {
             "url": "<?php echo base_url();?>index.php/Inclusions_exclusions/get/",
             "type": "POST",
             "data": function (d) {
-                d.inclusion_exclusion_common_id = $("#inclusion_exclusion_common_id").val();
-                d.inclusion_exclusion_common_createdby_user_id = $("#inclusion_exclusion_common_createdby_user_id").val();
+                // d.inclusion_exclusion_common_id = $("#inclusion_exclusion_common_id").val();
+                // d.inclusion_exclusion_common_createdby_user_id = $("#inclusion_exclusion_common_createdby_user_id").val();
                 /* SEARCH FILTER */
-                d.inclusion_exclusion_common_title_filter = $("#inclusion_exclusion_common_title_filter").val();
+                // d.inclusion_exclusion_common_title_filter = $("#inclusion_exclusion_common_title_filter").val();
             }
         },
 
@@ -74,10 +77,10 @@ $(document).ready(function () {
             },
 
             /* CREATED BY */
-            {
-                "data": "admin_name",
-                "orderable": false
-            },
+            // {
+            //     "data": "admin_name",
+            //     "orderable": false
+            // },
 
             /* ACTION BUTTONS */
             {
@@ -138,7 +141,7 @@ $(document).ready(function () {
 
             actionHtml += '</div>';
 
-            $('td', row).eq(3).html(actionHtml);
+            $('td', row).eq(2).html(actionHtml);
             
         },
 

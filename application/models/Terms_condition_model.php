@@ -10,15 +10,10 @@ class Terms_condition_model extends CI_Model{
 	
 	public function getTermsconditionTable($param){
 		$arOrder = array('','roles_name');
-		$terms_condition_id =(isset($param['terms_condition_id']))?$param['terms_condition_id']:'';
-		$terms_condition_createdby_user_id =(isset($param['terms_condition_createdby_user_id']))?$param['terms_condition_createdby_user_id']:'';
-		
-		
-		if($terms_condition_id){
-            $this->db->where('terms_condition_id', $terms_condition_id); 
-        }
-        if($terms_condition_createdby_user_id){
-            $this->db->where('terms_condition_createdby_user_id', $terms_condition_createdby_user_id); 
+
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('terms_condition_name', $searchValue); 
         }
         $this->db->where("terms_condition_status",1);
 
@@ -40,6 +35,7 @@ class Terms_condition_model extends CI_Model{
 		$this->db->select('*');
 		$this->db->from('terms_condition');
 		$this->db->join('terms_condition_items', 'terms_condition_items.terms_condition_id_fk = terms_condition.terms_condition_id','left');
+		$this->db->join('user_details u', 'u.user_id = terms_condition.terms_condition_createdby_user_id', 'left');
 		$this->db->order_by('terms_condition_id', 'DESC');
 		$this->db->group_by('terms_condition_items.terms_condition_id_fk');
         $query = $this->db->get();
@@ -54,16 +50,10 @@ class Terms_condition_model extends CI_Model{
 
 	public function getTermsconditionTotalCount($param = NULL){
 
-		$terms_condition_id =(isset($param['terms_condition_id']))?$param['terms_condition_id']:'';
-		$terms_condition_createdby_user_id =(isset($param['terms_condition_createdby_user_id']))?$param['terms_condition_createdby_user_id']:'';
-		
-		
-		if($terms_condition_id){
-            $this->db->where('terms_condition_id', $terms_condition_id); 
-        }
-        if($terms_condition_createdby_user_id){
-            $this->db->where('terms_condition_createdby_user_id', $terms_condition_createdby_user_id); 
-        }
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('terms_condition_name', $searchValue); 
+		}
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
 			
@@ -73,8 +63,9 @@ class Terms_condition_model extends CI_Model{
 		$this->db->select('*');
 		$this->db->from('terms_condition');
 		$this->db->join('terms_condition_items', 'terms_condition_items.terms_condition_id_fk = terms_condition.terms_condition_id','left');
-		$this->db->where("terms_condition_status",1);
+		$this->db->join('user_details u', 'u.user_id = terms_condition.terms_condition_createdby_user_id', 'left');
 		$this->db->order_by('terms_condition_id', 'DESC');
+		$this->db->where("terms_condition_status",1);
 		$this->db->group_by('terms_condition_items.terms_condition_id_fk');
         $query = $this->db->get();
     	return $query->num_rows();

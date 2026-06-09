@@ -55,6 +55,10 @@
 							'DESTINATION_CREATE',
 							'DESTINATION_UPDATE',
 							'DESTINATION_DELETE',
+							'LOCATION_VIEW',
+							'LOCATION_CREATE',
+							'LOCATION_UPDATE',
+							'LOCATION_DELETE',
 							'VEHICLE_VIEW',
 							'VEHICLE_CREATE',
 							'VEHICLE_UPDATE',
@@ -101,6 +105,14 @@
 							<?php endif; ?>
 							
 							<?php if (has_any_permission([
+							    'LOCATION_VIEW',
+							    'LOCATION_CREATE',
+							    'LOCATION_UPDATE',
+							    'LOCATION_DELETE'
+							])): ?>
+							<li class="<?php if($this->uri->segment(1)=="Location"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Location">Location</a></li>
+
+							<?php endif;if (has_any_permission([
 							    'DESTINATION_VIEW',
 							    'DESTINATION_CREATE',
 							    'DESTINATION_UPDATE',

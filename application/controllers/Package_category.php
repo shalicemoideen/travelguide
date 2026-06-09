@@ -40,9 +40,7 @@ class Package_category extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['package_category_id'] =(isset($_REQUEST['package_category_id']))?$_REQUEST['package_category_id']:'';
-		$param['package_category_createdby_user_id'] =(isset($_REQUEST['package_category_createdby_user_id']))?$_REQUEST['package_category_createdby_user_id']:'';
-
+	
 		if (!has_permission('TEMPLATES_CATEGORY_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -81,32 +79,11 @@ class Package_category extends MY_Controller {
 
 				'package_category_name' => $this->input->post('package_category_name'),
 				'package_category_description' => $this->input->post('package_category_description'),					
-				'package_category_createdby_user_id' => $currentuserid,			
-				'package_category_createdby_user_name' => $currentusername,			
-				'package_category_created_date' => $date,			
-				'package_category_created_time' => $time,			
+				'package_category_createdby_user_id' => $currentuserid,						
+				'package_category_created_at' => $date1,					
 				'package_category_status' => 1
 			);
 		$insert = $this->Package_category_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added package category: '.$package_category_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Package_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -139,35 +116,14 @@ class Package_category extends MY_Controller {
 		
 		$package_category_name = $this->input->post('package_category_name');
 		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited package category: '.$package_category_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Package_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
 				'package_category_name' => $this->input->post('package_category_name'),
 				'package_category_description' => $this->input->post('package_category_description'),					
-				// 'package_category_createdby_user_id' => $currentuserid,			
-				// 'package_category_createdby_user_name' => $currentusername,			
-				// 'package_category_created_date' => $date,			
-				// 'package_category_created_time' => $time,			
-				// 'package_category_status' => 1
+				'package_category_updatedby_user_id' => $currentuserid,					
+				'package_category_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Package_category_model->update(array('package_category_id' => $this->input->post('id')), $data);
@@ -214,24 +170,24 @@ class Package_category extends MY_Controller {
 		
 		$this->Package_category_model->update(array('package_category_id' => $this->input->post('id')), $updateData);
 
-		$package_category_name = $this->input->post('package_category_name');
-		$ip = $this->input->ip_address();
+		// $package_category_name = $this->input->post('package_category_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted package category '.$package_category_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Package_category_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted package category '.$package_category_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Package_category_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

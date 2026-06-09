@@ -8,6 +8,21 @@
 }
 }
 </style>
+<style>
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -25,94 +40,61 @@
                                     <div class="card-header" id="Create" style="display:none">
                                         <div class="d-flex align-items-center">
                                             <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
                                                             <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="properties_id" name="properties_id" required>  
                             
                                                                     <option value="">Please Select property</option>
-                                                                    <?php
-
-                                                                    foreach($property as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->properties_id.'" '.$sel.'>'.$row->properties_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
                                                             </select>
                                                         </div>
                                                     </div>
                                                 </div>  
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
                                                             <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="property_category_id_fk2" name="property_category_id_fk" required>  
                             
-                                                                    <option value="">Please Select property category</option>                            
-                                                                    <?php foreach($property_category as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->property_category_id.'">'.$row->property_category_name.'</option>';
-                                                                        } ?>
+                                                                    <option value="">Please Select property category</option>
                                                             </select>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
                                                             <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="country_id_fk2" name="country_id_fk"  required>  
                             
                                                                    <option value="">Please Select Country</option>
-
-                                                                    <?php foreach($country as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->id.'">'.$row->name.'</option>';
-                                                                        } ?>
                                                             </select>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="state_id_fk2" name="state_id_fk" required>  
+                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="location_id_fk2" name="location_id_fk" required>  
                             
                                                                    <option value="">Please Select Location</option>
-
-                                                                    <?php foreach($state as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->state_id.'">'.$row->state_name.'</option>';
-                                                                        } ?>
                                                             </select>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
                                                             <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="properties_destination_id_fk2" name="properties_destination_id_fk" required>  
                             
                                                                    <option value="">Please Select Destination</option>
-
-                                                                    <?php foreach($state as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->state_id.'">'.$row->state_name.'</option>';
-                                                                        } ?>
                                                             </select>
                                                         </div>
                                                     </div>
                                                 </div>                                           
-                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
+                                                <div class="col-sm-6 col-md-3 staff-do-not-show">
                                                     <div class="card">
                                                         <div class="input-group">
                                                             <select name="properties_createdby_userid" id="properties_createdby_userid" class="form-control input-lg multi-select" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($staff as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
+                                                                <option value="">Please Select Created by</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -129,14 +111,12 @@
                                                 </div>
                                                 <div class="col-sm-2 col-md-3">
                                                     <div class="card">
-                                                        <a href="<?php echo base_url();?>Property_registration">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
+                                                        <button type="button" class="btn btn-secondary btn-md" id="refresh">
                                                             <span class="btn-label">
                                                                 <i class="icon-refresh"></i>
                                                             </span>
                                                             Refresh
                                                         </button>
-                                                        </a>
                                                     </div>
                                                 </div>
                                                 
@@ -168,12 +148,12 @@
                                                 <th>Country</th>
                                                 <th>Location</th>
                                                 <th>Destination</th>
-                                                <th>Created by</th>
+                                                <th>Tariff Status</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -217,12 +197,8 @@
                                     <div class="form-group">
                                         <label class="col-lg-7 col-form-label" for="property_category_id_fk"><b>Property category</b> <span class="text-danger">*</span>
                                         </label>
-                                            <select name="property_category_id_fk" id="property_category_id_fk" class="form-control multi-select" required>                                     
-                                                <option value="">Please Select property category</option>                            
-                                                                    <?php foreach($property_category as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->property_category_id.'">'.$row->property_category_name.'</option>';
-                                                                        } ?>
+                                            <select name="property_category_id_fk" id="property_category_id_fk" class="form-control multi-select" required>
+                                                <option value="">Please Select property category</option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -232,15 +208,9 @@
                                     <div class="form-group">
                                         <label class="col-lg-4 col-form-label" for="country_id_fk"><b>Country</b> <span class="text-danger">*</span>
                                         </label>
-                                        
-                                            <select name="country_id_fk" id="country_id_fk" class="form-control "  required>                                     
-                                               <option value="">Please Select Country</option>
 
-                                                <?php foreach($country as $row) {
-                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                        echo '<option value="'.$row->id.'">'.$row->name.'</option>';
-                                                    } ?>                            
-                                               
+                                            <select name="country_id_fk" id="country_id_fk" class="form-control " required>
+                                               <option value="">Please Select Country</option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -248,17 +218,11 @@
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="col-lg-4 col-form-label" for="country_id_fk"><b>Location</b> <span class="text-danger">*</span>
+                                        <label class="col-lg-4 col-form-label" for="location_id_fk"><b>Location</b> <span class="text-danger">*</span>
                                         </label>
-                                        
-                                            <select name="state_id_fk" id="state_id_fk" class="form-control multi-select" required>                                     
-                                               <option value="">Please Select Location</option>
 
-                                                <?php foreach($state as $row) {
-                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                        echo '<option value="'.$row->state_id.'">'.$row->state_name.'</option>';
-                                                    } ?>                           
-                                               
+                                            <select name="location_id_fk" id="location_id_fk" class="form-control multi-select" required>
+                                               <option value="">Please Select Location</option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -268,17 +232,12 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="col-lg-5 col-form-label" for="country_id_fk"><b>Destination</b> <span class="text-danger">*</span>
+                                        <label class="col-lg-5 col-form-label" for="properties_destination_id_fk"><b>Destination</b> <span class="text-danger">*</span>
                                         </label>
-                                        
-                                            <select name="properties_destination_id_fk" id="properties_destination_id_fk" class="form-control multi-select" required>                                     
+
+                                            <select name="properties_destination_id_fk" id="properties_destination_id_fk" class="form-control multi-select" required>
                                                <option value="">Please Select Destination</option>
 
-                                                <?php foreach($state as $row) {
-                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                        echo '<option value="'.$row->state_id.'">'.$row->state_name.'</option>';
-                                                    } ?>                           
-                                               
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>

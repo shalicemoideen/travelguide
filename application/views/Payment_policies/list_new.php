@@ -53,14 +53,14 @@
                                 <div class="row mb-3">
 
                                     <!-- SEARCH BY POLICY NAME -->
-                                    <div class="col-md-4">
+                                    <!-- <div class="col-md-4">
                                         <input type="text"
                                                id="payment_policies_name_filter"
                                                class="form-control"
                                                placeholder="Search Payment Policy Name">
                                     </div>
 
-                                    <!-- BUTTONS -->
+                                     BUTTONS 
                                     <div class="col-md-4">
 
                                         <button type="button"
@@ -77,7 +77,7 @@
 
                                     </div>
 
-                                </div>
+                                </div> -->
 
 
                                 <!-- TABLE -->
@@ -90,9 +90,9 @@
                                         <thead>
                                             <tr>
                                                 <th style="width:5%;">Sl.No</th>
-                                                <th style="width:35%;">Policy Name</th>
-                                                <th style="width:25%;">Created By</th>
-                                                <th style="width:15%;">Action</th>
+                                                <th style="width:25%;">Policy Name</th>
+                                                <!-- <th style="width:25%;">Created By</th> -->
+                                                <th style="width:5%;">Action</th>
                                             </tr>
                                         </thead>
 

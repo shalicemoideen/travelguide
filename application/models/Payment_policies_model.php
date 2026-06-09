@@ -10,23 +10,27 @@ class Payment_policies_model extends CI_Model{
 	
 	public function getPaymentpoliciesTable($param){
 		$arOrder = array('','roles_name');
-		$payment_policies_id =(isset($param['payment_policies_id']))?$param['payment_policies_id']:'';
-		$payment_policies_createdby_user_id =(isset($param['payment_policies_createdby_user_id']))?$param['payment_policies_createdby_user_id']:'';
+		// $payment_policies_id =(isset($param['payment_policies_id']))?$param['payment_policies_id']:'';
+		// $payment_policies_createdby_user_id =(isset($param['payment_policies_createdby_user_id']))?$param['payment_policies_createdby_user_id']:'';
 		
 		
-		if($payment_policies_id){
-            $this->db->where('payment_policies_id', $payment_policies_id); 
-        }
-        if($payment_policies_createdby_user_id){
-            $this->db->where('payment_policies_createdby_user_id', $payment_policies_createdby_user_id); 
-        }
+		// if($payment_policies_id){
+        //     $this->db->where('payment_policies_id', $payment_policies_id); 
+        // }
+        // if($payment_policies_createdby_user_id){
+        //     $this->db->where('payment_policies_createdby_user_id', $payment_policies_createdby_user_id); 
+        // }
 
-        if (!empty($param['payment_policies_name'])) {
-		    $this->db->like(
-		        'payment_policies.payment_policies_name',
-		        $param['payment_policies_name']
-		    );
-		}
+        // if (!empty($param['payment_policies_name'])) {
+		//     $this->db->like(
+		//         'payment_policies.payment_policies_name',
+		//         $param['payment_policies_name']
+		//     );
+		// }
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('payment_policies_name', $searchValue); 
+        }
         $this->db->where("payment_policies_status",1);
 
         if($param['length']== -1) {
@@ -62,22 +66,26 @@ class Payment_policies_model extends CI_Model{
 
 	public function getPaymentpoliciesTotalCount($param = NULL){
 
-		$payment_policies_id =(isset($param['payment_policies_id']))?$param['payment_policies_id']:'';
-		$payment_policies_createdby_user_id =(isset($param['payment_policies_createdby_user_id']))?$param['payment_policies_createdby_user_id']:'';
+		// $payment_policies_id =(isset($param['payment_policies_id']))?$param['payment_policies_id']:'';
+		// $payment_policies_createdby_user_id =(isset($param['payment_policies_createdby_user_id']))?$param['payment_policies_createdby_user_id']:'';
 		
 		
-		if($payment_policies_id){
-            $this->db->where('payment_policies_id', $payment_policies_id); 
+		// if($payment_policies_id){
+        //     $this->db->where('payment_policies_id', $payment_policies_id); 
+        // }
+        // if($payment_policies_createdby_user_id){
+        //     $this->db->where('payment_policies_createdby_user_id', $payment_policies_createdby_user_id); 
+        // }
+        // if (!empty($param['payment_policies_name'])) {
+		//     $this->db->like(
+		//         'payment_policies.payment_policies_name',
+		//         $param['payment_policies_name']
+		//     );
+		// }
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('payment_policies_name', $searchValue); 
         }
-        if($payment_policies_createdby_user_id){
-            $this->db->where('payment_policies_createdby_user_id', $payment_policies_createdby_user_id); 
-        }
-        if (!empty($param['payment_policies_name'])) {
-		    $this->db->like(
-		        'payment_policies.payment_policies_name',
-		        $param['payment_policies_name']
-		    );
-		}
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
 			

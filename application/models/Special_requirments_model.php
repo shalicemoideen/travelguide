@@ -9,16 +9,10 @@ class Special_requirments_model extends CI_Model{
     }
 	
 	public function getSpecialrequirmentsTable($param){
-		$arOrder = array('','roles_name');
-		$special_requirements_id =(isset($param['special_requirements_id']))?$param['special_requirements_id']:'';
-		$special_requirements_createdby_user_id =(isset($param['special_requirements_createdby_user_id']))?$param['special_requirements_createdby_user_id']:'';
-		
-		
-		if($special_requirements_id){
-            $this->db->where('special_requirements_id', $special_requirements_id); 
-        }
-		if($special_requirements_createdby_user_id){
-            $this->db->where('special_requirements_createdby_user_id', $special_requirements_createdby_user_id); 
+		$arOrder = array('','special_requirements_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('special_requirements_name', $searchValue); 
         }
         $this->db->where("special_requirements_status",1);
 
@@ -52,15 +46,9 @@ class Special_requirments_model extends CI_Model{
 
 	public function getSpecialrequirmentsTotalCount($param = NULL){
 
-		$special_requirements_id =(isset($param['special_requirements_id']))?$param['special_requirements_id']:'';
-		$special_requirements_createdby_user_id =(isset($param['special_requirements_createdby_user_id']))?$param['special_requirements_createdby_user_id']:'';
-		
-		
-		if($special_requirements_id){
-            $this->db->where('special_requirements_id', $special_requirements_id); 
-        }
-		if($special_requirements_createdby_user_id){
-            $this->db->where('special_requirements_createdby_user_id', $special_requirements_createdby_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('special_requirements_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

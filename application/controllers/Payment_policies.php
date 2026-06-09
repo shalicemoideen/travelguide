@@ -66,9 +66,9 @@ class Payment_policies extends MY_Controller
         $param['searchValue'] = isset($search['value']) ? $search['value'] : '';
 
         /* FILTERS */
-        $param['payment_policies_id'] = $this->input->post('payment_policies_id');
-        $param['payment_policies_createdby_user_id'] = $this->input->post('payment_policies_createdby_user_id');
-        $param['payment_policies_name'] = $this->input->post('payment_policies_name');
+        // $param['payment_policies_id'] = $this->input->post('payment_policies_id');
+        // $param['payment_policies_createdby_user_id'] = $this->input->post('payment_policies_createdby_user_id');
+        // $param['payment_policies_name'] = $this->input->post('payment_policies_name');
 
         if (!has_permission('PAYMENT_POLICY_VIEW')) {
 	        echo json_encode([
@@ -97,12 +97,21 @@ class Payment_policies extends MY_Controller
 
         $this->db->trans_start();
 
+        $this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+
+        $date1 = date('Y-m-d h:i:s a', time());
+
         /* MAIN POLICY */
         $policy_data = array(
             'payment_policies_name'              => $this->input->post('payment_policies_name'),
             'payment_policies_createdby_user_id' => $this->currentuserid,
             'payment_policies_status'            => 1,
-            'payment_policies_created_date'      => date('Y-m-d H:i:s')
+            'payment_policies_created_at'      => $date1
         );
 
         $this->db->insert($this->table, $policy_data);
@@ -130,19 +139,6 @@ class Payment_policies extends MY_Controller
         }
 
         $this->db->trans_complete();
-
-        /* ACTIVITY LOG */
-        $ip = $this->input->ip_address();
-        $activity_data=array(
-            'activity_action' => 'Added Payment Policy',
-            'id_fk' => $policy_id,
-            'activity_type' => 'Payment_policies_registration',
-            'activity_ip' => $ip,
-            'activity_action' => 'Add',
-            'activity_by_userid' => $this->currentuserid,
-            'activity_date' => date('Y-m-d H:i:s')
-        );
-        $this->General_model->add($this->activity,$activity_data);
 
         echo json_encode(array(
             "status" => TRUE
@@ -183,9 +179,19 @@ class Payment_policies extends MY_Controller
 
         $this->db->trans_start();
 
+        $this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+
+        $date1 = date('Y-m-d h:i:s a', time());
         /* UPDATE MAIN */
         $policy_data = array(
-            'payment_policies_name' => $this->input->post('payment_policies_name')
+            'payment_policies_name' => $this->input->post('payment_policies_name'),
+            'payment_policies_updatedby_user_id'   => $this->currentuserid,
+            'payment_policies_updated_at'        => $date1
         );
 
         $this->db->where('payment_policies_id', $policy_id);
@@ -216,20 +222,6 @@ class Payment_policies extends MY_Controller
         }
 
         $this->db->trans_complete();
-
-        /* ACTIVITY LOG */
-        $ip = $this->input->ip_address();
-        $activity_data=array(
-            'activity_action' => 'Updated Payment Policy',
-            'id_fk' => $policy_id,
-            'activity_type' => 'Payment_policies_registration',
-            'activity_ip' => $ip,
-            'activity_action' => 'Update',
-            'activity_by_userid' => $this->currentuserid,
-            'activity_date' => date('Y-m-d H:i:s')
-        );
-        $this->General_model->add($this->activity,$activity_data);
-
         
         echo json_encode(array(
             "status" => TRUE
@@ -251,17 +243,17 @@ class Payment_policies extends MY_Controller
         $this->db->delete($this->table);
 
         /* ACTIVITY LOG */
-        $ip = $this->input->ip_address();
-        $activity_data=array(
-            'activity_action' => 'Deleted Payment Policy',
-            'id_fk' => $policy_id,
-            'activity_type' => 'Payment_policies_registration',
-            'activity_ip' => $ip,
-            'activity_action' => 'Delete',
-            'activity_by_userid' => $this->currentuserid,
-            'activity_date' => date('Y-m-d H:i:s')
-        );
-        $this->General_model->add($this->activity,$activity_data);
+        // $ip = $this->input->ip_address();
+        // $activity_data=array(
+        //     'activity_action' => 'Deleted Payment Policy',
+        //     'id_fk' => $policy_id,
+        //     'activity_type' => 'Payment_policies_registration',
+        //     'activity_ip' => $ip,
+        //     'activity_action' => 'Delete',
+        //     'activity_by_userid' => $this->currentuserid,
+        //     'activity_date' => date('Y-m-d H:i:s')
+        // );
+        // $this->General_model->add($this->activity,$activity_data);
 
         echo json_encode(array(
             "status" => TRUE

@@ -10,17 +10,12 @@ class Destination_model extends CI_Model{
 	
 	public function getDestinationTable($param){
 		$arOrder = array('','roles_name');
-		$state_id_filter =(isset($param['state_id_filter']))?$param['state_id_filter']:'';
-		$state_created_user_id =(isset($param['state_created_user_id']))?$param['state_created_user_id']:'';
-		
-		
-		if($state_id_filter){
-            $this->db->where('state_id', $state_id_filter); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('state.state_name', $searchValue);
+            $this->db->or_like('location.location_name', $searchValue);
         }
-		if($state_created_user_id){
-            $this->db->where('state_created_user_id', $state_created_user_id); 
-        }
-        $this->db->where("state_status",1);
+        $this->db->where("state.state_status",1);
 
         if($param['length']== -1) {
 
@@ -33,15 +28,16 @@ class Destination_model extends CI_Model{
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
-			
+
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*');
+		$this->db->select('state.*, location.location_name');
 		$this->db->from('state');
-		$this->db->order_by('state_id', 'DESC');
+		$this->db->join('location', 'location.location_id = state.location_id_fk', 'left');
+		$this->db->order_by('state.state_id', 'DESC');
         $query = $this->db->get();
-        
+
 
         $data['data'] = $query->result();
         $data['recordsTotal'] = $this->getDestinationTotalCount($param);
@@ -52,15 +48,9 @@ class Destination_model extends CI_Model{
 
 	public function getDestinationTotalCount($param = NULL){
 
-		$state_id_filter =(isset($param['state_id_filter']))?$param['state_id_filter']:'';
-		$state_created_user_id =(isset($param['state_created_user_id']))?$param['state_created_user_id']:'';
-		
-		
-		if($state_id_filter){
-            $this->db->where('state_id', $state_id_filter); 
-        }
-		if($state_created_user_id){
-            $this->db->where('state_created_user_id', $state_created_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('state_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
@@ -93,7 +83,15 @@ class Destination_model extends CI_Model{
 		$query = $this->db->get("user_details");
 		return $query->result();
 	}
-	
+
+	function fetch_location_details()
+	{
+		$this->db->order_by("location_id", "ASC");
+		$this->db->where("location_status",1);
+		$query = $this->db->get("location");
+		return $query->result();
+	}
+
 	
 	
 

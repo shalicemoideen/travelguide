@@ -26,6 +26,7 @@ class B2b_partner extends MY_Controller {
 		
 		$template['country'] = $this->B2b_partner_model->fetch_country();;
 		$template['partner'] = $this->B2b_partner_model->fetch_b2b_partner_details();
+		$template['state'] = $this->B2b_partner_model->fetch_state();
 		$template['staff'] = $this->B2b_partner_model->fetch_staff_details();
 		$template['body'] = 'B2b_partner/list';
 		$template['script'] = 'B2b_partner/script';
@@ -41,13 +42,7 @@ class B2b_partner extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['b2b_partner_id'] =(isset($_REQUEST['b2b_partner_id']))?$_REQUEST['b2b_partner_id']:'';
-		$param['b2b_partner_country_id_fk'] =(isset($_REQUEST['b2b_partner_country_id_fk']))?$_REQUEST['b2b_partner_country_id_fk']:'';
-		$param['b2b_partner_location_id_fk'] =(isset($_REQUEST['b2b_partner_location_id_fk']))?$_REQUEST['b2b_partner_location_id_fk']:'';
-		$param['b2b_partner_person_name'] =(isset($_REQUEST['b2b_partner_person_name']))?$_REQUEST['b2b_partner_person_name']:'';
-		$param['b2b_partner_contact_number'] =(isset($_REQUEST['b2b_partner_contact_number']))?$_REQUEST['b2b_partner_contact_number']:'';
-		$param['b2b_partner_createdby_user_id'] =(isset($_REQUEST['b2b_partner_createdby_user_id']))?$_REQUEST['b2b_partner_createdby_user_id']:'';
-		
+				
 		if (!has_permission('B2B_PARTNER_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -92,32 +87,11 @@ class B2b_partner extends MY_Controller {
 				'b2b_partner_contact_number' => $this->input->post('b2b_partner_contact_number'),
 				'b2b_partner_email_address' => $this->input->post('b2b_partner_email_address'),
 				'b2b_partner_description' => $this->input->post('b2b_partner_description'),					
-				'b2b_partner_createdby_user_id' => $currentuserid,			
-				'b2b_partner_createdby_user_name' => $currentusername,			
-				'b2b_partner_created_date' => $date,			
-				'b2b_partner_created_time' => $time,			
+				'b2b_partner_createdby_user_id' => $currentuserid,					
+				'b2b_partner_created_at' => $date1,						
 				'b2b_partner_status' => 1
 			);
 		$insert = $this->B2b_partner_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added b2b partner: '.$b2b_partner_agent_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'B2B_partner_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -150,25 +124,8 @@ class B2b_partner extends MY_Controller {
 		
 		$b2b_partner_agent_name = $this->input->post('b2b_partner_agent_name');
 		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited b2b partner: '.$b2b_partner_agent_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'B2B_partner_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
 		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
@@ -180,11 +137,8 @@ class B2b_partner extends MY_Controller {
 				'b2b_partner_contact_number' => $this->input->post('b2b_partner_contact_number'),
 				'b2b_partner_email_address' => $this->input->post('b2b_partner_email_address'),
 				'b2b_partner_description' => $this->input->post('b2b_partner_description'),				
-				// 'b2b_partner_createdby_user_id' => $currentuserid,			
-				// 'b2b_partner_createdby_user_name' => $currentusername,			
-				// 'b2b_partner_created_date' => $date,			
-				// 'b2b_partner_created_time' => $time,			
-				// 'b2b_partner_status' => 1
+				'b2b_partner_updatedby_user_id' => $currentuserid,					
+				'b2b_partner_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->B2b_partner_model->update(array('b2b_partner_id' => $this->input->post('id')), $data);
@@ -212,24 +166,24 @@ class B2b_partner extends MY_Controller {
 		
 		$this->B2b_partner_model->update(array('b2b_partner_id' => $this->input->post('id')), $updateData);
 
-		$b2b_partner_agent_name = $this->input->post('b2b_partner_agent_name');
-		$ip = $this->input->ip_address();
+		// $b2b_partner_agent_name = $this->input->post('b2b_partner_agent_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted b2b partner: '.$b2b_partner_agent_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'B2B_partner_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted b2b partner: '.$b2b_partner_agent_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'B2B_partner_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

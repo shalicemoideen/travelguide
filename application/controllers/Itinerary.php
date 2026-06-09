@@ -23,14 +23,82 @@ class Itinerary extends MY_Controller {
 	public function index()
 	{
 		//$name = 'PERSONAL CASH';
-		
-		$template['itineraries'] = $this->Itinerary_model->fetch_itineraries();
-		$template['itinerary_category'] = $this->Itinerary_model->fetch_itinerary_category();
-		$template['destination'] = $this->Itinerary_model->fetch_destination();
-		$template['staff'] = $this->Itinerary_model->fetch_staff_details();
+
 		$template['body'] = 'Itinerary/list';
 		$template['script'] = 'Itinerary/script';
 		$this->load->view('template', $template);
+	}
+
+	public function get_itinerary_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('itineraries_id as id, itineraries_name as text');
+		$this->db->from('itineraries');
+		$this->db->where('itineraries_status', 1);
+
+		if ($search) {
+			$this->db->like('itineraries_name', $search);
+		}
+
+		$this->db->order_by('itineraries_name', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_itinerary_category_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('itinerary_category_id as id, itinerary_category_name as text');
+		$this->db->from('itinerary_category');
+		$this->db->where('itinerary_category_status', 1);
+
+		if ($search) {
+			$this->db->like('itinerary_category_name', $search);
+		}
+
+		$this->db->order_by('itinerary_category_name', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_destination_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('state_id as id, state_name as text');
+		$this->db->from('state');
+		$this->db->where('state_status', 1);
+
+		if ($search) {
+			$this->db->like('state_name', $search);
+		}
+
+		$this->db->order_by('state_name', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
+	public function get_staff_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('user_id as id, admin_name as text');
+		$this->db->from('user_details');
+		$this->db->where('user_status', 1);
+
+		if ($search) {
+			$this->db->like('admin_name', $search);
+		}
+
+		$this->db->order_by('admin_name', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
 	}
 
 	public function get(){
@@ -455,9 +523,7 @@ private function _upload_single_normal_file($fieldName, $uploadPath, $allowed = 
 		'itineraries_first_cover_page' => $first_cover,
 		'itineraries_last_cover_page'  => $last_cover,
         'itineraries_createdby_user_id'   => $currentuserid,
-        'itineraries_created_by_user_name'=> $currentusername,
-        'itineraries_created_date'        => $date,
-        'itineraries_created_time'        => $time,
+        'itineraries_created_at'        => $date1,
         'itineraries_status'              => 1
     );
 
@@ -517,18 +583,18 @@ private function _upload_single_normal_file($fieldName, $uploadPath, $allowed = 
 			$this->db->insert('itineraries_days', $data_itineraries_day);
 		}
         // activity
-        $ip = $this->input->ip_address();
-        $activity_data = array(
-            'activity_description' => 'Added itinerary: ' . $itineraries_name,
-            'id_fk'                => $insert,
-            'activity_type'        => 'Itinerary_registration',
-            'activity_ip'          => $ip,
-            'activity_action'      => 'Add',
-            'activity_date_time'   => $date1,
-            'activity_date'        => $date,
-            'activity_status'      => 1
-        );
-        $this->db->insert('activity', $activity_data);
+        // $ip = $this->input->ip_address();
+        // $activity_data = array(
+        //     'activity_description' => 'Added itinerary: ' . $itineraries_name,
+        //     'id_fk'                => $insert,
+        //     'activity_type'        => 'Itinerary_registration',
+        //     'activity_ip'          => $ip,
+        //     'activity_action'      => 'Add',
+        //     'activity_date_time'   => $date1,
+        //     'activity_date'        => $date,
+        //     'activity_status'      => 1
+        // );
+        // $this->db->insert('activity', $activity_data);
 
         echo json_encode(array("status"=>TRUE));
         return;
@@ -697,6 +763,14 @@ public function ajax_update()
 	
 	}
 
+	if (function_exists('date_default_timezone_set')) {
+        date_default_timezone_set("Asia/Kolkata");
+    }
+
+    $date  = date('Y-m-d');
+    $time  = date('h:i:sa');
+    $date1 = date('Y-m-d h:i:s a', time());
+
     // 1) update master
     $data = array(
         'itineraries_name'            => $this->input->post('itineraries_name'),
@@ -704,7 +778,9 @@ public function ajax_update()
         'itineraries_duration_nights' => $this->input->post('itineraries_duration_nights'),
 		'itineraries_first_cover_page'    => $file1,
         'itineraries_last_cover_page'     => $file2,
-        'itineraries_description'     => $this->input->post('itineraries_description')
+        'itineraries_description'     => $this->input->post('itineraries_description'),
+		'itineraries_updatedby_user_id'   => $currentuserid,
+        'itineraries_updated_at'        => $date1,
     );
 
     $this->db->where('itineraries_id', $itineraries_id)->update('itineraries', $data);
@@ -903,24 +979,24 @@ public function ajax_update()
 		$updateitineraryData = array('itineraries_days_status' => 0);
 		$this->db->where('itineraries_id_fk', $this->input->post('id'))->update('itineraries_days', $updateitineraryData);
 
-		$itineraries_name = $this->input->post('itineraries_name');
-		$ip = $this->input->ip_address();
+		// $itineraries_name = $this->input->post('itineraries_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted itinerary: '.$itineraries_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Itinerary_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted itinerary: '.$itineraries_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Itinerary_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

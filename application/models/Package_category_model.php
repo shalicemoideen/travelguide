@@ -9,16 +9,10 @@ class Package_category_model extends CI_Model{
     }
 	
 	public function getPackagecategoryTable($param){
-		$arOrder = array('','roles_name');
-		$package_category_id =(isset($param['package_category_id']))?$param['package_category_id']:'';
-		$package_category_createdby_user_id =(isset($param['package_category_createdby_user_id']))?$param['package_category_createdby_user_id']:'';
-		
-		
-		if($package_category_id){
-            $this->db->where('package_category_id', $package_category_id); 
-        }
-		if($package_category_createdby_user_id){
-            $this->db->where('package_category_createdby_user_id', $package_category_createdby_user_id); 
+		$arOrder = array('','package_category_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('package_category_name', $searchValue); 
         }
         $this->db->where("package_category_status",1);
 
@@ -52,15 +46,9 @@ class Package_category_model extends CI_Model{
 
 	public function getPackagecategoryTotalCount($param = NULL){
 
-		$package_category_id =(isset($param['package_category_id']))?$param['package_category_id']:'';
-		$package_category_createdby_user_id =(isset($param['package_category_createdby_user_id']))?$param['package_category_createdby_user_id']:'';
-		
-		
-		if($package_category_id){
-            $this->db->where('package_category_id', $package_category_id); 
-        }
-		if($package_category_createdby_user_id){
-            $this->db->where('package_category_createdby_user_id', $package_category_createdby_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('package_category_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

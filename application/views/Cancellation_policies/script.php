@@ -1,694 +1,668 @@
 <script>
-// https://www.snagoff.com/blog/blog-post/add-remove-multiple-input-fields-dynamically-with-jquery-and-php/
-////***Filter button hide and show*****///
 
-$(document).ready(function () {
-    $("#btn").click(function () {
-        $("#Create").toggle();
-    });
-});
-
-
-////***Filter button hide and show*****///
-
-
-////***searching button*****///
-
-$('#search').click(function () {
-        
-        $table.ajax.reload();
-    });
-
-// $( "#b2b_partner_person_name1" ).keypress(function() {
-//             $table.ajax.reload();
-// });
-
-////***searching button*****///
-
-////***Latest Jquery form validation for adding form*****///
-
-    ////***Listing table*****///
-
-var save_method; //for save method string
+var save_method;
 var table;
-  $(document).ready(function() {
-    
-    
-    $table = $('#Cancellation_policies_table').DataTable( {
+var counter = 0;
+
+/* ============================================
+   DATATABLE
+============================================ */
+$(document).ready(function () {
+
+     table = $('#Cancellation_policy_table').DataTable({
+
         "processing": true,
         "serverSide": true,
-        "searching": false,
-        "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        // "bDestroy" : true,
+        "searching": true,
+        "aLengthMenu": [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+
         dom: 'lBfrtip',
-            buttons: [
-                {
-                    extend: 'excel',
-                    exportOptions: {
-                        columns: [0, 1]
-                    }
-                },
-                {
-                    extend: 'pdf',
-                    exportOptions: {
-                        columns: [0, 1]
-                    }
-                },
-                {
-                    extend: 'print',
-                    exportOptions: {
-                        columns: [0 ,1]
-                    }
-                },
-            ],
+
+        buttons: [
+            // {
+            //     extend: 'excel',
+            //     exportOptions: {
+            //         columns: [0, 1, 2]
+            //     }
+            // },
+            // {
+            //     extend: 'pdf',
+            //     exportOptions: {
+            //         columns: [0, 1, 2]
+            //     }
+            // },
+            // {
+            //     extend: 'print',
+            //     exportOptions: {
+            //         columns: [0, 1, 2]
+            //     }
+            // }
+        ],
+
+        /* ============================================
+           AJAX
+        ============================================ */
         "ajax": {
             "url": "<?php echo base_url();?>index.php/Cancellation_policies/get/",
             "type": "POST",
-            "data" : function (d) {
-                        d.cancellation_policies_id = $("#cancellation_policies_id").val();
-                        d.cancellation_policies_createdby_user_id = $("#cancellation_policies_createdby_user_id").val();
-           }            
+            "data": function (d) {
+                // d.payment_policies_id = $("#payment_policies_id").val();
+                // d.payment_policies_createdby_user_id = $("#payment_policies_createdby_user_id").val();
+                /* SEARCH FILTER */
+                // d.payment_policies_name = $("#payment_policies_name_filter").val();
+            }
         },
-        // "ajax": {
-            // "url": "<?php echo site_url('States/get')?>",
-            // "type": "POST"
-        // },
-        "createdRow": function ( row, data, index ) {
-          
-//            $('td',row).eq(0).html(index+1);
-           $table.column(0).nodes().each(function(node,index,dt){
-            $table.cell(node).data(index+1);
-            });
-            
-            
 
-            // $('td', row).eq(5).html('<div class="form-button-action"><a  data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" href="javascript:void(0)" onclick="edit_role('+data['roles_id']+')"><i class="fa fa-edit"></i></a><button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove" href="javascript:void(0)" onclick="return delete_role('+data['roles_id']+')"><i class="fa fa-times"></i></button></div>');
+        /* ============================================
+           COLUMN DEFINITIONS
+        ============================================ */
+        "columns": [
 
-            // $('td', row).eq(3).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_cancellation_policies('+data['cancellation_policies_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_cancellation_policies('+data['cancellation_policies_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
-            
-           let actionHtml = '<div class="d-flex">';
+            /* SERIAL NUMBER */
+            {
+                "data": null,
+                "orderable": false
+            },
+
+            /* POLICY NAME */
+            {
+                "data": "cancellation_policies_name",
+                "orderable": false
+            },
+
+            /* CREATED BY */
+            // {
+            //     "data": "admin_name",
+            //     "orderable": false
+            // },
+
+            /* ACTION BUTTONS */
+            {
+                "data": null,
+                "orderable": false
+            }
+        ],
+
+        /* ============================================
+           ROW CUSTOMIZATION
+        ============================================ */
+        "createdRow": function (row, data, dataIndex) {
+
+            /* SERIAL NUMBER */
+            $('td', row).eq(0).html(dataIndex + 1);
+
+            /* STATUS BADGE (Optional if status needed)
+               Uncomment if you want status display
+            */
+            /*
+            let statusBadge = data.payment_policies_status == 1
+                ? '<span class="badge bg-success">Active</span>'
+                : '<span class="badge bg-danger">Inactive</span>';
+
+            $('td', row).eq(1).html(statusBadge);
+            */
+
+            /* ACTION BUTTONS */
+            // $('td', row).eq(3).html(`
+            //     <div class="d-flex">
+                    
+            //         <a href="javascript:void(0)"
+            //            onclick="edit_payment_policies(${data.cancellation_policies_id})"
+            //            class="btn btn-primary shadow btn-xs sharp me-1">
+            //             <i class="fas fa-pencil-alt"></i>
+            //         </a>
+
+            //         <a href="javascript:void(0)"
+            //            onclick="return delete_payment_policies(${data.cancellation_policies_id})"
+            //            class="btn btn-danger shadow btn-xs sharp">
+            //             <i class="fa fa-trash"></i>
+            //         </a>
+
+            //     </div>
+            // `);
+
+            let actionHtml = '<div class="d-flex">';
 
             // Edit button
             if (hasPermission('CANCELLATION_AND_POLICY_UPDATE')) {
-                actionHtml += '<a href="javascript:void(0)" onclick="edit_cancellation_policies('+data['cancellation_policies_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
+                actionHtml += '<a href="javascript:void(0)" onclick="edit_cancellation_policy('+data['cancellation_policies_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
             }
 
             // Delete button
             if (hasPermission('CANCELLATION_AND_POLICY_DELETE')) {
-                actionHtml += '<a href="javascript:void(0)" onclick="return delete_cancellation_policies('+data['cancellation_policies_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
+                actionHtml += '<a href="javascript:void(0)" onclick="return delete_cancellation_policy('+data['cancellation_policies_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
             }
 
             actionHtml += '</div>';
 
-            $('td', row).eq(3).html(actionHtml);
-            
-           },
-
-           "drawCallback": function( settings ) {
-                // displaySelectByUserType();
-            },
-
-        "columns": [
-            { "data": "cancellation_policies_status", "orderable": false },
-            { "data": "cancellation_policies_name", "orderable": false },
-            { "data": "cancellation_policies_createdby_user_name", "orderable": false },
-            { "data": "cancellation_policies_id", "orderable": false },
-            
-            
-            
-        ]
-        
-    });
-    
-    
-    ////***Latest Jquery form validation for adding form*****///
-            
-    $("#form").validate({
-
-        validClass: "success",
-        rules: {
-            'input, select, textarea': {
-                required: function(element) {
-                    return $(element).is(':visible');
-                }
-            }
-                // booking_work_order_end_date: { greaterThan: "#booking_work_order_date" }
-            
-        },
-        messages: {
-            
-        },
-        
-        highlight: function(element) {
-            $(element).closest('.form-group').removeClass('input-success-o').addClass('input-warning-o');
-        },
-        success: function(element) {
-            $(element).closest('.form-group').removeClass('input-warning-o').addClass('input-success-o');
+            $('td', row).eq(2).html(actionHtml);
+           
         },
 
-        errorClass: 'input-error', // Optional, customize error class
-        errorElement: 'div'
+        /* ============================================
+           SERIAL NUMBER FIX FOR PAGINATION
+        ============================================ */
+        "drawCallback": function (settings) {
+
+            var api = this.api();
+
+            api.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+
+                cell.innerHTML = settings._iDisplayStart + i + 1;
+
+            });
+        }
 
     });
 
-  });
-    
- 
-////***Listing table*****///
-
-////***For close the modal *****///
-  $('#Cancellation_policiesModal').on('hidden.bs.modal', function() {
-  var waitForClose = window.setInterval(function() {
-    if ($('body').hasClass('modal-open') == false) {
-      $('.user').find('#name').trigger('focus');
-      window.clearInterval(waitForClose)
-    }
-  }, 100);
-  $(".product-item").remove();
+    $("#add_more_btn").click(function () {
+        addNewRow();
+    });
 });
-function Cancellation_policiesmodalclose()
+
+
+/* ============================================
+   SEARCH BUTTON
+============================================ */
+function search_cancellation_policy()
 {
-
-    $('#Cancellation_policiesModal').modal('hide');
-   
-    //$( "div" ).remove( ".modal-backdrop" );
-    $('#cancellation_policies_name').val('');
-    $(".product-item").remove();
-    $(".product-item1").remove();
-    $('#category_name_alert').hide();
-    $('.submit').removeAttr('disabled');
-    $('.form-group').removeClass('input-success-o');
-    $('.form-group').removeClass('input-warning-o');
-    $('.cancellation_policies_name').removeClass('input-success-o');
-    $('.cancellation_policies_name').removeClass('input-warning-o');
-    $(".product-item").remove();
-    $(".product-item1").remove();
-
-    // $('#btnSave').removeAttr('disabled');
+    if (table) {
+        table.ajax.reload(null, true);
+    }
 }
-////***For close the modal *****///
 
-////***For open the modal *****///
-$('#Cancellation_policiesModal').on('shown.bs.modal', function () {
-    // $("#state_id_fk").select2('open');
-    $('#cancellation_policies_name').focus();
 
-    // $(".submit").attr("disabled", "disabled");
-    $('.form-group').removeClass('input-success-o');
-    $('.form-group').removeClass('input-warning-o');
-    $('.cancellation_policies_name').removeClass('input-success-o');
-    $('.cancellation_policies_name').removeClass('input-warning-o');
+/* ============================================
+   RESET BUTTON
+============================================ */
+function reset_filters()
+{
+    /* CLEAR FILTERS */
+    $("#cancellation_policies_name_filter").val('');
+    $("#cancellation_policies_id").val('');
+    $("#cancellation_policies_createdby_user_id").val('');
 
-})
-////***For open the modal *****///
-    
-////***For open modal of Cancellation and policies adding form  *****///
-    
-function add_Cancellation_policies()
-{ 
-    save_method = 'add';
+    /* RELOAD FULL TABLE */
+    if (table) {
+        table.ajax.reload(null, true);
+    }
+
+    /* OPTIONAL FLASH */
+    $("#flash_message").html(`
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            Filters reset successfully
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+
+    setTimeout(function () {
+        $("#flash_message .alert").fadeOut('slow');
+    }, 3000);
+}
+
+
+/* ============================================
+   ENTER KEY SEARCH
+============================================ */
+$(document).on("keypress", "#cancellation_policies_name_filter", function(e) {
+
+    if (e.which == 13) {
+        search_cancellation_policy();
+    }
+
+});
+
+
+
+/* ============================================
+   RELOAD DATATABLE PROPERLY
+   Fix:
+   Clear filters + reset pagination + full reload
+============================================ */
+function reload_table(action_type = '')
+{
+    /* ============================================
+       CLEAR HIDDEN FILTER VALUES
+       (These may be restricting results to one row)
+    ============================================ */
+    $("#cancellation_policies_id").val('');
     $("#id").val('');
-    $('#form')[0].reset(); // reset form on modals
-    $('.form-group').removeClass('input-warning-o'); // clear error class
-    $('.help-block').empty(); // clear error string
-    $('#Cancellation_policiesModal').modal('show'); // show bootstrap modal
-    $('.modal-title').text('Add Cancellation and policies Details'); // Set Title to Bootstrap modal title
-    $('#btnSave').text('save');
-    $(".product-item").remove();
-    $(".product-item1").remove();
-    counter = 0;
+
+    /* Optional:
+       If you have other filters, reset them too
+    */
+    // $("#payment_policies_createdby_user_id").val('');
+    // $("#payment_policies_name_filter").val('');
+
+    /* ============================================
+       FULL TABLE RELOAD
+       true = reset pagination to page 1
+    ============================================ */
+    
+
+    /* ============================================
+       SUCCESS MESSAGE
+    ============================================ */
+    let message = '';
+    let flash = 1;
+
+    if (action_type == 'update') {
+        message = "Cancellation policy details updated successfully";
+    } 
+    else if (action_type == 'delete') {
+        message = "Cancellation policy details deleted successfully";
+    } 
+    else if (action_type == 'add'){
+        message = "Cancellation policy details added successfully";
+    }
+    else{
+        flash = 0;
+    }
+
+    if(flash){
+        $("#flash_message").html(`
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        `);
+    }
+
+    /* AUTO HIDE */
+    setTimeout(function () {
+        $("#flash_message .alert").fadeOut('slow', function () {
+            $(this).remove();
+        });
+    }, 5000);
+    if (table) {
+        table.ajax.reload(null, true);
+    }
 }
 
-////***For open modal of Cancellation and policies adding form  *****///
 
-////***For editing Cancellation and policies details from adding modal form  *****///
+/* ============================================
+   ADD NEW TERMS
+============================================ */
+function add_cancellation_policy() {
 
-function edit_cancellation_policies(id)
-{
+    /* MODE */
+    save_method = 'add';
+
+    /* RESET HIDDEN ID */
+    $("#cancellation_policies_id").val('');
+    $("#id").val('');
+
+    /* RESET FORM */
+    $('#form')[0].reset();
+
+    /* CLEAR VALIDATION */
+    $('.form-group').removeClass('input-warning-o');
+    $('.form-control').removeClass('is-invalid');
+    $('.help-block').text('');
+
+    /* RESET BUTTON */
+    $('#btnSave').text('save');
+    $('#btnSave').attr('disabled', false);
+
+    /* CLEAR DYNAMIC ITEMS */
+    $("#product1").html('');
+
+    /* RESET COUNTER */
+    counter = 0;
+
+    /* ADD FIRST DEFAULT TEXTAREA */
+    addNewRow();
+
+    /* MODAL TITLE */
+    $('.modal-title').text('Add Cancellation policy Details');
+
+    /* SHOW MODAL */
+    $('#Cancellation_policyModal').modal('show');
+}
+
+
+/* ============================================
+   ADD DYNAMIC ROW
+============================================ */
+function addNewRow(value = '', item_id = '') {
+
+    counter++;
+
+    let html = `
+        <div class="row mb-3" id="row_${counter}">
+            
+            <div class="col-md-10">
+                
+                <input type="hidden"
+                       name="cancellation_policies_item_id
+                       [${counter}]"
+                       value="${item_id}">
+
+                <textarea class="form-control terms-text"
+                          name="cancellation_policies_item_name[${counter}]"
+                          rows="3"
+                          placeholder="Enter Cancellation policy Item">${value}</textarea>
+
+                <span class="help-block text-danger" id="error_${counter}"></span>
+            </div>
+
+            <div class="col-md-2">
+                <button type="button"
+                        class="btn btn-danger"
+                        onclick="deleteRow(${counter})">
+                    X
+                </button>
+            </div>
+
+        </div>
+    `;
+
+    $("#product1").append(html);
+}
+
+
+/* ============================================
+   DELETE ROW
+============================================ */
+function deleteRow(id) {
+    $("#row_" + id).remove();
+}
+
+
+/* ============================================
+   EDIT
+============================================ */
+function edit_cancellation_policy(id) {
+
     save_method = 'update';
-    $('#form')[0].reset(); // reset form on modals
-    $('.form-group').removeClass('input-warning-o'); // clear error class
-    $('.help-block').empty(); // clear error string
-    //$("#product").hide();  
 
-    //Ajax Load data from ajax
+    $('#form')[0].reset();
+    $('#product1').html('');
+    counter = 0;
+
     $.ajax({
-        url : "<?php echo base_url();?>index.php/Cancellation_policies/ajax_edit/" + id,
+        url: "<?php echo site_url('Cancellation_policies/ajax_edit/') ?>/" + id,
         type: "GET",
         dataType: "JSON",
-        success: function(data)
-        {
-            
-            $('[name="id"]').val(data.cancellation_policies_id);
-            $('[name="cancellation_policies_name"]').val(data.cancellation_policies_name);
-              
-            $('#Cancellation_policiesModal').modal('show'); // show bootstrap modal when complete loaded
-            $('.modal-title').text('Edit Cancellation and policies Details'); // Set title to Bootstrap modal title
-            $('#btnSave').text('update');
 
-            var cancellation_policies_id = data.cancellation_policies_id;
-            $.ajax({
-              url: "<?php echo base_url(); ?>index.php/Cancellation_policies/fetch_cancellation_policies_items/",
-              dataType: 'json',
-              type: 'POST',
-              data:{cancellation_policies_id:cancellation_policies_id},
-              success: function(data) {
-                var result = data;
-                // console.log(result);
-                var field = [];
-                var num = 1;
-                $.each(result, function (i, item) {
+        success: function (data) {
+            console.log(data.cancel.cancellation_policies_id, 'data.cancel.cancellation_policies_id');
 
+            $("#cancellation_policies_id").val(data.cancel.cancellation_policies_id);
+            $("#cancellation_policies_name").val(data.cancel.cancellation_policies_name);
 
-                            // field.push('<DIV class="product-item box box-success list exp_section" id="product-item_'+num+'">&nbsp <input type="hidden" name="sub-counter-'+num+'" id="sub-counter-'+num+'" value="0" /> <table class="table table-bordered" cellspacing="2" ><tr><div class="row"><div class="col-sm-12"><input type="hidden" name="cancellation_policies_id_fk['+num+']" id="cancellation_policies_id_fk_'+num+'" value="'+item.cancellation_policies_id_fk+'"/><input type="text" name="cancellation_policies_item_id['+num+']" id="cancellation_policies_item_id'+num+'" value="'+item.terms_condition_items_id+'"/> <textarea class="form-control" name="terms_condition_items_name['+num+']" id="terms_condition_items_name_'+num+'"  rows="5" placeholder="Enter Terms and condition" required>'+item.terms_condition_items_name+'</textarea><input type="text" id="counter_edit" value="'+num+'"><button class="btn-sm btn-danger" type="button" style="margin-top:20%;" onClick="deleteRow('+num+');"><b>X</b></button></div></div></div></tr></table></DIV>');
+            $.each(data.items, function (i, item) {
+                addNewRow(
+                    item.cancellation_policies_item_name,
+                    item.cancellation_policies_item_id
+                );
+            });
 
-                    field.push('<div class="mb-3 col-md-8 product-item" id="product-item_'+num+'"><input type="hidden" name="cancellation_policies_id_fk['+num+']" id="cancellation_policies_id_fk_'+num+'" value="'+item.cancellation_policies_id_fk+'"/><input type="hidden" name="cancellation_policies_item_id['+num+']" id="cancellation_policies_item_id_'+num+'" value="'+item.cancellation_policies_item_id+'"/><textarea class="form-control" name="cancellation_policies_item_name['+num+']" id="cancellation_policies_item_name_'+num+'"  rows="5" placeholder="Enter Cancellation and policies" required>'+item.cancellation_policies_item_name+'</textarea><span class="help-block" style="color:red"></span></div><div class="mb-3 col-md-3 product-item1" id="product-item1_'+num+'"><button class="btn-sm btn-danger" type="button" onClick="deleteRow('+num+');"><b>X</b></button></div>');
-                    
-                    
-
-                    num++;
-                   
-                });
-
-               
-            //alert(num) 
-            $("#counter_edit1").val(num);    
-            console.log(field); 
-            //$("#stg").html(field);
-            $("#product1").append(field);  
-            $("#counter_edit").val(num - 1) 
-            counter = num-1;
-            }
-
-                
-             });
-        },
-        error: function (jqXHR, textStatus, errorThrown)
-        {
-            alert('Error get data from ajax');
+            $('#Cancellation_policyModal').modal('show');
         }
     });
 }
 
-////***For editing Cancellation and policies details from adding modal form  *****///
 
-////***For reload the datatable  *****///
+/* ============================================
+   VALIDATION
+============================================ */
+function validateCancel() {
 
-function reload_table()
-{
-    $table.ajax.reload(null,false); //reload datatable ajax 
-    var id = $("#id").val();
-    if(id)
-    {  
+    let valid = true;
 
-        // swal("Cancellation and policies details updated successfully", "", "success")
-        var ff = 0;
-        
-        ff = "Cancellation and policies details updated successfully";
+    $(".help-block").text('');
 
-         $("#vehicle_update").val(ff);
-        
-         
-         var options = {
-
-        'title': '',
-
-        'style': 'success',
-
-        'message': ff,
-
-        // 'success': 'warning',
-        'icon': 'fas fa-check',
-
-        };
-        
-        var n1 = new notify(options); 
-
-        n1.show(); 
-
-        setTimeout(function(){ n1.hide(); }, 10000);
+    if ($("#cancellation_policies_name").val().trim() == '') {
+        $("#cancellation_policies_name").next('.help-block').text('Cancellation name is required');
+        valid = false;
     }
-    else{
-        
-        // swal("Cancellation and policies details added successfully", "", "success")
 
-        var ff = 0;
-        
-        ff = "Cancellation and policies details added successfully";
+    $(".terms-text").each(function () {
 
-         $("#vehicle_add").val(ff);
-        
-         
-         var options = {
+        let value = $(this).val().trim();
 
-        'title': '',
+        if (value == '') {
+            $(this).next('.help-block').text('This field is required');
+            valid = false;
+        }
+    });
 
-        'style': 'success',
-
-        'message': ff,
-
-        // 'success': 'warning',
-        'icon': 'fas fa-check',
-
-        };
-        
-        var n1 = new notify(options); 
-
-        n1.show(); 
-
-        setTimeout(function(){ n1.hide(); }, 10000);
-    }
-    
-    
+    return valid;
 }
 
-////***For reload the datatable  *****///
 
-///***For save the Cancellation and policies details from adding modal form *****///
 
-function save()
+/* ============================================
+   SAVE FUNCTION (ADD / UPDATE)
+   IMPORTANT:
+   Call flash message BEFORE resetting modal values
+============================================ */
+function save(e)
 {
-     
+    if (e) e.preventDefault();
+
     var url;
 
-    if(save_method == 'add') {
-        $("#id").val('');
-        $('#btnSave').text('saving...'); //change button text
-        $('#btnSave').attr('disabled',true); //set button disable
+    if (save_method == 'add') {
+
+        $("#cancellation_policies_id").val('');
+
+        $('#btnSave').text('saving...');
+        $('#btnSave').attr('disabled', true);
 
         url = "<?php echo base_url();?>index.php/Cancellation_policies/ajax_add/";
-    } 
-    else {
 
-        $('#btnSave').text('updating...'); //change button text
-        $('#btnSave').attr('disabled',true); //set button disable
+    } else {
+
+        $('#btnSave').text('updating...');
+        $('#btnSave').attr('disabled', true);
 
         url = "<?php echo base_url();?>index.php/Cancellation_policies/ajax_update/";
     }
-    
-    var fd = new FormData();
-    
+
+    /* VALIDATION */
+    if (!validateCancel()) {
+
+        $('#btnSave').text('save');
+        $('#btnSave').attr('disabled', false);
+
+        return false;
+    }
+
     var form = document.getElementById('form');
     var data = new FormData(form);
-    // ajax adding data to database
+
     $.ajax({
-        url : url,
+        url: url,
         type: "POST",
-        data: data, //$('#form').serialize(),
+        data: data,
         dataType: "JSON",
-        //cache : false,
         processData: false,
-        enctype: 'multipart/form-data',
         contentType: false,
-        success: function(data)
+
+        success: function(response)
         {
+            if (response.status) {
 
-            if(data.status) //if success close modal and reload ajax table
-            {
+                /* ============================================
+                   SET MESSAGE DIRECTLY HERE
+                ============================================ */
+                let message = '';
+                let action_type ='';
 
-                $('#Cancellation_policiesModal').modal('hide');
-                // $('body').removeClass('modal-open');
-                // $('.modal-backdrop').remove();
-                $(".product-item").remove();
-    $(".product-item1").remove();
+                if (save_method == 'add') {
+                    action_type = 'add';
+                    message = "Cancellation policy details added successfully";
+                } else {
+                    
+                    action_type = 'update';
+                    message = "Cancellation policy details updated successfully";
+                }
 
-                reload_table();
-            }
-            else
-            {
-                for (var i = 0; i < data.inputerror.length; i++) 
-                {
-                    $('[name="'+data.inputerror[i]+'"]').parent().parent().addClass('input-warning-o'); //select parent twice to select div form-group class and add has-error class
-                    if($('[name="'+data.inputerror[i]+'"]').parent().find('.help-block').length) {
-                        $('[name="'+data.inputerror[i]+'"]').parent().find('.help-block').text(data.error_string[i]); //select span help-block class set text error string
-                    } else {
-                        $('[name="'+data.inputerror[i]+'"]').next().text(data.error_string[i]);
-                    }
+                /* ============================================
+                   SHOW FLASH MESSAGE
+                ============================================ */
+                $("#flash_message").html(`
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `);
+
+                /* AUTO HIDE */
+                setTimeout(function () {
+                    $("#flash_message .alert").fadeOut('slow');
+                }, 5000);
+
+                /* CLOSE MODAL */
+                $('#Cancellation_policyModal').modal('hide');
+
+                /* RESET FORM */
+                $('#form')[0].reset();
+                $('#product1').html('');
+                counter = 0;
+
+                /* RELOAD TABLE */
+                reload_table(action_type);
+
+            } else {
+
+                if (response.message) {
+                    alert(response.message);
+                }
+
+                for (var i = 0; i < response.inputerror.length; i++) {
+
+                    $('[name="' + response.inputerror[i] + '"]')
+                        .closest('.form-group, .col-md-10, .mb-3')
+                        .addClass('input-warning-o');
+
+                    $('[name="' + response.inputerror[i] + '"]')
+                        .next('.help-block')
+                        .text(response.error_string[i]);
                 }
             }
-            $('#btnSave').text('save'); //change button text
-            $('#btnSave').attr('disabled',false); //set button enable 
-            $('.help-block').val('hide');
 
+            $('#btnSave').text('save');
+            $('#btnSave').attr('disabled', false);
         },
-        error: function (jqXHR, textStatus, errorThrown)
-        {
-            alert('Error adding / update data');
-            $('#btnSave').text('save'); //change button text
-            $('#btnSave').attr('disabled',false); //set button enable 
 
+        error: function (jqXHR)
+        {
+            console.log(jqXHR.responseText);
+
+            alert('Error adding / updating data');
+
+            $('#btnSave').text('save');
+            $('#btnSave').attr('disabled', false);
         }
     });
 }
 
-///***For save the Cancellation and policies details from adding modal form *****///
 
-////***For reload the datatable for delete *****///
 
-function reload_table_delete()
+
+/* ============================================
+   OPEN DELETE CONFIRMATION MODAL
+============================================ */
+function delete_cancellation_policy(id)
 {
-    $table.ajax.reload(null,false); //reload datatable ajax
-    
-    // swal("Property category details deleted successfully", "", "success")
-        var ff = 0;
-        
-        ff = "Cancellation and policies details deleted successfully";
+    if (!id) {
+        alert('Invalid Cancellation policy ID');
+        return false;
+    }
 
-         $("#roles_delete").val(ff);
-        
-         
-         var options = {
-
-        'title': '',
-
-        'style': 'success',
-
-        'message': ff,
-
-        // 'success': 'warning',
-        'icon': 'fas fa-check',
-
-        };
-        var n1 = new notify(options); 
-
-        n1.show(); 
-
-        setTimeout(function(){ n1.hide(); }, 10000);
-        
-}
-
-////***For reload the datatable for delete *****///
-    
-////***For reload the Cancellation and policies datatable for delete *****///
-
-function delete_cancellation_policies(id)
-{
-     $.ajax({
-        url : "<?php echo base_url();?>index.php/Cancellation_policies/ajax_edit/" + id,
+    $.ajax({
+        url: "<?php echo base_url();?>index.php/Cancellation_policies/ajax_edit/" + id,
         type: "GET",
         dataType: "JSON",
+
         success: function(data)
         {
+            /* SET VALUES */
+            $('#delete_id').val(data.cancel.cancellation_policies_id);
 
-            $('[name="id"]').val(data.terms_condition_id);
-            $('[name="cancellation_policies_name"]').val(data.cancellation_policies_name);
-            $('#deleterowModal').modal('show'); // show bootstrap modal when complete loaded
-            $('.modal-title1').text('Do you want to delete this record?'); // Set title to Bootstrap modal title
-            $('#btnSave1').text('delete');
-            $('#btnSave1').attr('disabled',false); //set button enable 
+            $('#delete_cancel_name').text(
+                data.cancel.cancellation_policies_name
+            );
 
+            /* SHOW MODAL */
+            $('#deleterowModal').modal('show');
+
+            /* TITLE */
+            $('.modal-title1').text('Do you want to delete this record?');
+
+            /* BUTTON */
+            $('#btnSave1').text('Delete');
+            $('#btnSave1').attr('disabled', false);
         },
-        error: function (jqXHR, textStatus, errorThrown)
+
+        error: function(jqXHR)
         {
-            alert('Error get data from ajax');
+            console.log(jqXHR.responseText);
+
+            alert('Failed to fetch record details');
         }
     });
-    
-    // $('#deleterowModal').modal('show'); // show bootstrap modal
-        // ajax delete data to database 
+
+    return false;
 }
 
-function delete_cancellation_policies_action()
+
+
+/* ============================================
+   CONFIRM DELETE ACTION
+============================================ */
+function confirm_delete_cancellation_policy()
 {
-    $('#btnSave1').text('deleting...'); //change button text
-    $('#btnSave1').attr('disabled',true); //set button disable 
-    var url;
+    var id = $('#delete_id').val();
 
-        url = "<?php echo base_url();?>index.php/Cancellation_policies/delete/";
-        
-    
+    if (!id) {
+        alert('Invalid cancellation policy ID');
+        return false;
+    }
 
-    // ajax adding data to database
+    $('#btnSave1').text('Deleting...');
+    $('#btnSave1').attr('disabled', true);
+
     $.ajax({
-        url : url,
+        url: "<?php echo base_url();?>index.php/Cancellation_policies/ajax_delete/" + id,
         type: "POST",
-        data: $('#form1').serialize(),
         dataType: "JSON",
-        success: function(data)
-        {
 
-            if(data.status) //if success close modal and reload ajax table
-            {
-                $("#id").val('');
+        success: function(response)
+        {
+            if (response.status) {
+
+                /* CLOSE MODAL */
                 $('#deleterowModal').modal('hide');
-                reload_table_delete();
-                // ('body').removeClass('modal-open');
-                //$('.modal-backdrop').remove();
-                
-            }
-            else
-            {
-                for (var i = 0; i < data.inputerror.length; i++) 
-                {
-                    $('[name="'+data.inputerror[i]+'"]').parent().parent().addClass('has-error'); //select parent twice to select div form-group class and add has-error class
-                    if($('[name="'+data.inputerror[i]+'"]').parent().find('.help-block').length) {
-                        $('[name="'+data.inputerror[i]+'"]').parent().find('.help-block').text(data.error_string[i]); //select span help-block class set text error string
-                    } else {
-                        $('[name="'+data.inputerror[i]+'"]').next().text(data.error_string[i]);
-                    }
-                }
+
+                /* RELOAD TABLE */
+                reload_table('delete');
+
+            } else {
+
+                alert(response.message || 'Delete failed');
             }
 
-            $('#btnSave1').text('save'); //change button text
-            $('#btnSave1').attr('disabled',false); //set button enable 
-
-
+            $('#btnSave1').text('Delete');
+            $('#btnSave1').attr('disabled', false);
         },
-        error: function (jqXHR, textStatus, errorThrown)
-        {
-            alert('Error adding / update data');
-            $('#btnSave1').text('save'); //change button text
-            $('#btnSave1').attr('disabled',false); //set button enable 
 
+        error: function(jqXHR)
+        {
+            console.log(jqXHR.responseText);
+
+            alert('Error deleting data');
+
+            $('#btnSave1').text('Delete');
+            $('#btnSave1').attr('disabled', false);
         }
     });
 }
 
-////***For delete the Cancellation and policies details from  database *****///
-
-////***Dynamic text box details saving into database*****////
-
-// $(document).ready(function() {
-
-
-
-//     var counter_edit = $("#counter_edit").val();
-
-
-
-//     if(counter_edit >0){
-
-
-
-//       counter = counter_edit-1;
-
-
-
-//     }
-
-
-
-//   });
-
-var counter = 0;
-
-var n1 = $("#counter_edit1").val();
-                 // alert(n1);
-
-var counter_edit = $("#counter_edit1").val();
-
-
-
-if(counter_edit >0){
-    counter = counter_edit-1;
-}
-    //alert(counter);
-
-
-
-
-function addMore() {
- var n1 = $("#counter_edit").val();
-                 // alert(n1);
-// var user_id_fk = $('#user_id_fk').val();
-// var currentLoggedInUserType = $('#currentLoggedInUserType').val();
-
-// if(user_id_fk == '' && currentLoggedInUserType == 'A'){
-
-// var ff = 0;
-        
-//         var ff = 0;
-  
-//   ff = "Company is required first";
-
-//   $("#validation_dynamic").val(ff);
-  
- 
-//      var options = {
-
-//     'title': '',
-
-//     'style': 'error',
-
-//     'message': ff,
-
-//     // 'success': 'warning',
-//     'icon': 'warning',
-
-//     };
-
-//    var n1 = new notify(options); 
-
-//    n1.show(); 
-
-//    setTimeout(function(){ n1.hide(); }, 10000);
-//    $('.user_id_fk').addClass('has-error');
-//    $('#campaign_agency_commission').focus();
-//    $('.user_id_fk').addClass('has-error');
-//    return false; 
-// }
-// else{
-
-    $("<DIV>").load("", function() {
-    
-    $(this).attr('data-validation','required');
-    $(this).attr('data-validation','nameFields');
-    $(this).attr('data-validation','digitsOnly');
-    $(this).attr('data-validation','date');
-    $(this).attr('data-validation','usPhone');
-    $(this).attr('data-validation','email');
-    $(this).attr('data-validation','dropDown');
-
-
-    // var htmlVal = '<DIV class="product-item box box-success list exp_section" id="product-item_'+counter+'">&nbsp <input type="hidden" name="sub-counter-'+counter+'" id="sub-counter-'+counter+'" value="0" /> <table class="table table-bordered" cellspacing="2" ><tr><div class="row"><div class="col-sm-12"><input type="hidden" name="terms_condition_id_fk['+counter+']" id="terms_condition_id_fk_'+counter+'"/> <textarea class="form-control" name="terms_condition_items_name['+counter+']" id="terms_condition_items_name_'+counter+'"  rows="5" placeholder="Enter details" required></textarea><button class="btn-sm btn-danger" type="button" style="margin-top:20%;" onClick="deleteRow('+counter+');"><b>X</b></button></div></div></div></tr></table></DIV>';
-
-     var htmlVal = '<div class="mb-3 col-md-8 product-item" id="product-item_'+counter+'"><input type="hidden" name="cancellation_policies_id_fk['+counter+']" id="cancellation_policies_id_fk_'+counter+'"/><textarea class="form-control" name="cancellation_policies_item_name['+counter+']" id="cancellation_policies_item_name_'+counter+'"  rows="5" placeholder="Enter Cancellation and policies" required></textarea><span class="help-block" style="color:red"></span></div><div class="mb-3 col-md-3 product-item1" id="product-item1_'+counter+'"><button class="btn-sm btn-danger" type="button" onClick="deleteRow('+counter+');"><b>X</b></button></div>';
-    $("#product1").append(htmlVal);   
-        
-    
-  });   
-counter++;  
-
-}
-////***Dynamic text box details saving into database*****////
-
-////***Delete dynamic table rows*****///
-var removed_item_ids = [];
-function deleteRow(counter) {
-
-    var item_id = $('#cancellation_policies_item_id_'+counter).val();
-    removed_item_ids.push(item_id);
-    $('#removed_cancellation_policies_id').val(removed_item_ids);
-
-    console.log(counter,"counter");
-    $("#product-item_"+counter).remove();
-    $("#product-item1_"+counter).remove();
-    var a = $("#countervalue").val();
-    $("#countervalue").val(a-1);
-
-   
-
-}
-
-////***Delete dynamic table rows*****///
 </script>

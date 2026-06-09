@@ -8,112 +8,7 @@
         ***********************************-->
         <div class="content-body">
             <div class="container-fluid">
-				<button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
-				<!-- <div class="row page-titles">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item active"><a href="javascript:void(0)">Table</a></li>
-						<li class="breadcrumb-item"><a href="javascript:void(0)">Datatable</a></li>
-					</ol>
-                </div> -->
-                <!-- row -->
-                <form id="exampleValidation" method="POST" action="" enctype="multipart/form-data">
-                                    <div class="card-header" id="Create" style="display:none">
-                                        <div class="d-flex align-items-center">
-                                            <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                <div class="col-sm-6 col-md-5">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="transporter_id" name="transporter_id" required>  
-                            
-                                                                    <option value="">Please Select transporter</option>
-                                                                    <?php
-
-                                                                    foreach($transporter as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->transporter_id.'" '.$sel.'>'.$row->transporter_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>  
-                                                <div class="col-sm-6 col-md-5">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="transporter_base_station_id_fk1" name="transporter_base_station_id_fk" required>  
-                            
-                                                                    <option value="">Please Select Base station</option>                            
-                                                                    <?php foreach($state as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->state_id.'">'.$row->state_name.'</option>';
-                                                                        } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-6 col-md-5">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="vehicle_id_fk1" name="vehicle_id_fk"  multiple="multiple" required>  
-                            
-                                                                   <option value="">Please Select Vehicle</option>
-
-                                                                    <?php foreach($vehicle as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->vehicle_id.'">'.$row->vehicle_name.'</option>';
-                                                                        } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>                                           
-                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select name="transporter_createdby_user_id" id="transporter_createdby_user_id" class="form-control input-lg lst-flt-select2" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($staff as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <button type="button" class="btn btn-warning btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="fas fa-search"></i>
-                                                            </span>
-                                                            Search
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <a href="<?php echo base_url();?>Transporter">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="icon-refresh"></i>
-                                                            </span>
-                                                            Refresh
-                                                        </button>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                
-                                            </div>
-                                        
-                                        </div>
-                                    </div>
-                                    </form>
-
                 <div class="row">
-                    
-                    
 					<div class="col-12">
                         <div class="card">
                             <div class="card-header">
@@ -132,7 +27,6 @@
                                                 <th>Address</th>
                                                 <th>Base station</th>
                                                 <th>Vehicles</th>
-                                                <th>Created by</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>

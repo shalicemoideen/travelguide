@@ -9,33 +9,13 @@ class B2b_partner_model extends CI_Model{
     }
 	
 	public function getB2bpartnerTable($param){
-		$arOrder = array('','roles_name');
-		$b2b_partner_id =(isset($param['b2b_partner_id']))?$param['b2b_partner_id']:'';
-		$b2b_partner_country_id_fk =(isset($param['b2b_partner_country_id_fk']))?$param['b2b_partner_country_id_fk']:'';
-		$b2b_partner_location_id_fk =(isset($param['b2b_partner_location_id_fk']))?$param['b2b_partner_location_id_fk']:'';
-		$b2b_partner_person_name =(isset($param['b2b_partner_person_name']))?$param['b2b_partner_person_name']:'';
-		$b2b_partner_contact_number =(isset($param['b2b_partner_contact_number']))?$param['b2b_partner_contact_number']:'';
-		$b2b_partner_createdby_user_id =(isset($param['b2b_partner_createdby_user_id']))?$param['b2b_partner_createdby_user_id']:'';
+		$arOrder = array('','b2b_partner_agent_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('b2b_partner_agent_name', $searchValue); 
+        }		
 		
 		
-		if($b2b_partner_id){
-            $this->db->where('b2b_partner_id', $b2b_partner_id); 
-        }
-		if($b2b_partner_country_id_fk){
-            $this->db->where('b2b_partner_country_id_fk', $b2b_partner_country_id_fk); 
-        }
-        if($b2b_partner_location_id_fk){
-            $this->db->where('b2b_partner_location_id_fk', $b2b_partner_location_id_fk); 
-        }
-        if($b2b_partner_person_name){
-            $this->db->like('b2b_partner_person_name', $b2b_partner_person_name); 
-        }
-        if($b2b_partner_contact_number){
-            $this->db->like('b2b_partner_contact_number', $b2b_partner_contact_number); 
-        }
-        if($b2b_partner_createdby_user_id){
-            $this->db->where('b2b_partner_createdby_user_id', $b2b_partner_createdby_user_id); 
-        }
         $this->db->where("b2b_partner_status",1);
 
         if($param['length']== -1) {
@@ -56,7 +36,7 @@ class B2b_partner_model extends CI_Model{
 		$this->db->select('*');
 		$this->db->from('b2b_partner');
 		$this->db->join('country', 'b2b_partner.b2b_partner_country_id_fk = country.id','left');
-		$this->db->join('state', 'b2b_partner.b2b_partner_location_id_fk = state.state_id');
+		$this->db->join('state', 'b2b_partner.b2b_partner_location_id_fk = state.state_id','left');
 		$this->db->order_by('b2b_partner_id', 'DESC');
         $query = $this->db->get();
         
@@ -70,31 +50,9 @@ class B2b_partner_model extends CI_Model{
 
 	public function getB2bpartnerTotalCount($param = NULL){
 
-		$b2b_partner_id =(isset($param['b2b_partner_id']))?$param['b2b_partner_id']:'';
-		$b2b_partner_country_id_fk =(isset($param['b2b_partner_country_id_fk']))?$param['b2b_partner_country_id_fk']:'';
-		$b2b_partner_location_id_fk =(isset($param['b2b_partner_location_id_fk']))?$param['b2b_partner_location_id_fk']:'';
-		$b2b_partner_person_name =(isset($param['b2b_partner_person_name']))?$param['b2b_partner_person_name']:'';
-		$b2b_partner_contact_number =(isset($param['b2b_partner_contact_number']))?$param['b2b_partner_contact_number']:'';
-		$b2b_partner_createdby_user_id =(isset($param['b2b_partner_createdby_user_id']))?$param['b2b_partner_createdby_user_id']:'';
-		
-		
-		if($b2b_partner_id){
-            $this->db->where('b2b_partner_id', $b2b_partner_id); 
-        }
-		if($b2b_partner_country_id_fk){
-            $this->db->where('b2b_partner_country_id_fk', $b2b_partner_country_id_fk); 
-        }
-        if($b2b_partner_location_id_fk){
-            $this->db->where('b2b_partner_location_id_fk', $b2b_partner_location_id_fk); 
-        }
-        if($b2b_partner_person_name){
-            $this->db->like('b2b_partner_person_name', $b2b_partner_person_name); 
-        }
-        if($b2b_partner_contact_number){
-            $this->db->like('b2b_partner_contact_number', $b2b_partner_contact_number); 
-        }
-        if($b2b_partner_createdby_user_id){
-            $this->db->where('b2b_partner_createdby_user_id', $b2b_partner_createdby_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('b2b_partner_agent_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
@@ -105,7 +63,7 @@ class B2b_partner_model extends CI_Model{
 		$this->db->select('*');
 		$this->db->from('b2b_partner');
 		$this->db->join('country', 'b2b_partner.b2b_partner_country_id_fk = country.id','left');
-		$this->db->join('state', 'b2b_partner.b2b_partner_location_id_fk = state.state_id');
+		$this->db->join('state', 'b2b_partner.b2b_partner_location_id_fk = state.state_id','left');
 		$this->db->order_by('b2b_partner_id', 'DESC');
 		$this->db->where("b2b_partner_status",1);
         $query = $this->db->get();
@@ -138,31 +96,12 @@ class B2b_partner_model extends CI_Model{
 		return $query->result();
 	}
 	
-	function fetch_state($country_id, $sel='')
+	function fetch_state()
 	{
-
-	  $this->db->where('country_id_fk', $country_id);
-	  
-	  $this->db->where("state_status",1);
-
-	  $this->db->order_by('state_id', 'ASC');
-
-	  $query = $this->db->get('state');
-
-	  $output = '<option value=""> Please Select Location </option>';
-
-	  foreach($query->result() as $row)
-
-	  {
-
-	  	$selected=''; if($sel==$row->state_id) { $selected=' selected'; }
-
-	   	$output .= '<option value="'.$row->state_id.'" '.$selected.'>'.$row->state_name.'</option>';
-
-	  }
-
-	  return $output;
-
+		$this->db->order_by("state_id", "ASC");
+		 $this->db->where("state_status",1);
+		$query = $this->db->get("state");
+		return $query->result();
 	}
 
 	public function save($data)

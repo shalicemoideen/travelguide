@@ -41,9 +41,6 @@ class Property_category extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['property_category_id'] =(isset($_REQUEST['property_category_id']))?$_REQUEST['property_category_id']:'';
-		$param['property_category_createdby_user_id'] =(isset($_REQUEST['property_category_createdby_user_id']))?$_REQUEST['property_category_createdby_user_id']:'';
-
 		if (!has_permission('PROPERTY_CATEGORY_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -82,32 +79,11 @@ class Property_category extends MY_Controller {
 
 				'property_category_name' => $this->input->post('property_category_name'),
 				'property_category_description' => $this->input->post('property_category_description'),					
-				'property_category_createdby_user_id' => $currentuserid,			
-				'property_category_createdby_user_name' => $currentusername,			
-				'property_category_created_date' => $date,			
-				'property_category_created_time' => $time,			
+				'property_category_createdby_user_id' => $currentuserid,					
+				'property_category_created_at' => $date1,					
 				'property_category_status' => 1
 			);
 		$insert = $this->Property_category_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added property category: '.$property_category_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Property_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -140,37 +116,15 @@ class Property_category extends MY_Controller {
 		
 		$property_category_name = $this->input->post('property_category_name');
 		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited property category: '.$property_category_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Property_category_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
 				'property_category_name' => $this->input->post('property_category_name'),
 				'property_category_description' => $this->input->post('property_category_description'),					
-				// 'property_category_createdby_user_id' => $currentuserid,			
-				// 'property_category_createdby_user_name' => $currentusername,			
-				// 'property_category_created_date' => $date,			
-				// 'property_category_created_time' => $time,			
-				// 'property_category_status' => 1
+				'property_category_updatedby_user_id' => $currentuserid,					
+				'property_category_updated_at' => $date1,			
 			);
-			// print_r($data);exit();
 		$this->Property_category_model->update(array('property_category_id' => $this->input->post('id')), $data);
 		echo json_encode(array("status" => TRUE));
 	}
@@ -215,24 +169,24 @@ class Property_category extends MY_Controller {
 		
 		$this->Property_category_model->update(array('property_category_id' => $this->input->post('id')), $updateData);
 
-		$property_category_name = $this->input->post('property_category_name');
-		$ip = $this->input->ip_address();
+		// $property_category_name = $this->input->post('property_category_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted property category '.$property_category_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Property_category_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted property category '.$property_category_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Property_category_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

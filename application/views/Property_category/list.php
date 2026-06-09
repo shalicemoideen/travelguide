@@ -3,79 +3,6 @@
         ***********************************-->
         <div class="content-body">
             <div class="container-fluid">
-				<button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
-				<!-- <div class="row page-titles">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item active"><a href="javascript:void(0)">Table</a></li>
-						<li class="breadcrumb-item"><a href="javascript:void(0)">Datatable</a></li>
-					</ol>
-                </div> -->
-                <!-- row -->
-                <form id="exampleValidation" method="POST" action="" enctype="multipart/form-data">
-                                    <div class="card-header" id="Create" style="display:none">
-                                        <div class="d-flex align-items-center">
-                                            <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                <div class="col-sm-6 col-md-5">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="property_category_id" name="property_category_id" required>  
-                            
-                                                                    <option value="">Please Select Category</option>
-                                                                    <?php
-
-                                                                    foreach($category as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->property_category_id.'" '.$sel.'>'.$row->property_category_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>                                                
-                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select name="property_category_createdby_user_id" id="property_category_createdby_user_id" class="form-control input-lg lst-flt-select2" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($staff as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <button type="button" class="btn btn-warning btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="fas fa-search"></i>
-                                                            </span>
-                                                            Search
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <a href="<?php echo base_url();?>Property_category">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="icon-refresh"></i>
-                                                            </span>
-                                                            Refresh
-                                                        </button>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                
-                                            </div>
-                                        
-                                        </div>
-                                    </div>
-                                    </form>
 
                 <div class="row">
                     
@@ -85,7 +12,7 @@
                             <div class="card-header">
                                 <h4 class="card-title">Property category Details</h4>
                                 <?php if (has_permission('PROPERTY_CATEGORY_CREATE')): ?>
-                                    <a onclick="add_category()"  data-bs-target="#PropertycategoryModal" class="btn btn-rounded btn-secondary btn-md">+ New category</a> 
+                                    <a onclick="add_category()"  data-bs-target="#PropertycategoryModal" class="btn btn-rounded btn-secondary btn-md">+ New property category</a> 
                                 <?php endif; ?>                                
                             </div>
                             <div class="card-body">
@@ -96,7 +23,6 @@
                                                 <th>Sl.no</th>
                                                 <th>Name</th>
                                                 <th>Description</th>
-                                                <th>Created by</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>

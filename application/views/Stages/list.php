@@ -3,80 +3,6 @@
         ***********************************-->
         <div class="content-body">
             <div class="container-fluid">
-				<button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
-				<!-- <div class="row page-titles">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item active"><a href="javascript:void(0)">Table</a></li>
-						<li class="breadcrumb-item"><a href="javascript:void(0)">Datatable</a></li>
-					</ol>
-                </div> -->
-                <!-- row -->
-                <form id="exampleValidation" method="POST" action="" enctype="multipart/form-data">
-                                    <div class="card-header" id="Create" style="display:none">
-                                        <div class="d-flex align-items-center">
-                                            <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                <div class="col-sm-6 col-md-5">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst-flt-select2" id="stages_id" name="stages_id" required>  
-                            
-                                                                    <option value="">Please Select Stage</option>
-                                                                    <?php
-
-                                                                    foreach($stage as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->stages_id.'" '.$sel.'>'.$row->stages_name.'</option>';
-
-                                                                    }
-
-                                                                    ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>                                                
-                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
-                                                    <div class="card">
-                                                        <div class="input-group">
-                                                            <select name="stages_created_user_id" id="stages_created_user_id" class="form-control input-lg lst-flt-select2" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($staff as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <button type="button" class="btn btn-warning btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="fas fa-search"></i>
-                                                            </span>
-                                                            Search
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-2 col-md-3">
-                                                    <div class="card">
-                                                        <a href="<?php echo base_url();?>index.php/Stages">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
-                                                            <span class="btn-label">
-                                                                <i class="icon-refresh"></i>
-                                                            </span>
-                                                            Refresh
-                                                        </button>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                
-                                            </div>
-                                        
-                                        </div>
-                                    </div>
-                                    </form>
-
                 <div class="row">
 					<div class="col-12">
                         <div class="card">
@@ -99,7 +25,6 @@
                                                 <th>Stage</th>
                                                 <th>Stage Label</th>
                                                 <th>Description</th>
-                                                <th>Created by</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -136,7 +61,7 @@
                             <div class="row">
                                 <div class="col-xl-10">
                                     <div class="mb-3 row form-group">
-                                        <label class="col-lg-4 col-form-label" for="stages_name">Priorty status Name
+                                        <label class="col-lg-4 col-form-label" for="stages_name">Stage Name
                                             <span class="text-danger">*</span>
                                         </label>
                                         <div class="col-lg-8 stages_name">

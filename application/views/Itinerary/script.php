@@ -68,6 +68,91 @@ $(document).on('select2:open', function () {
 // initialize page select2
 $(document).ready(function () {
     initCommonSelect2(document);
+
+    // Initialize Select2 for itinerary filter dropdowns with AJAX
+    $('#itineraries_id_filter').select2({
+        width: '100%',
+        minimumResultsForSearch: 0,
+        allowClear: true,
+        placeholder: 'Please Select itinerary',
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Itinerary/get_itinerary_dropdown',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function(data) {
+                return data;
+            },
+            cache: true
+        }
+    });
+
+    $('#itineraries_category_id_filter').select2({
+        width: '100%',
+        minimumResultsForSearch: 0,
+        allowClear: true,
+        placeholder: 'Please Select itinerary category',
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Itinerary/get_itinerary_category_dropdown',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function(data) {
+                return data;
+            },
+            cache: true
+        }
+    });
+
+    $('#itineraries_days_destination_id_fk_filter').select2({
+        width: '100%',
+        minimumResultsForSearch: 0,
+        allowClear: true,
+        placeholder: 'Please Select destination',
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Itinerary/get_destination_dropdown',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function(data) {
+                return data;
+            },
+            cache: true
+        }
+    });
+
+    $('#itineraries_createdby_user_id').select2({
+        width: '100%',
+        minimumResultsForSearch: 0,
+        allowClear: true,
+        placeholder: 'Please Select Created by',
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Itinerary/get_staff_dropdown',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function(data) {
+                return data;
+            },
+            cache: true
+        }
+    });
 });
 
 // call this after opening any modal
@@ -109,9 +194,19 @@ $(document).ready(function () {
 ////***searching button*****///
 
 $('#search').click(function () {
-        
+
         $table.ajax.reload();
     });
+
+// Refresh button to clear filters and reload datatable
+$('#refresh').click(function () {
+    $('#itineraries_id_filter').val(null).trigger('change');
+    $('#itineraries_category_id_filter').val(null).trigger('change');
+    $('#itineraries_duration_nights_filter').val('');
+    $('#itineraries_days_destination_id_fk_filter').val(null).trigger('change');
+    $('#itineraries_createdby_user_id').val(null).trigger('change');
+    $table.ajax.reload();
+});
 
 $( "#itineraries_duration_nights_filter" ).keypress(function() {
             $table.ajax.reload();
@@ -407,7 +502,11 @@ function add_Itinerary()
 
     $('#itineraries_category_id_fk').val('').trigger('change');
 
-    
+    // Clear cover page image previews and hidden fields
+    $('#first_cover_preview').empty();
+    $('#last_cover_preview').empty();
+    $('#itineraries_first_cover_page_txt').val('');
+    $('#itineraries_last_cover_page_txt').val('');
 
     $('#ItineraryModal').modal('show');
     $('.modal-title').text('Add Itinerary Details');

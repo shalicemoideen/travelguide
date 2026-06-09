@@ -10,23 +10,27 @@ class Inclusions_exclusions_model extends CI_Model{
 	
 	public function getInclusions_exclusionsTable($param){
 		$arOrder = array('','roles_name');
-		$inclusion_exclusion_common_id =(isset($param['inclusion_exclusion_common_id']))?$param['inclusion_exclusion_common_id']:'';
-		$inclusion_exclusion_common_createdby_user_id =(isset($param['inclusion_exclusion_common_createdby_user_id']))?$param['inclusion_exclusion_common_createdby_user_id']:'';
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('inclusion_exclusion_common_title', $searchValue); 
+        }
+		// $inclusion_exclusion_common_id =(isset($param['inclusion_exclusion_common_id']))?$param['inclusion_exclusion_common_id']:'';
+		// $inclusion_exclusion_common_createdby_user_id =(isset($param['inclusion_exclusion_common_createdby_user_id']))?$param['inclusion_exclusion_common_createdby_user_id']:'';
 
-		if (!empty($param['inclusion_exclusion_common_title'])) {
-		    $this->db->like(
-		        'inclusion_exclusion_common.inclusion_exclusion_common_title',
-		        $param['inclusion_exclusion_common_title']
-		    );
-		}
+		// if (!empty($param['inclusion_exclusion_common_title'])) {
+		//     $this->db->like(
+		//         'inclusion_exclusion_common.inclusion_exclusion_common_title',
+		//         $param['inclusion_exclusion_common_title']
+		//     );
+		// }
 
 		
-		if($inclusion_exclusion_common_id){
-            $this->db->where('inclusion_exclusion_common_id', $inclusion_exclusion_common_id); 
-        }
-		if($inclusion_exclusion_common_createdby_user_id){
-            $this->db->where('inclusion_exclusion_common_createdby_user_id', $inclusion_exclusion_common_createdby_user_id); 
-        }
+		// if($inclusion_exclusion_common_id){
+        //     $this->db->where('inclusion_exclusion_common_id', $inclusion_exclusion_common_id); 
+        // }
+		// if($inclusion_exclusion_common_createdby_user_id){
+        //     $this->db->where('inclusion_exclusion_common_createdby_user_id', $inclusion_exclusion_common_createdby_user_id); 
+        // }
         $this->db->where("inclusion_exclusion_common_status",1);
 
         if($param['length']== -1) {
@@ -60,16 +64,20 @@ class Inclusions_exclusions_model extends CI_Model{
 
 	public function getInclusions_exclusionsTotalCount($param = NULL){
 
-		$inclusion_exclusion_common_id =(isset($param['inclusion_exclusion_common_id']))?$param['inclusion_exclusion_common_id']:'';
-		$inclusion_exclusion_common_createdby_user_id =(isset($param['inclusion_exclusion_common_createdby_user_id']))?$param['inclusion_exclusion_common_createdby_user_id']:'';
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('inclusion_exclusion_common_title', $searchValue); 
+        }
+		// $inclusion_exclusion_common_id =(isset($param['inclusion_exclusion_common_id']))?$param['inclusion_exclusion_common_id']:'';
+		// $inclusion_exclusion_common_createdby_user_id =(isset($param['inclusion_exclusion_common_createdby_user_id']))?$param['inclusion_exclusion_common_createdby_user_id']:'';
 		
 		
-		if($inclusion_exclusion_common_id){
-            $this->db->where('inclusion_exclusion_common_id', $inclusion_exclusion_common_id); 
-        }
-		if($inclusion_exclusion_common_createdby_user_id){
-            $this->db->where('inclusion_exclusion_common_createdby_user_id', $inclusion_exclusion_common_createdby_user_id); 
-        }
+		// if($inclusion_exclusion_common_id){
+        //     $this->db->where('inclusion_exclusion_common_id', $inclusion_exclusion_common_id); 
+        // }
+		// if($inclusion_exclusion_common_createdby_user_id){
+        //     $this->db->where('inclusion_exclusion_common_createdby_user_id', $inclusion_exclusion_common_createdby_user_id); 
+        // }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
 			

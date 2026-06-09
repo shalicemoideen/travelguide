@@ -9,16 +9,10 @@ class Property_category_model extends CI_Model{
     }
 	
 	public function getPropertycategoryTable($param){
-		$arOrder = array('','roles_name');
-		$property_category_id =(isset($param['property_category_id']))?$param['property_category_id']:'';
-		$property_category_createdby_user_id =(isset($param['property_category_createdby_user_id']))?$param['property_category_createdby_user_id']:'';
-		
-		
-		if($property_category_id){
-            $this->db->where('property_category_id', $property_category_id); 
-        }
-		if($property_category_createdby_user_id){
-            $this->db->where('property_category_createdby_user_id', $property_category_createdby_user_id); 
+		$arOrder = array('','property_category_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('property_category_name', $searchValue); 
         }
         $this->db->where("property_category_status",1);
 
@@ -52,16 +46,12 @@ class Property_category_model extends CI_Model{
 
 	public function getPropertycategoryTotalCount($param = NULL){
 
-		$property_category_id =(isset($param['property_category_id']))?$param['property_category_id']:'';
-		$property_category_createdby_user_id =(isset($param['property_category_createdby_user_id']))?$param['property_category_createdby_user_id']:'';
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('property_category_name', $searchValue); 
+        }		
 		
 		
-		if($property_category_id){
-            $this->db->where('property_category_id', $property_category_id); 
-        }
-		if($property_category_createdby_user_id){
-            $this->db->where('property_category_createdby_user_id', $property_category_createdby_user_id); 
-        }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
 			

@@ -16,28 +16,28 @@ class Property_registration_model extends CI_Model{
 		$properties_id =(isset($param['properties_id']))?$param['properties_id']:'';
 		$property_category_id_fk =(isset($param['property_category_id_fk']))?$param['property_category_id_fk']:'';
 		$country_id_fk =(isset($param['country_id_fk']))?$param['country_id_fk']:'';
-		$state_id_fk =(isset($param['state_id_fk']))?$param['state_id_fk']:'';
+		$location_id_fk =(isset($param['location_id_fk']))?$param['location_id_fk']:'';
 		$properties_destination_id_fk =(isset($param['properties_destination_id_fk']))?$param['properties_destination_id_fk']:'';
 		$properties_createdby_userid =(isset($param['properties_createdby_userid']))?$param['properties_createdby_userid']:'';
-		
-		
+
+
 		if($properties_id){
-            $this->db->where('properties_id', $properties_id); 
+            $this->db->where('properties_id', $properties_id);
         }
         if($property_category_id_fk){
-            $this->db->where('property_category_id_fk', $property_category_id_fk); 
+            $this->db->where('property_category_id_fk', $property_category_id_fk);
         }
         if($country_id_fk){
-            $this->db->where('properties.country_id_fk', $country_id_fk); 
+            $this->db->where('properties.country_id_fk', $country_id_fk);
         }
-        if($state_id_fk){
-            $this->db->where('state_id_fk', $state_id_fk); 
+        if($location_id_fk){
+            $this->db->where('properties.location_id_fk', $location_id_fk);
         }
         if($properties_destination_id_fk){
-            $this->db->where('properties_destination_id_fk', $properties_destination_id_fk); 
+            $this->db->where('properties_destination_id_fk', $properties_destination_id_fk);
         }
         if($properties_createdby_userid){
-            $this->db->where('properties_createdby_userid', $properties_createdby_userid); 
+            $this->db->where('properties_createdby_userid', $properties_createdby_userid);
         }
         $this->db->where("properties_status",1);
 
@@ -52,26 +52,78 @@ class Property_registration_model extends CI_Model{
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
-			
+
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*,n1.state_name as plname, n2.state_name as rcname');
+		$this->db->select('*,location.location_name as plname, state.state_name as rcname, latest_tariff.room_tariff_hike_to_date');
 		$this->db->from('properties');
 		$this->db->join('property_category', 'property_category.property_category_id = properties.property_category_id_fk','left');
 		$this->db->join('country', 'properties.country_id_fk = country.id','left');
-		$this->db->join('state n1', 'n1.state_id = properties.state_id_fk');
-        $this->db->join('state n2', 'n2.state_id = properties.properties_destination_id_fk');
+		$this->db->join('location', 'location.location_id = properties.location_id_fk','left');
+        $this->db->join('state', 'state.state_id = properties.properties_destination_id_fk');
+        // Join with subquery to get the latest room_tariff_hike record for each property
+        $this->db->join('(SELECT rth1.properties_id_fk, rth1.room_tariff_hike_to_date
+                         FROM room_tariff_hike rth1
+                         WHERE rth1.room_tariff_hike_status = 1
+                         AND rth1.room_tariff_hike_id = (
+                             SELECT MAX(rth2.room_tariff_hike_id)
+                             FROM room_tariff_hike rth2
+                             WHERE rth2.properties_id_fk = rth1.properties_id_fk
+                             AND rth2.room_tariff_hike_status = 1
+                         )
+                        ) latest_tariff', 'latest_tariff.properties_id_fk = properties.properties_id', 'left');
 		$this->db->order_by('properties_id', 'DESC');
 
         $query = $this->db->get();
         // echo $this->db->last_query();exit();
 
-        $data['data'] = $query->result();
+        $results = $query->result();
+        $current_date = date('Y-m-d');
+
+        // Calculate tariff status for each property
+        foreach ($results as $row) {
+            $row->tariff_status = $this->calculate_tariff_status($row->room_tariff_hike_to_date, $current_date);
+        }
+
+        $data['data'] = $results;
         $data['recordsTotal'] = $this->getPropertiesTotalCount($param);
         $data['recordsFiltered'] = $this->getPropertiesTotalCount($param);
         return $data;
 
+	}
+
+	private function calculate_tariff_status($to_date, $current_date)
+	{
+		if (empty($to_date)) {
+			return array('text' => 'Tariff not available', 'color' => 'danger');
+		}
+
+		$to_date_obj = new DateTime($to_date);
+		$current_date_obj = new DateTime($current_date);
+		$interval = $current_date_obj->diff($to_date_obj);
+		$days_diff = $interval->days;
+
+		// Check if expired today
+		if ($to_date == $current_date) {
+			return array('text' => 'Expired today', 'color' => 'primary');
+		}
+
+		// Check if expired (to_date is in the past)
+		if ($to_date < $current_date) {
+			// Expired MAR 27 2026 (2 days ago) - show the date and day count
+			return array('text' => 'Expired ' . $to_date_obj->format('M d Y') . ' (' . $days_diff . ' days ago)', 'color' => 'primary');
+		}
+
+		// Check if within 60 days (future)
+		if ($days_diff <= 60) {
+			// Expired in 42 days - show day count
+			return array('text' => 'Expired in ' . $days_diff . ' days', 'color' => 'warning');
+		}
+
+		// More than 60 days in the future
+		// Till MAR 27 2026 - show the date
+		return array('text' => 'Till ' . $to_date_obj->format('M d Y'), 'color' => 'success');
 	}
 
 	public function getPropertiesTotalCount($param = NULL){
@@ -79,7 +131,7 @@ class Property_registration_model extends CI_Model{
 		$properties_id =(isset($param['properties_id']))?$param['properties_id']:'';
 		$property_category_id_fk =(isset($param['property_category_id_fk']))?$param['property_category_id_fk']:'';
 		$country_id_fk =(isset($param['country_id_fk']))?$param['country_id_fk']:'';
-		$state_id_fk =(isset($param['state_id_fk']))?$param['state_id_fk']:'';
+		$location_id_fk =(isset($param['location_id_fk']))?$param['location_id_fk']:'';
 		$properties_destination_id_fk =(isset($param['properties_destination_id_fk']))?$param['properties_destination_id_fk']:'';
 		$properties_createdby_userid =(isset($param['properties_createdby_userid']))?$param['properties_createdby_userid']:'';
 		
@@ -93,8 +145,8 @@ class Property_registration_model extends CI_Model{
         if($country_id_fk){
             $this->db->where('properties.country_id_fk', $country_id_fk); 
         }
-        if($state_id_fk){
-            $this->db->where('state_id_fk', $state_id_fk); 
+        if($location_id_fk){
+            $this->db->where('properties.location_id_fk', $location_id_fk);
         }
         if($properties_destination_id_fk){
             $this->db->where('properties_destination_id_fk', $properties_destination_id_fk); 
@@ -104,16 +156,16 @@ class Property_registration_model extends CI_Model{
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
-			
+
 		// if($currentusertype == 'S'){
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
-		$this->db->select('*,n1.state_name as plname, n2.state_name as rcname');
+		$this->db->select('*,location.location_name as plname, state.state_name as rcname');
 		$this->db->from('properties');
 		$this->db->join('property_category', 'property_category.property_category_id = properties.property_category_id_fk','left');
 		$this->db->join('country', 'properties.country_id_fk = country.id','left');
-		$this->db->join('state n1', 'n1.state_id = properties.state_id_fk');
-        $this->db->join('state n2', 'n2.state_id = properties.properties_destination_id_fk');
+		$this->db->join('location', 'location.location_id = properties.location_id_fk','left');
+        $this->db->join('state', 'state.state_id = properties.properties_destination_id_fk');
         $this->db->where("properties_status",1);
 		$this->db->order_by('properties_id', 'DESC');
         $query = $this->db->get();
@@ -483,19 +535,25 @@ class Property_registration_model extends CI_Model{
 
 	public function getRoomHiketariffTable($param,$properties_id_fk){
 		$arOrder = array('','roles_name');
-		$hike_properties_id_fk_filter =(isset($param['hike_properties_id_fk_filter']))?$param['hike_properties_id_fk_filter']:'';
-		$hike_room_id_fk_filter =(isset($param['hike_room_id_fk_filter']))?$param['hike_room_id_fk_filter']:'';
+		// Handle room tariff date range
+		$room_tariff_from_date_filter =(isset($param['room_tariff_from_date_filter']))?$param['room_tariff_from_date_filter']:'';
+        $room_tariff_to_date_filter =(isset($param['room_tariff_to_date_filter']))?$param['room_tariff_to_date_filter']:'';
+
+		// Handle hike tariff date range
 		$hike_room_tariff_hike_from_date_filter =(isset($param['hike_room_tariff_hike_from_date_filter']))?$param['hike_room_tariff_hike_from_date_filter']:'';
         $hike_room_tariff_hike_to_date_filter =(isset($param['hike_room_tariff_hike_to_date_filter']))?$param['hike_room_tariff_hike_to_date_filter']:'';
+
+		// Handle created by filter
 		$hike_room_tariff_hike_createdby_user_id =(isset($param['hike_room_tariff_hike_createdby_user_id']))?$param['hike_room_tariff_hike_createdby_user_id']:'';
-		
-		
-		if($hike_properties_id_fk_filter){
-            $this->db->where('hike_properties_id_fk', $hike_properties_id_fk_filter); 
+
+
+		if($room_tariff_from_date_filter){
+            $this->db->where('room_tariff_hike_from_date>=', $room_tariff_from_date_filter);
         }
-        if($hike_room_id_fk_filter){
-            $this->db->where('hike_room_id_fk', $hike_room_id_fk_filter); 
+        if($room_tariff_to_date_filter){
+            $this->db->where('room_tariff_hike_to_date<=', $room_tariff_to_date_filter);
         }
+
         if($hike_room_tariff_hike_from_date_filter){
             $this->db->where('hike_room_tariff_hike_from_date>=', $hike_room_tariff_hike_from_date_filter);
         }
@@ -544,28 +602,32 @@ class Property_registration_model extends CI_Model{
 	}
 
 	public function getRoomHiketariffTotalCount($param = NULL,$properties_id_fk){
+		// Handle room tariff date range
+		$room_tariff_from_date_filter =(isset($param['room_tariff_from_date_filter']))?$param['room_tariff_from_date_filter']:'';
+        $room_tariff_to_date_filter =(isset($param['room_tariff_to_date_filter']))?$param['room_tariff_to_date_filter']:'';
 
-		$hike_properties_id_fk_filter =(isset($param['hike_properties_id_fk_filter']))?$param['hike_properties_id_fk_filter']:'';
-		$hike_room_id_fk_filter =(isset($param['hike_room_id_fk_filter']))?$param['hike_room_id_fk_filter']:'';
+		// Handle hike tariff date range
 		$hike_room_tariff_hike_from_date_filter =(isset($param['hike_room_tariff_hike_from_date_filter']))?$param['hike_room_tariff_hike_from_date_filter']:'';
         $hike_room_tariff_hike_to_date_filter =(isset($param['hike_room_tariff_hike_to_date_filter']))?$param['hike_room_tariff_hike_to_date_filter']:'';
+
+		// Handle created by filter
 		$hike_room_tariff_hike_createdby_user_id =(isset($param['hike_room_tariff_hike_createdby_user_id']))?$param['hike_room_tariff_hike_createdby_user_id']:'';
-		
-		
-		if($hike_properties_id_fk_filter){
-            $this->db->where('hike_properties_id_fk', $hike_properties_id_fk_filter); 
+
+
+		if($room_tariff_from_date_filter){
+            $this->db->where('room_tariff_hike_from_date>=', $room_tariff_from_date_filter);
         }
-        if($hike_room_id_fk_filter){
-            $this->db->where('hike_room_id_fk', $hike_room_id_fk_filter); 
+        if($room_tariff_to_date_filter){
+            $this->db->where('room_tariff_hike_to_date<=', $room_tariff_to_date_filter);
         }
         if($hike_room_tariff_hike_from_date_filter){
             $this->db->where('hike_room_tariff_hike_from_date>=', $hike_room_tariff_hike_from_date_filter);
         }
         if($hike_room_tariff_hike_to_date_filter){
-            $this->db->where('hike_room_tariff_hike_to_date<=', $hike_room_tariff_hike_to_date_filter); 
+            $this->db->where('hike_room_tariff_hike_to_date<=', $hike_room_tariff_hike_to_date_filter);
         }
         if($hike_room_tariff_hike_createdby_user_id){
-            $this->db->where('hike_room_tariff_hike_createdby_user_id', $hike_room_tariff_hike_createdby_user_id); 
+            $this->db->where('hike_room_tariff_hike_createdby_user_id', $hike_room_tariff_hike_createdby_user_id);
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
@@ -667,12 +729,12 @@ class Property_registration_model extends CI_Model{
 
 	public function get_property_view_row($properties_id)
     {
-       $this->db->select('*,n1.state_name as plname, n2.state_name as rcname');
+       $this->db->select('*,location.location_name as plname, state.state_name as rcname');
 		$this->db->from('properties');
-		$this->db->join('property_category', 'property_category.	property_category_id = properties.property_category_id_fk','left');
+		$this->db->join('property_category', 'property_category.property_category_id = properties.property_category_id_fk','left');
 		$this->db->join('country', 'properties.country_id_fk = country.id','left');
-		$this->db->join('state n1', 'n1.state_id = properties.state_id_fk');
-        $this->db->join('state n2', 'n2.state_id = properties.properties_destination_id_fk');
+		$this->db->join('location', 'location.location_id = properties.location_id_fk','left');
+        $this->db->join('state', 'state.state_id = properties.properties_destination_id_fk');
         $this->db->where("properties_status",1);
         $this->db->where("properties_id",$properties_id);
 		$this->db->order_by('properties_id', 'DESC');
@@ -699,6 +761,23 @@ class Property_registration_model extends CI_Model{
 		return $query->result();
 	}
 
+	function fetch_location()
+	{
+		$this->db->order_by("location_id", "ASC");
+		 $this->db->where("location_status",1);
+		$query = $this->db->get("location");
+		return $query->result();
+	}
+
+	function fetch_destination_by_location($location_id)
+	{
+		$this->db->order_by("state_id", "ASC");
+		 $this->db->where("state_status",1);
+		 $this->db->where("location_id_fk", $location_id);
+		$query = $this->db->get("state");
+		return $query->result();
+	}
+
 	public function save($data)
 	{
 		$this->db->insert($this->table, $data);
@@ -707,7 +786,12 @@ class Property_registration_model extends CI_Model{
 	
 	public function get_by_id($id)
 	{
+		$this->db->select('properties.*, property_category.property_category_name, country.name as country_name, location.location_name, state.state_name as destination_name');
 		$this->db->from($this->table);
+		$this->db->join('property_category', 'property_category.property_category_id = properties.property_category_id_fk', 'left');
+		$this->db->join('country', 'country.id = properties.country_id_fk', 'left');
+		$this->db->join('location', 'location.location_id = properties.location_id_fk', 'left');
+		$this->db->join('state', 'state.state_id = properties.properties_destination_id_fk', 'left');
 		$this->db->where("properties_status",1);
 		$this->db->where('properties_id',$id);
 		$query = $this->db->get();

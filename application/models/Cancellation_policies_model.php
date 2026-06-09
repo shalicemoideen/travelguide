@@ -8,17 +8,12 @@ class Cancellation_policies_model extends CI_Model{
         parent::__construct();
     }
 	
-	public function getCancellationpoliciesTable($param){
+	public function getCancellationpolicesTable($param){
 		$arOrder = array('','roles_name');
-		$cancellation_policies_id =(isset($param['cancellation_policies_id']))?$param['cancellation_policies_id']:'';
-		$cancellation_policies_createdby_user_id =(isset($param['cancellation_policies_createdby_user_id']))?$param['cancellation_policies_createdby_user_id']:'';
-		
-		
-		if($cancellation_policies_id){
-            $this->db->where('cancellation_policies_id', $cancellation_policies_id); 
-        }
-        if($cancellation_policies_createdby_user_id){
-            $this->db->where('cancellation_policies_createdby_user_id', $cancellation_policies_createdby_user_id); 
+
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('cancellation_policies_name', $searchValue); 
         }
         $this->db->where("cancellation_policies_status",1);
 
@@ -40,30 +35,25 @@ class Cancellation_policies_model extends CI_Model{
 		$this->db->select('*');
 		$this->db->from('cancellation_policies');
 		$this->db->join('cancellation_policies_item', 'cancellation_policies_item.cancellation_policies_id_fk = cancellation_policies.cancellation_policies_id','left');
+		$this->db->join('user_details u', 'u.user_id = cancellation_policies.cancellation_policies_createdby_user_id', 'left');
 		$this->db->order_by('cancellation_policies_id', 'DESC');
 		$this->db->group_by('cancellation_policies_item.cancellation_policies_id_fk');
         $query = $this->db->get();
         
 
         $data['data'] = $query->result();
-        $data['recordsTotal'] = $this->getCancellationpoliciesTotalCount($param);
-        $data['recordsFiltered'] = $this->getCancellationpoliciesTotalCount($param);
+        $data['recordsTotal'] = $this->getCancellationpolicesTotalCount($param);
+        $data['recordsFiltered'] = $this->getCancellationpolicesTotalCount($param);
         return $data;
 
 	}
 
-	public function getCancellationpoliciesTotalCount($param = NULL){
+	public function getCancellationpolicesTotalCount($param = NULL){
 
-		$cancellation_policies_id =(isset($param['cancellation_policies_id']))?$param['cancellation_policies_id']:'';
-		$cancellation_policies_createdby_user_id =(isset($param['cancellation_policies_createdby_user_id']))?$param['cancellation_policies_createdby_user_id']:'';
-		
-		
-		if($cancellation_policies_id){
-            $this->db->where('cancellation_policies_id', $cancellation_policies_id); 
-        }
-        if($cancellation_policies_createdby_user_id){
-            $this->db->where('cancellation_policies_createdby_user_id', $cancellation_policies_createdby_user_id); 
-        }
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('cancellation_policies_name', $searchValue); 
+		}
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
 			
@@ -73,22 +63,23 @@ class Cancellation_policies_model extends CI_Model{
 		$this->db->select('*');
 		$this->db->from('cancellation_policies');
 		$this->db->join('cancellation_policies_item', 'cancellation_policies_item.cancellation_policies_id_fk = cancellation_policies.cancellation_policies_id','left');
-		$this->db->where("cancellation_policies_status",1);
+		$this->db->join('user_details u', 'u.user_id = cancellation_policies.cancellation_policies_createdby_user_id', 'left');
 		$this->db->order_by('cancellation_policies_id', 'DESC');
 		$this->db->group_by('cancellation_policies_item.cancellation_policies_id_fk');
+		$this->db->where("cancellation_policies_status",1);
         $query = $this->db->get();
     	return $query->num_rows();
     }
 	
 
-    function fetch_cancellation_policies_items($cancellation_policies_id)
+    function fetch_cancellation_policies_item($cancellation_policies_id)
 	{
 
 		
 		
 		$this->db->select('*');
-		$this->db->from('cancellation_policies_item');
-		$this->db->where("cancellation_policies_item_status",1);
+		$this->db->from('cancellation_policies');
+		$this->db->where("cancellation_policies_status",1);
 		$this->db->where("cancellation_policies_id_fk",$cancellation_policies_id);
 		$query = $this->db->get();
 		return $query->result();

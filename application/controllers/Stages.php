@@ -40,10 +40,7 @@ class Stages extends MY_Controller {
         $param['order'] = (isset($_REQUEST['order'][0]['column']))?$_REQUEST['order'][0]['column']:'';
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
-        
-		$param['stages_id'] =(isset($_REQUEST['stages_id']))?$_REQUEST['stages_id']:'';
-		$param['stages_created_user_id'] =(isset($_REQUEST['stages_created_user_id']))?$_REQUEST['stages_created_user_id']:'';
-
+       
 		if (!has_permission('STAGE_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -87,32 +84,11 @@ class Stages extends MY_Controller {
 				'stages_name' => $this->input->post('stages_name'),	
                 'stages_button' => $button,	
                 'stages_description' => $this->input->post('stages_description'),					
-				'stages_created_user_id' => $currentuserid,			
-				'stages_created_username' => $currentusername,			
-				'stages_created_date' => $date,			
-				'stages_created_time ' => $time,			
+				'stages_created_user_id' => $currentuserid,					
+				'stages_created_at' => $date1,					
 				'stages_status' => 1
 			);
 		$insert = $this->Stages_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added stage: '.$stages_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Stage_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -147,26 +123,8 @@ class Stages extends MY_Controller {
 		$stages_button  = $this->input->post('stages_button');
 		$button = '<center><span class="btn btn-sm" style="background-color:'.$stages_button.'"><span style="color:white">'.$stages_name.'</span></span></center>';
 
-		
-		
-		$ip = $this->input->ip_address();
-		$id = $this->input->post('id');
-		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited stage: '.$stages_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Stage_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
+		$id = $this->input->post('id');
 		
 		$data = array(
 				
@@ -174,9 +132,9 @@ class Stages extends MY_Controller {
 				'stages_name' => $this->input->post('stages_name'),	
                 'stages_button' => $button,	
                 'stages_description' => $this->input->post('stages_description'),					
-				// 'stages_created_user_id' => $currentuserid,			
+				'stages_updated_user_id' => $currentuserid,			
 				// 'stages_created_username' => $currentusername,			
-				// 'stages_created_date' => $date,			
+				'stages_updated_at' => $date1,			
 				// 'stages_created_time ' => $time,			
 				// 'stages_status' => 1
 			);
@@ -225,24 +183,24 @@ class Stages extends MY_Controller {
 		
 		$this->Stages_model->update(array('stages_id' => $this->input->post('id')), $updateData);
 
-		$stages_name = $this->input->post('stages_name');
-		$ip = $this->input->ip_address();
+		// $stages_name = $this->input->post('stages_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted stage '.$stages_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Stage_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted stage '.$stages_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Stage_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

@@ -9,16 +9,10 @@ class Vehicle_model extends CI_Model{
     }
 	
 	public function getVehicleTable($param){
-		$arOrder = array('','roles_name');
-		$vehicle_id =(isset($param['vehicle_id']))?$param['vehicle_id']:'';
-		$vehicle_createdby_user_id =(isset($param['vehicle_createdby_user_id']))?$param['vehicle_createdby_user_id']:'';
-		
-		
-		if($vehicle_id){
-            $this->db->where('vehicle_id', $vehicle_id); 
-        }
-		if($vehicle_createdby_user_id){
-            $this->db->where('vehicle_createdby_user_id', $vehicle_createdby_user_id); 
+		$arOrder = array('','vehicle_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('vehicle_name', $searchValue); 
         }
         $this->db->where("vehicle_status",1);
 
@@ -52,15 +46,9 @@ class Vehicle_model extends CI_Model{
 
 	public function getVehicleTotalCount($param = NULL){
 
-		$vehicle_id =(isset($param['vehicle_id']))?$param['vehicle_id']:'';
-		$vehicle_createdby_user_id =(isset($param['vehicle_createdby_user_id']))?$param['vehicle_createdby_user_id']:'';
-		
-		
-		if($vehicle_id){
-            $this->db->where('vehicle_id', $vehicle_id); 
-        }
-		if($vehicle_createdby_user_id){
-            $this->db->where('vehicle_createdby_user_id', $vehicle_createdby_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('vehicle_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

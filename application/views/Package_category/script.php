@@ -11,9 +11,6 @@ $(document).ready(function () {
 
 ////***Filter button hide and show*****///
 
-$("#package_category_id").select2();
-$("#package_category_createdby_user_id").select2();
-
 ////***searching button*****///
 
 $('#search').click(function () {
@@ -58,7 +55,7 @@ var table;
     $table = $('#Package_category_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -67,20 +64,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3]
-                                    }
+                                        columns: [0, 1, 2]
+                                    },
+                                    title: 'Template category details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3]
-                                    }
+                                        columns: [0, 1, 2]
+                                    },
+                                    title: 'Template category details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3]
-                                    }
+                                        columns: [0 ,1, 2]
+                                    },
+                                    title: 'Template category details'
                                 },
                                
 			],
@@ -88,8 +88,8 @@ var table;
             "url": "<?php echo base_url();?>index.php/Package_category/get/",
             "type": "POST",
             "data" : function (d) {
-						d.package_category_id = $("#package_category_id").val();
-						d.package_category_createdby_user_id = $("#package_category_createdby_user_id").val();
+						// d.package_category_id = $("#package_category_id").val();
+						// d.package_category_createdby_user_id = $("#package_category_createdby_user_id").val();
            }			
         },
 		// "ajax": {
@@ -123,7 +123,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(4).html(actionHtml);
+            $('td', row).eq(3).html(actionHtml);
             
            },
 
@@ -134,8 +134,7 @@ var table;
         "columns": [
             { "data": "package_category_status", "orderable": false },
             { "data": "package_category_name", "orderable": false },
-            { "data": "package_category_description", "orderable": false },
-            { "data": "package_category_createdby_user_name", "orderable": false },                      
+            { "data": "package_category_description", "orderable": false },                    
             { "data": "package_category_id", "orderable": false }
             
             
@@ -196,7 +195,7 @@ function add_category()
     $('.form-group').removeClass('input-warning-o'); // clear error class
     $('.help-block').empty(); // clear error string
     $('#PackagecategoryModal').modal('show'); // show bootstrap modal
-    $('.modal-title').text('Add Package category Details'); // Set Title to Bootstrap modal title
+    $('.modal-title').text('Add Template category Details'); // Set Title to Bootstrap modal title
 	$('#btnSave').text('save');
 }
 
@@ -223,7 +222,7 @@ function edit_category(id)
             $('[name="package_category_name"]').val(data.package_category_name);
             $('[name="package_category_description"]').val(data.package_category_description);      
             $('#PackagecategoryModal').modal('show'); // show bootstrap modal when complete loaded
-            $('.modal-title').text('Edit Package category Details'); // Set title to Bootstrap modal title
+            $('.modal-title').text('Edit TemplateS category Details'); // Set title to Bootstrap modal title
 			$('#btnSave').text('update');
         },
         error: function (jqXHR, textStatus, errorThrown)
@@ -247,7 +246,7 @@ function reload_table()
         // swal("Package category details updated successfully", "", "success")
 		var ff = 0;
 		
-		ff = "Package category details updated successfully";
+		ff = "Template category details updated successfully";
 
 		 $("#vehicle_update").val(ff);
 		
@@ -277,7 +276,7 @@ function reload_table()
 
 		var ff = 0;
 		
-		ff = "Package category details added successfully";
+		ff = "Template category details added successfully";
 
 		 $("#vehicle_add").val(ff);
 		

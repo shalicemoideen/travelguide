@@ -11,8 +11,6 @@ $(document).ready(function () {
 
 ////***Filter button hide and show*****///
 
-$("#source_id").select2();
-$("#source_created_user_id").select2();
 
 ////***searching button*****///
 
@@ -58,7 +56,7 @@ var table;
     $table = $('#source_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -67,20 +65,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2]
-                                    }
+                                        columns: [0, 1]
+                                    },
+                                    title: 'Source details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2]
-                                    }
+                                        columns: [0, 1]
+                                    },
+                                    title: 'Source details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2]
-                                    }
+                                        columns: [0 ,1]
+                                    },
+                                    title: 'Source details'
                                 },
                                
 			],
@@ -88,8 +89,8 @@ var table;
             "url": "<?php echo base_url();?>index.php/Source/get/",
             "type": "POST",
             "data" : function (d) {
-						d.source_id = $("#source_id").val();
-						d.source_created_user_id = $("#source_created_user_id").val();
+						// d.source_id = $("#source_id").val();
+						// d.source_created_user_id = $("#source_created_user_id").val();
            }			
         },
 		// "ajax": {
@@ -121,7 +122,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(3).html(actionHtml);
+            $('td', row).eq(2).html(actionHtml);
 
 			// $('td', row).eq(5).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_vehicle('+data['vehicle_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_vehicle('+data['vehicle_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
@@ -134,8 +135,7 @@ var table;
 
         "columns": [
             { "data": "source_status", "orderable": false },
-            { "data": "source_name", "orderable": false },
-            { "data": "source_created_username", "orderable": false },                      
+            { "data": "source_name", "orderable": false },                   
             { "data": "source_id", "orderable": false }
             
             

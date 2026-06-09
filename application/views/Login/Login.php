@@ -10,17 +10,17 @@
 	<meta name="author" content="" />
 	<meta name="robots" content="" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Travl - Django Hotel Admin Dashboard Bootstrap Template" />
-	<meta property="og:title" content="Travl - Django Hotel Admin Dashboard Bootstrap Template" />
-	<meta property="og:description" content="Travl - Django Hotel Admin Dashboard Bootstrap Template" />
+	<meta name="description" content="Travels CRM Software" />
+	<meta property="og:title" content="Travels CRM Software" />
+	<meta property="og:description" content="Travels CRM Software" />
 	<meta property="og:image" content="../social-image.html" />
 	<meta name="format-detection" content="telephone=no">
 	
 	<!-- PAGE TITLE HERE -->
-	<title>Travl - Django Hotel Admin Dashboard Bootstrap Template</title>
+	<title>Travels CRM Software</title>
 	
 	<!-- FAVICONS ICON -->
-	<link rel="shortcut icon" type="<?php echo base_url();?>assets/image/png" href="<?php echo base_url();?>assets/images/favicon.png" />
+	<link rel="shortcut icon" type="image/png" href="<?php echo base_url();?>assets/images/Royale-logo.png" />
     <link href="<?php echo base_url();?>assets/css/style.css" rel="stylesheet">
     	<link href="<?php echo base_url();?>assets/vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
 	<link href="<?php echo base_url();?>assets/vendor/owl-carousel/owl.carousel.css" rel="stylesheet">

@@ -43,15 +43,12 @@ class Transporter extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['transporter_id'] =(isset($_REQUEST['transporter_id']))?$_REQUEST['transporter_id']:'';
-		$param['transporter_base_station_id_fk'] =(isset($_REQUEST['transporter_base_station_id_fk']))?$_REQUEST['transporter_base_station_id_fk']:'';
-		//$param['vehicle_id_fk'] =(isset($_REQUEST['vehicle_id_fk']))?$_REQUEST['vehicle_id_fk']:'';
-		$vehicle_id_fk =(isset($_REQUEST['vehicle_id_fk']))?$_REQUEST['vehicle_id_fk']:'';
-		if($vehicle_id_fk){
-		$param['vehicle_id_fk'] = implode(', ', $vehicle_id_fk);
-		//print_r($tags);
-		}
-		$param['transporter_createdby_user_id'] =(isset($_REQUEST['transporter_createdby_user_id']))?$_REQUEST['transporter_createdby_user_id']:'';
+		
+		// $vehicle_id_fk =(isset($_REQUEST['vehicle_id_fk']))?$_REQUEST['vehicle_id_fk']:'';
+		// if($vehicle_id_fk){
+		// $param['vehicle_id_fk'] = implode(', ', $vehicle_id_fk);
+		// //print_r($tags);
+		// }
 		
 		
 		if (!has_permission('TRANSPORTER_VIEW')) {
@@ -124,10 +121,8 @@ class Transporter extends MY_Controller {
 				'transporter_bank_account_ifsc_code' => $this->input->post('transporter_bank_account_ifsc_code'),
 				'transporter_bank_account_branch' => $this->input->post('transporter_bank_account_branch'),
 				'transporter_bank_swift_code' => $this->input->post('transporter_bank_swift_code'),				
-				'transporter_createdby_user_id' => $currentuserid,			
-				'transporter_createdby_user_name' => $currentusername,			
-				'transporter_created_date' => $date,			
-				'transporter_created_time' => $time,			
+				'transporter_createdby_user_id' => $currentuserid,						
+				'transporter_created_at' => $date1,					
 				'transporter_status' => 1
 			);
 		$insert = $this->Transporter_model->save($data);
@@ -146,25 +141,6 @@ class Transporter extends MY_Controller {
 
 					$this->General_model->add($this->transporter_vehicle,$vehicle_list);
 			}
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added transporter: '.$transporter_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Transporter_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -196,26 +172,8 @@ class Transporter extends MY_Controller {
 		
 		
 		$transporter_name = $this->input->post('transporter_name');
-		
-		
-		$ip = $this->input->ip_address();
-		$id = $this->input->post('id');
-		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited transporter: '.$transporter_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Transporter_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
+		$id = $this->input->post('id');
 		
 		$data = array(
 				
@@ -235,11 +193,8 @@ class Transporter extends MY_Controller {
 				'transporter_bank_account_ifsc_code' => $this->input->post('transporter_bank_account_ifsc_code'),
 				'transporter_bank_account_branch' => $this->input->post('transporter_bank_account_branch'),
 				'transporter_bank_swift_code' => $this->input->post('transporter_bank_swift_code'),				
-				// 'transporter_createdby_user_id' => $currentuserid,			
-				// 'transporter_createdby_user_name' => $currentusername,			
-				// 'transporter_created_date' => $date,			
-				// 'transporter_created_time' => $time,			
-				// 'transporter_status' => 1
+				'transporter_updatedby_user_id' => $currentuserid,					
+				'transporter_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Transporter_model->update(array('transporter_id' => $this->input->post('id')), $data);
@@ -284,24 +239,24 @@ class Transporter extends MY_Controller {
 		
 		$this->Transporter_model->update(array('transporter_id' => $this->input->post('id')), $updateData);
 
-		$transporter_name = $this->input->post('transporter_name');
-		$ip = $this->input->ip_address();
+		// $transporter_name = $this->input->post('transporter_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted transporter: '.$transporter_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Transporter_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted transporter: '.$transporter_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Transporter_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

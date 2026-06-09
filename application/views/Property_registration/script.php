@@ -1,13 +1,373 @@
 <script>
+
 ////***Latest dropdown select2*****///
 
-$("#country_id_fk").select2({
-  // dropdownParent: $("#LeadsModal"),
-  minimumResultsForSearch: 0
+function initCommonSelect2(scope) {
+
+    scope = scope || document;
+
+    $(scope).find('.lst-flt-select2').each(function () {
+
+        let $select = $(this);
+
+        // avoid re-initializing
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        // find nearest opened modal if this select is inside modal
+        let $modal = $select.closest('.modal');
+
+        let options = {
+            width: '100%',
+            minimumResultsForSearch: 0
+        };
+
+        // only set dropdownParent when inside modal
+        if ($modal.length) {
+            options.dropdownParent = $modal;
+        }
+
+        $select.select2(options);
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
 });
- // Set selected value AFTER select2 init
-    // $('#country_id_fk').val('99').trigger('change.select2');
-    
+
+// initialize page select2
+$(document).ready(function () {
+    initCommonSelect2(document);
+});
+
+// call this after opening any modal
+$('#PropertyModal').on('shown.bs.modal', function () {
+    initCommonSelect2(this);
+});
+
+// Initialize modal dropdowns with AJAX for faster page load
+$(document).ready(function () {
+    // Property category dropdown with AJAX
+    $('#property_category_id_fk').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_property_category_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumInputLength: 0,
+        dropdownParent: $('#PropertyModal')
+    });
+
+    // Country dropdown with AJAX
+    $('#country_id_fk').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_country_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumInputLength: 0,
+        dropdownParent: $('#PropertyModal')
+    });
+
+    // Location dropdown with AJAX
+    $('#location_id_fk').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_location_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumInputLength: 0,
+        dropdownParent: $('#PropertyModal')
+    });
+
+    // Load destinations when location changes
+    $('#location_id_fk').on('change', function() {
+        var location_id = $(this).val();
+        var $destinationDropdown = $('#properties_destination_id_fk');
+
+        if (location_id) {
+            $.ajax({
+                url: "<?php echo base_url();?>index.php/Property_registration/get_destination_by_location_dropdown",
+                type: "GET",
+                data: { location_id: location_id },
+                dataType: "JSON",
+                success: function(data) {
+                    $destinationDropdown.empty();
+                    $destinationDropdown.append('<option value="">Please Select Destination</option>');
+                    $.each(data.results, function(key, value) {
+                        $destinationDropdown.append('<option value="' + value.id + '">' + value.text + '</option>');
+                    });
+                }
+            });
+        } else {
+            $destinationDropdown.empty();
+            $destinationDropdown.append('<option value="">Please Select Destination</option>');
+        }
+    });
+});
+
+////***Filter dropdowns with AJAX loading*****///
+
+$("#properties_id").select2({
+    ajax: {
+        url: "<?php echo base_url();?>index.php/Property_registration/get_properties_dropdown",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                page: params.page || 1
+            };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: data.results
+            };
+        },
+        cache: true
+    },
+    placeholder: "Please Select property",
+    minimumInputLength: 0,
+    allowClear: true
+}).on('select2:unselecting', function(e) {
+    $(this).data('unselecting', true);
+}).on('select2:opening', function(e) {
+    if ($(this).data('unselecting')) {
+        $(this).removeData('unselecting');
+        e.preventDefault();
+    }
+});
+
+$("#property_category_id_fk2").select2({
+    ajax: {
+        url: "<?php echo base_url();?>index.php/Property_registration/get_property_category_dropdown",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                page: params.page || 1
+            };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: data.results
+            };
+        },
+        cache: true
+    },
+    placeholder: "Please Select property category",
+    minimumInputLength: 0,
+    allowClear: true
+}).on('select2:unselecting', function(e) {
+    $(this).data('unselecting', true);
+}).on('select2:opening', function(e) {
+    if ($(this).data('unselecting')) {
+        $(this).removeData('unselecting');
+        e.preventDefault();
+    }
+});
+
+$("#country_id_fk2").select2({
+    ajax: {
+        url: "<?php echo base_url();?>index.php/Property_registration/get_country_dropdown",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                page: params.page || 1
+            };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: data.results
+            };
+        },
+        cache: true
+    },
+    placeholder: "Please Select Country",
+    minimumInputLength: 0,
+    allowClear: true
+}).on('select2:unselecting', function(e) {
+    $(this).data('unselecting', true);
+}).on('select2:opening', function(e) {
+    if ($(this).data('unselecting')) {
+        $(this).removeData('unselecting');
+        e.preventDefault();
+    }
+});
+
+$("#location_id_fk2").select2({
+    ajax: {
+        url: "<?php echo base_url();?>index.php/Property_registration/get_location_dropdown",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                page: params.page || 1
+            };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: data.results
+            };
+        },
+        cache: true
+    },
+    placeholder: "Please Select Location",
+    minimumInputLength: 0,
+    allowClear: true
+}).on('select2:unselecting', function(e) {
+    $(this).data('unselecting', true);
+}).on('select2:opening', function(e) {
+    if ($(this).data('unselecting')) {
+        $(this).removeData('unselecting');
+        e.preventDefault();
+    }
+});
+
+// Load destinations based on location filter
+$("#location_id_fk2").on('change', function() {
+    var location_id = $(this).val();
+    var $destinationDropdown = $("#properties_destination_id_fk2");
+
+    if (location_id) {
+        $.ajax({
+            url: "<?php echo base_url();?>index.php/Property_registration/get_destination_by_location_dropdown",
+            type: "GET",
+            data: { location_id: location_id },
+            dataType: "JSON",
+            success: function(data) {
+                $destinationDropdown.empty();
+                $destinationDropdown.append('<option value="">Please Select Destination</option>');
+                $.each(data.results, function(key, value) {
+                    $destinationDropdown.append('<option value="' + value.id + '">' + value.text + '</option>');
+                });
+            }
+        });
+    } else {
+        $destinationDropdown.empty();
+        $destinationDropdown.append('<option value="">Please Select Destination</option>');
+    }
+});
+
+$("#properties_destination_id_fk2").select2({
+    ajax: {
+        url: "<?php echo base_url();?>index.php/Property_registration/get_state_dropdown",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                page: params.page || 1
+            };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: data.results
+            };
+        },
+        cache: true
+    },
+    placeholder: "Please Select Destination",
+    minimumInputLength: 0,
+    allowClear: true
+}).on('select2:unselecting', function(e) {
+    $(this).data('unselecting', true);
+}).on('select2:opening', function(e) {
+    if ($(this).data('unselecting')) {
+        $(this).removeData('unselecting');
+        e.preventDefault();
+    }
+});
+
+$("#properties_createdby_userid").select2({
+    ajax: {
+        url: "<?php echo base_url();?>index.php/Property_registration/get_staff_dropdown",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                page: params.page || 1
+            };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: data.results
+            };
+        },
+        cache: true
+    },
+    placeholder: "Please Select Created by",
+    minimumInputLength: 0,
+    allowClear: true
+}).on('select2:unselecting', function(e) {
+    $(this).data('unselecting', true);
+}).on('select2:opening', function(e) {
+    if ($(this).data('unselecting')) {
+        $(this).removeData('unselecting');
+        e.preventDefault();
+    }
+});
+
 ////***Latest dropdown select2*****///
 
 // https://www.geeksforgeeks.org/jquery/how-to-get-a-dialog-box-if-there-is-no-internet-connection-using-jquery/
@@ -385,29 +745,65 @@ $('#upload_tariff_document_to_date').datepicker({
 
 });
 
+var selectedRoomTariffFromDate = null;
+
 $('#room_tariff_hike_from_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
-    todayHighlight: true
+    todayHighlight: false
+}).on('changeDate', function(e) {
+    selectedRoomTariffFromDate = e.date;
 });
 
 $('#room_tariff_hike_to_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
-    todayHighlight: true
+    todayHighlight: false
+}).on('show', function() {
+    if (selectedRoomTariffFromDate) {
+        var firstDayOfMonth = new Date(
+            selectedRoomTariffFromDate.getFullYear(),
+            selectedRoomTariffFromDate.getMonth(),
+            1
+        );
+        $(this).datepicker('update', firstDayOfMonth);
+    }
 });
 
 $('#hike_room_tariff_hike_from_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
-    todayHighlight: true
+    todayHighlight: false
+}).on('changeDate', function(e) {
+    selectedRoomTariffFromDate = e.date;
 });
 
 $('#hike_room_tariff_hike_to_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
-    todayHighlight: true
+    todayHighlight: false
+}).on('show', function() {
+    if (selectedRoomTariffFromDate) {
+        var firstDayOfMonth = new Date(
+            selectedRoomTariffFromDate.getFullYear(),
+            selectedRoomTariffFromDate.getMonth(),
+            1
+        );
+        $(this).datepicker('update', firstDayOfMonth);
+    }
 });
+
+// $('#hike_room_tariff_hike_from_date').datepicker({
+//     format: 'dd-mm-yyyy',
+//     autoclose: true,
+//     todayHighlight: true
+// });
+
+// $('#hike_room_tariff_hike_to_date').datepicker({
+//     format: 'dd-mm-yyyy',
+//     autoclose: true,
+//     todayHighlight: true
+// });
 
 // var selectedFromDate = null;
 
@@ -476,6 +872,92 @@ $(document).ready(function () {
 $(document).ready(function () {
     $("#btn1").click(function () {
         $("#Create1").toggle();
+    });
+});
+
+// Initialize room details filter dropdowns with AJAX
+$(document).ready(function () {
+    // Room category dropdown with AJAX
+    $('#properties_room_category_id').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_room_category_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1,
+                    properties_id: $('#properties_id_fk_hidden').val()
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumResultsForSearch: 0,
+        dropdownParent: $('#Create1')
+    });
+
+    // Meal plan dropdown with AJAX
+    $('#room_meal_plan_id').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_meal_plan_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumResultsForSearch: 0,
+        dropdownParent: $('#Create1')
+    });
+
+    // Created by dropdown with AJAX
+    $('#properties_room_category_createdby_user_id').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_staff_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumResultsForSearch: 0,
+        dropdownParent: $('#Create1')
+    });
+
+    // Refresh button functionality
+    $('#refresh1').click(function () {
+        $('#properties_room_category_id').val(null).trigger('change');
+        $('#room_meal_plan_id').val(null).trigger('change');
+        $('#properties_room_category_createdby_user_id').val(null).trigger('change');
     });
 });
 
@@ -585,9 +1067,9 @@ function initRoomDetailsTable(id){
                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5]
                                     },
-                                    title: 'Room details',
+                                    title: 'Room category details',
                                     customize: function ( win ) {
                                     $(win.document.body)
                                         .css( 'font-size', '10pt' )
@@ -603,9 +1085,9 @@ function initRoomDetailsTable(id){
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5]
                                     },
-                                    title: 'Room details',
+                                    title: 'Room category details',
                                     customize: function ( win ) {
                                     $(win.document.body)
                                         .css( 'font-size', '10pt' )
@@ -621,9 +1103,9 @@ function initRoomDetailsTable(id){
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5]
                                     },
-                                    title: 'Room details',
+                                    title: 'Room category details',
                                     customize: function ( win ) {
                                     $(win.document.body)
                                         .css( 'font-size', '10pt' )
@@ -656,25 +1138,44 @@ function initRoomDetailsTable(id){
            $table1.column(0).nodes().each(function(node,index,dt){
             $table1.cell(node).data(index+1);
             });
-            if(data['properties_room_category_photo'] == '')
-            {
-                $('td',row).eq(1).html('<img style="height: 40px; width: 40px;" src="<?php echo base_url();?>assets/images/user.png" />');
-            }
-            else{
-                $('td',row).eq(1).html('<a class="image-popup" href="<?php echo base_url();?>uploads/Property-room-category-doc/'+data['properties_room_category_photo']+'"><img style="height: 40px; width: 40px;" src="<?php echo base_url();?>uploads/Property-room-category-doc/'+data['properties_room_category_photo']+'" /></a>');
+        //     if(data['properties_room_category_photo'] == '')
+        //     {
+        //         $('td',row).eq(1).html('<img style="height: 40px; width: 40px;" src="<?php echo base_url();?>assets/images/user.png" />');
+        //     }
+        //     else{
+        //         $('td',row).eq(1).html('<a class="image-popup" href="<?php echo base_url();?>uploads/Property-room-category-doc/'+data['properties_room_category_photo']+'"><img style="height: 40px; width: 40px;" src="<?php echo base_url();?>uploads/Property-room-category-doc/'+data['properties_room_category_photo']+'" /></a>');
+        //    }
+
+           if(data['properties_room_category_photo'] == ""){
+                        $('td', row).eq(2).html('<center> </center>');  
+                    }
+                    else{
+                        $('td', row).eq(2).html('<center> <a target="_blank" href="<?php echo base_url();?>uploads/Property-room-category-doc/'+data['properties_room_category_photo']+'"><i class="fas fa-file"></i></a></center>');    
+                    } 
+           let actionHtml = '<div class="d-flex">';
+
+           // Edit button
+           if (hasPermission('ROOM_DETAILS_UPDATE')) {
+               actionHtml += '<a href="javascript:void(0)" id="rt" onclick="edit_room('+data['properties_room_category_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
            }
-           $('td', row).eq(7).html('<div class="d-flex"><a href="javascript:void(0)" id="rt" onclick="edit_room('+data['properties_room_category_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_room('+data['properties_room_category_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
+
+           // Delete button
+           if (hasPermission('ROOM_DETAILS_DELETE')) {
+               actionHtml += '<a href="javascript:void(0)" onclick="return delete_room('+data['properties_room_category_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
+           }
+
+           actionHtml += '</div>';
+           $('td', row).eq(6).html(actionHtml);
 
            },
 
         "columns": [
             { "data": "properties_room_category_status", "orderable": false },
-            { "data": "properties_room_category_photo", "orderable": false },
             { "data": "properties_room_category_name", "orderable": false },
+            { "data": "properties_room_category_photo", "orderable": false },
             { "data": "meal_plan_name", "orderable": false },
             { "data": "properties_room_category_inventory", "orderable": false },
             { "data": "properties_room_category_description", "orderable": false },
-            { "data": "properties_room_category_createdby_user_name", "orderable": false },
             { "data": "properties_room_category_id", "orderable": false },
             
    
@@ -758,7 +1259,7 @@ function initUploadTariffTable(id){
                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4]
                                     },
                                     title: 'Tariff uploaded details',
                                     customize: function ( win ) {
@@ -776,7 +1277,7 @@ function initUploadTariffTable(id){
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4]
                                     },
                                     title: 'Tariff uploaded details',
                                     customize: function ( win ) {
@@ -794,7 +1295,7 @@ function initUploadTariffTable(id){
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4]
                                     },
                                     title: 'Tariff uploaded details',
                                     customize: function ( win ) {
@@ -815,11 +1316,19 @@ function initUploadTariffTable(id){
             "url": "<?php echo base_url();?>index.php/Property_registration/get_uploaded_tariff/"+id,
             "type": "POST",
             "data" : function (d) {
-                        d.start_date = $("#start_date").val();
-                        d.end_date = $("#end_date").val();
+                        // Tariff date range
+                        var tariffRange = $("#tariff_daterange").val();
+                        if (tariffRange) {
+                            var dates = tariffRange.split(' - ');
+                            d.start_date = dates[0];
+                            d.end_date   = dates[1];
+                        } else {
+                            d.start_date = '';
+                            d.end_date   = '';
+                        }
                         d.upload_tariff_document_created_by_user_id = $("#upload_tariff_document_created_by_user_id").val();
-                        
-                        
+
+
            }
         },
         "createdRow": function ( row, data, index ) {
@@ -834,7 +1343,20 @@ function initUploadTariffTable(id){
                     else{
                         $('td', row).eq(3).html('<center> <a target="_blank" href="<?php echo base_url();?>uploads/tariff-doc/'+data['upload_tariff_document_name']+'"><i class="fas fa-file"></i></a></center>');    
                     } 
-           $('td', row).eq(6).html('<div class="d-flex"><a href="javascript:void(0)" id="rt" onclick="edit_tariff_document('+data['upload_tariff_document_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_tariff_document('+data['upload_tariff_document_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
+           let actionHtml = '<div class="d-flex">';
+
+           // Edit button
+           if (hasPermission('UPLOAD_TARIFF_UPDATE')) {
+               actionHtml += '<a href="javascript:void(0)" id="rt" onclick="edit_tariff_document('+data['upload_tariff_document_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
+           }
+
+           // Delete button
+           if (hasPermission('UPLOAD_TARIFF_DELETE')) {
+               actionHtml += '<a href="javascript:void(0)" onclick="return delete_tariff_document('+data['upload_tariff_document_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
+           }
+
+           actionHtml += '</div>';
+           $('td', row).eq(5).html(actionHtml);
 
            },
 
@@ -844,7 +1366,6 @@ function initUploadTariffTable(id){
             { "data": "upload_tariff_document_to_date", "orderable": false },
             { "data": "upload_tariff_document_name", "orderable": false },
             { "data": "upload_tariff_document_description", "orderable": false },
-            { "data": "upload_tariff_document_created_by_user_name", "orderable": false },
             { "data": "upload_tariff_document_id", "orderable": false },
             
    
@@ -918,7 +1439,7 @@ function initRoomTariffTable(id){
                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4]
                                     },
                                     title: 'Property Tariff details',
                                     customize: function ( win ) {
@@ -936,7 +1457,7 @@ function initRoomTariffTable(id){
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4]
                                     },
                                     title: 'Property Tariff details',
                                     customize: function ( win ) {
@@ -954,7 +1475,7 @@ function initRoomTariffTable(id){
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4]
                                     },
                                     title: 'Property Tariff details',
                                     customize: function ( win ) {
@@ -975,13 +1496,18 @@ function initRoomTariffTable(id){
             "url": "<?php echo base_url();?>index.php/Property_registration/Room_tariff_management/"+id,
             "type": "POST",
             "data" : function (d) {
-                        // d.properties_id = $("#properties_id").val();
-                        d.property_category_id_fk = $("#property_category_id_fk").val();
-                        d.properties_room_category_id = $("#properties_room_category_id3").val();
+                        // Tariff date range
+                        var tariffRange = $("#room_tariff_daterange").val();
+                        if (tariffRange) {
+                            var dates = tariffRange.split(' - ');
+                            d.start_date = dates[0];
+                            d.end_date   = dates[1];
+                        } else {
+                            d.start_date = '';
+                            d.end_date   = '';
+                        }
                         d.room_tariff_hike_createdby_user_id = $("#room_tariff_hike_createdby_user_id").val();
-                        d.start_date = $("#start_date3").val();
-                        d.end_date = $("#end_date3").val();
-           }            
+           }
         },
         "createdRow": function ( row, data, index ) {
           
@@ -991,7 +1517,30 @@ function initRoomTariffTable(id){
             });
             
             
-             $('td', row).eq(6).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="add_room_hike_tariff('+data['room_tariff_hike_id']+')">Add hike tariff</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_room_tariff('+data['room_tariff_hike_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_tariff('+data['room_tariff_hike_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0)" onclick="return view_room_tariff('+data['room_tariff_hike_id']+')">View details</a></div></div>');
+             let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+
+             // Add hike tariff button
+             if (hasPermission('ROOM_TARIFF_ADD_HIKE')) {
+                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="add_room_hike_tariff('+data['room_tariff_hike_id']+')">Add hike tariff</a>';
+             }
+
+             // Edit button
+             if (hasPermission('ROOM_TARIFF_UPDATE')) {
+                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_room_tariff('+data['room_tariff_hike_id']+')">Edit</a>';
+             }
+
+             // Delete button
+             if (hasPermission('ROOM_TARIFF_DELETE')) {
+                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_tariff('+data['room_tariff_hike_id']+')">Delete</a>';
+             }
+
+             // View details button
+             if (hasPermission('ROOM_TARIFF_DETAILS')) {
+                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return view_room_tariff('+data['room_tariff_hike_id']+')">View details</a>';
+             }
+
+             actionHtml += '</div></div>';
+             $('td', row).eq(5).html(actionHtml);
             
            
             
@@ -1002,8 +1551,7 @@ function initRoomTariffTable(id){
             { "data": "properties_name", "orderable": false },
             { "data": "room_tariff_hike_from_date", "orderable": false },
             { "data": "room_tariff_hike_to_date", "orderable": false },
-            { "data": "room_tariff_hike_description", "orderable": false },
-            { "data": "room_tariff_hike_createdby_user_name", "orderable": false },                      
+            { "data": "room_tariff_hike_description", "orderable": false },                     
             { "data": "room_tariff_hike_id", "orderable": false }
             
             
@@ -1190,11 +1738,29 @@ function initRoomHikeTariffTable(id){
             url: "<?php echo base_url();?>index.php/Property_registration/Room_tariff_hike_management/"+id,
             type: "POST",
             data: function (d) {
-                d.hike_properties_id_fk_filter = $("#hike_properties_id_fk_filter").val();
-                d.hike_room_id_fk_filter = $("#hike_room_id_fk_filter").val();
+                // Room tariff date range
+                var roomTariffRange = $("#room_tariff_daterange_filter").val();
+                if (roomTariffRange) {
+                    var dates = roomTariffRange.split(' - ');
+                    d.room_tariff_start_date = dates[0];
+                    d.room_tariff_end_date = dates[1];
+                } else {
+                    d.room_tariff_start_date = '';
+                    d.room_tariff_end_date = '';
+                }
+
+                // Hike tariff date range
+                var hikeTariffRange = $("#hike_tariff_daterange").val();
+                if (hikeTariffRange) {
+                    var hikeDates = hikeTariffRange.split(' - ');
+                    d.hike_tariff_start_date = hikeDates[0];
+                    d.hike_tariff_end_date = hikeDates[1];
+                } else {
+                    d.hike_tariff_start_date = '';
+                    d.hike_tariff_end_date = '';
+                }
+
                 d.hike_room_tariff_hike_createdby_user_id = $("#hike_room_tariff_hike_createdby_user_id").val();
-                d.hike_room_tariff_hike_from_date_filter = $("#hike_room_tariff_hike_from_date_filter").val();
-                d.hike_room_tariff_hike_to_date_filter = $("#hike_room_tariff_hike_to_date_filter").val();
             }
         },
         createdRow: function (row, data, index) {
@@ -1204,7 +1770,25 @@ function initRoomHikeTariffTable(id){
                 window.roomHikeTariffTable.cell(node).data(idx+1);
             });
 
-            $('td', row).eq(7).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_hike_room_tariff('+data['hike_room_tariff_hike_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_hike_tariff('+data['hike_room_tariff_hike_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0)" onclick="return view_room_hike_tariff('+data['hike_room_tariff_hike_id']+')">View details</a></div></div>');
+            let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+
+            // Edit button
+            if (hasPermission('ROOM_TARIFF_HIKE_UPDATE')) {
+                actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_hike_room_tariff('+data['hike_room_tariff_hike_id']+')">Edit</a>';
+            }
+
+            // Delete button
+            if (hasPermission('ROOM_TARIFF_HIKE_DELETE')) {
+                actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_hike_tariff('+data['hike_room_tariff_hike_id']+')">Delete</a>';
+            }
+
+            // View details button
+            if (hasPermission('ROOM_TARIFF_HIKE_DETAILS')) {
+                actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return view_room_hike_tariff('+data['hike_room_tariff_hike_id']+')">View details</a>';
+            }
+
+            actionHtml += '</div></div>';
+            $('td', row).eq(6).html(actionHtml);
 
             $('td', row).eq(2).html('<center>'+data['room_tariff_hike_from_date']+' / '+data['room_tariff_hike_to_date']+'</center>');
         },
@@ -1215,7 +1799,6 @@ function initRoomHikeTariffTable(id){
             { data: "hike_room_tariff_hike_from_date", orderable:false },
             { data: "hike_room_tariff_hike_to_date", orderable:false },
             { data: "hike_room_tariff_hike_description", orderable:false },
-            { data: "hike_room_tariff_hike_createdby_user_name", orderable:false },
             { data: "hike_room_tariff_hike_id", orderable:false }
         ]
     });
@@ -1285,7 +1868,7 @@ function initPropertyInclusionTable(id){
                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3]
                                     },
                                     title: 'Property inclusion details',
                                     customize: function ( win ) {
@@ -1303,7 +1886,7 @@ function initPropertyInclusionTable(id){
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3]
                                     },
                                     title: 'Property inclusion details',
                                     customize: function ( win ) {
@@ -1321,7 +1904,7 @@ function initPropertyInclusionTable(id){
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3]
                                     },
                                     title: 'Property inclusion details',
                                     customize: function ( win ) {
@@ -1356,7 +1939,20 @@ function initPropertyInclusionTable(id){
             $table4.cell(node).data(index+1);
             });
             
-           $('td', row).eq(5).html('<div class="d-flex"><a href="javascript:void(0)" id="rt" onclick="edit_property_inclusion('+data['property_inclusions_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_property_inclusion('+data['property_inclusions_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
+           let actionHtml = '<div class="d-flex">';
+
+           // Edit button
+           if (hasPermission('PROPERTY_INCLUSION_UPDATE')) {
+               actionHtml += '<a href="javascript:void(0)" id="rt" onclick="edit_property_inclusion('+data['property_inclusions_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
+           }
+
+           // Delete button
+           if (hasPermission('PROPERTY_INCLUSION_DELETE')) {
+               actionHtml += '<a href="javascript:void(0)" onclick="return delete_property_inclusion('+data['property_inclusions_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
+           }
+
+           actionHtml += '</div>';
+           $('td', row).eq(4).html(actionHtml);
 
            },
 
@@ -1365,7 +1961,6 @@ function initPropertyInclusionTable(id){
             { "data": "property_inclusions_name", "orderable": false },
             { "data": "property_inclusions_amount", "orderable": false },
             { "data": "property_inclusions_description", "orderable": false },
-            { "data": "property_inclusions_created_by_username", "orderable": false },
             { "data": "property_inclusions_id", "orderable": false },
             
    
@@ -1467,6 +2062,26 @@ $(document).ready(function(){
                 "<?php echo base_url();?>index.php/Property_registration/tab_room_tariff/" + propertyId,
                 function(){
                     tabsLoaded.roomTariff = true;
+
+                    // Initialize Select2 for room tariff created by dropdown
+                    $('#room_tariff_hike_createdby_user_id').select2({
+                        width: '100%',
+                        minimumResultsForSearch: 0,
+                        ajax: {
+                            url: '<?php echo base_url(); ?>index.php/Property_registration/get_staff_dropdown',
+                            dataType: 'json',
+                            delay: 250,
+                            data: function(params) {
+                                return {
+                                    q: params.term
+                                };
+                            },
+                            processResults: function(data) {
+                                return data;
+                            },
+                            cache: true
+                        }
+                    });
                     initRoomTariffTable(propertyId);
                 }
             );
@@ -1481,6 +2096,79 @@ $(document).ready(function(){
                 "<?php echo base_url();?>index.php/Property_registration/tab_room_hike_tariff/" + propertyId,
                 function(){
                     tabsLoaded.roomHikeTariff = true;
+
+                    // Initialize Select2 for room hike tariff created by dropdown
+                    $('#hike_room_tariff_hike_createdby_user_id').select2({
+                        width: '100%',
+                        minimumResultsForSearch: 0,
+                        ajax: {
+                            url: '<?php echo base_url(); ?>index.php/Property_registration/get_staff_dropdown',
+                            dataType: 'json',
+                            delay: 250,
+                            data: function(params) {
+                                return {
+                                    q: params.term
+                                };
+                            },
+                            processResults: function(data) {
+                                return data;
+                            },
+                            cache: true
+                        }
+                    });
+
+                    // Initialize daterangepicker for room tariff date range
+                    $('#room_tariff_daterange_filter').daterangepicker({
+                        autoUpdateInput: false,
+                        locale: {
+                            format: 'DD-MM-YYYY',
+                            cancelLabel: 'Clear'
+                        }
+                    });
+
+                    $('#room_tariff_daterange_filter').on('apply.daterangepicker', function(ev, picker) {
+                        $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
+                    });
+
+                    $('#room_tariff_daterange_filter').on('cancel.daterangepicker', function(ev, picker) {
+                        $(this).val('');
+                    });
+
+                    // Initialize daterangepicker for hike tariff date range
+                    $('#hike_tariff_daterange').daterangepicker({
+                        autoUpdateInput: false,
+                        locale: {
+                            format: 'DD-MM-YYYY',
+                            cancelLabel: 'Clear'
+                        }
+                    });
+
+                    $('#hike_tariff_daterange').on('apply.daterangepicker', function(ev, picker) {
+                        $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
+                    });
+
+                    $('#hike_tariff_daterange').on('cancel.daterangepicker', function(ev, picker) {
+                        $(this).val('');
+                    });
+
+                    // Filter toggle
+                    $('#btn4').click(function() {
+                        $('#Create4').slideToggle();
+                    });
+
+                    // Search button
+                    $('#search5').click(function() {
+                        $('#Room_hike_tariff_registration').DataTable().ajax.reload();
+                    });
+
+                    // Refresh button
+                    $('#refresh5').click(function() {
+                        $('#room_tariff_daterange_filter').val('');
+                        $('#hike_tariff_daterange').val('');
+                        $('#hike_room_tariff_hike_createdby_user_id').val(null).trigger('change');
+                        $('#Room_hike_tariff_registration').DataTable().ajax.reload();
+                    });
+
                     initRoomHikeTariffTable(propertyId);
                 }
             );
@@ -1513,7 +2201,21 @@ $(document).ready(function(){
 ////***searching button*****///
 
 $('#search').click(function () {
-        
+
+        $table.ajax.reload();
+    });
+
+$('#refresh').click(function () {
+        // Clear all filter dropdowns
+        $('#properties_id').val(null).trigger('change');
+        $('#property_category_id_fk2').val(null).trigger('change');
+        $('#country_id_fk2').val(null).trigger('change');
+        $('#location_id_fk2').val(null).trigger('change');
+        $('#properties_destination_id_fk2').val(null).trigger('change');
+        $('#properties_destination_id_fk2').empty().append('<option value="">Please Select Destination</option>');
+        $('#properties_createdby_userid').val(null).trigger('change');
+
+        // Reload datatable
         $table.ajax.reload();
     });
 
@@ -1678,7 +2380,7 @@ var table;
                         d.properties_id = $("#properties_id").val();
                         d.property_category_id_fk = $("#property_category_id_fk2").val();
                         d.country_id_fk = $("#country_id_fk2").val();
-                        d.state_id_fk = $("#state_id_fk2").val();
+                        d.location_id_fk = $("#location_id_fk2").val();
                         d.properties_destination_id_fk = $("#properties_destination_id_fk2").val();
                         d.properties_createdby_userid = $("#properties_createdby_userid").val();
            }            
@@ -1688,13 +2390,13 @@ var table;
             // "type": "POST"
         // },
         "createdRow": function ( row, data, index ) {
-          
+
 //            $('td',row).eq(0).html(index+1);
            $table.column(0).nodes().each(function(node,index,dt){
             $table.cell(node).data(index+1);
             });
-            
-            
+
+
 
             // $('td', row).eq(5).html('<div class="form-button-action"><a  data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task" href="javascript:void(0)" onclick="edit_role('+data['roles_id']+')"><i class="fa fa-edit"></i></a><button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove" href="javascript:void(0)" onclick="return delete_role('+data['roles_id']+')"><i class="fa fa-times"></i></button></div>');
 
@@ -1703,10 +2405,18 @@ var table;
            // $('td', row).eq(7).html('<div class="btn-group" role="group"><button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">Secondary</button><div class="dropdown-menu"><a class="dropdown-item" href="javascript:void()">Dropdown link</a><a class="dropdown-item" href="javascript:void()">Dropdown link</a></div></div>');
         //    var url = '<?php echo base_url(); ?>uploads/Property-doc/photo/' + data['properties_photos'];
         var filename = data['properties_photos'] ? data['properties_photos'] : '';
+        var propertyName = data['properties_name'] ? data['properties_name'] : '';
         var url = '<?php echo base_url(); ?>uploads/Property-doc/photo/' + filename;
 
+        // Display tariff status with colored label
+        if (data['tariff_status']) {
+            var tariffStatusText = data['tariff_status'].text || data['tariff_status'];
+            var tariffStatusColor = data['tariff_status'].color || 'secondary';
+            $('td', row).eq(6).html('<span class="badge bg-' + tariffStatusColor + '">' + tariffStatusText + '</span>');
+        }
+
         //    $('td', row).eq(7).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_property('+data['properties_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_property('+data['properties_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0);" onclick="return downloadPropertyPhoto(\'' + url + '\', \'' + filename + '\')">Property photo</a><a class="dropdown-item" href="<?php echo base_url();?>index.php/Property_registration/View/'+data['properties_id']+'" >View Details</a></div></div>');
-            
+
            let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
             // Edit button
@@ -1721,7 +2431,7 @@ var table;
 
             // Property photo dowload button
             if (hasPermission('PROPERTY_PHOTO')) {
-                actionHtml += '<a class="dropdown-item" href="javascript:void(0);" onclick="return downloadPropertyPhoto(\'' + url + '\', \'' + filename + '\')">Property photo</a>';
+                actionHtml += '<a class="dropdown-item" href="javascript:void(0);" onclick="return downloadPropertyPhoto(\'' + url + '\', \'' + filename + '\', \'' + propertyName + '\')">Property photo</a>';
             }
 
             // Delete button
@@ -1746,11 +2456,11 @@ var table;
             { "data": "name", "orderable": false },
             { "data": "plname", "orderable": false },
             { "data": "rcname", "orderable": false },
-            { "data": "properties_createdby_username", "orderable": false },
+            { "data": "tariff_status", "orderable": false },
             { "data": "properties_id", "orderable": false },
-            
-            
-            
+
+
+
         ]
         
     });
@@ -1762,12 +2472,16 @@ var table;
 
 ////***Listing table*****///
 
-function downloadPropertyPhoto(url, filename) {
+function downloadPropertyPhoto(url, filename, propertyName) {
 
     if (!filename || filename.trim() === '') {
         alert("No file exists");
         return false;
     }
+
+    // Use property name as download filename, keeping the original file extension
+    var fileExtension = filename.split('.').pop();
+    var downloadName = propertyName + '.' + fileExtension;
 
     fetch(url, { method: 'HEAD' })
         .then(function(response) {
@@ -1777,7 +2491,7 @@ function downloadPropertyPhoto(url, filename) {
                 // Create temporary link
                 var a = document.createElement('a');
                 a.href = url;
-                a.download = filename;  // Force download
+                a.download = downloadName;  // Force download with property name
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -1801,13 +2515,13 @@ function Propertymodalclose()
 {
 
     $('#PropertyModal').modal('hide');
-   
+
     //$( "div" ).remove( ".modal-backdrop" );
     $('#properties_name').val('');
-    $('#property_category_id_fk').val('').change();
-    // $('#country_id_fk').val('').change();
-    $('#state_id_fk').val('').change();
-    $('#properties_destination_id_fk').val('').change();
+    $('#property_category_id_fk').val(null).trigger('change');
+    $('#country_id_fk').val(null).trigger('change');
+    $('#location_id_fk').val(null).trigger('change');
+    $('#properties_destination_id_fk').empty().append('<option value="">Please Select Destination</option>');
     $('#properties_house_boat_type').val('').change();
     $('#properties_check_type').val('T').change();
 
@@ -1824,17 +2538,35 @@ function Propertymodalclose()
 
 ////***For open the modal *****///
 $('#PropertyModal').on('shown.bs.modal', function () {
-    // $("#state_id_fk").select2('open');
+    // $("#location_id_fk").select2('open');
     $('#properties_name').focus();
     var id = $("#id").val();
     if(id == '')
     {
-    $('#property_category_id_fk').val('').change();
-    // $('#country_id_fk').val('').change();
-    $('#state_id_fk').val('').change();
-    $('#properties_destination_id_fk').val('').change();
+    $('#property_category_id_fk').val(null).trigger('change');
+    $('#country_id_fk').val(null).trigger('change');
+    $('#location_id_fk').val(null).trigger('change');
+    $('#properties_destination_id_fk').empty().append('<option value="">Please Select Destination</option>');
     $('#properties_house_boat_type').val('').change();
     $('#properties_check_type').val('T').change();
+
+    // Set default country value to 99 for add mode
+    $.ajax({
+        url: "<?php echo base_url();?>index.php/Property_registration/get_country_dropdown",
+        type: "GET",
+        data: { q: '' },
+        dataType: "JSON",
+        success: function(data) {
+            var country99 = data.results.find(function(item) {
+                return item.id == 99;
+            });
+            if (country99) {
+                $('#country_id_fk').empty().append('<option value="">Please Select Country</option>');
+                var option = new Option(country99.text, country99.id, true, true);
+                $('#country_id_fk').append(option).trigger('change');
+            }
+        }
+    });
     }
     // $(".submit").attr("disabled", "disabled");
     $('.form-group').removeClass('input-success-o');
@@ -1868,12 +2600,21 @@ function add_property()
     $('.form-group').removeClass('input-warning-o');
     $('.help-block').empty();
 
+    // Clear the hidden id field to ensure add mode
+    $('#id').val('');
+
     // Force checking type to 24 hours
     $('#properties_check_type').val('T').trigger('change.select2');
 
     // Disable check-in and check-out
     toggleCheckTimeByType('T');
-$('#country_id_fk').val('99').trigger('change.select2');
+
+    // Clear AJAX dropdowns
+    $('#property_category_id_fk').empty().append('<option value="">Please Select property category</option>');
+    $('#country_id_fk').empty().append('<option value="">Please Select Country</option>');
+    $('#location_id_fk').empty().append('<option value="">Please Select Location</option>');
+    $('#properties_destination_id_fk').empty().append('<option value="">Please Select Destination</option>');
+
     // Hide thumbnails (optional)
     $('#hotel_logo_preview').hide();
     $('#property_photo_preview').hide();
@@ -1947,10 +2688,46 @@ function edit_property(id)
             $('[name="id"]').val(data.properties_id);
             $('[name="properties_name"]').val(data.properties_name);
 
-            $('#property_category_id_fk').val(data.property_category_id_fk).trigger('change.select2');
-            $('#country_id_fk').val(data.country_id_fk).trigger('change.select2');
-            $('#state_id_fk').val(data.state_id_fk).trigger('change.select2');
-            $('#properties_destination_id_fk').val(data.properties_destination_id_fk).trigger('change.select2');
+            // For AJAX-loaded select2 dropdowns, create option manually then set value
+            if (data.property_category_id_fk) {
+                $('#property_category_id_fk').empty().append('<option value="">Please Select property category</option>');
+                var option = new Option(data.property_category_name, data.property_category_id_fk, true, true);
+                $('#property_category_id_fk').append(option).trigger('change');
+            }
+
+            if (data.country_id_fk) {
+                $('#country_id_fk').empty().append('<option value="">Please Select Country</option>');
+                var option = new Option(data.country_name, data.country_id_fk, true, true);
+                $('#country_id_fk').append(option).trigger('change');
+            }
+
+            // Load location and then destination
+            if (data.location_id_fk) {
+                $('#location_id_fk').empty().append('<option value="">Please Select Location</option>');
+                var option = new Option(data.location_name, data.location_id_fk, true, true);
+                $('#location_id_fk').append(option).trigger('change');
+
+                // Load destinations based on location after location is set
+                $.ajax({
+                    url: "<?php echo base_url();?>index.php/Property_registration/get_destination_by_location_dropdown",
+                    type: "GET",
+                    data: { location_id: data.location_id_fk },
+                    dataType: "JSON",
+                    success: function(destData) {
+                        var $destinationDropdown = $('#properties_destination_id_fk');
+                        $destinationDropdown.empty();
+                        $destinationDropdown.append('<option value="">Please Select Destination</option>');
+                        $.each(destData.results, function(key, value) {
+                            $destinationDropdown.append('<option value="' + value.id + '">' + value.text + '</option>');
+                        });
+                        // Set the destination value after loading - select existing option instead of creating duplicate
+                        if (data.properties_destination_id_fk) {
+                            $('#properties_destination_id_fk').val(data.properties_destination_id_fk).trigger('change');
+                        }
+                    }
+                });
+            }
+
             $('#properties_house_boat_type').val(data.properties_house_boat_type).trigger('change.select2');
 
             $('#properties_hotel_url').val(data.properties_hotel_url);
@@ -2212,9 +2989,18 @@ function save()
                     }
                 }
                 if(res.inputerror){
-                    for (var i = 0; i < res.inputerror.length; i++) {
-                        $('[name="'+res.inputerror[i]+'"]').closest('.form-group').addClass('input-warning-o');
-                        $('[name="'+res.inputerror[i]+'"]').closest('.form-group').find('.help-block').first().text(res.error_string[i]);
+                    // for (var i = 0; i < res.inputerror.length; i++) {
+                    //     $('[name="'+res.inputerror[i]+'"]').closest('.form-group').addClass('input-warning-o');
+                    //     $('[name="'+res.inputerror[i]+'"]').closest('.form-group').find('.help-block').first().text(res.error_string[i]);
+                    // }
+                    for (var i = 0; i < res.inputerror.length; i++) 
+                    {
+                        $('[name="'+res.inputerror[i]+'"]').parent().parent().addClass('input-warning-o'); //select parent twice to select div form-group class and add has-error class
+                        if($('[name="'+res.inputerror[i]+'"]').parent().find('.help-block').length) {
+                            $('[name="'+res.inputerror[i]+'"]').parent().find('.help-block').text(res.error_string[i]); //select span help-block class set text error string
+                        } else {
+                            $('[name="'+res.inputerror[i]+'"]').next().text(res.error_string[i]);
+                        }
                     }
                 }
             }
@@ -2408,7 +3194,7 @@ function add_room()
     $('.form-group').removeClass('input-warning-o'); // clear error class
     $('.help-block').empty(); // clear error string
     $('#RoomModal').modal('show'); // show bootstrap modal
-    $('.modal-title').text('Add room Details'); // Set Title to Bootstrap modal title
+    $('.modal-title').text('Add room category Details'); // Set Title to Bootstrap modal title
     $('#btnSave').text('save');
 
     $('#room_meal_plan_id_fk').val('1').trigger('change.select2');
@@ -2477,7 +3263,7 @@ function edit_room(id)
 
               
             $('#RoomModal').modal('show'); // show bootstrap modal when complete loaded
-            $('.modal-title').text('Edit room Details'); // Set title to Bootstrap modal title
+            $('.modal-title').text('Edit room category Details'); // Set title to Bootstrap modal title
             $('#btnSave1').text('update');
 
         },
@@ -2499,7 +3285,7 @@ function reload_table1()
     if(id)
     {  
 
-        swal("Room details updated successfully", "", "success")
+        swal("Room category details updated successfully", "", "success")
         // var ff = 0;
         
         // ff = "Room details updated successfully";
@@ -2528,7 +3314,7 @@ function reload_table1()
     }
     else{
         
-        swal("Room details added successfully", "", "success")
+        swal("Room category details added successfully", "", "success")
 
         // var ff = 0;
         
@@ -2616,7 +3402,11 @@ function save1()
                 for (var i = 0; i < data.inputerror.length; i++) 
                 {
                     $('[name="'+data.inputerror[i]+'"]').parent().parent().addClass('input-warning-o'); //select parent twice to select div form-group class and add has-error class
-                    $('[name="'+data.inputerror[i]+'"]').next().text(data.error_string[i]); //select span help-block class set text error string
+                    if($('[name="'+data.inputerror[i]+'"]').parent().find('.help-block').length) {
+                        $('[name="'+data.inputerror[i]+'"]').parent().find('.help-block').text(data.error_string[i]); //select span help-block class set text error string
+                    } else {
+                        $('[name="'+data.inputerror[i]+'"]').next().text(data.error_string[i]);
+                    }
                 }
             }
             $('#btnSave1').text('save'); //change button text
@@ -3617,6 +4407,10 @@ $("#form5").validate({
     },
     unhighlight: function(element) {
         $(element).closest('.form-group').removeClass('input-warning-o').addClass('input-success-o');
+    },
+    errorPlacement: function(error, element) {
+        error.addClass('text-danger');
+        error.insertAfter(element);
     }
 });
 

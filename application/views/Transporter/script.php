@@ -13,12 +13,58 @@ $(document).ready(function () {
 
 ////***Latest dropdown select2*****///
 
-$("#transporter_id").select2();
-$("#transporter_createdby_user_id").select2();
-$("#transporter_base_station_id_fk").select2();
-$("#vehicle_id_fk").select2();
-$("#vehicle_id_fk1").select2();
-$("#transporter_base_station_id_fk1").select2();
+function initCommonSelect2(scope) {
+
+    scope = scope || document;
+
+    $(scope).find('.lst-flt-select2').each(function () {
+
+        let $select = $(this);
+
+        // avoid re-initializing
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        // find nearest opened modal if this select is inside modal
+        let $modal = $select.closest('.modal');
+
+        let options = {
+            width: '100%',
+            minimumResultsForSearch: 0
+        };
+
+        // only set dropdownParent when inside modal
+        if ($modal.length) {
+            options.dropdownParent = $modal;
+        }
+
+        $select.select2(options);
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
+});
+
+// initialize page select2
+$(document).ready(function () {
+    initCommonSelect2(document);
+});
+
+// call this after opening any modal
+$('#TransporterModal').on('shown.bs.modal', function () {
+    initCommonSelect2(this);
+});
+
+// $("#transporter_base_station_id_fk").select2();
+// $("#vehicle_id_fk").select2();
 
 ////***Latest dropdown select2*****///
 
@@ -70,7 +116,7 @@ var table;
     $table = $('#Transporter_table').DataTable( {
         "processing": true,
         "serverSide": true,
-		"searching": false,
+		"searching": true,
 		"aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         // "bDestroy" : true,
         dom: 'lBfrtip',
@@ -79,20 +125,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5]
-                                    }
+                                        columns: [0, 1, 2, 3, 4]
+                                    },
+                                    title: 'Transporter details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5]
-                                    }
+                                        columns: [0, 1, 2, 3, 4]
+                                    },
+                                    title: 'Transporter details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5]
-                                    }
+                                        columns: [0 ,1, 2, 3, 4]
+                                    },
+                                    title: 'Transporter details'
                                 },
                                
 			],
@@ -100,10 +149,10 @@ var table;
             "url": "<?php echo base_url();?>index.php/Transporter/get/",
             "type": "POST",
             "data" : function (d) {
-						d.transporter_id = $("#transporter_id").val();
-						d.transporter_base_station_id_fk = $("#transporter_base_station_id_fk1").val();
-                        d.vehicle_id_fk = $("#vehicle_id_fk1").val();
-                        d.transporter_createdby_user_id = $("#transporter_createdby_user_id").val();
+						// d.transporter_id = $("#transporter_id").val();
+						// d.transporter_base_station_id_fk = $("#transporter_base_station_id_fk1").val();
+                        // d.vehicle_id_fk = $("#vehicle_id_fk1").val();
+                        // d.transporter_createdby_user_id = $("#transporter_createdby_user_id").val();
            }			
         },
 		// "ajax": {
@@ -133,7 +182,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(6).html(actionHtml);
+            $('td', row).eq(5).html(actionHtml);
 
 			// $('td', row).eq(6).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_transporter('+data['transporter_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_transporter('+data['transporter_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
@@ -178,8 +227,7 @@ var table;
             { "data": "transporter_name", "orderable": false },
             { "data": "transporter_address", "orderable": false },
             { "data": "state_name", "orderable": false },
-            { "data": "state_name", "orderable": false },
-            { "data": "transporter_createdby_user_name", "orderable": false },                      
+            { "data": "state_name", "orderable": false },                     
             { "data": "transporter_id", "orderable": false }
             
             

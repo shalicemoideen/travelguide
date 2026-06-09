@@ -890,7 +890,7 @@ class Leads_model extends CI_Model{
 
 	function fetch_meta_ads_list(){
 
-		$this->db->select('meta_ads_setting_id,meta_ads_setting_name');
+		$this->db->select('meta_ads_setting_id,meta_ads_setting_name,facebook_form_id');
 		$this->db->from('meta_ads_setting');
 		$this->db->order_by("meta_ads_setting_id", "ASC");
 		$this->db->where("meta_ads_setting_status",1);

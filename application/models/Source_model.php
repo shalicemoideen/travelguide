@@ -9,16 +9,10 @@ class Source_model extends CI_Model{
     }
 	
 	public function getSourceTable($param){
-		$arOrder = array('','roles_name');
-		$source_id =(isset($param['source_id']))?$param['source_id']:'';
-		$source_created_user_id =(isset($param['source_created_user_id']))?$param['source_created_user_id']:'';
-		
-		
-		if($source_id){
-            $this->db->where('source_id', $source_id); 
-        }
-		if($source_created_user_id){
-            $this->db->where('source_created_user_id', $source_created_user_id); 
+		$arOrder = array('','source_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('source_name', $searchValue); 
         }
         $this->db->where("source_status",1);
 
@@ -52,15 +46,9 @@ class Source_model extends CI_Model{
 
 	public function getSourceTotalCount($param = NULL){
 
-		$source_id =(isset($param['source_id']))?$param['source_id']:'';
-		$source_created_user_id =(isset($param['source_created_user_id']))?$param['source_created_user_id']:'';
-		
-		
-		if($source_id){
-            $this->db->where('source_id', $source_id); 
-        }
-		if($source_created_user_id){
-            $this->db->where('source_created_user_id', $source_created_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('source_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

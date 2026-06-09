@@ -41,9 +41,7 @@ class Special_requirments extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['special_requirements_id'] =(isset($_REQUEST['special_requirements_id']))?$_REQUEST['special_requirements_id']:'';
-		$param['special_requirements_createdby_user_id'] =(isset($_REQUEST['special_requirements_createdby_user_id']))?$_REQUEST['special_requirements_createdby_user_id']:'';
-
+		
 		if (!has_permission('SPECIAL_REQUIREMENTS_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -83,32 +81,11 @@ class Special_requirments extends MY_Controller {
 				'special_requirements_name' => $this->input->post('special_requirements_name'),
 				'special_requirements_cost' => $this->input->post('special_requirements_cost'),
 				'special_requirements_description' => $this->input->post('special_requirements_description'),					
-				'special_requirements_createdby_user_id' => $currentuserid,			
-				'special_requirements_createdby_user_name' => $currentusername,			
-				'special_requirements_created_date' => $date,			
-				'special_requirements_created_time' => $time,			
+				'special_requirements_createdby_user_id' => $currentuserid,					
+				'special_requirements_created_at' => $date1,						
 				'special_requirements_status' => 1
 			);
 		$insert = $this->Special_requirments_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added special requirement: '.$special_requirements_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Special_requirements_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -141,36 +118,16 @@ class Special_requirments extends MY_Controller {
 		
 		$special_requirements_name = $this->input->post('special_requirements_name');
 		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited special requirement: '.$special_requirements_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Special_requirements_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
 				'special_requirements_name' => $this->input->post('special_requirements_name'),
 				'special_requirements_cost' => $this->input->post('special_requirements_cost'),
 				'special_requirements_description' => $this->input->post('special_requirements_description'),					
-				// 'special_requirements_createdby_user_id' => $currentuserid,			
-				// 'special_requirements_createdby_user_name' => $currentusername,			
-				// 'special_requirements_created_date' => $date,			
-				// 'special_requirements_created_time' => $time,			
-				// 'special_requirements_status' => 1
+				'special_requirements_updatedby_user_id' => $currentuserid,						
+				'special_requirements_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Special_requirments_model->update(array('special_requirements_id' => $this->input->post('id')), $data);
@@ -217,24 +174,24 @@ class Special_requirments extends MY_Controller {
 		
 		$this->Special_requirments_model->update(array('special_requirements_id' => $this->input->post('id')), $updateData);
 
-		$special_requirements_name = $this->input->post('special_requirements_name');
-		$ip = $this->input->ip_address();
+		// $special_requirements_name = $this->input->post('special_requirements_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted special requirement '.$special_requirements_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Special_requirements_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted special requirement '.$special_requirements_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Special_requirements_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

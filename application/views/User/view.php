@@ -1,6 +1,8 @@
 <?php
 $arAdmintype = array('A'=>'Super admin','C'=>'Company','S'=>'Staff');
+$flash_response = $this->session->flashdata('response');
 ?>
+<input type="hidden" id="flash_response" value="<?php echo $flash_response ? htmlspecialchars($flash_response) : ''; ?>">
 <div class="content-body">
             <div class="container-fluid">
                 <!-- row -->
@@ -9,6 +11,14 @@ $arAdmintype = array('A'=>'Super admin','C'=>'Company','S'=>'Staff');
                     
                     <div class="col-xl-8">
                         <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                                <span></span>
+                                <button type="button" id="btn_toggle_file_saving"
+                                    class="btn btn-sm <?php echo (isset($records->meta_force_stop) && $records->meta_force_stop === 'Y') ? 'btn-danger' : 'btn-success'; ?>"
+                                    data-current="<?php echo (isset($records->meta_force_stop) ? $records->meta_force_stop : 'N'); ?>">
+                                    <?php echo (isset($records->meta_force_stop) && $records->meta_force_stop === 'Y') ? 'Stopped (Click to Enable)' : 'Enabled (Click to Stop)'; ?>
+                                </button>
+                            </div>
                             <div class="card-body">
                                 <div class="profile-tab">
                                     <div class="custom-tab-1">
@@ -188,3 +198,22 @@ $arAdmintype = array('A'=>'Super admin','C'=>'Company','S'=>'Staff');
                 </div>
             </div>
         </div>
+
+<!-- File Saving Toggle Confirmation Modal -->
+<div class="modal fade" id="fileSavingConfirmModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileSavingModalTitle">Confirm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="fileSavingModalMsg">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" id="btnFileSavingConfirmYes">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>

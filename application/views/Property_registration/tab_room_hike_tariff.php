@@ -1,75 +1,28 @@
-                                                <div class="col-sm-2"><button type="button" id="btn3" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button></div><br><br><br>
-                                                <!-- <div class="row page-titles">
-                                                    <ol class="breadcrumb">
-                                                        <li class="breadcrumb-item active"><a href="javascript:void(0)">Table</a></li>
-                                                        <li class="breadcrumb-item"><a href="javascript:void(0)">Datatable</a></li>
-                                                    </ol>
-                                                </div> -->
+                                                <div class="col-sm-2"><button type="button" id="btn4" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button></div><br><br><br>
                                                 <!-- row -->
-                                                <form id="exampleValidation3" method="POST" action="" enctype="multipart/form-data">
-                                                    <div class="card-header" id="Create3" style="display:none">
+                                                <form id="exampleValidation4" method="POST" action="" enctype="multipart/form-data">
+                                                    <div class="card-header" id="Create4" style="display:none">
                                                         <div class="d-flex align-items-center">
                                                             <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                                <!-- <div class="col-sm-6 col-md-5">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                        <input type="hidden" id="properties_id" name="properties_id" value="<?php echo $records->properties_id; ?>">
-                                                        <div class="form-control bg-light"><?php echo $records->properties_name; ?></div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>   -->
                                                                 <div class="col-sm-6 col-md-5">
                                                                     <div class="card">
                                                                         <div class="input-group">
-                                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="properties_room_category_id3" name="properties_room_category_id"  required>  
-                                            
-                                                                                <option value="">Please Select Room</option>
-
-                                                                                    <?php foreach($room_category as $row) {
-                                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                                            echo '<option value="'.$row->properties_room_category_id.'">'.$row->properties_room_category_name.'</option>';
-                                                                                        } ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div> 
-                                                                <div class="col-sm-6 col-md-5">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="property_category_id_fk" name="property_category_id_fk" required>  
-                                            
-                                                                                    <option value="">Please Select property category</option>                            
-                                                                                    <?php foreach($property_category as $row) {
-                                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                                            echo '<option value="'.$row->property_category_id.'">'.$row->property_category_name.'</option>';
-                                                                                        } ?>
-                                                                            </select>
+                                                                            <input type="text" class="form-control" placeholder="Room tariff date range" id="room_tariff_daterange_filter" name="room_tariff_daterange_filter">
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-sm-6 col-md-5">
                                                                     <div class="card">
                                                                         <div class="input-group">
-                                                                            <input type="text" class="form-control" placeholder="Tariff start date" id="start_date3" name="start_date" required>
+                                                                            <input type="text" class="form-control" placeholder="Hike tariff date range" id="hike_tariff_daterange" name="hike_tariff_daterange">
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-sm-6 col-md-5">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                                            <input type="text" class="form-control" placeholder="Tariff end date" id="end_date3" name="end_date" required>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>                              
                                                                 <div class="col-sm-6 col-md-5 staff-do-not-show">
                                                                     <div class="card">
                                                                         <div class="input-group">
-                                                                            <select name="room_tariff_hike_createdby_user_id" id="room_tariff_hike_createdby_user_id" class="form-control input-lg multi-select" required>                                     
-                                                                                <option value="">Please Select Created by</option>                            
-                                                                                <?php foreach($staff as $row) {
-                                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                                    } ?>
+                                                                            <select name="hike_room_tariff_hike_createdby_user_id" id="hike_room_tariff_hike_createdby_user_id" class="form-control input-lg multi-select">
+                                                                                <option value="">Please Select Created by</option>
                                                                             </select>
                                                                         </div>
                                                                     </div>
@@ -86,19 +39,15 @@
                                                                 </div>
                                                                 <div class="col-sm-2 col-md-3">
                                                                     <div class="card">
-                                                                        <a href="<?php echo base_url();?>Room_tariff_management">
-                                                                        <button type="button" class="btn btn-secondary btn-md">
+                                                                        <button type="button" class="btn btn-secondary btn-md" id="refresh5">
                                                                             <span class="btn-label">
                                                                                 <i class="icon-refresh"></i>
                                                                             </span>
                                                                             Refresh
                                                                         </button>
-                                                                        </a>
                                                                     </div>
                                                                 </div>
-                                                                
                                                             </div>
-                                                        
                                                         </div>
                                                     </div>
                                                 </form>
@@ -109,8 +58,10 @@
                                                     <div class="col-12">
                                                         <div class="card">
                                                             <div class="card-header">
-                                                                <h2 class="card-title"><b>Room hike tariff Details</b></h2> 
-                                                                <!-- <button onclick="add_room_tariff()"  data-bs-target="#RoomTariffModal" class="btn btn-rounded btn-secondary btn-md"><b>+ New room tariff</b></button>  -->
+                                                                <!-- <h2 class="card-title"><b>Room hike tariff Details</b></h2>
+                                                                <?php if (has_permission('ROOM_TARIFF_HIKE_CREATE')): ?>
+                                                                    <button onclick="add_room_hike_tariff()" data-bs-target="#RoomTariffHikeModal" class="btn btn-rounded btn-secondary btn-md"><b>+ New room hike tariff</b></button>
+                                                                <?php endif; ?> -->
                                                             </div>
                                                             <div class="card-body">
                                                                 <div class="table-responsive">
@@ -123,7 +74,6 @@
                                                                                 <th>Hike From date</th>
                                                                                 <th>Hike To date</th>
                                                                                 <th>Description</th>
-                                                                                <th>Created by</th>
                                                                                 <th>Action</th>
                                                                             </tr>
                                                                         </thead>
@@ -209,4 +159,4 @@
                             </div>
                         </div>
                     </div> -->
-                    
+

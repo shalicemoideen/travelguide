@@ -49,9 +49,9 @@
                                      SEARCH + RESET FILTERS
                                      Add this ABOVE the table inside card-body
                                 ============================================ -->
-                                <div class="row mb-3">
+                                <!-- <div class="row mb-3">
 
-                                    <!-- SEARCH BY POLICY NAME -->
+                                   SEARCH BY POLICY NAME 
                                     <div class="col-md-4">
                                         <input type="text"
                                                id="inclusion_exclusion_common_title_filter"
@@ -60,7 +60,7 @@
                                                placeholder="Search Inclusion and Exclusion Name">
                                     </div>
 
-                                    <!-- BUTTONS -->
+                                     BUTTONS 
                                     <div class="col-md-4">
 
                                         <button type="button"
@@ -77,7 +77,7 @@
 
                                     </div>
 
-                                </div>
+                                </div> -->
 
 
                                 <!-- TABLE -->
@@ -90,9 +90,9 @@
                                         <thead>
                                             <tr>
                                                 <th style="width:5%;">Sl.No</th>
-                                                <th style="width:35%;">Title Name</th>
-                                                <th style="width:25%;">Created By</th>
-                                                <th style="width:15%;">Action</th>
+                                                <th style="width:25%;">Title Name</th>
+                                                <!-- <th style="width:25%;">Created By</th> -->
+                                                <th style="width:5%;">Action</th>
                                             </tr>
                                         </thead>
 

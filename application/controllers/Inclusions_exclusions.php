@@ -66,7 +66,7 @@ class Inclusions_exclusions extends MY_Controller {
         $param['searchValue'] = isset($search['value']) ? $search['value'] : '';
 
         /* FILTERS */
-        $param['inclusion_exclusion_common_title'] = $this->input->post('inclusion_exclusion_common_title_filter');
+        // $param['inclusion_exclusion_common_title'] = $this->input->post('inclusion_exclusion_common_title_filter');
 
 		if (!has_permission('INCLUSION_AND_EXCLUSION_VIEW')) {
 	        echo json_encode([
@@ -95,12 +95,21 @@ class Inclusions_exclusions extends MY_Controller {
 
         $this->db->trans_start();
 
+        $this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+
+        $date1 = date('Y-m-d h:i:s a', time());
+
         /* MAIN POLICY */
         $common_data = array(
             'inclusion_exclusion_common_title'    			 => $this->input->post('inclusion_exclusion_common_title'),
             'inclusion_exclusion_common_createdby_user_id'   => $this->currentuserid,
             'inclusion_exclusion_common_status'              => 1,
-            'inclusion_exclusion_common_created_date'        => date('Y-m-d')
+            'inclusion_exclusion_common_created_at'        => $date1
         );
 
         $this->db->insert($this->table, $common_data);
@@ -149,19 +158,6 @@ class Inclusions_exclusions extends MY_Controller {
 
         $this->db->trans_complete();
 
-        /* ACTIVITY LOG */
-        $ip = $this->input->ip_address();
-        $activity_data=array(
-            'activity_action' => 'Added Inclusion Exclusion',
-            'id_fk' => $inclusion_exclusion_common_id_fk,
-            'activity_type' => 'Inclusion_exclusion_registration',
-            'activity_ip' => $ip,
-            'activity_action' => 'Add',
-            'activity_by_userid' => $this->currentuserid,
-            'activity_date' => date('Y-m-d H:i:s')
-        );
-        $this->General_model->add($this->activity,$activity_data);
-
         echo json_encode(array(
             "status" => TRUE
         ));
@@ -206,9 +202,20 @@ class Inclusions_exclusions extends MY_Controller {
 
         $this->db->trans_start();
 
+        $this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+
+        $date1 = date('Y-m-d h:i:s a', time());
+
         /* UPDATE MAIN */
         $common_data = array(
             'inclusion_exclusion_common_title'   => $this->input->post('inclusion_exclusion_common_title'),
+            'inclusion_exclusion_common_updatedby_user_id'   => $this->currentuserid,
+            'inclusion_exclusion_common_updated_at'        => $date1
         );
 
         $this->db->where('inclusion_exclusion_common_id', $inclusion_exclusion_common_id);
@@ -265,19 +272,6 @@ class Inclusions_exclusions extends MY_Controller {
 
         $this->db->trans_complete();
 
-        /* ACTIVITY LOG */
-        $ip = $this->input->ip_address();
-        $activity_data=array(
-            'activity_action' => 'Updated Inclusion and Excluions',
-            'id_fk' => $inclusion_exclusion_common_id,
-            'activity_type' => 'Include_exclude_registration',
-            'activity_ip' => $ip,
-            'activity_action' => 'Update',
-            'activity_by_userid' => $this->currentuserid,
-            'activity_date' => date('Y-m-d H:i:s')
-        );
-        $this->General_model->add($this->activity,$activity_data);
-
         
         echo json_encode(array(
             "status" => TRUE
@@ -303,17 +297,17 @@ class Inclusions_exclusions extends MY_Controller {
         $this->db->delete($this->table);
 
         /* ACTIVITY LOG */
-        $ip = $this->input->ip_address();
-        $activity_data=array(
-            'activity_action' => 'Deleted Inclusion and Exclusion Policy',
-            'id_fk' => $inclusion_exclusion_common_id,
-            'activity_type' => 'Include_Exclude_registration',
-            'activity_ip' => $ip,
-            'activity_action' => 'Delete',
-            'activity_by_userid' => $this->currentuserid,
-            'activity_date' => date('Y-m-d H:i:s')
-        );
-        $this->General_model->add($this->activity,$activity_data);
+        // $ip = $this->input->ip_address();
+        // $activity_data=array(
+        //     'activity_action' => 'Deleted Inclusion and Exclusion Policy',
+        //     'id_fk' => $inclusion_exclusion_common_id,
+        //     'activity_type' => 'Include_Exclude_registration',
+        //     'activity_ip' => $ip,
+        //     'activity_action' => 'Delete',
+        //     'activity_by_userid' => $this->currentuserid,
+        //     'activity_date' => date('Y-m-d H:i:s')
+        // );
+        // $this->General_model->add($this->activity,$activity_data);
 
         echo json_encode(array(
             "status" => TRUE

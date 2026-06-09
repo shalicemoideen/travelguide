@@ -9,17 +9,12 @@ class Designation_model extends CI_Model{
     }
 	
 	public function getDesignationTable($param){
-		$arOrder = array('','roles_name');
-		$designation_id =(isset($param['designation_id']))?$param['designation_id']:'';
-		$designation_created_by_user_id =(isset($param['designation_created_by_user_id']))?$param['designation_created_by_user_id']:'';
-		
-		
-		if($designation_id){
-            $this->db->where('designation_id', $designation_id); 
+		$arOrder = array('','designation_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('designation_name', $searchValue); 
         }
-		if($designation_created_by_user_id){
-            $this->db->where('designation_created_by_user_id', $designation_created_by_user_id); 
-        }
+		
         $this->db->where("designation_status",1);
 
         if($param['length']== -1) {
@@ -52,15 +47,9 @@ class Designation_model extends CI_Model{
 
 	public function getDesignationTotalCount($param = NULL){
 
-		$designation_id =(isset($param['designation_id']))?$param['designation_id']:'';
-		$designation_created_by_user_id =(isset($param['designation_created_by_user_id']))?$param['designation_created_by_user_id']:'';
-		
-		
-		if($designation_id){
-            $this->db->where('designation_id', $designation_id); 
-        }
-		if($designation_created_by_user_id){
-            $this->db->where('designation_created_by_user_id', $designation_created_by_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('designation_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

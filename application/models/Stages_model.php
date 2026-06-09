@@ -9,16 +9,10 @@ class Stages_model extends CI_Model{
     }
 	
 	public function getStageTable($param){
-		$arOrder = array('','roles_name');
-		$stages_id =(isset($param['stages_id']))?$param['stages_id']:'';
-		$stages_created_user_id =(isset($param['stages_created_user_id']))?$param['stages_created_user_id']:'';
-		
-		
-		if($stages_id){
-            $this->db->where('stages_id', $stages_id); 
-        }
-		if($stages_created_user_id){
-            $this->db->where('stages_created_user_id', $stages_created_user_id); 
+		$arOrder = array('','stages_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('stages_name', $searchValue); 
         }
         $this->db->where("stages_status",1);
 
@@ -52,15 +46,9 @@ class Stages_model extends CI_Model{
 
 	public function getStageTotalCount($param = NULL){
 
-		$stages_id =(isset($param['stages_id']))?$param['stages_id']:'';
-		$stages_created_user_id =(isset($param['stages_created_user_id']))?$param['stages_created_user_id']:'';
-		
-		
-		if($stages_id){
-            $this->db->where('stages_id', $stages_id); 
-        }
-		if($stages_created_user_id){
-            $this->db->where('stages_created_user_id', $stages_created_user_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('stages_name', $searchValue); 
         }
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');

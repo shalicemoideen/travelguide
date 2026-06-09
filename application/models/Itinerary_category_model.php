@@ -9,17 +9,11 @@ class Itinerary_category_model extends CI_Model{
     }
 	
 	public function getItinerarycategoryTable($param){
-		$arOrder = array('','roles_name');
-		$itinerary_category_id =(isset($param['itinerary_category_id']))?$param['itinerary_category_id']:'';
-		$itinerary_category_createdby_user_id =(isset($param['itinerary_category_createdby_user_id']))?$param['itinerary_category_createdby_user_id']:'';
-		
-		
-		if($itinerary_category_id){
-            $this->db->where('itinerary_category_id', $itinerary_category_id); 
-        }
-		if($itinerary_category_createdby_user_id){
-            $this->db->where('itinerary_category_createdby_user_id', $itinerary_category_createdby_user_id); 
-        }
+		$arOrder = array('','itinerary_category_name');
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('itinerary_category_name', $searchValue); 
+        }	
         $this->db->where("itinerary_category_status",1);
 
         if($param['length']== -1) {
@@ -52,16 +46,11 @@ class Itinerary_category_model extends CI_Model{
 
 	public function getItinerarycategoryTotalCount($param = NULL){
 
-		$itinerary_category_id =(isset($param['itinerary_category_id']))?$param['itinerary_category_id']:'';
-		$itinerary_category_createdby_user_id =(isset($param['itinerary_category_createdby_user_id']))?$param['itinerary_category_createdby_user_id']:'';
-		
-		
-		if($itinerary_category_id){
-            $this->db->where('itinerary_category_id', $itinerary_category_id); 
+		$searchValue =($param['searchValue'])?$param['searchValue']:'';
+        if($searchValue){
+            $this->db->like('itinerary_category_name', $searchValue); 
         }
-		if($itinerary_category_createdby_user_id){
-            $this->db->where('itinerary_category_createdby_user_id', $itinerary_category_createdby_user_id); 
-        }
+		
 		// $currentuserid = $this->session->userdata('user_id');
 		// $currentusertype = $this->session->userdata('user_type');
 			

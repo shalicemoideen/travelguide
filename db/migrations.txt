@@ -1,0 +1,146 @@
+ALTER TABLE `designation` ADD `designation_updated_by_user_id` INT NOT NULL AFTER `designation_created_by_username`;
+ALTER TABLE `designation` CHANGE `designation_created_date` `designation_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `designation` CHANGE `designation_created_time` `designation_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL;
+ALTER TABLE `designation` CHANGE `designation_updated_at` `designation_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `designation` CHANGE `designation_status` `designation_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `designation` CHANGE `designation_created_by_user_id` `designation_created_by_user_id` INT(11) NULL DEFAULT NULL, CHANGE `designation_created_by_username` `designation_created_by_username` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL, CHANGE `designation_updated_by_user_id` `designation_updated_by_user_id` INT(11) NULL DEFAULT NULL;
+
+ALTER TABLE `state` ADD `state_updated_user_id` INT NOT NULL AFTER `state_created_user_name`;
+ALTER TABLE `state` CHANGE `state_created_date` `state_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `state_created_time` `state_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `state` CHANGE `state_status` `state_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `state` CHANGE `state_created_user_id` `state_created_user_id` INT(11) NULL DEFAULT NULL, CHANGE `state_updated_user_id` `state_updated_user_id` INT(11) NULL DEFAULT NULL;
+ALTER TABLE `state` CHANGE `state_created_user_name` `state_created_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+
+ALTER TABLE `vehicle` ADD `vehicle_updatedby_user_id` INT(11) NULL DEFAULT NULL AFTER `vehicle_createdby_user_name`;
+ALTER TABLE `vehicle` CHANGE `vehicle_createdby_user_id` `vehicle_createdby_user_id` INT(11) NULL DEFAULT NULL;
+ALTER TABLE `vehicle` CHANGE `vehicle_created_date` `vehicle_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `vehicle_created_time` `vehicle_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `vehicle` CHANGE `vehicle_status` `vehicle_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `vehicle` CHANGE `vehicle_createdby_user_name` `vehicle_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+
+ALTER TABLE `transporter` ADD `transporter_updatedby_user_id` INT NULL DEFAULT NULL AFTER `transporter_createdby_user_name`;
+ALTER TABLE `transporter` CHANGE `transporter_createdby_user_id` `transporter_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `transporter_createdby_user_name` `transporter_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `transporter` CHANGE `transporter_created_date` `transporter_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `transporter_created_time` `transporter_created_time` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `transporter_status` `transporter_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `transporter` CHANGE `transporter_created_date` `transporter_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `transporter_created_time` `transporter_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE `source` ADD `source_updated_user_id` INT NULL DEFAULT NULL AFTER `source_created_username`;
+ALTER TABLE `source` CHANGE `source_created_user_id` `source_created_user_id` INT(11) NULL DEFAULT NULL, CHANGE `source_created_username` `source_created_username` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `source` CHANGE `source_created_date` `source_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `source_created_time` `source_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `source` CHANGE `source_status` `source_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `stages` ADD `stages_updated_user_id` INT NULL DEFAULT NULL AFTER `stages_created_username`;
+ALTER TABLE `stages` CHANGE `stages_created_user_id` `stages_created_user_id` INT(11) NULL DEFAULT NULL, CHANGE `stages_created_username` `stages_created_username` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `stages` CHANGE `stages_created_date` `stages_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `stages_created_time` `stages_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `stages` CHANGE `stages_status` `stages_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `priority_status` ADD `priority_status_updated_user_id` INT NULL DEFAULT NULL AFTER `priority_status_created_username`;
+ALTER TABLE `priority_status` CHANGE `priority_status_created_user_id` `priority_status_created_user_id` INT(11) NULL DEFAULT NULL, CHANGE `priority_status_created_username` `priority_status_created_username` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `priority_status` CHANGE `priority_status_created_date` `priority_status_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `priority_status_created_time` `priority_status_updated_tat` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `priority_status` CHANGE `priority_status_created_status` `priority_status_created_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `priority_status` CHANGE `priority_status_updated_tat` `priority_status_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE `b2b_partner` ADD `b2b_partner_updatedby_user_id` INT NULL DEFAULT NULL AFTER `b2b_partner_createdby_user_name`;
+ALTER TABLE `b2b_partner` CHANGE `b2b_partner_createdby_user_id` `b2b_partner_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `b2b_partner_createdby_user_name` `b2b_partner_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `b2b_partner` CHANGE `b2b_partner_created_date` `b2b_partner_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `b2b_partner_created_time` `b2b_partner_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `b2b_partner` CHANGE `b2b_partner_status` `b2b_partner_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `itinerary_category` ADD `itinerary_category_updatedby_user_id` INT NULL DEFAULT NULL AFTER `itinerary_category_createdby_user_name`;
+ALTER TABLE `itinerary_category` CHANGE `itinerary_category_createdby_user_id` `itinerary_category_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `itinerary_category_createdby_user_name` `itinerary_category_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `itinerary_category` CHANGE `itinerary_category_created_date` `itinerary_category_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `itinerary_category_created_time` `itinerary_category_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `itinerary_category` CHANGE `itinerary_category_status` `itinerary_category_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `special_requirements` ADD `special_requirements_updatedby_user_id` INT NULL DEFAULT NULL AFTER `special_requirements_createdby_user_name`
+ALTER TABLE `special_requirements` CHANGE `special_requirements_createdby_user_id` `special_requirements_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `special_requirements_createdby_user_name` `special_requirements_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `special_requirements` CHANGE `special_requirements_created_date` `special_requirements_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `special_requirements_created_time` `special_requirements_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `special_requirements` CHANGE `special_requirements_status` `special_requirements_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `package_category` ADD `package_category_updatedby_user_id` INT NULL DEFAULT NULL AFTER `package_category_createdby_user_name`;
+ALTER TABLE `package_category` CHANGE `package_category_createdby_user_id` `package_category_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `package_category_createdby_user_name` `package_category_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `package_category` CHANGE `package_category_created_date` `package_category_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `package_category_created_time` `package_category_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `package_category` CHANGE `package_category_status` `package_category_status` TINYINT(4) NULL DEFAULT NULL;
+
+ALTER TABLE `inclusion_exclusion_common` ADD `inclusion_exclusion_common_updatedby_user_id` INT NULL DEFAULT NULL AFTER `inclusion_exclusion_common_createdby_user_name`;
+ALTER TABLE `inclusion_exclusion_common` CHANGE `inclusion_exclusion_common_createdby_user_id` `inclusion_exclusion_common_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `inclusion_exclusion_common_createdby_user_name` `inclusion_exclusion_common_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `inclusion_exclusion_common` CHANGE `inclusion_exclusion_common_created_date` `inclusion_exclusion_common_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `inclusion_exclusion_common_created_time` `inclusion_exclusion_common_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `inclusion_exclusion_common` CHANGE `inclusion_exclusion_common_status` `inclusion_exclusion_common_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `payment_policies` ADD `payment_policies_updatedby_user_id` INT NULL DEFAULT NULL AFTER `payment_policies_createdby_user_name`;
+ALTER TABLE `payment_policies` CHANGE `payment_policies_createdby_user_id` `payment_policies_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `payment_policies_createdby_user_name` `payment_policies_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `payment_policies` CHANGE `payment_policies_created_date` `payment_policies_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `payment_policies_created_time` `payment_policies_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `payment_policies` CHANGE `payment_policies_status` `payment_policies_status` TINYINT(4) NULL DEFAULT NULL;
+
+ALTER TABLE `property_category` ADD `property_category_updatedby_user_id` INT NULL DEFAULT NULL AFTER `property_category_createdby_user_name`;
+ALTER TABLE `property_category` CHANGE `property_category_createdby_user_id` `property_category_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `property_category_createdby_user_name` `property_category_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `property_category` CHANGE `property_category_created_date` `property_category_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `property_category_created_time` `property_category_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `property_category` CHANGE `property_category_status` `property_category_status` TINYINT(4) NULL DEFAULT '1';
+
+
+ALTER TABLE `terms_condition` ADD `terms_condition_updatedby_user_id` INT NULL DEFAULT NULL AFTER `terms_condition_createdby_user_name`;
+ALTER TABLE `terms_condition` CHANGE `terms_condition_createdby_user_id` `terms_condition_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `terms_condition_createdby_user_name` `terms_condition_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `terms_condition` CHANGE `terms_condition_created_date` `terms_condition_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `terms_condition_created_time` `terms_condition_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `terms_condition` CHANGE `terms_condition_status` `terms_condition_status` TINYINT(4) NULL DEFAULT NULL;
+
+ALTER TABLE `cancellation_policies` ADD `cancellation_policies_updatedby_user_id` INT NULL DEFAULT NULL AFTER `cancellation_policies_createdby_user_name`;
+ALTER TABLE `cancellation_policies` CHANGE `cancellation_policies_createdby_user_id` `cancellation_policies_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `cancellation_policies_createdby_user_name` `cancellation_policies_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `cancellation_policies` CHANGE `cancellation_policies_created_date` `cancellation_policies_created_at` DATETIME NULL DEFAULT NULL, CHANGE `cancellation_policies_created_time` `cancellation_policies_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE `cancellation_policies` CHANGE `cancellation_policies_status` `cancellation_policies_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `cancellation_policies` CHANGE `cancellation_policies_created_at` `cancellation_policies_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `cancellation_policies_updated_at` `cancellation_policies_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE `properties` ADD `properties_updatedby_userid` INT NULL DEFAULT NULL AFTER `properties_createdby_username`;
+ALTER TABLE `properties` CHANGE `properties_createdby_userid` `properties_createdby_userid` INT(11) NULL DEFAULT NULL, CHANGE `properties_createdby_username` `properties_createdby_username` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `properties` CHANGE `properties_create_date` `properties_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `properties_create_time` `properties_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `properties` CHANGE `properties_status` `properties_status` TINYINT(4) NULL DEFAULT NULL;
+
+CREATE TABLE `location` (
+  `location_id` int(11) NOT NULL,
+  `location_name` varchar(255) NOT NULL,
+  `location_description` text NOT NULL,
+  `location_created_user_id` int(11) DEFAULT NULL,
+  `location_updated_user_id` int(11) DEFAULT NULL,
+  `location_created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `location_updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `location_status` tinyint(4) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+ALTER TABLE `state` ADD `location_id_fk` INT NOT NULL AFTER `country_id_fk`;
+ALTER TABLE `properties` CHANGE `state_id_fk` `location_id_fk` INT(11) NOT NULL;
+
+ALTER TABLE `properties_room_category` ADD `properties_room_category_updatedby_user_id` INT NULL DEFAULT NULL AFTER `properties_room_category_createdby_user_name`;
+ALTER TABLE `properties_room_category` CHANGE `properties_room_category_createdby_user_id` `properties_room_category_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `properties_room_category_createdby_user_name` `properties_room_category_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `properties_room_category` CHANGE `properties_room_category_created_date` `properties_room_category_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `properties_room_category_created_time` `properties_room_category_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `properties_room_category` CHANGE `properties_room_category_status` `properties_room_category_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `upload_tariff_document` ADD `upload_tariff_document_updated_by_user_id` INT NULL DEFAULT NULL AFTER `upload_tariff_document_created_by_user_name`;
+ALTER TABLE `upload_tariff_document` CHANGE `upload_tariff_document_created_by_user_id` `upload_tariff_document_created_by_user_id` INT(11) NULL DEFAULT NULL, CHANGE `upload_tariff_document_created_by_user_name` `upload_tariff_document_created_by_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `upload_tariff_document` CHANGE `upload_tariff_document_created_date` `upload_tariff_document_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `upload_tariff_document_created_time` `upload_tariff_document_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `upload_tariff_document` CHANGE `upload_tariff_document_status` `upload_tariff_document_status` TINYINT(4) NULL DEFAULT NULL;
+
+ALTER TABLE `property_inclusions` ADD `property_inclusions_updated_by_userid` INT NULL DEFAULT NULL AFTER `property_inclusions_created_by_username`;
+ALTER TABLE `property_inclusions` CHANGE `property_inclusions_created_date` `property_inclusions_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `property_inclusions_created_time` `property_inclusions_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `property_inclusions` CHANGE `property_inclusions_status` `property_inclusions_status` TINYINT(4) NULL DEFAULT NULL;
+ALTER TABLE `property_inclusions` CHANGE `property_inclusions_created_by_userid` `property_inclusions_created_by_userid` INT(11) NULL DEFAULT NULL, CHANGE `property_inclusions_created_by_username` `property_inclusions_created_by_username` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+
+ALTER TABLE `room_tariff_hike` ADD `room_tariff_hike_updatedby_user_id` INT NULL DEFAULT NULL AFTER `room_tariff_hike_createdby_user_name`;
+ALTER TABLE `room_tariff_hike` CHANGE `room_tariff_hike_createdby_user_id` `room_tariff_hike_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `room_tariff_hike_createdby_user_name` `room_tariff_hike_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `room_tariff_hike` CHANGE `room_tariff_hike_created_date` `room_tariff_hike_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `room_tariff_hike_created_time` `room_tariff_hike_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `room_tariff_hike` CHANGE `room_tariff_hike_status` `room_tariff_hike_status` TINYINT(4) NOT NULL;
+ALTER TABLE `room_tariff_hike` CHANGE `room_tariff_hike_status` `room_tariff_hike_status` TINYINT(4) NULL DEFAULT '1';
+
+ALTER TABLE `hike_room_tariff_hike` ADD `hike_room_tariff_hike_updatedby_user_id` INT NULL DEFAULT NULL AFTER `hike_room_tariff_hike_createdby_user_name`;
+ALTER TABLE `hike_room_tariff_hike` CHANGE `hike_room_tariff_hike_createdby_user_id` `hike_room_tariff_hike_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `hike_room_tariff_hike_createdby_user_name` `hike_room_tariff_hike_createdby_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `hike_room_tariff_hike` CHANGE `hike_room_tariff_hike_created_date` `hike_room_tariff_hike_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `hike_room_tariff_hike_created_time` `hike_room_tariff_hike_created_time` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `hike_room_tariff_hike` CHANGE `hike_room_tariff_hike_status` `hike_room_tariff_hike_status` TINYINT(4) NULL DEFAULT '1';
+ALTER TABLE `hike_room_tariff_hike` CHANGE `hike_room_tariff_hike_created_date` `hike_room_tariff_hike_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `hike_room_tariff_hike_created_time` `hike_room_tariff_hike_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE `itineraries` ADD `itineraries_updatedby_user_id` INT NULL DEFAULT NULL AFTER `itineraries_created_by_user_name`;
+ALTER TABLE `itineraries` CHANGE `itineraries_createdby_user_id` `itineraries_createdby_user_id` INT(11) NULL DEFAULT NULL, CHANGE `itineraries_created_by_user_name` `itineraries_created_by_user_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+ALTER TABLE `itineraries` CHANGE `itineraries_created_date` `itineraries_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `itineraries_created_time` `itineraries_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, CHANGE `itineraries_status` `itineraries_status` TINYINT(4) NULL DEFAULT '1';
+
+
+CREATE TABLE `force_stop_log` (
+  `log_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `log_user_id_fk` INT(11) NOT NULL,
+  `log_action` VARCHAR(10) NOT NULL COMMENT 'ENABLED or STOPPED',
+  `log_action_datetime` DATETIME NOT NULL,
+  `log_status` TINYINT(1) DEFAULT 1,
+  PRIMARY KEY (`log_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

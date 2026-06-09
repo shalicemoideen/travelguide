@@ -7,69 +7,25 @@
                                                 </div> -->
                                                 <!-- row -->
                                                 <form id="exampleValidation3" method="POST" action="" enctype="multipart/form-data">
-                                                    <div class="card-header" id="Create3" style="display:none">
+                                                    <div class="card-header" id="Create3" style="display:none;">
                                                         <div class="d-flex align-items-center">
                                                             <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                                <!-- <div class="col-sm-6 col-md-5">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                        <input type="hidden" id="properties_id" name="properties_id" value="<?php echo $records->properties_id; ?>">
-                                                        <div class="form-control bg-light"><?php echo $records->properties_name; ?></div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>   -->
-                                                                <div class="col-sm-6 col-md-5">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="properties_room_category_id3" name="properties_room_category_id"  required>  
-                                            
-                                                                                <option value="">Please Select Room</option>
 
-                                                                                    <?php foreach($room_category as $row) {
-                                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                                            echo '<option value="'.$row->properties_room_category_id.'">'.$row->properties_room_category_name.'</option>';
-                                                                                        } ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div> 
-                                                                <div class="col-sm-6 col-md-5">
+                                                                <div class="col-sm-6 col-md-4">
                                                                     <div class="card">
                                                                         <div class="input-group">
-                                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="property_category_id_fk" name="property_category_id_fk" required>  
-                                            
-                                                                                    <option value="">Please Select property category</option>                            
-                                                                                    <?php foreach($property_category as $row) {
-                                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                                            echo '<option value="'.$row->property_category_id.'">'.$row->property_category_name.'</option>';
-                                                                                        } ?>
-                                                                            </select>
+                                                                            <div class="example">
+                                                                                <input type="text" class="form-control" id="room_tariff_daterange" name="daterange" placeholder="Room tariff date range">
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-sm-6 col-md-5">
+
+                                                                <div class="col-sm-6 col-md-4 staff-do-not-show">
                                                                     <div class="card">
                                                                         <div class="input-group">
-                                                                            <input type="text" class="form-control" placeholder="Tariff start date" id="start_date3" name="start_date" required>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-sm-6 col-md-5">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                                            <input type="text" class="form-control" placeholder="Tariff end date" id="end_date3" name="end_date" required>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>                              
-                                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
-                                                                    <div class="card">
-                                                                        <div class="input-group">
-                                                                            <select name="room_tariff_hike_createdby_user_id" id="room_tariff_hike_createdby_user_id" class="form-control input-lg multi-select" required>                                     
-                                                                                <option value="">Please Select Created by</option>                            
-                                                                                <?php foreach($staff as $row) {
-                                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                                    } ?>
+                                                                            <select name="room_tariff_hike_createdby_user_id" id="room_tariff_hike_createdby_user_id" class="form-control input-lg multi-select" required>
+                                                                                <option value="">Please Select Created by</option>
                                                                             </select>
                                                                         </div>
                                                                     </div>
@@ -86,19 +42,18 @@
                                                                 </div>
                                                                 <div class="col-sm-2 col-md-3">
                                                                     <div class="card">
-                                                                        <a href="<?php echo base_url();?>Room_tariff_management">
-                                                                        <button type="button" class="btn btn-secondary btn-md">
+                                                                        <button type="button" class="btn btn-secondary btn-md" id="refresh3">
                                                                             <span class="btn-label">
                                                                                 <i class="icon-refresh"></i>
                                                                             </span>
                                                                             Refresh
                                                                         </button>
-                                                                        </a>
                                                                     </div>
                                                                 </div>
-                                                                
+
+
                                                             </div>
-                                                        
+
                                                         </div>
                                                     </div>
                                                 </form>
@@ -109,8 +64,10 @@
                                                     <div class="col-12">
                                                         <div class="card">
                                                             <div class="card-header">
-                                                                <h2 class="card-title"><b>Room tariff Details</b></h2> 
-                                                                <button onclick="add_room_tariff()"  data-bs-target="#RoomTariffModal" class="btn btn-rounded btn-secondary btn-md"><b>+ New room tariff</b></button> 
+                                                                <h2 class="card-title"><b>Room tariff Details</b></h2>
+                                                                <?php if (has_permission('ROOM_TARIFF_CREATE')): ?>
+                                                                    <button onclick="add_room_tariff()"  data-bs-target="#RoomTariffModal" class="btn btn-rounded btn-secondary btn-md"><b>+ New room tariff</b></button>
+                                                                <?php endif; ?>
                                                             </div>
                                                             <div class="card-body">
                                                                 <div class="table-responsive">
@@ -122,7 +79,6 @@
                                                                                 <th>From date</th>
                                                                                 <th>To date</th>
                                                                                 <th>Description</th>
-                                                                                <th>Created by</th>
                                                                                 <th>Action</th>
                                                                             </tr>
                                                                         </thead>
@@ -138,6 +94,95 @@
                                                     
                                                 </div>
                                             </div>
+
+<script>
+$(document).ready(function () {
+    // Filter toggle
+    $("#btn3").click(function () {
+        $("#Create3").toggle();
+    });
+
+    // Initialize daterangepicker
+    $('#room_tariff_daterange').daterangepicker({
+        autoUpdateInput: false,
+        opens: 'left',
+        locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: 'Apply',
+            cancelLabel: 'Cancel',
+            fromLabel: 'From',
+            toLabel: 'To',
+            customRangeLabel: 'Custom',
+            daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            firstDay: 1
+        }
+    });
+
+    $('#room_tariff_daterange').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(
+            picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+        );
+    });
+
+    $('#room_tariff_daterange').on('cancel.daterangepicker', function() {
+        $(this).val('');
+    });
+
+    // Created by dropdown with AJAX
+    $('#room_tariff_hike_createdby_user_id').select2({
+        ajax: {
+            url: "<?php echo base_url();?>index.php/Property_registration/get_staff_dropdown",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        width: '100%',
+        minimumResultsForSearch: 0,
+        dropdownParent: $('#Create3'),
+        allowClear: true,
+        placeholder: "Please Select Created by"
+    }).on('select2:unselecting', function(e) {
+        if (!e.params.args.data) {
+            $(this).one('select2:open', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            });
+        }
+    });
+
+    // Refresh button functionality
+    $('#refresh3').click(function () {
+        $('#room_tariff_daterange').val('');
+        $('#room_tariff_hike_createdby_user_id').val(null).trigger('change');
+        // Reload datatable after clearing filters
+        if ($('#Room_tariff_registration').length) {
+            $('#Room_tariff_registration').DataTable().ajax.reload();
+        }
+    });
+
+    // Search button functionality
+    $('#search3').click(function () {
+        // Reload datatable with current filter values
+        if ($('#Room_tariff_registration').length) {
+            $('#Room_tariff_registration').DataTable().ajax.reload();
+        }
+    });
+});
+</script>
                                         </div> <!-- end page -->
                                         <!--    <div class="tab-pane fade" id="contact1">
                                             <div class="pt-4">

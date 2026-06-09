@@ -41,9 +41,6 @@ class Source extends MY_Controller {
         $param['dir'] = (isset($_REQUEST['order'][0]['dir']))?$_REQUEST['order'][0]['dir']:'';
         $param['searchValue'] =(isset($_REQUEST['search']['value']))?$_REQUEST['search']['value']:'';
         
-		$param['source_id'] =(isset($_REQUEST['source_id']))?$_REQUEST['source_id']:'';
-		$param['source_created_user_id'] =(isset($_REQUEST['source_created_user_id']))?$_REQUEST['source_created_user_id']:'';
-
 		if (!has_permission('SOURCE_VIEW')) {
 	        echo json_encode([
 	            "draw" => intval($this->input->post('draw')),
@@ -83,32 +80,11 @@ class Source extends MY_Controller {
 		$data = array(
 
 				'source_name' => $this->input->post('source_name'),					
-				'source_created_date' => $currentuserid,			
-				'source_created_username' => $currentusername,			
-				'source_created_date' => $date,			
-				'source_created_time' => $time,			
+				'source_created_user_id' => $currentuserid,						
+				'source_created_at' => $date1,						
 				'source_status' => 1
 			);
 		$insert = $this->Source_model->save($data);
-
-		$ip = $this->input->ip_address();
-		
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Added source: '.$source_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Source_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -140,36 +116,14 @@ class Source extends MY_Controller {
 		
 		
 		$source_name = $this->input->post('source_name');
-		
-		
-		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
-
-		$activity_data = array(
-				'activity_description' => 'Edited source: '.$source_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Source_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
-		
-		$this->General_model->add($this->activity,$activity_data);
 		
 		$data = array(
 				
 				
 				'source_name' => $this->input->post('source_name'),					
-				// 'source_created_date' => $currentuserid,			
-				// 'source_created_username' => $currentusername,			
-				// 'source_created_date' => $date,			
-				// 'source_created_time' => $time,			
-				// 'source_status' => 1
+				'source_updated_user_id' => $currentuserid,					
+				'source_updated_at' => $date1,			
 			);
 			// print_r($data);exit();
 		$this->Source_model->update(array('source_id' => $this->input->post('id')), $data);
@@ -216,24 +170,24 @@ class Source extends MY_Controller {
 		
 		$this->Source_model->update(array('source_id' => $this->input->post('id')), $updateData);
 
-		$source_name = $this->input->post('source_name');
-		$ip = $this->input->ip_address();
+		// $source_name = $this->input->post('source_name');
+		// $ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted source '.$source_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Source_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted source '.$source_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Source_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 
