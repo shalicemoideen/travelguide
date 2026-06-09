@@ -119,8 +119,11 @@
 							    'DESTINATION_DELETE'
 							])): ?>
 							<li class="<?php if($this->uri->segment(1)=="Destination"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Destination">Destination</a></li>
-						<?php endif; 
-							if (has_any_permission([
+						<?php endif; ?>
+							<?php if($this->session->userdata('user_type') == 'A'){ ?>
+							<li class="<?php if($this->uri->segment(1)=="Company_holidays"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Company_holidays">Company Holidays</a></li>
+							<?php } ?>
+							<?php if (has_any_permission([
 							    'VEHICLE_VIEW',
 							    'VEHICLE_CREATE',
 							    'VEHICLE_UPDATE',

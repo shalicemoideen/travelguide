@@ -84,5 +84,33 @@ class Staff_order_assign extends MY_Controller {
         }
     }
 
+    public function ajax_check_holiday()
+    {
+        $date = $this->input->post('date');
+        
+        if (empty($date)) {
+            echo json_encode(array('status' => FALSE, 'is_holiday' => FALSE, 'message' => 'Invalid date'));
+            return;
+        }
+
+        $is_holiday = $this->Staff_order_assign_model->is_holiday($date);
+        $holiday_type = '';
+        
+        if ($is_holiday) {
+            $dayOfWeek = date('w', strtotime($date));
+            $dayOfMonth = date('j', strtotime($date));
+            
+            if ($dayOfWeek == 0) {
+                $holiday_type = 'Sunday';
+            } elseif ($dayOfWeek == 6 && $dayOfMonth >= 8 && $dayOfMonth <= 14) {
+                $holiday_type = '2nd Saturday';
+            } else {
+                $holiday_type = 'Custom Holiday';
+            }
+        }
+        
+        echo json_encode(array('status' => TRUE, 'is_holiday' => $is_holiday, 'holiday_type' => $holiday_type));
+    }
+
 }
 ?>

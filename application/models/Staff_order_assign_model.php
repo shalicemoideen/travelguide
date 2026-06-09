@@ -44,4 +44,39 @@ class Staff_order_assign_model extends CI_Model{
             ->get()
             ->result();
     }
+
+    public function is_holiday($date)
+    {
+        $dayOfWeek = date('w', strtotime($date));
+        $dayOfMonth = date('j', strtotime($date));
+
+        // Check if Sunday holiday is enabled
+        $enable_sunday = $this->get_holiday_setting('enable_sunday_holiday');
+        if ($enable_sunday == '1' && $dayOfWeek == 0) {
+            return true;
+        }
+
+        // Check if 2nd Saturday holiday is enabled
+        $enable_second_saturday = $this->get_holiday_setting('enable_second_saturday_holiday');
+        if ($enable_second_saturday == '1' && $dayOfWeek == 6 && $dayOfMonth >= 8 && $dayOfMonth <= 14) {
+            return true;
+        }
+
+        // Check custom holidays from database
+        $this->db->from('company_holidays');
+        $this->db->where('holiday_date', $date);
+        $this->db->where('holiday_status', 1);
+        $query = $this->db->get();
+        return $query->num_rows() > 0;
+    }
+
+    public function get_holiday_setting($setting_key)
+    {
+        $this->db->select('setting_value');
+        $this->db->from('holiday_settings');
+        $this->db->where('setting_key', $setting_key);
+        $query = $this->db->get();
+        $result = $query->row();
+        return $result ? $result->setting_value : '0';
+    }
 }
