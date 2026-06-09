@@ -211,7 +211,8 @@ class Meta_ads_setting extends MY_Controller {
             return $order_a - $order_b;
         });
 
-        $order_counter = 1;
+        // Group staff by shift and assign separate order counters per shift
+        $shift_order_counters = array();
         foreach ($meta_ads_setting_staff_id_fk as $staff_id) {
 
             // save selected staff in meta_ads_setting_staff table
@@ -229,12 +230,17 @@ class Meta_ads_setting extends MY_Controller {
             if (!empty($userdetails)) {
                 $actual_shift_id = (int)$userdetails->shift_id_fk;
 
-                // Use sequential order based on sorted staff
+                // Initialize order counter for this shift if not exists
+                if (!isset($shift_order_counters[$actual_shift_id])) {
+                    $shift_order_counters[$actual_shift_id] = 1;
+                }
+
+                // Use sequential order based on sorted staff, per shift
                 $staff_order_data = array(
                     'shift_id_fk'                            => $actual_shift_id,
                     'meta_campain_id_fk'                    => $insert,
                     'staff_id_fk'                           => $staff_id,
-                    'staff_order'                           => $order_counter,
+                    'staff_order'                           => $shift_order_counters[$actual_shift_id],
                     'staff_order_assign_created_date'       => $date,
                     'staff_order_assign_created_time'       => $time,
                     'staff_order_assign_creaded_by_user_id' => $currentuserid,
@@ -243,7 +249,7 @@ class Meta_ads_setting extends MY_Controller {
                 );
 
                 $this->General_model->add('staff_order_assign', $staff_order_data);
-                $order_counter++;
+                $shift_order_counters[$actual_shift_id]++;
             }
         }
     }
@@ -369,7 +375,8 @@ class Meta_ads_setting extends MY_Controller {
 				return $order_a - $order_b;
 			});
 
-			$order_counter = 1;
+			// Group staff by shift and assign separate order counters per shift
+			$shift_order_counters = array();
 			foreach ($meta_ads_setting_staff_id_fk as $staff_id) {
 
 				// save selected staff in meta_ads_setting_staff table
@@ -387,12 +394,17 @@ class Meta_ads_setting extends MY_Controller {
 				if (!empty($userdetails)) {
 					$actual_shift_id = (int)$userdetails->shift_id_fk;
 
-					// Use sequential order based on sorted staff
+					// Initialize order counter for this shift if not exists
+					if (!isset($shift_order_counters[$actual_shift_id])) {
+						$shift_order_counters[$actual_shift_id] = 1;
+					}
+
+					// Use sequential order based on sorted staff, per shift
 					$staff_order_data = array(
 						'shift_id_fk'                            => $actual_shift_id,
 						'meta_campain_id_fk'                    => $id,
 						'staff_id_fk'                           => $staff_id,
-						'staff_order'                           => $order_counter,
+						'staff_order'                           => $shift_order_counters[$actual_shift_id],
 						'staff_order_assign_created_date'       => $date,
 						'staff_order_assign_created_time'       => $time,
 						'staff_order_assign_creaded_by_user_id' => $currentuserid,
@@ -401,7 +413,7 @@ class Meta_ads_setting extends MY_Controller {
 					);
 
 					$this->General_model->add('staff_order_assign', $staff_order_data);
-					$order_counter++;
+					$shift_order_counters[$actual_shift_id]++;
 				}
 			}
 		}
@@ -501,6 +513,71 @@ class Meta_ads_setting extends MY_Controller {
             exit();
         }
     }
+
+	public function fix_staff_order()
+	{
+		// This method fixes existing staff_order_assign records to have separate numbering per shift
+		// Access via: /index.php/Meta_ads_setting/fix_staff_order
+		
+		$this->db->trans_begin();
+		
+		try {
+			// Get all campaigns
+			$campaigns = $this->db
+				->distinct()
+				->select('meta_campain_id_fk')
+				->where('staff_order_assign_status', 1)
+				->get('staff_order_assign')
+				->result_array();
+			
+			$fixed_count = 0;
+			
+			foreach ($campaigns as $campaign) {
+				$campaign_id = $campaign['meta_campain_id_fk'];
+				
+				// Get all staff_order_assign records for this campaign, grouped by shift
+				$records = $this->db
+					->select('staff_order_assign_id, shift_id_fk, staff_id_fk, staff_order')
+					->where('meta_campain_id_fk', $campaign_id)
+					->where('staff_order_assign_status', 1)
+					->order_by('shift_id_fk, CAST(staff_order AS UNSIGNED) ASC')
+					->get('staff_order_assign')
+					->result_array();
+				
+				// Group by shift and reassign orders
+				$shift_counters = array();
+				foreach ($records as $record) {
+					$shift_id = $record['shift_id_fk'];
+					
+					// Initialize counter for this shift if not exists
+					if (!isset($shift_counters[$shift_id])) {
+						$shift_counters[$shift_id] = 1;
+					}
+					
+					$new_order = $shift_counters[$shift_id];
+					$old_order = $record['staff_order'];
+					$assign_id = $record['staff_order_assign_id'];
+					
+					// Update the record
+					$this->db->where('staff_order_assign_id', $assign_id);
+					$this->db->update('staff_order_assign', array('staff_order' => $new_order));
+					
+					$fixed_count++;
+					
+					// Increment counter for this shift
+					$shift_counters[$shift_id]++;
+				}
+			}
+			
+			$this->db->trans_commit();
+			
+			echo "SUCCESS: Fixed $fixed_count staff order records with separate numbering per shift.\n";
+			
+		} catch (Exception $e) {
+			$this->db->trans_rollback();
+			echo "ERROR: " . $e->getMessage() . "\n";
+		}
+	}
 	
 }
 ?>

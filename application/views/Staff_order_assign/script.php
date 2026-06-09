@@ -311,30 +311,57 @@ function saveNewStaffOrder(shift_id, campaign_id)
         let currentName = $(this).find('strong').text();
     });
 
+    // Check if today is a holiday before allowing staff order update
+    let today = new Date().toISOString().split('T')[0];
+    
     $.ajax({
-        url: "<?php echo base_url(); ?>index.php/Staff_order_assign/ajax_update_staff_order",
+        url: "<?php echo base_url(); ?>index.php/Staff_order_assign/ajax_check_holiday",
         type: "POST",
         dataType: "JSON",
         data: {
-            order_data: order_data
+            date: today
         },
-        success: function(res) {
-        if (res.status) {
-            loadStaffList(shift_id, campaign_id);
+        success: function(holidayRes) {
+            if (holidayRes.is_holiday) {
+                let message = 'Cannot update staff order on a holiday';
+                if (holidayRes.holiday_type) {
+                    message += ' (' + holidayRes.holiday_type + ')';
+                }
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(message);
+                } else {
+                    alert(message);
+                }
+                return;
+            }
 
-            if (typeof toastr !== 'undefined') {
-                toastr.success('Updated successfully');
-            } else {
-                alert('Updated successfully');
-            }
-        } else {
-            if (typeof toastr !== 'undefined') {
-                toastr.error('Failed to update order');
-            } else {
-                alert('Failed to update order');
-            }
+            // Proceed with staff order update if not a holiday
+            $.ajax({
+                url: "<?php echo base_url(); ?>index.php/Staff_order_assign/ajax_update_staff_order",
+                type: "POST",
+                dataType: "JSON",
+                data: {
+                    order_data: order_data
+                },
+                success: function(res) {
+                    if (res.status) {
+                        loadStaffList(shift_id, campaign_id);
+
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Updated successfully');
+                        } else {
+                            alert('Updated successfully');
+                        }
+                    } else {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Failed to update order');
+                        } else {
+                            alert('Failed to update order');
+                        }
+                    }
+                }
+            });
         }
-    }
     });
 }
 </script>
