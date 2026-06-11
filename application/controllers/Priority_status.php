@@ -73,7 +73,8 @@ class Priority_status extends MY_Controller {
 
 		$priority_status_name = $this->input->post('priority_status_name');
 		$priority_status_button  = $this->input->post('priority_status_button');
-		$button = '<center><span class="btn btn-sm" style="background-color:'.$priority_status_button.'"><span style="color:white">'.$priority_status_name.'</span></span></center>';
+		// $button = '<center><span class="btn btn-sm" style="background-color:'.$priority_status_button.'"><span style="color:white">'.$priority_status_name.'</span></span></center>';
+		$button = '<span class="badge badge-sm light" style="background-color:'.$priority_status_button.'">'.$priority_status_name.'</span>';
 
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
@@ -121,7 +122,8 @@ class Priority_status extends MY_Controller {
 		
 		$priority_status_name = $this->input->post('priority_status_name');
         $priority_status_button  = $this->input->post('priority_status_button');
-		$button = '<center><span class="btn btn-sm" style="background-color:'.$priority_status_button.'"><span style="color:white">'.$priority_status_name.'</span></span></center>';
+		// $button = '<center><span class="btn btn-sm" style="background-color:'.$priority_status_button.'"><span style="color:white">'.$priority_status_name.'</span></span></center>';
+		$button = '<span class="badge badge-sm light" style="background-color:'.$priority_status_button.'">'.$priority_status_name.'</span>';
 
 		$id = $this->input->post('id');
 		

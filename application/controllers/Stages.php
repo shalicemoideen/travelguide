@@ -73,7 +73,8 @@ class Stages extends MY_Controller {
 
 		$stages_name = $this->input->post('stages_name');
 		$stages_button  = $this->input->post('stages_button');
-		$button = '<center><span class="btn btn-sm" style="background-color:'.$stages_button.'"><span style="color:white">'.$stages_name.'</span></span></center>';
+		// $button = '<center><span class="btn btn-sm" style="background-color:'.$stages_button.'"><span style="color:white">'.$stages_name.'</span></span></center>';
+		$button = '<span class="badge badge-sm light" style="background-color:'.$stages_button.'">'.$stages_name.'</span>';
 
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
@@ -121,8 +122,8 @@ class Stages extends MY_Controller {
 		
 		$stages_name = $this->input->post('stages_name');
 		$stages_button  = $this->input->post('stages_button');
-		$button = '<center><span class="btn btn-sm" style="background-color:'.$stages_button.'"><span style="color:white">'.$stages_name.'</span></span></center>';
-
+		// $button = '<center><span class="btn btn-sm" style="background-color:'.$stages_button.'"><span style="color:white">'.$stages_name.'</span></span></center>';
+		$button = '<span class="badge badge-sm light" style="background-color:'.$stages_button.'">'.$stages_name.'</span>';
 
 		$id = $this->input->post('id');
 		

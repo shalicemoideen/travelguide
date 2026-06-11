@@ -391,6 +391,36 @@
     border-right: 2px solid #dc3545 !important;
 }
 </style>
+<style>
+a.leads-number-link {
+    font-weight: 600;
+    color: #5b73e8;
+    text-decoration: none;
+    background-color: #eef1fd;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+a.leads-number-link:hover {
+    background-color: #d6dcfa;
+    color: #3a55d6;
+    text-decoration: none;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+</style>
 <!--**********************************
 			Content body start
 		***********************************-->
@@ -450,19 +480,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="leads_number_filter1" name="leads_number_filter1" required>  
-                
-                                                        <option value="">Please Select lead number</option>
-                                                        <?php
-
-                                                        foreach($leads as $row)
-                                                        {
-                                                            
-                                                            echo '<option value="'.$row->leads_id.'" '.$sel.'>'.$row->leads_number.'</option>';
-
-                                                        }
-
-                                                        ?>
+                                                <select class="form-control input-lg lst2" id="leads_number_filter1" name="leads_number_filter1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -471,14 +489,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="staff_id1" name="staff_id1"  required>  
-                
-                                                      <option value="">Please Select assigned staff</option>
-
-                                                        <?php foreach($staff as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="staff_id1" name="staff_id1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -487,14 +498,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="source_id1" name="source_id1"  required>  
-                
-                                                      <option value="">Please Select source</option>
-
-                                                        <?php foreach($source as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->source_id.'">'.$row->source_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="source_id1" name="source_id1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -502,14 +506,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="packages_id1" name="packages_id1"  required>  
-                
-                                                      <option value="">Please Select template</option>
-
-                                                        <?php foreach($packages as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->packages_id.'">'.$row->packages_title.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="packages_id1" name="packages_id1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -517,14 +514,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="country_id1" name="country_id1"  required>  
-                
-                                                      <option value="">Please Select country</option>
-
-                                                        <?php foreach($country as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->id.'">'.$row->name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="country_id1" name="country_id1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -532,14 +522,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="priority_status_id1" name="priority_status_id1"  required>  
-                
-                                                      <option value="">Please Select priority status</option>
-
-                                                        <?php foreach($priority_status as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->priority_status_id.'">'.$row->priority_status_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="priority_status_id1" name="priority_status_id1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -547,14 +530,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="stages_id1" name="stages_id1"  required>  
-                
-                                                      <option value="">Please Select stage</option>
-
-                                                        <?php foreach($stages as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->stages_id.'">'.$row->stages_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="stages_id1" name="stages_id1"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -562,16 +538,13 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="lead_current_status1" name="lead_current_status1"  required>  
-                
+                                                <select class="form-control input-lg lst2" id="lead_current_status1" name="lead_current_status1">
                                                       <option value="">Please Select lead status</option>
                                                       <option value="1">In take</option>
                                                       <option value="2">Qualified</option>
                                                       <option value="3">Converted to trip</option>
                                                       <option value="4">Not Qualified</option>
                                                       <option value="5">Lost</option>
-
-                                                        
                                                 </select>
                                             </div>
                                         </div>
@@ -579,31 +552,13 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="leads_accomodation_status1" name="leads_accomodation_status1"  required>  
-                
+                                                <select class="form-control input-lg lst2" id="leads_accomodation_status1" name="leads_accomodation_status1">
                                                       <option value="">Please Select accommodation status</option>
-
-                                                      <option value="guest_count_required">
-                                                          Guest Count Required
-                                                      </option>
-
-                                                      <option value="accommodation_required">
-                                                          Accommodation Required
-                                                      </option>
-
-                                                      <option value="quotation_not_created">
-                                                          Quotation Not Created
-                                                      </option>
-
-                                                      <option value="quotation_created">
-                                                          Quotation Created
-                                                      </option>
-
-                                                      <option value="quotation_cancelled">
-                                                          Cancelled / Quotation Not Created
-                                                      </option>
-
-                                                        
+                                                      <option value="guest_count_required">Guest Count Required</option>
+                                                      <option value="accommodation_required">Accommodation Required</option>
+                                                      <option value="quotation_not_created">Quotation Not Created</option>
+                                                      <option value="quotation_created">Quotation Created</option>
+                                                      <option value="quotation_cancelled">Cancelled / Quotation Not Created</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -625,12 +580,7 @@
                                     <div class="col-sm-6 col-md-3 staff-do-not-show">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select name="leads_createdby_userid1" id="leads_createdby_userid1" class="form-control input-lg lst2" required>                                     
-                                                    <option value="">Please Select Created by</option>                            
-                                                    <?php foreach($users as $row) {
-                                                            // $sel = ($records->state==$row->state_id)?'selected':''; name="daterange"
-                                                            echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                        } ?>
+                                                <select name="leads_createdby_userid1" id="leads_createdby_userid1" class="form-control input-lg lst2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -638,20 +588,14 @@
                                     <div class="col-sm-6 col-md-3">
                                       <div class="card">
                                           <div class="input-group">
-                                              <div class="example">
-                                            <p class="mb-1">Lead Register Date</p>
-                                            <input type="text" class="form-control" id="leads_daterange" name="daterange" placeholder="DD/MM/YYYY - DD/MM/YYYY">
-                                        </div>
+                                            <input type="text" class="form-control" id="leads_daterange" name="daterange" placeholder="Lead Register Date Range">
                                           </div>
                                       </div>
                                   </div>
                                     <div class="col-sm-6 col-md-3">
                                       <div class="card">
                                           <div class="input-group">
-                                              <div class="example">
-                                            <p class="mb-1">Travel Date</p>
-                                            <input type="text" class="form-control" id="travel_daterange" name="daterange" placeholder="DD/MM/YYYY - DD/MM/YYYY">
-                                        </div>
+                                            <input type="text" class="form-control" id="travel_daterange" name="daterange" placeholder="Travel Date Range">
                                           </div>
                                       </div>
                                   </div>
@@ -667,14 +611,12 @@
                                     </div>
                                     <div class="col-sm-2 col-md-3">
                                         <div class="card">
-                                            <a href="<?php echo base_url();?>index.php/Leads">
-                                            <button type="button" class="btn btn-secondary btn-md" id="search">
+                                            <button type="button" class="btn btn-secondary btn-md" id="refresh1">
                                                 <span class="btn-label">
                                                     <i class="icon-refresh"></i>
                                                 </span>
                                                 Refresh
                                             </button>
-                                            </a>
                                         </div>
                                     </div>
                                     
@@ -718,19 +660,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="leads_number_filter2" name="leads_number_filter2" required>  
-                
-                                                        <option value="">Please Select lead number</option>
-                                                        <?php
-
-                                                        foreach($leads as $row)
-                                                        {
-                                                            
-                                                            echo '<option value="'.$row->leads_id.'" '.$sel.'>'.$row->leads_number.'</option>';
-
-                                                        }
-
-                                                        ?>
+                                                <select class="form-control input-lg lst2" id="leads_number_filter2" name="leads_number_filter2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -739,14 +669,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="staff_id2" name="staff_id2"  required>  
-                
-                                                      <option value="">Please Select assigned staff</option>
-
-                                                        <?php foreach($staff as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="staff_id2" name="staff_id2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -755,14 +678,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="source_id2" name="source_id2"  required>  
-                
-                                                      <option value="">Please Select source</option>
-
-                                                        <?php foreach($source as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->source_id.'">'.$row->source_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="source_id2" name="source_id2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -770,14 +686,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="packages_id2" name="packages_id2"  required>  
-                
-                                                      <option value="">Please Select template</option>
-
-                                                        <?php foreach($packages as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->packages_id.'">'.$row->packages_title.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="packages_id2" name="packages_id2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -785,14 +694,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="facebook_ads" name="facebook_ads"  required>  
-                
-                                                      <option value="">Please Select Facebook Ads name</option>
-
-                                                        <?php foreach($ads as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->facebook_form_id.'">'.$row->meta_ads_setting_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="facebook_ads" name="facebook_ads"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -800,14 +702,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="country_id2" name="country_id2"  required>  
-                
-                                                      <option value="">Please Select country</option>
-
-                                                        <?php foreach($country as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->id.'">'.$row->name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="country_id2" name="country_id2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -815,14 +710,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="priority_status_id2" name="priority_status_id2"  required>  
-                
-                                                      <option value="">Please Select priority status</option>
-
-                                                        <?php foreach($priority_status as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->priority_status_id.'">'.$row->priority_status_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="priority_status_id2" name="priority_status_id2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -830,14 +718,7 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="stages_id2" name="stages_id2"  required>  
-                
-                                                      <option value="">Please Select stage</option>
-
-                                                        <?php foreach($stages as $row) {
-                                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                echo '<option value="'.$row->stages_id.'">'.$row->stages_name.'</option>';
-                                                            } ?>
+                                                <select class="form-control input-lg lst2" id="stages_id2" name="stages_id2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -845,16 +726,13 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="lead_current_status2" name="lead_current_status2"  required>  
-                
+                                                <select class="form-control input-lg lst2" id="lead_current_status2" name="lead_current_status2">
                                                       <option value="">Please Select lead status</option>
                                                       <option value="1">In take</option>
                                                       <option value="2">Qualified</option>
                                                       <option value="3">Converted to trip</option>
                                                       <option value="4">Not Qualified</option>
                                                       <option value="5">Lost</option>
-
-                                                        
                                                 </select>
                                             </div>
                                         </div>
@@ -862,31 +740,13 @@
                                     <div class="col-sm-6 col-md-3">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select data-validation="required"  data-pms-required="true" class="form-control input-lg lst2" id="leads_accomodation_status2" name="leads_accomodation_status2"  required>  
-                
+                                                <select class="form-control input-lg lst2" id="leads_accomodation_status2" name="leads_accomodation_status2">
                                                       <option value="">Please Select accommodation status</option>
-                                                      <option value="guest_count_required">
-                                                          Guest Count Required
-                                                      </option>
-
-                                                      <option value="accommodation_required">
-                                                          Accommodation Required
-                                                      </option>
-
-                                                      <option value="quotation_not_created">
-                                                          Quotation Not Created
-                                                      </option>
-
-                                                      <option value="quotation_created">
-                                                          Quotation Created
-                                                      </option>
-
-                                                      <option value="quotation_cancelled">
-                                                          Cancelled / Quotation Not Created
-                                                      </option>
-                                                      
-
-                                                        
+                                                      <option value="guest_count_required">Guest Count Required</option>
+                                                      <option value="accommodation_required">Accommodation Required</option>
+                                                      <option value="quotation_not_created">Quotation Not Created</option>
+                                                      <option value="quotation_created">Quotation Created</option>
+                                                      <option value="quotation_cancelled">Cancelled / Quotation Not Created</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -908,12 +768,7 @@
                                     <div class="col-sm-6 col-md-3 staff-do-not-show">
                                         <div class="card">
                                             <div class="input-group">
-                                                <select name="leads_createdby_userid2" id="leads_createdby_userid2" class="form-control input-lg lst2" required>                                     
-                                                    <option value="">Please Select Created by</option>                            
-                                                    <?php foreach($users as $row) {
-                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                            echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                        } ?>
+                                                <select name="leads_createdby_userid2" id="leads_createdby_userid2" class="form-control input-lg lst2"><option value=""></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -921,20 +776,18 @@
                                     <div class="col-sm-6 col-md-3">
                                       <div class="card">
                                           <div class="input-group">
-                                              <div class="example">
-                                            <p class="mb-1">Lead Register Date</p>
-                                            <input type="text" class="form-control" id="leads_daterange2" name="daterange2" placeholder="DD/MM/YYYY - DD/MM/YYYY">
-                                        </div>
+                                         
+                                            <input type="text" class="form-control" id="leads_daterange2" name="daterange2" placeholder="Lead Register Date Range">
+                                        
                                           </div>
                                       </div>
                                   </div>
-                                    <div class="col-sm-6 col-md-3">
+                                  <div class="col-sm-6 col-md-3">
                                       <div class="card">
                                           <div class="input-group">
-                                              <div class="example">
-                                            <p class="mb-1">Travel Date</p>
-                                            <input type="text" class="form-control" id="travel_daterange2" name="daterange2" placeholder="DD/MM/YYYY - DD/MM/YYYY">
-                                        </div>
+                                             
+                                            <input type="text" class="form-control" id="travel_daterange2" name="daterange2" placeholder="Travel Date Range">
+                                     
                                           </div>
                                       </div>
                                   </div>
@@ -950,14 +803,12 @@
                                     </div>
                                     <div class="col-sm-2 col-md-3">
                                         <div class="card">
-                                            <a href="<?php echo base_url();?>index.php/Leads">
-                                            <button type="button" class="btn btn-secondary btn-md" id="search">
+                                            <button type="button" class="btn btn-secondary btn-md" id="refresh2">
                                                 <span class="btn-label">
                                                     <i class="icon-refresh"></i>
                                                 </span>
                                                 Refresh
                                             </button>
-                                            </a>
                                         </div>
                                     </div>
                                     
@@ -1233,12 +1084,8 @@
                                       <label class="col-lg-5 col-form-label" for="transporter_address">Assigned to staff  <span class="text-danger">*</span>
                                       </label>
                                           <?php if($this->session->userdata('user_type') == 'A'){ ?>
-                                          <select name="staff_id_fk" id="staff_id_fk1" class="form-control input-lg lst-flt-select2-form" required>                                     
-                                              <option value="">Please Select staff</option>
-                                              <?php foreach($staff as $row) {
-                                                  // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                  echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                              } ?>
+                                          <select name="staff_id_fk" id="staff_id_fk1" class="form-control input-lg lst-flt-select2-form" required>
+                                              <option value=""></option>
                                           </select>
                                           <?php } else{ ?>
                                               <br><label class="col-lg-4 col-form-label"><?php echo $this->session->userdata('admin_name'); ?></label>
@@ -1252,13 +1099,9 @@
                                 <div class="form-group">
                                     <label class="col-lg-4 col-form-label" for="source_id_fk">Source <span class="text-danger">*</span>
                                     </label>
-                                        <select name="source_id_fk" id="source_id_fk1" class="form-control input-lg lst-flt-select2-form" onchange="checkAddNewSource(this)" required>                                     
-                                            <option value="">Please Select source</option>
+                                        <select name="source_id_fk" id="source_id_fk1" class="form-control input-lg lst-flt-select2-form" onchange="checkAddNewSource(this)" required>
+                                            <option value=""></option>
                                             <option value="+">+ Add new</option>
-                                            <?php foreach($source as $row) {
-                                                // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                echo '<option value="'.$row->source_id.'">'.$row->source_name.'</option>';
-                                            } ?>
                                         </select>
                                         <span class="help-block" style="color:red"></span>
                                 </div>
@@ -1280,12 +1123,8 @@
                                     <div class="form-group">
                                         <label class="col-lg-5 col-form-label" for="transporter_contact_person_name1">Nationality <span class="text-danger">*</span>
                                         </label>
-                                            <select name="country_id_fk" id="country_id_fk" class="form-control input-lg lst-flt-select2-form" required>                                     
-                                                <option value="">Please Select country</option>
-                                                <?php foreach($country as $row) {
-                                                    // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                    echo '<option value="'.$row->id.'">'.$row->name.'</option>';
-                                                } ?>
+                                            <select name="country_id_fk" id="country_id_fk" class="form-control input-lg lst-flt-select2-form" required>
+                                                <option value=""></option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -1295,13 +1134,9 @@
                                     <div class="form-group">
                                         <label class="col-lg-5 col-form-label" for="transporter_contact_person_email1">Priority status <span class="text-danger">*</span>
                                         </label>
-                                            <select name="priority_status_id_fk" id="priority_status_id_fk" class="form-control input-lg lst-flt-select2-form" onchange="checkAddNewPriority(this)" required>                                     
-                                                <option value="">Please Select Priority status</option>
+                                            <select name="priority_status_id_fk" id="priority_status_id_fk" class="form-control input-lg lst-flt-select2-form" onchange="checkAddNewPriority(this)" required>
+                                                <option value=""></option>
                                                 <option value="+">+ Add new</option>
-                                                <?php foreach($priority_status as $row) {
-                                                    // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                    echo '<option value="'.$row->priority_status_id.'">'.$row->priority_status_name.'</option>';
-                                                } ?>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -1392,12 +1227,8 @@
                                     <div class="form-group">
                                         <label class="col-lg-6 col-form-label" for="leads_package_category_id_fk">Template Category 
                                         </label>
-                                            <select name="leads_package_category_id_fk" id="leads_package_category_id_fk" class="form-control input-lg lst-flt-select2-form" >                                     
-                                                <option value="">Please Select Template Category</option>
-                                                <?php foreach($packages_category as $row) {
-                                                    // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                    echo '<option value="'.$row->package_category_id.'">'.$row->package_category_name.'</option>';
-                                                } ?>
+                                            <select name="leads_package_category_id_fk" id="leads_package_category_id_fk" class="form-control input-lg lst-flt-select2-form">
+                                                <option value=""></option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -1407,12 +1238,8 @@
                                     <div class="form-group">
                                         <label class="col-lg-8 col-form-label" for="package_created_by_staff_id">Template Created by staff 
                                         </label>
-                                            <select name="package_created_by_staff_id" id="package_created_by_staff_id" class="form-control input-lg lst-flt-select2-form"  >                                     
-                                                <option value="">Please Select Created By Staff</option>
-                                                <?php foreach($staff as $row) {
-                                                    // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                    echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                } ?>
+                                            <select name="package_created_by_staff_id" id="package_created_by_staff_id" class="form-control input-lg lst-flt-select2-form">
+                                                <option value=""></option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>

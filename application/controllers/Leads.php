@@ -99,17 +99,7 @@ class Leads extends MY_Controller {
 	public function index()
 	{
 		//$name = 'PERSONAL CASH';
-		$template['packages_category'] = $this->Leads_model->fetch_packages_category();
-		$template['staff'] = $this->Leads_model->fetch_staff_details();
-		$template['users'] = $this->Leads_model->fetch_all_users();
-		$template['source'] = $this->Leads_model->fetch_source();
 		$template['b2b_partner'] = $this->Leads_model->fetch_b2b_partner();
-		$template['country'] = $this->Leads_model->fetch_country();
-		$template['priority_status'] = $this->Leads_model->fetch_priority_status();
-		$template['stages'] = $this->Leads_model->fetch_stages();
-		$template['leads'] = $this->Leads_model->fetch_leads();
-		$template['packages'] = $this->Leads_model->fetch_packages_filter();
-		$template['ads'] = $this->Leads_model->fetch_meta_ads_list();
 		$template['body'] = 'Leads/list';
 		$template['script'] = 'Leads/script';
 		$this->load->view('template', $template);
@@ -338,7 +328,7 @@ class Leads extends MY_Controller {
 		$status = [
 			['lead_current_status' => 1, 'status_name' => 'In take'],
 			['lead_current_status' => 2, 'status_name' => 'Qualified'],
-			['lead_current_status' => 3, 'status_name' => 'Converted to trip'],
+			// ['lead_current_status' => 3, 'status_name' => 'Converted to trip'],
 			['lead_current_status' => 4, 'status_name' => 'Not Qualified'],
 			['lead_current_status' => 5, 'status_name' => 'Lost']
 		];
@@ -782,7 +772,34 @@ public function ajax_guest_accommodation_details($lead_id)
 	public function ajax_edit($id)
 	{
 		$data = $this->Leads_model->get_by_id($id);
-		// $data->dob = ($data->dob == '0000-00-00') ? '' : $data->dob; // if 0000-00-00 set tu empty for datepicker compatibility
+
+		if ($data) {
+			if ($data->staff_id_fk) {
+				$staff = $this->db->select('admin_name')->where('user_id', $data->staff_id_fk)->get('user_details')->row();
+				$data->staff_name = $staff ? $staff->admin_name : '';
+			}
+			if ($data->source_id_fk) {
+				$source = $this->db->select('source_name')->where('source_id', $data->source_id_fk)->get('source')->row();
+				$data->source_name = $source ? $source->source_name : '';
+			}
+			if ($data->country_id_fk) {
+				$country = $this->db->select('name')->where('id', $data->country_id_fk)->get('country')->row();
+				$data->country_name = $country ? $country->name : '';
+			}
+			if ($data->priority_status_id_fk) {
+				$priority = $this->db->select('priority_status_name')->where('priority_status_id', $data->priority_status_id_fk)->get('priority_status')->row();
+				$data->priority_status_name = $priority ? $priority->priority_status_name : '';
+			}
+			if (!empty($data->package_created_by_staff_id)) {
+				$pstaff = $this->db->select('admin_name')->where('user_id', $data->package_created_by_staff_id)->get('user_details')->row();
+				$data->package_created_by_staff_name = $pstaff ? $pstaff->admin_name : '';
+			}
+			if (!empty($data->leads_package_category_id_fk)) {
+				$cat = $this->db->select('package_category_name')->where('package_category_id', $data->leads_package_category_id_fk)->get('package_category')->row();
+				$data->package_category_name = $cat ? $cat->package_category_name : '';
+			}
+		}
+
 		echo json_encode($data);
 	}
 
@@ -1862,12 +1879,19 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 		$currentusername = $this->session->userdata('admin_name');
         
 
+		$this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+		
+		$date1 = date('Y-m-d h:i:s a', time());
+
         $data = array(
             'source_name' => $source_name,
-            'source_created_date' => date('Y-m-d'),
-            'source_created_time' => date('H:i:s'),
+            'source_created_at' => $date1,
             'source_created_user_id' => $currentuserid,
-            'source_created_username' => $currentusername,
             'source_status' => 1
 	);
 
@@ -1894,14 +1918,21 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusername = $this->session->userdata('admin_name');
 
+		$this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+		
+		$date1 = date('Y-m-d h:i:s a', time());
+		
 		$data = array(
 			'priority_status_name' => $name,
 			'priority_status_button' => $button,
 			'priority_status_description' => $description,
-			'priority_status_created_date' => date('Y-m-d'),
-			'priority_status_created_time' => date('H:i:s'),
+			'priority_status_created_at' => $date1,
 			'priority_status_created_user_id' => $currentuserid,
-			'priority_status_created_username' => $currentusername,
 			'priority_status_created_status' => 1
 		);
 
@@ -1928,14 +1959,21 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusername = $this->session->userdata('admin_name');
 
+		$this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+		
+		$date1 = date('Y-m-d h:i:s a', time());
+
 		$data = array(
 			'stages_name' => $name,
 			'stages_button' => $button,
 			'stages_description' => $description,
-			'stages_created_date' => date('Y-m-d'),
-			'stages_created_time' => date('H:i:s'),
+			'stages_created_at' => $date1,	
 			'stages_created_user_id' => $currentuserid,
-			'stages_created_username' => $currentusername,
 			'stages_status' => 1
 		);
 
@@ -3129,6 +3167,137 @@ private function get_accommodation_date_by_index($start_date, $index)
 		
 		$this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
+	}
+
+	public function get_leads_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('leads_id as id, leads_number as text');
+		$this->db->from('leads');
+		$this->db->where('leads_status', 1);
+		if ($search) { $this->db->like('leads_number', $search); }
+		$this->db->order_by('leads_id', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_b2c_leads_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select("leads_id as id, CONCAT(leads_number, ' - ', guest_name) as text");
+		$this->db->from('leads');
+		$this->db->where('leads_status', 1);
+		$this->db->where('lead_type', 'B2C');
+		if ($search) { $this->db->like('leads_number', $search); }
+		$this->db->order_by('leads_id', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_meta_leads_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select("leads_id as id, CONCAT(leads_number, ' - ', guest_name) as text");
+		$this->db->from('leads');
+		$this->db->where('leads_status', 1);
+		$this->db->where('lead_type', 'Meta Lead');
+		if ($search) { $this->db->like('leads_number', $search); }
+		$this->db->order_by('leads_id', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_staff_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('user_id as id, admin_name as text');
+		$this->db->from('user_details');
+		$this->db->where('user_status', 1);
+		$this->db->where('user_type', 'S');
+		if ($search) { $this->db->like('admin_name', $search); }
+		$this->db->order_by('admin_name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_all_users_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('user_id as id, admin_name as text');
+		$this->db->from('user_details');
+		$this->db->where('user_status', 1);
+		if ($search) { $this->db->like('admin_name', $search); }
+		$this->db->order_by('admin_name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_source_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('source_id as id, source_name as text');
+		$this->db->from('source');
+		if ($search) { $this->db->like('source_name', $search); }
+		$this->db->order_by('source_name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_packages_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('packages_id as id, packages_title as text');
+		$this->db->from('packages');
+		$this->db->where('packages_status', 1);
+		if ($search) { $this->db->like('packages_title', $search); }
+		$this->db->order_by('packages_title', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_country_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('id, name as text');
+		$this->db->from('country');
+		if ($search) { $this->db->like('name', $search); }
+		$this->db->order_by('name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_priority_status_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('priority_status_id as id, priority_status_name as text');
+		$this->db->from('priority_status');
+		if ($search) { $this->db->like('priority_status_name', $search); }
+		$this->db->order_by('priority_status_name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_stages_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('stages_id as id, stages_name as text');
+		$this->db->from('stages');
+		if ($search) { $this->db->like('stages_name', $search); }
+		$this->db->order_by('stages_name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_ads_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('facebook_form_id as id, meta_ads_setting_name as text');
+		$this->db->from('meta_ads_setting');
+		$this->db->where('meta_ads_setting_status', 1);
+		if ($search) { $this->db->like('meta_ads_setting_name', $search); }
+		$this->db->order_by('meta_ads_setting_name', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
+	}
+
+	public function get_packages_category_dropdown()
+	{
+		$search = $this->input->get('q');
+		$this->db->select('package_category_id as id, package_category_name as text');
+		$this->db->from('package_category');
+		$this->db->where('package_category_status', 1);
+		if ($search) { $this->db->like('package_category_name', $search); }
+		$this->db->order_by('package_category_id', 'ASC');
+		echo json_encode(['results' => $this->db->get()->result()]);
 	}
 }
 
