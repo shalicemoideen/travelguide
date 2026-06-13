@@ -1415,6 +1415,110 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 
 		$campaign_id = $campaign->meta_ads_setting_id;
 
+		// STEP 1.5 - Check if today is a holiday
+		$this->load->model('Company_holidays_model');
+		$today_date = date('Y-m-d');
+		$is_holiday = $this->Company_holidays_model->is_holiday($today_date);
+
+		// HOLIDAY MODE: If today is a holiday, assign to ALL staff (ignore shifts) in round-robin
+		if ($is_holiday) {
+			// Get ALL staff for this campaign regardless of shift
+			$this->db->select('soa.staff_id_fk, soa.staff_order, soa.shift_id_fk, u.meta_force_stop');
+			$this->db->from('staff_order_assign soa');
+			$this->db->join('user_details u', 'u.user_id = soa.staff_id_fk');
+			$this->db->where('soa.meta_campain_id_fk', $campaign_id);
+			$this->db->order_by('soa.staff_order', 'ASC');
+			$all_staff = $this->db->get()->result();
+
+			if (empty($all_staff)) return 1;
+
+			// Filter out staff with meta_force_stop
+			$holiday_filtered = array();
+			foreach ($all_staff as $s) {
+				if ($s->meta_force_stop == 'Y') continue;
+				$holiday_filtered[] = $s;
+			}
+
+			if (empty($holiday_filtered)) return 1;
+
+			// Remove duplicate staff (same staff may appear in multiple shifts)
+			$unique_staff = array();
+			$seen_ids = array();
+			foreach ($holiday_filtered as $s) {
+				if (!in_array($s->staff_id_fk, $seen_ids)) {
+					$seen_ids[] = $s->staff_id_fk;
+					$unique_staff[] = $s;
+				}
+			}
+			$holiday_filtered = $unique_staff;
+
+			// Language filtering
+			$lead_language = '';
+			if (isset($mapped['language'])) {
+				$lead_language = strtolower(trim($mapped['language']));
+			}
+
+			if (!empty($lead_language)) {
+				$language_row = $this->db
+					->select('language_id')
+					->where('LOWER(language_name)', $lead_language)
+					->or_where('LOWER(language_code)', $lead_language)
+					->where('language_status', 1)
+					->get('languages')
+					->row();
+
+				if ($language_row) {
+					$language_id = $language_row->language_id;
+					$language_filtered = array();
+					foreach ($holiday_filtered as $s) {
+						$staff_lang = $this->db
+							->select('language_id_fk')
+							->where('user_id_fk', $s->staff_id_fk)
+							->where('language_id_fk', $language_id)
+							->get('staff_languages')
+							->row();
+
+						if ($staff_lang) {
+							$language_filtered[] = $s;
+						}
+					}
+
+					if (!empty($language_filtered)) {
+						$holiday_filtered = $language_filtered;
+					}
+				}
+			}
+
+			if (empty($holiday_filtered)) return 1;
+
+			// Sort by staff_order
+			usort($holiday_filtered, function($a, $b) {
+				return $a->staff_order - $b->staff_order;
+			});
+
+			// Simple round-robin: find last assigned staff and pick next
+			$this->db->select('staff_id_fk');
+			$this->db->where('meta_form_id', $form_id);
+			$this->db->order_by('leads_id', 'DESC');
+			$this->db->limit(1);
+			$last = $this->db->get('leads')->row();
+			$last_staff = $last ? $last->staff_id_fk : 0;
+
+			$next_staff = $holiday_filtered[0]->staff_id_fk;
+			$found = false;
+			for ($i = 0; $i < count($holiday_filtered); $i++) {
+				if ($found) {
+					return $holiday_filtered[$i]->staff_id_fk;
+				}
+				if ($holiday_filtered[$i]->staff_id_fk == $last_staff) {
+					$found = true;
+				}
+			}
+			return $next_staff;
+		}
+
+		// NORMAL MODE: Shift-based assignment (existing logic)
+
 		// STEP 2 shift
 		$current_time = date('H:i:s');
 
