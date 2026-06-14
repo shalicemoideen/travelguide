@@ -305,6 +305,16 @@
                                         
                                     </div>
                                 </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-lg-6 col-form-label" for="device_user_id">Device Employee Code
+                                        </label>
+                                            <input type="text" class="form-control" name="device_user_id" id="device_user_id" placeholder="Enter biometric device code">
+                                            <small class="text-muted">eSSL device employee code</small>
+                                            <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
                                
                             </div>
                             <div class="row">

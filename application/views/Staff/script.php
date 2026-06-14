@@ -277,6 +277,7 @@ function edit_staff(id)
             $('[name="user_date_of_joining"]').val(data.user_date_of_joining);
             $('[name="user_name"]').val(data.user_name);
             $('[name="password"]').val(data.password);
+            $('[name="device_user_id"]').val(data.device_user_id);
             $('[name="user_description"]').val(data.user_description);  
 
             // Force Stop checkbox

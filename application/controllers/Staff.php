@@ -133,6 +133,7 @@ class Staff extends MY_Controller {
                 'user_date_of_joining' => $user_date_of_joining,
                 'user_name' => $this->input->post('user_name'),
                 'password' => $this->input->post('password'),
+                'device_user_id' => $this->input->post('device_user_id'),
 				 // Logic: If input is 'Y', save 'Y', otherwise save 'N'
 				'meta_force_stop' => ($this->input->post('meta_force_stop') == 'Y') ? 'Y' : 'N',
 
@@ -285,6 +286,7 @@ class Staff extends MY_Controller {
                 'user_date_of_joining' => $user_date_of_joining,
                 'user_name' => $this->input->post('user_name'),
                 'password' => $this->input->post('password'),
+                'device_user_id' => $this->input->post('device_user_id'),
 				// Logic: If input is 'Y', save 'Y', otherwise save 'N'
 				'meta_force_stop' => ($this->input->post('meta_force_stop') == 'Y') ? 'Y' : 'N',
 

@@ -34,6 +34,7 @@
 						</a>
 						<ul aria-expanded="false">
 							<li class="<?php if($this->uri->segment(1)=="Staff"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Staff">Staff</a></li>
+							<li class="<?php if($this->uri->segment(1)=="Staff_attendance"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Staff_attendance">Staff Attendance</a></li>
 							<li class="<?php if($this->uri->segment(1)=="Role"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Role">Role</a></li>
 							<li class="<?php if($this->uri->segment(1)=="Designation"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Designation">Designation</a></li>
 						</ul>
