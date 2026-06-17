@@ -170,13 +170,10 @@
                                             <a class="nav-link" data-bs-toggle="tab" href="#contact"><i class="la la-phone me-2"></i> Receipt sheduller</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" data-bs-toggle="tab" href="#message"><i class="la la-envelope me-2"></i> Property reservation</a>
+                                            <a class="nav-link" data-bs-toggle="tab" href="#propertyReservationTab"><i class="la la-hotel me-2"></i> Property reservation</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" data-bs-toggle="tab" href="#message"><i class="la la-envelope me-2"></i> Property reservation</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link" data-bs-toggle="tab" href="#message"><i class="la la-envelope me-2"></i> Property status</a>
+                                            <a class="nav-link" data-bs-toggle="tab" href="#propertyStatusTab"><i class="la la-check-circle me-2"></i> Property status</a>
                                         </li>
                                         <li class="nav-item">
                                             <a class="nav-link" data-bs-toggle="tab" href="#message"><i class="la la-envelope me-2"></i> Property voucher</a>
@@ -247,6 +244,38 @@
 
                                             </div>
                                         </div>
+                                        <div class="tab-pane fade" id="propertyReservationTab">
+                                            <div class="pt-4">
+                                                <div class="card border-0 shadow-sm">
+                                                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                                        <h5 class="mb-0 fw-bold">Property Reservation</h5>
+                                                        <a id="openPropertyReservationBtn" href="#" target="_blank" class="btn btn-primary btn-sm">
+                                                            <i class="la la-external-link-alt me-1"></i> Open Hotel Reservation Status
+                                                        </a>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="text-muted mb-0">Manage hotel blocking, reservation confirmation, payment scheduler and re-confirmation with the property owners for this booking.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-pane fade" id="propertyStatusTab">
+                                            <div class="pt-4">
+                                                <div class="card border-0 shadow-sm">
+                                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
+                                                        <h5 class="mb-0 fw-bold">Property Status</h5>
+                                                        <div id="propertyStatusCounts"></div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="propertyStatusTable">
+                                                            <div class="alert alert-info mb-0">Loading property status...</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="tab-pane fade" id="profile">
                                             <div class="pt-4">
                                                 <h4>This is profile title</h4>

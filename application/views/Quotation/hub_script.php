@@ -501,6 +501,103 @@ function loadConfirmationOptionDetails(quotation_id, quotation_options_id)
     });
 }
 
+///////****** property reservation + status ***//////////
+
+$(document).ready(function () {
+    var quotation_id = $('#quotation_id').val();
+    if (quotation_id && quotation_id != 0) {
+        $('#openPropertyReservationBtn').attr(
+            'href',
+            "<?php echo base_url('index.php/property_reservation/index/'); ?>" + quotation_id
+        );
+    }
+});
+
+$('a[href="#propertyStatusTab"]').on('shown.bs.tab', function () {
+    loadPropertyStatus($('#quotation_id').val());
+});
+
+function loadPropertyStatus(quotation_id)
+{
+    $('#propertyStatusTable').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 mb-0">Loading property status...</p>
+        </div>
+    `);
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/property_reservation/ajax_property_status",
+        type: "POST",
+        dataType: "json",
+        data: { quotation_id: quotation_id },
+        success: function(res) {
+            if (!res.status || !res.data) {
+                $('#propertyStatusTable').html('<div class="alert alert-warning mb-0">No property reservations found.</div>');
+                $('#propertyStatusCounts').html('');
+                return;
+            }
+
+            var d = res.data;
+
+            $('#propertyStatusCounts').html(
+                '<span class="badge bg-secondary me-2">Blocked ' + d.blocked + '/' + d.total + '</span>' +
+                '<span class="badge bg-info me-2">Confirmed ' + d.confirmed + '/' + d.total + '</span>' +
+                '<span class="badge bg-success">Re-Confirmed ' + d.reconfirmed + '/' + d.total + '</span>'
+            );
+
+            if (!d.rows || d.rows.length === 0) {
+                $('#propertyStatusTable').html('<div class="alert alert-info mb-0">No property reservations yet for this booking.</div>');
+                return;
+            }
+
+            var html = `
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Property</th>
+                                <th>Reservation Status</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            $.each(d.rows, function(i, row) {
+                html += '<tr>';
+                html += '<td><strong>' + escapeHtml(row.properties_name || '-') + '</strong></td>';
+                html += '<td>' + buildPropertyStatusBadges(row) + '</td>';
+                html += '<td>' + formatDate(row.check_in_date) + '</td>';
+                html += '<td>' + formatDate(row.check_out_date) + '</td>';
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            $('#propertyStatusTable').html(html);
+        },
+        error: function() {
+            $('#propertyStatusTable').html('<div class="alert alert-danger mb-0">Failed to load property status.</div>');
+        }
+    });
+}
+
+function buildPropertyStatusBadges(row)
+{
+    var out = '';
+    out += (row.blocking_status === 'BLOCKED')
+        ? '<span class="badge bg-success me-1">Blocked</span>'
+        : '<span class="badge bg-light text-dark me-1">Blocking Pending</span>';
+    out += (row.confirmation_status === 'CONFIRMED')
+        ? '<span class="badge bg-success me-1">Confirmed</span>'
+        : '<span class="badge bg-light text-dark me-1">Confirm Pending</span>';
+    out += (row.reconfirmation_status === 'RECONFIRMED')
+        ? '<span class="badge bg-success">Re-Confirmed</span>'
+        : '<span class="badge bg-light text-dark">Re-Confirm Pending</span>';
+    return out;
+}
+
 function buildConfirmationDetailsTable(days)
 {
     var html = `
