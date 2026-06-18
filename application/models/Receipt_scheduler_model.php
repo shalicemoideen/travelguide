@@ -69,7 +69,11 @@ class Receipt_scheduler_model extends CI_Model {
         $payment_status_filter = isset($param['payment_status_filter']) ? $param['payment_status_filter'] : '';
         $start_date = isset($param['start_date']) ? $param['start_date'] : '';
         $end_date = isset($param['end_date']) ? $param['end_date'] : '';
+        $quotation_id_filter = isset($param['quotation_id_filter']) ? $param['quotation_id_filter'] : '';
 
+        if ($quotation_id_filter) {
+            $this->db->where('rs.quotation_id_fk', $quotation_id_filter);
+        }
         if ($quotation_number_filter) {
             $this->db->like('q.quotation_number', $quotation_number_filter);
         }
@@ -232,38 +236,89 @@ class Receipt_scheduler_model extends CI_Model {
             ->select('q.quotation_id, q.quotation_number, l.guest_name')
             ->from('quotation q')
             ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
-            ->where('q.quotation_current_status', 5) // 5 = accepted/confirmed
+            ->where('q.quotation_current_status', 1) // 5 = accepted/confirmed
             ->where('q.quotation_status', 1)
             ->order_by('q.quotation_id', 'DESC')
             ->get()
             ->result();
     }
 
+    // public function get_quotation_total_amount($quotation_id)
+    // {
+    //     // Get total from quotation options (first/selected option)
+    //     $option = $this->db
+    //         ->select('quotation_options_total_quote_rate')
+    //         ->from('quotation_options')
+    //         ->where('quotation_id_fk', $quotation_id)
+    //         ->where('quotation_options_status', 1)
+    //         ->order_by('quotation_options_id', 'ASC')
+    //         ->limit(1)
+    //         ->get()
+    //         ->row();
+
+    //     $base_amount = $option ? (float)$option->quotation_options_total_quote_rate : 0;
+
+    //     // Get inclusions amount
+    //     $quotation = $this->db
+    //         ->select('total_inclusion_amount, total_special_requirment_amount')
+    //         ->from('quotation')
+    //         ->where('quotation_id', $quotation_id)
+    //         ->get()
+    //         ->row();
+
+    //     $inclusion_amount = $quotation ? (float)$quotation->total_inclusion_amount : 0;
+    //     $special_amount = $quotation ? (float)$quotation->total_special_requirment_amount : 0;
+
+    //     return $base_amount + $inclusion_amount + $special_amount;
+    // }
+
     public function get_quotation_total_amount($quotation_id)
     {
-        // Get total from quotation options (first/selected option)
-        $option = $this->db
-            ->select('quotation_options_total_quote_rate')
-            ->from('quotation_options')
-            ->where('quotation_id_fk', $quotation_id)
-            ->where('quotation_options_status', 1)
-            ->order_by('quotation_options_id', 'ASC')
+        $main = $this->db
+            ->select('
+                q.quotation_id,
+                qo.quotation_options_id,
+                qo.quotation_options_total_quote_rate
+            ')
+            ->from('quotation_confirmation qc')
+            ->join('quotation q', 'q.quotation_id = qc.quotation_id_fk', 'left')
+            ->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left')
+            ->where('q.quotation_id', (int)$quotation_id)
+            ->where('qc.property_confirmation_status', 1)
             ->limit(1)
             ->get()
+            ->row_array();
+
+        if (empty($main)) {
+            return 0;
+        }
+
+        $base_amount = !empty($main['quotation_options_total_quote_rate'])
+            ? (float)$main['quotation_options_total_quote_rate']
+            : 0;
+
+        $inclusion_row = $this->db
+            ->select_sum('inclusion_amount')
+            ->where('quotation_id_fk', $main['quotation_id'])
+            ->where('quotation_options_id_fk', $main['quotation_options_id'])
+            ->where('quotation_property_inclusions_status', 1)
+            ->get('quotation_property_inclusions')
             ->row();
 
-        $base_amount = $option ? (float)$option->quotation_options_total_quote_rate : 0;
+        $inclusion_amount = !empty($inclusion_row->inclusion_amount)
+            ? (float)$inclusion_row->inclusion_amount
+            : 0;
 
-        // Get inclusions amount
-        $quotation = $this->db
-            ->select('total_inclusion_amount, total_special_requirment_amount')
-            ->from('quotation')
-            ->where('quotation_id', $quotation_id)
-            ->get()
+        $special_row = $this->db
+            ->select_sum('quotation_special_requirements_cost')
+            ->where('quotation_id_fk', $main['quotation_id'])
+            ->where('quotation_special_requirements_status', 1)
+            ->get('quotation_special_requirements')
             ->row();
 
-        $inclusion_amount = $quotation ? (float)$quotation->total_inclusion_amount : 0;
-        $special_amount = $quotation ? (float)$quotation->total_special_requirment_amount : 0;
+        $special_amount = !empty($special_row->quotation_special_requirements_cost)
+            ? (float)$special_row->quotation_special_requirements_cost
+            : 0;
 
         return $base_amount + $inclusion_amount + $special_amount;
     }

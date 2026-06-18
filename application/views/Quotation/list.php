@@ -374,6 +374,37 @@
     border-radius: 6px;
 }
 </style>
+<style>
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* Keep filter Select2 below modal */
+#Create .select2-container {
+    z-index: 1000 !important;
+}
+#Create .select2-dropdown {
+    z-index: 1001 !important;
+}
+#QuotationModal {
+    z-index: 1050 !important;
+}
+#QuotationModal .select2-container {
+    z-index: 1060 !important;
+}
+#QuotationModal .select2-dropdown {
+    z-index: 1061 !important;
+}
+</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -394,19 +425,8 @@
                                                 <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg" id="quotation_number_filter" name="quotation_number_filter" required>  
-                            
-                                                                    <option value="">Please Select Quotation number</option>
-                                                                    <?php
-
-                                                                    foreach($quotation as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->quotation_id.'" '.$sel.'>'.$row->quotation_number.'</option>';
-
-                                                                    }
-
-                                                                    ?>
+                                                            <select data-validation="required" data-pms-required="true" class="form-control input-lg" id="quotation_number_filter" name="quotation_number_filter" required>
+                                                                <option value="">Please Select Quotation number</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -414,14 +434,8 @@
                                                 <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg " id="package_id_filter" name="package_id_filter"  required>  
-                            
-                                                                   <option value="">Please Select package</option>
-
-                                                                    <?php foreach($packages as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->packages_id.'">'.$row->packages_title.'</option>';
-                                                                        } ?>
+                                                            <select data-validation="required" data-pms-required="true" class="form-control input-lg" id="package_id_filter" name="package_id_filter" required>
+                                                                <option value="">Please Select package</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -429,14 +443,8 @@
                                                 <div class="col-sm-6 col-md-3">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg " id="leads_id_filter" name="leads_id_filter"  required>  
-                            
-                                                                   <option value="">Please Select lead</option>
-
-                                                                    <?php foreach($leads as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->leads_id.'">'.$row->leads_number.'</option>';
-                                                                        } ?>
+                                                            <select data-validation="required" data-pms-required="true" class="form-control input-lg" id="leads_id_filter" name="leads_id_filter" required>
+                                                                <option value="">Please Select lead</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -481,19 +489,12 @@
                                                     </div>
                                                 </div> 
                                                 <div class="col-sm-6 col-md-3">
-                                                  <div class="card">
-                                                      <div class="input-group">
-                                                          <input type="text" class="form-control" placeholder="Start date" id="start_date" name="start_date" required>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                              <div class="col-sm-6 col-md-3">
-                                                  <div class="card">
-                                                      <div class="input-group">
-                                                          <input type="text" class="form-control" placeholder="End date" id="end_date" name="end_date" required>
-                                                      </div>
-                                                  </div>
-                                              </div>                         
+                                                    <div class="card">
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" placeholder="Quotation Date Range" id="quotation_daterange" name="quotation_daterange">
+                                                        </div>
+                                                    </div>
+                                                </div>                         
                                                 <div class="col-sm-6 col-md-3 staff-do-not-show">
                                                     <div class="card">
                                                         <div class="input-group">
@@ -519,14 +520,12 @@
                                                 </div>
                                                 <div class="col-sm-2 col-md-3">
                                                     <div class="card">
-                                                        <a href="<?php echo base_url();?>index.php/Quotation">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
+                                                        <button type="button" class="btn btn-secondary btn-md" id="reset_filter">
                                                             <span class="btn-label">
                                                                 <i class="icon-refresh"></i>
                                                             </span>
-                                                            Refresh
+                                                            Reset
                                                         </button>
-                                                        </a>
                                                     </div>
                                                 </div>
                                                 
@@ -554,8 +553,7 @@
                                             <tr>
                                                 <th>Sl.no</th>
                                                 <th>Quotation no:</th>
-                                                <th>Guest name:</th>
-                                                <th>Lead no:</th>
+                                                <th>Lead:</th>
                                                 <th>Template name</th>
                                                 <th>Quotation date</th>
                                                 <th>Remark</th>

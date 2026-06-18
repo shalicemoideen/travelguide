@@ -281,15 +281,41 @@ class Property_reservation_model extends CI_Model {
 
     public function get_status_summary($quotation_id)
     {
+        // Fetch distinct properties from confirmed client confirmation, derive check-in/out from accommodation_plan
         $rows = $this->db
-            ->select('pr.*, p.properties_name')
-            ->from('property_reservation pr')
-            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
-            ->where('pr.quotation_id_fk', (int)$quotation_id)
-            ->where('pr.property_reservation_status', 1)
-            ->order_by('pr.property_reservation_id', 'ASC')
+            ->select('
+                p.properties_id,
+                p.properties_name,
+                MIN(ap.accommodation_date) AS check_in_date,
+                COUNT(DISTINCT qpd.quotation_properties_days_id) AS night_count,
+                pr.property_reservation_id,
+                pr.blocking_status,
+                pr.confirmation_status,
+                pr.reconfirmation_status
+            ')
+            ->from('quotation_confirmation qc')
+            ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
+            ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
+            ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
+            ->join('properties p', 'p.properties_id = qp.properties_id_fk', 'left')
+            ->join('property_reservation pr', 'pr.quotation_id_fk = qc.quotation_id_fk AND pr.properties_id_fk = qp.properties_id_fk AND pr.property_reservation_status = 1', 'left')
+            ->where('qc.quotation_id_fk', (int)$quotation_id)
+            ->where('qc.property_confirmation_status', 1)
+            ->group_by('qp.properties_id_fk')
+            ->order_by('check_in_date', 'ASC')
             ->get()
             ->result();
+
+        // Compute check_out as check_in + nights
+        foreach ($rows as $r) {
+            $nights = max(1, (int)$r->night_count);
+            $r->duration_nights = $nights;
+            if ($r->check_in_date && $r->check_in_date !== '0000-00-00') {
+                $r->check_out_date = date('Y-m-d', strtotime($r->check_in_date . ' +' . $nights . ' days'));
+            } else {
+                $r->check_out_date = null;
+            }
+        }
 
         $total       = count($rows);
         $blocked     = 0;
@@ -297,9 +323,9 @@ class Property_reservation_model extends CI_Model {
         $reconfirmed = 0;
 
         foreach ($rows as $r) {
-            if ($r->blocking_status === 'BLOCKED')          { $blocked++; }
-            if ($r->confirmation_status === 'CONFIRMED')    { $confirmed++; }
-            if ($r->reconfirmation_status === 'RECONFIRMED'){ $reconfirmed++; }
+            if ($r->blocking_status === 'BLOCKED')           { $blocked++; }
+            if ($r->confirmation_status === 'CONFIRMED')     { $confirmed++; }
+            if ($r->reconfirmation_status === 'RECONFIRMED') { $reconfirmed++; }
         }
 
         return array(

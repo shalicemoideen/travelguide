@@ -155,9 +155,35 @@ $(document).ready(function () {
     });
 });
 
+// Initialize category AJAX Select2 for the modal form
+function initCategorySelect2InModal() {
+    if ($('#itineraries_category_id_fk').hasClass('select2-hidden-accessible')) {
+        return;
+    }
+    $('#itineraries_category_id_fk').select2({
+        dropdownParent: $('#ItineraryModal'),
+        width: '100%',
+        placeholder: 'Please Select Category',
+        allowClear: true,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Itinerary/get_itinerary_category_dropdown',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return { q: params.term };
+            },
+            processResults: function(data) {
+                return data;
+            },
+            cache: true
+        }
+    });
+}
+
 // call this after opening any modal
 $('#ItineraryModal').on('shown.bs.modal', function () {
     initCommonSelect2(this);
+    initCategorySelect2InModal();
 });
 
 // $("#itineraries_id_filter").select2({
@@ -261,19 +287,22 @@ var table;
                     extend: 'excel',
                     exportOptions: {
                         columns: [0, 1, 2, 3, 4, 5]
-                    }
+                    },
+                    title: 'Itinerary details'
                 },
                 {
                     extend: 'pdf',
                     exportOptions: {
                         columns: [0, 1, 2, 3, 4, 5]
-                    }
+                    },
+                    title: 'Itinerary details'
                 },
                 {
                     extend: 'print',
                     exportOptions: {
                         columns: [0 ,1, 2, 3, 4, 5]
-                    }
+                    },
+                    title: 'Itinerary details'
                 },
             ],
         "ajax": {
@@ -500,7 +529,9 @@ function add_Itinerary()
 
     $('#productRowWrapper').empty();
 
-    $('#itineraries_category_id_fk').val('').trigger('change');
+    if ($('#itineraries_category_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#itineraries_category_id_fk').val(null).trigger('change');
+    }
 
     // Clear cover page image previews and hidden fields
     $('#first_cover_preview').empty();
@@ -717,7 +748,14 @@ function edit_itinerary(id)
       $('#id').val(master.itineraries_id);
 
       $('[name="itineraries_name"]').val(master.itineraries_name);
-      $('[name="itineraries_category_id_fk"]').val(master.itineraries_category_id_fk).trigger('change');
+      // Pre-inject the category option so Select2 AJAX can select it
+      if (master.itineraries_category_id_fk && master.itinerary_category_name) {
+          var $catSelect = $('[name="itineraries_category_id_fk"]');
+          if ($catSelect.find('option[value="' + master.itineraries_category_id_fk + '"]').length === 0) {
+              $catSelect.append(new Option(master.itinerary_category_name, master.itineraries_category_id_fk, true, true));
+          }
+          $catSelect.val(master.itineraries_category_id_fk).trigger('change');
+      }
       $('[name="itineraries_duration_nights"]').val(master.itineraries_duration_nights);
       $('#itineraries_description').val(master.itineraries_description || '');
 
@@ -883,7 +921,14 @@ function duplicate_itinerary(id)
       $('#id').val('');
 
       $('[name="itineraries_name"]').val(master.itineraries_name || '');
-      $('[name="itineraries_category_id_fk"]').val(master.itineraries_category_id_fk).trigger('change');
+      // Pre-inject the category option so Select2 AJAX can select it
+      if (master.itineraries_category_id_fk && master.itinerary_category_name) {
+          var $catSelectDup = $('[name="itineraries_category_id_fk"]');
+          if ($catSelectDup.find('option[value="' + master.itineraries_category_id_fk + '"]').length === 0) {
+              $catSelectDup.append(new Option(master.itinerary_category_name, master.itineraries_category_id_fk, true, true));
+          }
+          $catSelectDup.val(master.itineraries_category_id_fk).trigger('change');
+      }
       $('[name="itineraries_duration_nights"]').val(master.itineraries_duration_nights);
       $('#itineraries_description').val(master.itineraries_description || '');
 

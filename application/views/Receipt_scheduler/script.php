@@ -1,5 +1,5 @@
 <script type="text/javascript">
-var base_url = '<?php echo base_url(); ?>';
+var base_url = '<?php echo base_url(); ?>index.php/';
 var table;
 var save_method;
 var currentSchedulerId = null;

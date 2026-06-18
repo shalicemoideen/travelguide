@@ -36,6 +36,7 @@ class Receipt_scheduler extends MY_Controller {
             'payment_status_filter' => $this->input->post('payment_status_filter'),
             'start_date' => $this->input->post('start_date'),
             'end_date' => $this->input->post('end_date'),
+            'quotation_id_filter' => $this->input->post('quotation_id_filter'),
             'start' => $this->input->post('start'),
             'length' => $this->input->post('length'),
         );

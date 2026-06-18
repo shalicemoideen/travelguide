@@ -1,5 +1,172 @@
 
 <script type="text/javascript">
+////***Latest dropdown select2*****///
+
+function initCommonSelect2(scope) {
+
+    scope = scope || document;
+
+    $(scope).find('.lst-flt-select2').each(function () {
+
+        let $select = $(this);
+
+        // avoid re-initializing
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        // find nearest opened modal if this select is inside modal
+        let $modal = $select.closest('.modal');
+
+        let options = {
+            width: '100%',
+            minimumResultsForSearch: 0
+        };
+
+        // only set dropdownParent when inside modal
+        if ($modal.length) {
+            options.dropdownParent = $modal;
+        }
+
+        $select.select2(options);
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function (e) {
+    setTimeout(function () {
+        var containerId = e.target ? ($(e.target).data('select2') || {})._resultId : null;
+        var searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 100);
+});
+
+// initialize page select2
+$(document).ready(function () {
+    initCommonSelect2(document);
+});
+
+// call this after opening any modal
+$('#PackagesModal').on('shown.bs.modal', function () {
+    initCommonSelect2(this);
+
+    if (!$('#packages_category_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#packages_category_id_fk').select2({
+            width: '100%',
+            placeholder: 'Please Select Template Category',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_package_categories',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    if (!$('#packages_itinerary_category_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#packages_itinerary_category_id_fk').select2({
+            width: '100%',
+            placeholder: 'Please Select Itinerary Category',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_itinerary_categories',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    if (!$('#packages_inclusion_exclusion_common_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#packages_inclusion_exclusion_common_id_fk').select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_inclusion_exclusion',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    if (!$('#payment_policies_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#payment_policies_id_fk').select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_payment_policies',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    if (!$('#terms_condition_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#terms_condition_id_fk').select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_terms_conditions',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    if (!$('#cancellation_policies_id_fk').hasClass('select2-hidden-accessible')) {
+        $('#cancellation_policies_id_fk').select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_cancellation_policies',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+});
+
+function select2AjaxSetSelected(selector, id, text) {
+    var $s = $(selector);
+    if (!id || !text) { $s.val(null).trigger('change'); return; }
+    if ($s.find('option[value="' + id + '"]').length === 0) {
+        $s.append(new Option(text, id, true, true));
+    } else {
+        $s.val(id);
+    }
+    $s.trigger('change');
+}
+
+////***Latest dropdown select2*****///
 
 ////***Filter button hide and show*****///
 
@@ -23,6 +190,94 @@ $(document).ready(function () {
 
 
 ////***Filter button hide and show*****///
+
+////***Filter dropdowns AJAX Select2 init*****///
+
+$(document).ready(function () {
+
+    $('#packages_title_filter').select2({
+        width: '100%',
+        placeholder: 'Please Select Template',
+        allowClear: true,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_package_titles',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return { q: params.term }; },
+            processResults: function(data) { return data; },
+            cache: true
+        }
+    });
+
+    $('#packages_category_id_filter').select2({
+        width: '100%',
+        placeholder: 'Please Select Template Category',
+        allowClear: true,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_package_categories',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return { q: params.term }; },
+            processResults: function(data) { return data; },
+            cache: true
+        }
+    });
+
+    $('#packages_itinerary_category_id_filter').select2({
+        width: '100%',
+        placeholder: 'Please Select Itinerary Category',
+        allowClear: true,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_itinerary_categories',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return { q: params.term }; },
+            processResults: function(data) { return data; },
+            cache: true
+        }
+    });
+
+    $('#packages_itinerary_id_filter').select2({
+        width: '100%',
+        placeholder: 'Please Select Itinerary',
+        allowClear: true,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_itineraries',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return { q: params.term }; },
+            processResults: function(data) { return data; },
+            cache: true
+        }
+    });
+
+    $('#packages_createdby_user_id').select2({
+        width: '100%',
+        placeholder: 'Please Select Created By',
+        allowClear: true,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_users',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return { q: params.term }; },
+            processResults: function(data) { return data; },
+            cache: true
+        }
+    });
+
+    $('#btnFilterRefresh').on('click', function () {
+        $('#packages_title_filter').val(null).trigger('change');
+        $('#packages_category_id_filter').val(null).trigger('change');
+        $('#packages_itinerary_category_id_filter').val(null).trigger('change');
+        $('#packages_itinerary_id_filter').val(null).trigger('change');
+        $('#packages_duration_in_nights_filter').val('');
+        $('#packages_createdby_user_id').val(null).trigger('change');
+        $table.ajax.reload();
+    });
+
+});
+
+////***Filter dropdowns AJAX Select2 init*****///
 
 ////***searching button*****///
 
@@ -66,20 +321,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5]
-                                    }
+                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                    },
+                                    title: 'Template details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5]
-                                    }
+                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                    },
+                                    title: 'Template details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5]
-                                    }
+                                        columns: [0 ,1, 2, 3, 4, 5, 6]
+                                    },
+                                    title: 'Template details'
                                 },
                                
             ],
@@ -389,12 +647,19 @@ $(document).on('change', '.tb-required-checkbox', function () {
 
   $itineraryRow.find('.tb-required-status').val(val);
   $itineraryRow.attr('data-required-status', val);
+  $itineraryRow.attr('data-is-tb', '1');
 
   var dayId = String($itineraryRow.find('input[name="itineraries_days_id_fk[]"]').val() || '');
   if (!dayId) return;
 
   $('#property .day-row[data-day-id="' + dayId + '"]').each(function(){
     $(this).attr('data-required-status', val);
+
+    if (val === '1') {
+      $(this).show();
+    } else {
+      $(this).hide();
+    }
 
     $(this).find('.assignment-row').each(function(){
       var $propSel = $(this).find('.property-select');
@@ -558,14 +823,46 @@ function buildItineraryRowsFromSaved(itineraryDays) {
     `);
   });
 
-  // ✅ Init select2 (same as your normal load)
-  $('.change_destination').select2({ width: '100%' });
-  $('.change_itinerary').select2({ width: '100%' });
-  $('.change_itinerary_day').select2({ width: '100%' });
+  // ✅ Init select2 with AJAX for change_destination and change_itinerary
+  $('#itinerary .change_destination').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '100%',
+        placeholder: 'Please Select Destination',
+        allowClear: true,
+        dropdownParent: $('#PackagesModal'),
+        ajax: {
+          url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_destinations',
+          dataType: 'json',
+          delay: 250,
+          data: function(params) { return { q: params.term }; },
+          processResults: function(data) { return data; },
+          cache: true
+        }
+      });
+    }
+  });
 
-  // ✅ Load dropdown options
-  if (typeof loadChangeDestinations === 'function') loadChangeDestinations();
-  if (typeof loadRowWiseItineraries === 'function') loadRowWiseItineraries();
+  $('#itinerary .change_itinerary').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '100%',
+        placeholder: 'Please Select Itinerary',
+        allowClear: true,
+        dropdownParent: $('#PackagesModal'),
+        ajax: {
+          url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
+          dataType: 'json',
+          delay: 250,
+          data: function(params) { return { q: params.term }; },
+          processResults: function(data) { return data; },
+          cache: true
+        }
+      });
+    }
+  });
+
+  $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal') });
 
   // ✅ Init CKEditor
   if (typeof initEditorsForDays === 'function') initEditorsForDays();
@@ -592,71 +889,11 @@ loadDestinationMap(function(map){
 }
 
 window.loadChangeDestinations = function () {
-
-  loadDestinationMap(function(map){
-
-    $('.change_destination').each(function () {
-      const $select = $(this);
-
-      // if already filled, skip
-      if ($select.data('filled') == 1) return;
-
-      $select.empty().append('<option value="">Please Select Destination</option>');
-
-      Object.keys(map).forEach(function(id){
-        $select.append(`<option value="${id}">${map[id]}</option>`);
-      });
-
-      // re-init select2 safely
-      if ($select.hasClass('select2-hidden-accessible')) {
-        $select.trigger('change.select2');
-      }
-
-      $select.data('filled', 1);
-    });
-
-  });
+  // No-op: destinations now loaded via AJAX Select2 on open
 };
 
 window.loadRowWiseItineraries = function () {
-
-  $('.change_itinerary').each(function () {
-
-    const $itinerarySelect = $(this);
-
-    // stop if already loaded
-    if ($itinerarySelect.data('loaded') == 1) return;
-
-    $itinerarySelect.html('<option value="">Loading...</option>');
-
-    $.ajax({
-      url: '<?php echo base_url(); ?>index.php/Packages/fetch_itinerary',
-      type: 'POST',
-      dataType: 'json',
-      success: function (res) {
-
-        $itinerarySelect.html('<option value="">Please Select Itinerary</option>');
-
-        (res || []).forEach(function (rowData) {
-          $itinerarySelect.append(`
-            <option value="${rowData.itineraries_id}">
-              ${rowData.itineraries_name}
-            </option>
-          `);
-        });
-
-        $itinerarySelect.data('loaded', 1);
-
-        if ($itinerarySelect.hasClass('select2-hidden-accessible')) {
-          $itinerarySelect.trigger('change.select2');
-        }
-      },
-      error: function () {
-        $itinerarySelect.html('<option value="">Please Select Itinerary</option>');
-      }
-    });
-
-  });
+  // No-op: itineraries now loaded via AJAX Select2 on open
 };
 
 function showItineraryAsSelect() {
@@ -712,8 +949,8 @@ function edit_package(id, mode) {
       // master fields
       $('#packages_title').val(p.packages_title || '');
       $('#packages_duration_in_nights').val(p.packages_duration_in_nights || '');
-      $('#packages_category_id_fk').val(p.packages_category_id_fk).trigger('change');
-      $('#packages_itinerary_category_id_fk').val(p.packages_itinerary_category_id_fk).trigger('change');
+      select2AjaxSetSelected('#packages_category_id_fk', p.packages_category_id_fk, p.package_category_name);
+      select2AjaxSetSelected('#packages_itinerary_category_id_fk', p.packages_itinerary_category_id_fk, p.itinerary_category_name);
 
       // cover preview
       if (p.packages_first_cover_page) {
@@ -814,7 +1051,7 @@ function edit_package(id, mode) {
       // inclusion/exclusion
       if (p.packages_inclusion_exclusion_checked_type === 'Y') {
         $('#packages_inclusion_exclusion_checked_type').prop('checked', true).trigger('change');
-        $('#packages_inclusion_exclusion_common_id_fk').val(p.packages_inclusion_exclusion_common_id_fk).trigger('change');
+        select2AjaxSetSelected('#packages_inclusion_exclusion_common_id_fk', p.packages_inclusion_exclusion_common_id_fk, p.inclusion_exclusion_common_title);
 
         setTimeout(function () {
           $('#inclusion').empty();
@@ -860,7 +1097,7 @@ function edit_package(id, mode) {
       // payment
       if (p.packages_payment_policies_checked_type === 'Y') {
         $('#packages_payment_policies_checked_type').prop('checked', true).trigger('change');
-        $('#payment_policies_id_fk').val(p.payment_policies_id_fk).trigger('change');
+        select2AjaxSetSelected('#payment_policies_id_fk', p.payment_policies_id_fk, p.payment_policies_name);
 
         setTimeout(function () {
           $('#payment-policies').find('.payment-row').remove();
@@ -879,7 +1116,7 @@ function edit_package(id, mode) {
       // terms
       if (p.packages_terms_conditions_checked_type === 'Y') {
         $('#packages_terms_conditions_checked_type').prop('checked', true).trigger('change');
-        $('#terms_condition_id_fk').val(p.terms_condition_id_fk).trigger('change');
+        select2AjaxSetSelected('#terms_condition_id_fk', p.terms_condition_id_fk, p.terms_condition_name);
 
         setTimeout(function () {
           $('#terms-conditions').find('.terms-row').remove();
@@ -898,7 +1135,7 @@ function edit_package(id, mode) {
       // cancellation
       if (p.packages_cancellation_policy_checked_type === 'Y') {
         $('#packages_cancellation_policy_checked_type').prop('checked', true).trigger('change');
-        $('#cancellation_policies_id_fk').val(p.cancellation_policies_id_fk).trigger('change');
+        select2AjaxSetSelected('#cancellation_policies_id_fk', p.cancellation_policies_id_fk, p.cancellation_policies_name);
 
         setTimeout(function () {
           $('#cancellation-policy').find('.cancellation-row').remove();
@@ -1892,14 +2129,13 @@ $('#packages_itinerary_id_fk').on('change', function () {
             <div class="mt-2 tb-required-wrap">
               <label class="form-check-label" style="font-size:13px;">
                 <input type="checkbox"
-                      class="form-check-input tb-required-checkbox"
-                      checked>
+                      class="form-check-input tb-required-checkbox">
                 Property / Room Required
               </label>
               <input type="hidden"
                     name="packages_itineraries_days_required_status[]"
                     class="tb-required-status"
-                    value="1">
+                    value="2">
             </div>
           `;
         } else {
@@ -1911,7 +2147,7 @@ $('#packages_itinerary_id_fk').on('change', function () {
           `;
         }
         tbody.append(`
-          <tr data-row-num="${rowNum}">
+          <tr data-row-num="${rowNum}" data-required-status="${isTB ? 2 : 0}" data-is-tb="${isTB ? 1 : 0}">
             <td>
               <div>
                 <b>${item.itineraries_days_day}</b> | ${item.itineraries_days_title}${tbBadge}
@@ -1985,14 +2221,47 @@ $('#packages_itinerary_id_fk').on('change', function () {
         `);
       });
 
-      // Select2 init
-      $('.change_destination').select2({ width: '100%' });
-      $('.change_itinerary').select2({ width: '100%' });
-      $('.change_itinerary_day').select2({ width: '100%' });
+      // Init AJAX Select2 for change_destination
+      $('#itinerary .change_destination').each(function () {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2({
+            width: '100%',
+            placeholder: 'Please Select Destination',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+              url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_destinations',
+              dataType: 'json',
+              delay: 250,
+              data: function(params) { return { q: params.term }; },
+              processResults: function(data) { return data; },
+              cache: true
+            }
+          });
+        }
+      });
 
-      // Load destinations + row-wise itineraries
-      loadChangeDestinations();
-      loadRowWiseItineraries();
+      // Init AJAX Select2 for change_itinerary
+      $('#itinerary .change_itinerary').each(function () {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2({
+            width: '100%',
+            placeholder: 'Please Select Itinerary',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal'),
+            ajax: {
+              url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
+              dataType: 'json',
+              delay: 250,
+              data: function(params) { return { q: params.term }; },
+              processResults: function(data) { return data; },
+              cache: true
+            }
+          });
+        }
+      });
+
+      $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal') });
 
       // ✅ INIT CKEDITOR for each row
       initEditorsForDays();
@@ -3228,37 +3497,26 @@ function getDaysFromItinerary() {
     $select.select2('destroy');
   }
 
-  $select.html('<option value="">Loading...</option>');
+  $select.empty().append('<option value="">Please Select Properties</option>');
 
-  $.ajax({
-    url: '<?php echo base_url(); ?>index.php/Packages/get_properties_by_destination',
-    type: 'POST',
-    dataType: 'json',
-    data: { destination_id: destId }
-  }).done(function(res){
-
-    $select.empty().append('<option value="">Please Select Properties</option>');
-
-    $.each(res || [], function(i, row){
-      $select.append('<option value="' + row.properties_id + '">' + row.properties_name + '</option>');
-    });
-
-    $select.select2({
-      width:'100%',
-      placeholder:'Please Select Properties',
-      allowClear:true
-    });
-
-    dfd.resolve(res || []);
-  }).fail(function(){
-    $select.empty().append('<option value="">Please Select Properties</option>');
-    $select.select2({
-      width:'100%',
-      placeholder:'Please Select Properties',
-      allowClear:true
-    });
-    dfd.resolve([]);
+  $select.select2({
+    width: '100%',
+    placeholder: 'Please Select Properties',
+    allowClear: true,
+    dropdownParent: $('#PackagesModal'),
+    ajax: {
+      url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_properties',
+      dataType: 'json',
+      delay: 250,
+      data: function(params) {
+        return { destination_id: destId, q: params.term };
+      },
+      processResults: function(data) { return data; },
+      cache: true
+    }
   });
+
+  dfd.resolve([]);
 
   return dfd.promise();
 }
@@ -3317,38 +3575,26 @@ function loadPropertiesAsync(destId, $select) {
     $select.select2('destroy');
   }
 
-  $select.html('<option value="">Loading...</option>');
+  $select.empty().append('<option value="">Please Select Properties</option>');
 
-  $.ajax({
-    url: '<?php echo base_url(); ?>index.php/Packages/get_properties_by_destination',
-    type: 'POST',
-    dataType: 'json',
-    data: { destination_id: destId },
-    success: function(res) {
-      $select.empty().append('<option value="">Please Select Properties</option>');
-
-      $.each(res || [], function(i, row) {
-        $select.append(
-          '<option value="' + String(row.properties_id) + '">' +
-          row.properties_name +
-          '</option>'
-        );
-      });
-
-      $select.select2({
-        width: '100%',
-        placeholder: 'Please Select Properties',
-        allowClear: true
-      });
-
-      dfd.resolve(res || []);
-    },
-    error: function() {
-      $select.empty().append('<option value="">Please Select Properties</option>');
-      $select.select2({ width: '100%' });
-      dfd.resolve([]);
+  $select.select2({
+    width: '100%',
+    placeholder: 'Please Select Properties',
+    allowClear: true,
+    dropdownParent: $('#PackagesModal'),
+    ajax: {
+      url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_properties',
+      dataType: 'json',
+      delay: 250,
+      data: function(params) {
+        return { destination_id: destId, q: params.term };
+      },
+      processResults: function(data) { return data; },
+      cache: true
     }
   });
+
+  dfd.resolve([]);
 
   return dfd.promise();
 }
@@ -3479,59 +3725,44 @@ function normalizeRoomIds(v) {
 //   return dfd.promise();
 // }
 
-function setPropertyAndRoomsFromSaved(destId, $propSel, $roomsSel, savedPropertyId, savedRoomIds) {
-  const dfd = $.Deferred();
-
+function setPropertyAndRoomsFromSaved(destId, $propSel, $roomsSel, savedPropertyId, savedPropertyName, savedRooms) {
+  // savedRooms = [{id, text}, ...] as returned by get_properties_with_names
   savedPropertyId = savedPropertyId ? String(savedPropertyId) : '';
-  const roomVals = normalizeRoomIds(savedRoomIds);
+  savedPropertyName = savedPropertyName || savedPropertyId;
 
-  loadPropertiesAsync(destId, $propSel).done(function () {
+  // init AJAX Select2 on the property select (resolves immediately)
+  loadPropertiesAsync(destId, $propSel);
 
+  if (!savedPropertyId) return;
+
+  // inject the saved property as a selected option — no extra AJAX needed
+  if ($propSel.find('option[value="' + savedPropertyId + '"]').length === 0) {
+    $propSel.append(new Option(savedPropertyName, savedPropertyId, true, true));
+  } else {
     $propSel.val(savedPropertyId);
+  }
+  $propSel.trigger('change.select2');
 
-    if ($propSel.hasClass('select2-hidden-accessible')) {
-      $propSel.trigger('change.select2');
-    }
+  // inject rooms directly from the pre-loaded data — no AJAX needed
+  if (!savedRooms || !savedRooms.length) return;
 
-    if (!savedPropertyId) {
-      dfd.resolve();
-      return;
-    }
+  if ($roomsSel.hasClass('select2-hidden-accessible')) {
+    $roomsSel.select2('destroy');
+  }
 
-    loadRoomsAsync(savedPropertyId, $roomsSel).done(function () {
-
-      let finalRooms = [];
-
-      $.each(roomVals, function (_, rv) {
-        rv = String(rv);
-
-        if ($roomsSel.find('option[value="' + rv + '"]').length) {
-          finalRooms.push(rv);
-        }
-      });
-
-      if (finalRooms.length === 0) {
-        $roomsSel.find('option').each(function () {
-          const optVal = String($(this).val() || '');
-          const roomId = String($(this).data('roomid') || '');
-
-          if ($.inArray(optVal, roomVals) !== -1 || $.inArray(roomId, roomVals) !== -1) {
-            finalRooms.push(optVal);
-          }
-        });
-      }
-
-      $roomsSel.val(finalRooms);
-
-      if ($roomsSel.hasClass('select2-hidden-accessible')) {
-        $roomsSel.trigger('change.select2');
-      }
-
-      dfd.resolve();
-    });
+  $roomsSel.empty();
+  var roomIds = [];
+  $.each(savedRooms, function(_, r) {
+    $roomsSel.append(new Option(r.text, r.id, false, false));
+    roomIds.push(String(r.id));
   });
 
-  return dfd.promise();
+  $roomsSel.prop('disabled', false).select2({
+    width: '100%',
+    placeholder: 'Please Select Rooms'
+  });
+
+  $roomsSel.val(roomIds).trigger('change.select2');
 }
 
 function $roomsSelectHasValue($select, val) {
@@ -3612,11 +3843,14 @@ function $roomsSelectHasValue($select, val) {
         destName = destId; // temporary fallback
       }
 
+      const tbRowHidden = (d.isTB && String(d.requiredStatus) !== '1');
+
       const $dayRow = $(`
         <tr class="day-row"
             data-day-id="${dayKey}"
             data-is-tb="${d.isTB ? 1 : 0}"
-            data-required-status="${d.requiredStatus}">
+            data-required-status="${d.requiredStatus}"
+            ${tbRowHidden ? 'style="display:none;"' : ''}>
           <td>${escapeHtml(d.dayText)}${tbBadge}</td>
           <td>
            
@@ -3741,7 +3975,6 @@ window.buildSavedPropertyUI = function(propertyData) {
     $('#property').empty();
   }
 
-  const allPromises = [];
 
   $.each(propertyData, function(_, sec) {
 
@@ -3819,24 +4052,21 @@ window.buildSavedPropertyUI = function(propertyData) {
         const $propSel = $assign.find('.property-select');
         const $roomSel = $assign.find('.rooms-select');
 
-        allPromises.push(
-          setPropertyAndRoomsFromSaved(
-            destId,
-            $propSel,
-            $roomSel,
-            p.property_id,
-            p.rooms
-          )
+        setPropertyAndRoomsFromSaved(
+          destId,
+          $propSel,
+          $roomSel,
+          p.property_id,
+          p.property_name,
+          p.rooms
         );
       });
     });
   });
 
-  $.when.apply($, allPromises).always(function() {
-    setTimeout(function() {
-      window.isPropertyPrefill = false;
-    }, 3000);
-  });
+  setTimeout(function() {
+    window.isPropertyPrefill = false;
+  }, 500);
 };
 
 function refreshPropertyDestinationNames() {

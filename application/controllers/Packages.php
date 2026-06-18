@@ -38,11 +38,6 @@ class Packages extends MY_Controller {
 	{
 		//$name = 'PERSONAL CASH';
 		$template['staff'] = $this->Packages_model->fetch_staff_details();
-		$template['users'] = $this->Packages_model->fetch_all_users();
-		$template['package'] = $this->Packages_model->fetch_package();
-		$template['pcategory'] = $this->Packages_model->fetch_package_category();
-		$template['itcategory'] = $this->Packages_model->fetch_itinerary_category();
-		$template['itinerary'] = $this->Packages_model->fetch_itinerary_filter();
 		$template['inclusions_exclusion'] = $this->Packages_model->fetch_inclusions_exclusion();
 		$template['payment_policies'] = $this->Packages_model->fetch_payment_policies();
 		$template['terms_condition'] = $this->Packages_model->fetch_terms_condition();
@@ -64,6 +59,71 @@ class Packages extends MY_Controller {
 	  }
 	}
 
+	public function ajax_filter_package_titles()
+	{
+		$q = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_package();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->packages_title, $q) !== false) {
+				$results[] = ['id' => $row->packages_title, 'text' => $row->packages_title];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_package_categories()
+	{
+		$q = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_package_category();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->package_category_name, $q) !== false) {
+				$results[] = ['id' => $row->package_category_id, 'text' => $row->package_category_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_itinerary_categories()
+	{
+		$q = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_itinerary_category();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->itinerary_category_name, $q) !== false) {
+				$results[] = ['id' => $row->itinerary_category_id, 'text' => $row->itinerary_category_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_itineraries()
+	{
+		$q = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_itinerary_filter();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->itineraries_name, $q) !== false) {
+				$results[] = ['id' => $row->itineraries_id, 'text' => $row->itineraries_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_users()
+	{
+		$q = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_all_users();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->admin_name, $q) !== false) {
+				$results[] = ['id' => $row->user_id, 'text' => $row->admin_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
 	public function itinerary_array_list($itineraries_id)
 	{
 		$data = $this->Packages_model->itinerary_array_list($itineraries_id);
@@ -74,6 +134,32 @@ class Packages extends MY_Controller {
 	{
 		$data = $this->Packages_model->gettdestination_details();
 		echo json_encode($data);
+	}
+
+	public function ajax_filter_destinations()
+	{
+		$q    = $this->input->get('q');
+		$rows = $this->Packages_model->gettdestination_details();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->state_name, $q) !== false) {
+				$results[] = ['id' => $row->state_id, 'text' => $row->state_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_change_itineraries()
+	{
+		$q    = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_itinerary();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->itineraries_name, $q) !== false) {
+				$results[] = ['id' => $row->itineraries_id, 'text' => $row->itineraries_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
 	}
 
 	public function fetch_itinerary()
@@ -159,6 +245,58 @@ class Packages extends MY_Controller {
       
       echo json_encode($this->Packages_model->exclusion_array_list($inclusion_exclusion_common_id));
     }
+
+	public function ajax_filter_inclusion_exclusion()
+	{
+		$q    = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_inclusions_exclusion();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->inclusion_exclusion_common_title, $q) !== false) {
+				$results[] = ['id' => $row->inclusion_exclusion_common_id, 'text' => $row->inclusion_exclusion_common_title];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_payment_policies()
+	{
+		$q    = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_payment_policies();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->payment_policies_name, $q) !== false) {
+				$results[] = ['id' => $row->payment_policies_id, 'text' => $row->payment_policies_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_terms_conditions()
+	{
+		$q    = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_terms_condition();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->terms_condition_name, $q) !== false) {
+				$results[] = ['id' => $row->terms_condition_id, 'text' => $row->terms_condition_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_filter_cancellation_policies()
+	{
+		$q    = $this->input->get('q');
+		$rows = $this->Packages_model->fetch_cancellation_policies();
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->cancellation_policies_name, $q) !== false) {
+				$results[] = ['id' => $row->cancellation_policies_id, 'text' => $row->cancellation_policies_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
+	}
 
 	public function get_inclusion_exclusion_details()
 	{
@@ -304,6 +442,23 @@ class Packages extends MY_Controller {
 
 		$rows = $this->Packages_model->gettproperties_details($dest_id);
 		echo json_encode($rows);
+	}
+
+	public function ajax_filter_properties()
+	{
+		$dest_id = $this->input->get('destination_id');
+		$q       = $this->input->get('q');
+
+		if (!$dest_id) { echo json_encode(['results' => []]); return; }
+
+		$rows = $this->Packages_model->gettproperties_details($dest_id);
+		$results = [];
+		foreach ($rows as $row) {
+			if (!$q || stripos($row->properties_name, $q) !== false) {
+				$results[] = ['id' => $row->properties_id, 'text' => $row->properties_name];
+			}
+		}
+		echo json_encode(['results' => $results]);
 	}
 
 	public function get_rooms_by_property()
@@ -2490,7 +2645,7 @@ foreach ($properties_by_sec[$secIndex][$itinDayId] as $rowKey => $propertyId) {
 			'cancellation'         => $cancellation,
 			'notes'                => $notes,
 			'properties'           => $properties,
-			'property_data' => $this->Packages_model->get_saved_property_data($id), // ✅ ADD THIS
+			'property_data' => $this->Packages_model->get_properties_with_names($id),
 		]);
 	}
 

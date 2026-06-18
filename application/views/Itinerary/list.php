@@ -191,11 +191,7 @@
 
             <div class="col-md-3">
               <label class="form-label"><b>Category</b> <span class="text-danger">*</span></label>
-              <select name="itineraries_category_id_fk" id="itineraries_category_id_fk" class=" input-lg lst-flt-select2" required>
-                <option value="">Please Select Category</option>
-                <?php foreach($itinerary_category as $row) { ?>
-                  <option value="<?= $row->itinerary_category_id; ?>"><?= $row->itinerary_category_name; ?></option>
-                <?php } ?>
+              <select name="itineraries_category_id_fk" id="itineraries_category_id_fk" class="input-lg" required>
               </select>
               <span class="help-block" style="color:red"></span>
             </div>

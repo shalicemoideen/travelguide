@@ -212,12 +212,27 @@ class Packages_model extends CI_Model{
     public function get_package($id)
     {
         return $this->db
+            ->select('p.*, pc.package_category_name, ic.itinerary_category_name,
+                iec.inclusion_exclusion_common_title,
+                pp.payment_policies_id_fk,
+                pay.payment_policies_name,
+                pt.terms_condition_id_fk,
+                tc.terms_condition_name,
+                pc2.cancellation_policies_id_fk,
+                cp.cancellation_policies_name')
             ->where('p.packages_id', $id)
             ->group_by('p.packages_id')
             ->from('packages p')
+            ->join('package_category pc', 'pc.package_category_id = p.packages_category_id_fk', 'left')
+            ->join('itinerary_category ic', 'ic.itinerary_category_id = p.packages_itinerary_category_id_fk', 'left')
+            ->join('inclusion_exclusion_common iec', 'iec.inclusion_exclusion_common_id = p.packages_inclusion_exclusion_common_id_fk', 'left')
             ->join('packages_payment_policies pp', 'p.packages_id = pp.packages_payment_policies_packages_id_fk', 'left')
             ->join('packages_terms_condition pt', 'p.packages_id = pt.packages_terms_condition_packages_id_fk', 'left')
-            ->join('packages_cancellation_policies pc', 'p.packages_id = pc.packages_cancellation_policies_packages_id_fk', 'left')
+            ->join('packages_cancellation_policies pc2', 'p.packages_id = pc2.packages_cancellation_policies_packages_id_fk', 'left')
+
+            ->join('payment_policies pay', 'pay.payment_policies_id = pp.payment_policies_id_fk', 'left')
+            ->join('terms_condition tc', 'tc.terms_condition_id = pt.terms_condition_id_fk', 'left')
+            ->join('cancellation_policies cp', 'cp.cancellation_policies_id = pc2.cancellation_policies_id_fk', 'left')
             ->get()->row();
     }
 
@@ -911,6 +926,98 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
 
     return $out;
 }
+	public function get_properties_with_names($package_id)
+	{
+		$sections = $this->db->select('
+				packages_properties_common_id,
+				packages_properties_common_category_name,
+				packages_properties_common_design_type
+			')
+			->from('packages_properties_common')
+			->where('packages_properties_common_packages_id_fk', $package_id)
+			->order_by('packages_properties_common_id', 'ASC')
+			->get()->result_array();
+
+		$out = array();
+
+		foreach ($sections as $sec) {
+			$secId = (int)$sec['packages_properties_common_id'];
+
+			$days = $this->db->select('
+					ppd.packages_properties_days_id,
+					ppd.packages_properties_days_destination_id_fk as destination_id,
+					ppd.packages_itinerary_days_id_fk as package_itinerary_day_id,
+					pid.itineraries_days_id_fk as itineraries_days_id_fk
+				')
+				->from('packages_properties_days ppd')
+				->join('packages_itinerary_days pid', 'pid.packages_itinerary_days_id = ppd.packages_itinerary_days_id_fk', 'left')
+				->where('ppd.packages_properties_common_id_fk', $secId)
+				->order_by('ppd.packages_properties_days_id', 'ASC')
+				->get()->result_array();
+
+			$daysOut = array();
+
+			foreach ($days as $d) {
+				$ppdId = (int)$d['packages_properties_days_id'];
+
+				$props = $this->db->select('
+						pp.packages_properties_id,
+						pp.properties_id_fk as property_id,
+						p.properties_name
+					')
+					->from('packages_properties pp')
+					->join('properties p', 'p.properties_id = pp.properties_id_fk', 'left')
+					->where('pp.packages_properties_days_id_fk', $ppdId)
+					->order_by('pp.packages_properties_id', 'ASC')
+					->get()->result_array();
+
+				$propsOut = array();
+
+				foreach ($props as $p) {
+					$ppId = (int)$p['packages_properties_id'];
+
+					$rooms = $this->db->select('
+							ppr.packages_properties_rooms_id_fk as room_id,
+							rc.properties_room_category_name as room_name
+						')
+						->from('packages_properties_rooms ppr')
+						->join('properties_room_category rc', 'rc.properties_room_category_id = ppr.packages_properties_rooms_id_fk', 'left')
+						->where('ppr.packages_properties_id_fk', $ppId)
+						->order_by('ppr.packages_properties_rooms_id', 'ASC')
+						->get()->result_array();
+
+					$roomsOut = array();
+					foreach ($rooms as $r) {
+						$roomsOut[] = array(
+							'id'   => (string)$r['room_id'],
+							'text' => (string)$r['room_name']
+						);
+					}
+
+					$propsOut[] = array(
+						'property_id'   => (string)$p['property_id'],
+						'property_name' => (string)$p['properties_name'],
+						'rooms'         => $roomsOut
+					);
+				}
+
+				$daysOut[] = array(
+					'itineraries_days_id_fk' => (string)$d['itineraries_days_id_fk'],
+					'destination_id'         => (string)$d['destination_id'],
+					'properties'             => $propsOut
+				);
+			}
+
+			$out[] = array(
+				'packages_properties_common_category_name' => $sec['packages_properties_common_category_name'],
+				'packages_properties_common_design_type'   => $sec['packages_properties_common_design_type'],
+				'days'                                     => $daysOut
+			);
+		}
+
+		return $out;
+	}
+
 	public function save($data)
 	{
 		$this->db->insert($this->table, $data);

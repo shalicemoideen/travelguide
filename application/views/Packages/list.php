@@ -32,6 +32,21 @@
   border: 1px solid #ddd;
 }
 </style>
+<style>
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -49,85 +64,45 @@
                                     <div class="card-header" id="Create" style="display:none">
                                         <div class="d-flex align-items-center">
                                             <div class="row row-demo-grid hdr-filter-dd-fullwd">
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-4">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="packages_title_filter" name="packages_title_filter" required>  
-                            
-                                                                    <option value="">Please Select template</option>
-                                                                    <?php
-
-                                                                    foreach($package as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->packages_title.'" '.$sel.'>'.$row->packages_title.'</option>';
-
-                                                                    }
-
-                                                                    ?>
-                                                            </select>
+                                                            <select class="form-control input-lg" id="packages_title_filter" name="packages_title_filter"></select>
                                                         </div>
                                                     </div>
                                                 </div>  
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-4">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="packages_category_id_filter" name="packages_category_id_filter"  required>  
-                            
-                                                                   <option value="">Please Select Template category</option>
-
-                                                                    <?php foreach($pcategory as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->package_category_id.'">'.$row->package_category_name.'</option>';
-                                                                        } ?>
-                                                            </select>
+                                                            <select class="form-control input-lg" id="packages_category_id_filter" name="packages_category_id_filter"></select>
                                                         </div>
                                                     </div>
                                                 </div> 
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-4">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="packages_itinerary_category_id_filter" name="packages_itinerary_category_id_filter" required>  
-                            
-                                                                    <option value="">Please Select itinerary category</option>                            
-                                                                    <?php foreach($itcategory as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->itinerary_category_id.'">'.$row->itinerary_category_name.'</option>';
-                                                                        } ?>
-                                                            </select>
+                                                            <select class="form-control input-lg" id="packages_itinerary_category_id_filter" name="packages_itinerary_category_id_filter"></select>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-4">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select data-validation="required"  data-pms-required="true" class="form-control input-lg multi-select" id="packages_itinerary_id_filter" name="packages_itinerary_id_filter" required>  
-                            
-                                                                    <option value="">Please Select itinerary</option>                            
-                                                                    <?php foreach($itinerary as $row) {
-                                                                            // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                            echo '<option value="'.$row->itineraries_id.'">'.$row->itineraries_name.'</option>';
-                                                                        } ?>
-                                                            </select>
+                                                            <select class="form-control input-lg" id="packages_itinerary_id_filter" name="packages_itinerary_id_filter"></select>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-sm-6 col-md-5">
+                                                <div class="col-sm-6 col-md-4">
                                                     <div class="card">
                                                         <div class="input-group">
                                                             <input type="text" class="form-control" placeholder="Duration in nights" id="packages_duration_in_nights_filter" name="packages_duration_in_nights_filter" required>
                                                         </div>
                                                     </div>
                                                 </div>                          
-                                                <div class="col-sm-6 col-md-5 staff-do-not-show">
+                                                <div class="col-sm-6 col-md-4 staff-do-not-show">
                                                     <div class="card">
                                                         <div class="input-group">
-                                                            <select name="packages_createdby_user_id" id="packages_createdby_user_id" class="form-control input-lg multi-select" required>                                     
-                                                                <option value="">Please Select Created by</option>                            
-                                                                <?php foreach($users as $row) {
-                                                                        // $sel = ($records->state==$row->state_id)?'selected':'';
-                                                                        echo '<option value="'.$row->user_id.'">'.$row->admin_name.'</option>';
-                                                                    } ?>
+                                                            <select name="packages_createdby_user_id" id="packages_createdby_user_id" class="form-control input-lg">
                                                             </select>
                                                         </div>
                                                     </div>
@@ -144,14 +119,12 @@
                                                 </div>
                                                 <div class="col-sm-2 col-md-3">
                                                     <div class="card">
-                                                        <a href="<?php echo base_url();?>Packages">
-                                                        <button type="button" class="btn btn-secondary btn-md" id="search">
+                                                        <button type="button" class="btn btn-secondary btn-md" id="btnFilterRefresh">
                                                             <span class="btn-label">
                                                                 <i class="icon-refresh"></i>
                                                             </span>
                                                             Refresh
                                                         </button>
-                                                        </a>
                                                     </div>
                                                 </div>
                                                 
@@ -244,15 +217,7 @@
                                     <div class="form-group">
                                         <label class="col-lg-9 col-form-label" for="packages_category_id_fk"><b>Template category</b> <span class="text-danger">*</span>
                                         </label>
-                                            <select name="packages_category_id_fk" id="packages_category_id_fk" class="form-control multi-select" required>                                     
-                                                <option value="">Select template category</option>                            
-                                                                    <?php foreach($pcategory as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->package_category_id.'" '.$sel.'>'.$row->package_category_name.'</option>';
-
-                                                                    } ?>
-                                            </select>
+                                            <select name="packages_category_id_fk" id="packages_category_id_fk" class="form-control" required></select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
                                 </div>
@@ -261,15 +226,7 @@
                                     <div class="form-group">
                                         <label class="col-lg-7 col-form-label" for="packages_itinerary_category_id_fk"><b>Itinerary category</b> <span class="text-danger">*</span>
                                         </label>
-                                            <select name="packages_itinerary_category_id_fk" id="packages_itinerary_category_id_fk" class="form-control multi-select" required>                                     
-                                                <option value="">Please Select itinerary category</option>                            
-                                                                    <?php foreach($itcategory as $row)
-                                                                    {
-                                                                        
-                                                                        echo '<option value="'.$row->itinerary_category_id.'" '.$sel.'>'.$row->itinerary_category_name.'</option>';
-
-                                                                    } ?>
-                                            </select>
+                                            <select name="packages_itinerary_category_id_fk" id="packages_itinerary_category_id_fk" class="form-control" required></select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
                                 </div>
@@ -369,15 +326,7 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 
-                                                    <select name="packages_inclusion_exclusion_common_id_fk" id="packages_inclusion_exclusion_common_id_fk" class="form-control multi-select" required>                                     
-                                                        <option value="">Please Search by title</option>                            
-                                                                            <?php foreach($inclusions_exclusion as $row)
-                                                                            {
-                                                                                
-                                                                                echo '<option value="'.$row->inclusion_exclusion_common_id.'" '.$sel.'>'.$row->inclusion_exclusion_common_title.'</option>';
-
-                                                                            } ?>
-                                                    </select>
+                                                    <select name="packages_inclusion_exclusion_common_id_fk" id="packages_inclusion_exclusion_common_id_fk" class="form-control" required></select>
                                                     <span class="help-block" style="color:red"></span>
                                             </div>
                                         </div>
@@ -472,15 +421,7 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 
-                                                    <select name="payment_policies_id_fk" id="payment_policies_id_fk" class="form-control multi-select" required>                                     
-                                                        <option value="">Please Search by title</option>                            
-                                                                            <?php foreach($payment_policies as $row)
-                                                                            {
-                                                                                
-                                                                                echo '<option value="'.$row->payment_policies_id.'" '.$sel.'>'.$row->payment_policies_name.'</option>';
-
-                                                                            } ?>
-                                                    </select>
+                                                    <select name="payment_policies_id_fk" id="payment_policies_id_fk" class="form-control" required></select>
                                                     <span class="help-block" style="color:red"></span>
                                             </div>
                                         </div>
@@ -508,15 +449,7 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 
-                                                    <select name="terms_condition_id_fk" id="terms_condition_id_fk" class="form-control multi-select" required>                                     
-                                                        <option value="">Please Search by title</option>                            
-                                                                            <?php foreach($terms_condition as $row)
-                                                                            {
-                                                                                
-                                                                                echo '<option value="'.$row->terms_condition_id.'" '.$sel.'>'.$row->terms_condition_name.'</option>';
-
-                                                                            } ?>
-                                                    </select>
+                                                    <select name="terms_condition_id_fk" id="terms_condition_id_fk" class="form-control" required></select>
                                                     <span class="help-block" style="color:red"></span>
                                             </div>
                                         </div>
@@ -544,15 +477,7 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 
-                                                    <select name="cancellation_policies_id_fk" id="cancellation_policies_id_fk" class="form-control multi-select" required>                                     
-                                                        <option value="">Please Search by title</option>                            
-                                                                            <?php foreach($cancellation_policies as $row)
-                                                                            {
-                                                                                
-                                                                                echo '<option value="'.$row->cancellation_policies_id.'" '.$sel.'>'.$row->cancellation_policies_name.'</option>';
-
-                                                                            } ?>
-                                                    </select>
+                                                    <select name="cancellation_policies_id_fk" id="cancellation_policies_id_fk" class="form-control" required></select>
                                                     <span class="help-block" style="color:red"></span>
                                             </div>
                                         </div>

@@ -16,7 +16,7 @@ $flash_response = $this->session->flashdata('response');
                                 <button type="button" id="btn_toggle_file_saving"
                                     class="btn btn-sm <?php echo (isset($records->meta_force_stop) && $records->meta_force_stop === 'Y') ? 'btn-danger' : 'btn-success'; ?>"
                                     data-current="<?php echo (isset($records->meta_force_stop) ? $records->meta_force_stop : 'N'); ?>">
-                                    <?php echo (isset($records->meta_force_stop) && $records->meta_force_stop === 'Y') ? 'Stopped (Click to Enable)' : 'Enabled (Click to Stop)'; ?>
+                                    <?php echo (isset($records->meta_force_stop) && $records->meta_force_stop === 'Y') ? 'Meta Lead Stopped (Click to Enable)' : 'Meat Lead Enabled (Click to Stop)'; ?>
                                 </button>
                             </div>
                             <div class="card-body">

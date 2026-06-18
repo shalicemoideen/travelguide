@@ -606,7 +606,15 @@ private function _upload_single_normal_file($fieldName, $uploadPath, $allowed = 
 	public function ajax_edit($id)
 	{
 		$data = $this->Itinerary_model->get_by_id($id);
-		// $data->dob = ($data->dob == '0000-00-00') ? '' : $data->dob; // if 0000-00-00 set tu empty for datepicker compatibility
+		if ($data && $data->itineraries_category_id_fk) {
+			$this->db->select('itinerary_category_name');
+			$this->db->from('itinerary_category');
+			$this->db->where('itinerary_category_id', $data->itineraries_category_id_fk);
+			$cat = $this->db->get()->row();
+			$data->itinerary_category_name = $cat ? $cat->itinerary_category_name : '';
+		} else {
+			if ($data) $data->itinerary_category_name = '';
+		}
 		echo json_encode($data);
 	}
 

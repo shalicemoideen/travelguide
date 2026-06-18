@@ -1,21 +1,73 @@
 
 <script type="text/javascript">
 
-////***Select2 option *****///
+////***Select2 AJAX option *****///
 
+// Quotation number filter - AJAX Select2
 $("#quotation_number_filter").select2({
-  // dropdownParent: $("#LeadsModal"),
-  minimumResultsForSearch: 0
+  width: '100%',
+  placeholder: 'Please Select Quotation number',
+  allowClear: true,
+  ajax: {
+    url: '<?php echo base_url(); ?>index.php/Quotation/ajax_filter_quotations',
+    dataType: 'json',
+    delay: 250,
+    data: function(params) {
+      return { q: params.term };
+    },
+    processResults: function(data) {
+      return data;
+    },
+    cache: true
+  }
 });
 
-$("#leads_id_filter").select2({
-  // dropdownParent: $("#LeadsModal"),
-  minimumResultsForSearch: 0
-});
-
+// Package filter - AJAX Select2
 $("#package_id_filter").select2({
-  // dropdownParent: $("#LeadsModal"),
-  minimumResultsForSearch: 0
+  width: '100%',
+  placeholder: 'Please Select package',
+  allowClear: true,
+  ajax: {
+    url: '<?php echo base_url(); ?>index.php/Quotation/ajax_filter_packages',
+    dataType: 'json',
+    delay: 250,
+    data: function(params) {
+      return { q: params.term };
+    },
+    processResults: function(data) {
+      return data;
+    },
+    cache: true
+  }
+});
+
+// Leads filter - AJAX Select2 (shows lead number + guest name)
+$("#leads_id_filter").select2({
+  width: '100%',
+  placeholder: 'Please Select lead',
+  allowClear: true,
+  ajax: {
+    url: '<?php echo base_url(); ?>index.php/Quotation/ajax_filter_leads',
+    dataType: 'json',
+    delay: 250,
+    data: function(params) {
+      return { q: params.term };
+    },
+    processResults: function(data) {
+      return data;
+    },
+    cache: true
+  }
+});
+
+// Fix Select2 focus issue - force focus search input when dropdown opens
+$(document).on('select2:open', function() {
+  setTimeout(function() {
+    var searchInput = document.querySelector('.select2-container--open .select2-search__field');
+    if (searchInput) {
+      searchInput.focus();
+    }
+  }, 100);
 });
 $("#quotation_created_by_userid").select2({
   // dropdownParent: $("#LeadsModal"),
@@ -70,17 +122,24 @@ $('#quotation_date').datepicker({
 
 
 
-$('#start_date').bootstrapMaterialDatePicker({
-    weekStart: 0,
-    time: false,
-    format: 'DD/MM/YYYY'
-})
+// Date range picker for quotation date filter
+$('#quotation_daterange').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+        format: 'DD/MM/YYYY',
+        cancelLabel: 'Clear'
+    }
+});
 
-$('#end_date').bootstrapMaterialDatePicker({
-    weekStart: 0,
-    time: false,
-    format: 'DD/MM/YYYY'
-})
+$('#quotation_daterange').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(
+        picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+    );
+});
+
+$('#quotation_daterange').on('cancel.daterangepicker', function() {
+    $(this).val('');
+});
  
 ////***Date picker *****///
 
@@ -110,27 +169,42 @@ $(document).ready(function () {
 ////***searching button*****///
 
 $('#search').click(function () {
-        
-        $table.ajax.reload();
-    });
+    $table.ajax.reload();
+});
 
 $('#search1').click(function () {
-        
-        $table1.ajax.reload();
-    });
+    $table1.ajax.reload();
+});
 
 $('#search2').click(function () {
-        
-        $table2.ajax.reload();
-    });
-$( "#guest_name" ).keypress(function() {
-            $table.ajax.reload();
+    $table2.ajax.reload();
 });
-$( "#arriving_destination_filter" ).keypress(function() {
-            $table.ajax.reload();
+
+$("#guest_name").keypress(function() {
+    $table.ajax.reload();
 });
-$( "#departuring_destination_filter" ).keypress(function() {
-            $table.ajax.reload();
+$("#arriving_destination_filter").keypress(function() {
+    $table.ajax.reload();
+});
+$("#departuring_destination_filter").keypress(function() {
+    $table.ajax.reload();
+});
+
+// Reset filter button
+$('#reset_filter').click(function() {
+    // Clear all filter inputs
+    $('#quotation_number_filter').val(null).trigger('change');
+    $('#package_id_filter').val(null).trigger('change');
+    $('#leads_id_filter').val(null).trigger('change');
+    $('#quotation_current_status_filter').val('').trigger('change');
+    $('#guest_name').val('');
+    $('#arriving_destination_filter').val('');
+    $('#departuring_destination_filter').val('');
+    $('#quotation_daterange').val('');
+    $('#quotation_created_by_userid').val('').trigger('change');
+
+    // Reload table
+    $table.ajax.reload();
 });
 ////***searching button*****///
 
@@ -153,20 +227,23 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                                    }
+                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                    },
+                                    title: 'Quotation details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                                    }
+                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                    },
+                                    title: 'Quotation details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7]
-                                    }
+                                        columns: [0 ,1, 2, 3, 4, 5, 6]
+                                    },
+                                    title: 'Quotation details'
                                 },
                                
             ],
@@ -174,18 +251,25 @@ var table;
             "url": "<?php echo base_url();?>index.php/Quotation/get/",
             "type": "POST",
             "data" : function (d) {
-                        d.quotation_number_filter = $("#quotation_number_filter").val();
-                        d.leads_id_filter = $("#leads_id_filter").val();
-                        d.guest_name = $("#guest_name").val();
-                        d.package_id_filter = $("#package_id_filter").val();
-                        d.arriving_destination_filter = $("#arriving_destination_filter").val();
-                        d.departuring_destination_filter = $("#departuring_destination_filter").val();
-                        d.quotation_current_status_filter = $("#quotation_current_status_filter").val();
-                        d.quotation_created_by_userid = $("#quotation_created_by_userid").val();
-                        d.start_date = $("#start_date").val();
-                        d.end_date = $("#end_date").val();
-                        
-                       
+                d.quotation_number_filter = $("#quotation_number_filter").val();
+                d.leads_id_filter = $("#leads_id_filter").val();
+                d.guest_name = $("#guest_name").val();
+                d.package_id_filter = $("#package_id_filter").val();
+                d.arriving_destination_filter = $("#arriving_destination_filter").val();
+                d.departuring_destination_filter = $("#departuring_destination_filter").val();
+                d.quotation_current_status_filter = $("#quotation_current_status_filter").val();
+                d.quotation_created_by_userid = $("#quotation_created_by_userid").val();
+
+                // Date range filter
+                var dateRange = $("#quotation_daterange").val();
+                if (dateRange) {
+                    var dates = dateRange.split(' - ');
+                    d.start_date = dates[0] || '';
+                    d.end_date = dates[1] || '';
+                } else {
+                    d.start_date = '';
+                    d.end_date = '';
+                }
            }            
         },
         "createdRow": function ( row, data, index ) {
@@ -196,13 +280,15 @@ var table;
             });
             
             
+            $table.column(6).nodes().each(function(node, index, dt) {
+            if($table.cell(node).data() == '1') {
             
-            
-            if(data['quotation_current_status'] == 1){
-              $('td', row).eq(7).html('<span class="badge badge-secondary">Generated</span>');
+            // if(data['quotation_current_status'] == 1){
+              $table.cell(node).data('<span class="badge badge-secondary">Generated</span>');
+              
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
 
-                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -235,13 +321,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(9).html(actionHtml);
+                $('td', row).eq(8).html(actionHtml);
             }
-            else if(data['quotation_current_status'] == 2){
-              $('td', row).eq(7).html('<span class="badge badge-light">Draft</span>');
+            else if($table.cell(node).data() == '2') {
+            // else if(data['quotation_current_status'] == 2){
+              $table.cell(node).data('<span class="badge badge-light">Draft</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
-            $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+            $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -273,13 +360,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(9).html(actionHtml);
+                $('td', row).eq(8).html(actionHtml);
             }
-            else if(data['quotation_current_status'] == 3){
-              $('td', row).eq(7).html('<span class="badge badge-info">Sent</span>');
+            else if($table.cell(node).data() == '3') {
+            // else if(data['quotation_current_status'] == 3){
+              $table.cell(node).data('<span class="badge badge-info">Sent</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
-            $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+            $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -311,13 +399,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(9).html(actionHtml);
+                $('td', row).eq(8).html(actionHtml);
             }
-            else if(data['quotation_current_status'] == 4){
-              $('td', row).eq(7).html('<span class="badge badge-danger">Rejected</span>');
+            else if($table.cell(node).data() == '4') {
+            // else if(data['quotation_current_status'] == 4){
+              $table.cell(node).data('<span class="badge badge-danger">Rejected</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
-            $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+            $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -350,13 +439,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(9).html(actionHtml);
+                $('td', row).eq(8).html(actionHtml);
             }
-            else if(data['quotation_current_status'] == 5){
-              $('td', row).eq(7).html('<span class="badge badge-success">Accepted</span>');
+            else if($table.cell(node).data() == '5') {
+            // else if(data['quotation_current_status'] == 5){
+              $table.cell(node).data('<span class="badge badge-success">Accepted</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
               
-                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -389,13 +479,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(9).html(actionHtml);  
+                $('td', row).eq(8).html(actionHtml);  
             }
-            else if(data['quotation_current_status'] == 6){
-              $('td', row).eq(7).html('<span class="badge badge-danger">Cancelled</span>');
+            else if($table.cell(node).data() == '6') {
+            // else if(data['quotation_current_status'] == 6){
+              $table.cell(node).data('<span class="badge badge-danger">Cancelled</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
 
-                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -415,8 +506,11 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(9).html(actionHtml);
+                $('td', row).eq(8).html(actionHtml);
             }
+            });
+
+            $('td', row).eq(2).html('<center><a href="javascript:void(0)" class="text-primary" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+' ('+data['guest_name']+')</a></center>')
             // <a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="convert_trip('+data['quotation_id']+')">Convert to trips</a>
            },
 
@@ -427,7 +521,6 @@ var table;
         "columns": [
             { "data": "quotation_status", "orderable": false },
             { "data": "quotation_number", "orderable": false },
-            { "data": "guest_name", "orderable": false },
             { "data": "leads_number", "orderable": false },
             { "data": "packages_title", "orderable": false },
             { "data": "quotation_date", "orderable": false },
