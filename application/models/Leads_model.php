@@ -677,11 +677,24 @@ class Leads_model extends CI_Model{
 	{
 		$this->db->select('leads_id');
 		$this->db->from('leads');
+		$this->db->where("lead_type",'B2C');
 		$this->db->where("leads_status",1);
 		$this->db->order_by('leads_id','DESC');
 		$this->db->limit('1');
 		$query = $this->db->get();
 		return $query->row();
+	}
+
+	public function last_meta_lead_number()
+	{
+		$this->db->select('leads_number');
+		$this->db->from('leads');
+		$this->db->where('lead_type', 'Meta Lead');
+		$this->db->like('leads_number', 'Meta-Lead-', 'after');
+		$this->db->order_by('leads_id', 'DESC');
+		$this->db->limit(1);
+
+		return $this->db->get()->row();
 	}
 
 	function fetch_source()
@@ -1077,7 +1090,9 @@ class Leads_model extends CI_Model{
 				ps.priority_status_button,
 				st.stages_button,
 				a.admin_name as agent_name,
-				m.meta_ads_setting_name
+				m.meta_ads_setting_name,
+				uc.admin_name as created_by_admin_name,
+				uu.admin_name as updated_by_admin_name
 			')
 			->from('leads l')
 			->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left')
@@ -1088,6 +1103,8 @@ class Leads_model extends CI_Model{
 			->join('stages st', 'st.stages_id = l.stage_id_fk', 'left')
 			->join('user_details a', 'a.user_id = l.agent_id_fk', 'left')
 			->join('meta_ads_setting m', 'm.facebook_form_id = l.meta_form_id', 'left')
+			->join('user_details uc', 'uc.user_id = l.leads_createdby_userid', 'left')
+			->join('user_details uu', 'uu.user_id = l.leads_updatedby_user_id', 'left')
 			->where('l.leads_id', $id)
 			->get()
 			->row_array();

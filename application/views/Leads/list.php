@@ -142,43 +142,76 @@
   animation: shakeX 280ms ease-in-out;
 }
 
-/* Reduce column padding and font size for a compact view */
-#B2C_Leads_table {
-    width: 100% !important;
-    table-layout: auto;
-}
-
-#B2C_Leads_table th, 
-#B2C_Leads_table td {
-    padding: 5px 8px !important; /* Tightens the spacing */
-    font-size: 12px;             /* Smaller text to fit more columns */
-    white-space: nowrap;         /* Prevents text from wrapping to multiple lines */
-}
-
-/* Optional: allow wrapping on specific long text columns like 'Description' */
-#B2C_Leads_table td.allow-wrap {
-    white-space: normal;
-    min-width: 130px;
-}
-
-/* Reduce column padding and font size for a compact view */
+/* Compact leads tables */
+#B2C_Leads_table,
 #meta_Leads_table {
     width: 100% !important;
+    font-size: 11px;
     table-layout: auto;
 }
 
-#meta_Leads_table th, 
-#meta_Leads_table td {
-    padding: 5px 8px !important; /* Tightens the spacing */
-    font-size: 12px;             /* Smaller text to fit more columns */
-    white-space: nowrap;         /* Prevents text from wrapping to multiple lines */
+#B2C_Leads_table thead th,
+#meta_Leads_table thead th,
+#B2C_Leads_table tbody td,
+#meta_Leads_table tbody td {
+    padding: 4px 6px;
+    font-size: 11px;
+    white-space: nowrap;
 }
 
-/* Optional: allow wrapping on specific long text columns like 'Description' */
-#meta_Leads_table td.allow-wrap {
-    white-space: normal;
-    min-width: 130px;
+#B2C_Leads_table thead th,
+#meta_Leads_table thead th {
+    font-size: 12px;
+    font-weight: 600;
 }
+
+/* Pagination active page number color */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #E23428 !important;
+    background-color: #E23428 !important;
+    color: #fff !important;
+    border-color: #E23428 !important;
+    font-weight: 600;
+}
+
+/* Leads tab content spacing and layout */
+#Manualleads,
+#Metaleads,
+#B2Bleads {
+    padding: 15px;
+}
+
+#Manualleads .d-flex.justify-content-between,
+#Metaleads .d-flex.justify-content-between,
+#B2Bleads .d-flex.justify-content-between {
+    margin-bottom: 15px;
+}
+
+#Manualleads .dataTables_wrapper,
+#Metaleads .dataTables_wrapper,
+#B2Bleads .dataTables_wrapper {
+    padding: 10px 0;
+}
+
+#Manualleads .dt-buttons,
+#Metaleads .dt-buttons,
+#B2Bleads .dt-buttons {
+    margin-bottom: 10px;
+}
+
+#Manualleads .dataTables_length,
+#Metaleads .dataTables_length,
+#B2Bleads .dataTables_length {
+    margin-bottom: 10px;
+}
+
+#Manualleads .table-responsive,
+#Metaleads .table-responsive,
+#B2Bleads .table-responsive {
+    padding: 0 5px;
+}
+
 </style>
 <style>
   .lead-view-modal{
@@ -637,11 +670,9 @@ a.leads-number-link:hover {
 														<th>Travel date</th>
                             <th>Duration</th>
                             <th>Assigned staff</th>
-                            <th>Template</th>
                             <th>Status</th>
 														<th class="text-center">Stage</th>
                             <th>Priority</th>
-                            <th>Created by</th>
 														<th class="bg-none">Action</th>
 													</tr>
 												</thead>
@@ -829,11 +860,9 @@ a.leads-number-link:hover {
 														<th>Travel date</th>
                             <th>Duration</th>
                             <th>Assigned staff</th>
-                            <th>Ads name</th>
                             <th>Status</th>
 														<th class="text-center">Stage</th>
                             <th>Priority</th>
-                            <th>Created by</th>
 														<th class="bg-none">Action</th>
 													</tr>
 												</thead>
@@ -1124,7 +1153,7 @@ a.leads-number-link:hover {
                                         <label class="col-lg-5 col-form-label" for="transporter_contact_person_name1">Nationality <span class="text-danger">*</span>
                                         </label>
                                             <select name="country_id_fk" id="country_id_fk" class="form-control input-lg lst-flt-select2-form" required>
-                                                <option value=""></option>
+                                                <option value="99" selected>INDIA</option>
                                             </select>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -1580,49 +1609,49 @@ a.leads-number-link:hover {
     <div class="modal-content lead-view-modal">
 
       <div class="modal-header lead-view-header">
-        <h5 class="modal-title3" id="LeadsViewLabel">Lead Details</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title" id="LeadsViewLabel"><i class="fas fa-user-tag me-2"></i>Lead Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <div class="modal-body">
 
-  <ul class="nav nav-tabs mb-3" id="leadViewTabs" role="tablist">
-    <li class="nav-item">
-      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#leadDetailsTab" type="button">
-        Lead Details
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#guestAccommodationTab" type="button">
-        Guest Count & Accommodation
-      </button>
-    </li>
-  </ul>
+        <ul class="nav nav-tabs mb-3" id="leadViewTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#leadDetailsTab" type="button">
+              <i class="fas fa-info-circle me-1"></i>Lead Details
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#guestAccommodationTab" type="button">
+              <i class="fas fa-bed me-1"></i>Guest Count & Accommodation
+            </button>
+          </li>
+        </ul>
 
-  <div class="tab-content">
-    <div class="tab-pane fade show active" id="leadDetailsTab">
-      <div id="leadViewBody">
-        <div class="text-center py-5">
-          <div class="spinner-border text-primary"></div>
-          <p class="mt-2 mb-0">Loading lead details...</p>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="leadDetailsTab">
+            <div id="leadViewBody">
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-2 mb-0">Loading lead details...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="guestAccommodationTab">
+            <div id="guestAccommodationBody">
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-2 mb-0">Loading guest and accommodation details...</p>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
-    </div>
 
-    <div class="tab-pane fade" id="guestAccommodationTab">
-      <div id="guestAccommodationBody">
-        <div class="text-center py-5">
-          <div class="spinner-border text-primary"></div>
-          <p class="mt-2 mb-0">Loading guest and accommodation details...</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-      <div class="modal-footer bg-light">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <div class="modal-footer">
+        <button class="btn btn-danger light" data-bs-dismiss="modal">Close</button>
       </div>
 
     </div>

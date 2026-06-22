@@ -478,7 +478,7 @@ var table1;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'B2C Leads details',
                                     customize: function ( win ) {
@@ -496,7 +496,7 @@ var table1;
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'B2C Leads details',
                                     customize: function ( win ) {
@@ -514,7 +514,7 @@ var table1;
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'B2C Leads details',
                                     customize: function ( win ) {
@@ -588,7 +588,7 @@ var table1;
             });
             
             
-            $table1.column(9).nodes().each(function(node, index, dt) {
+            $table1.column(8).nodes().each(function(node, index, dt) {
               if($table1.cell(node).data() == '1') {
 			  $table1.cell(node).data('<center><span class="badge badge-sm light btn-info">In take</span></center>');
             //   <span class="badge badge-sm light" style="background-color:'.$stages_button.'">'.$stages_name.'</span>
@@ -598,7 +598,7 @@ var table1;
               if(data['leads_accomodation_status'] == 0 && data['leads_quotation_status'] == 0){
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -643,13 +643,13 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
               if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
 
@@ -702,13 +702,13 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
 
@@ -766,12 +766,12 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -814,11 +814,11 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-danger">Cancelled/Quotation not created</span>');
 
@@ -876,7 +876,7 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
             else if($table1.cell(node).data() == '2') {
@@ -887,7 +887,7 @@ var table1;
               if(data['leads_accomodation_status'] == 0 && data['leads_quotation_status'] == 0){
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -932,13 +932,13 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
               if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
 
@@ -991,13 +991,13 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
 
@@ -1055,12 +1055,12 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -1103,11 +1103,11 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Cancelled/Quotation not created</span>');
 
@@ -1165,7 +1165,7 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
              else if($table1.cell(node).data() == '3') {
@@ -1175,7 +1175,7 @@ var table1;
 
              $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a>');
               
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -1220,7 +1220,7 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 
             }
@@ -1233,7 +1233,7 @@ var table1;
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -1278,14 +1278,14 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
               if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 0){
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 
@@ -1336,14 +1336,14 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 
@@ -1399,12 +1399,12 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -1447,11 +1447,11 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Cancelled/Quotation not created</span>');
 
@@ -1509,7 +1509,7 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
             else if($table1.cell(node).data() == '5') {
@@ -1521,7 +1521,7 @@ var table1;
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -1566,7 +1566,7 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
@@ -1574,7 +1574,7 @@ var table1;
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
                 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 
@@ -1625,13 +1625,13 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
 
@@ -1689,12 +1689,12 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -1737,11 +1737,11 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Cancelled/Quotation not created</span>');
 
@@ -1799,14 +1799,14 @@ var table1;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
         
           });
           
           
-            $('td', row).eq(4).html('<center>'+data['start_date']+'-'+data['leads_created_time']+'</center>');
+            // $('td', row).eq(4).html('<center>'+data['leads_created_at']+'</center>');
             
            },
 
@@ -1823,11 +1823,9 @@ var table1;
             { "data": "start_date", "orderable": false },
             { "data": "duration", "orderable": false },
             { "data": "admin_name", "orderable": false },
-            { "data": "packages_title", "orderable": false },
             { "data": "lead_current_status", "orderable": false },
             { "data": "stages_button", "orderable": false },
             { "data": "priority_status_button", "orderable": false },
-            { "data": "leads_createdby_username", "orderable": false },                      
             { "data": "leads_id", "orderable": false }
             
             
@@ -1893,7 +1891,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Meta Leads details',
                                     customize: function ( win ) {
@@ -1911,7 +1909,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Meta Leads details',
                                     customize: function ( win ) {
@@ -1929,7 +1927,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Meta Leads details',
                                     customize: function ( win ) {
@@ -2003,7 +2001,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
             
             
 
-            $table2.column(9).nodes().each(function(node, index, dt) {
+            $table2.column(8).nodes().each(function(node, index, dt) {
               if($table2.cell(node).data() == '1') {
 					    $table2.cell(node).data('<center><span class="badge badge-sm light btn-info">In take</span></center>');
               // if(data['lead_current_status'] == 1){
@@ -2012,7 +2010,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
               if(data['leads_accomodation_status'] == 0 && data['leads_quotation_status'] == 0){
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -2057,13 +2055,13 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
               if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
 
@@ -2116,13 +2114,13 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
 
@@ -2180,12 +2178,12 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -2228,11 +2226,11 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-danger">Cancelled/Quotation not created</span>');
 
@@ -2290,7 +2288,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
             else if($table2.cell(node).data() == '2') {
@@ -2301,7 +2299,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
               if(data['leads_accomodation_status'] == 0 && data['leads_quotation_status'] == 0){
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -2346,13 +2344,13 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
               if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
 
@@ -2405,13 +2403,13 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
 
@@ -2469,12 +2467,12 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -2517,11 +2515,11 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Cancelled/Quotation not created</span>');
 
@@ -2579,7 +2577,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
              else if($table2.cell(node).data() == '3') {
@@ -2589,7 +2587,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
              $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a>');
               
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -2634,7 +2632,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 
             }
@@ -2647,7 +2645,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -2692,14 +2690,14 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
               if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 0){
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 
@@ -2750,14 +2748,14 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 
@@ -2813,12 +2811,12 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -2861,11 +2859,11 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Cancelled/Quotation not created</span>');
 
@@ -2923,11 +2921,11 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
             else if($table2.cell(node).data() == '5') {
-					    $table2.cell(node).data('<center><span class="badge badge-sm light btn-danger">Lost</span></center>');
+				$table2.cell(node).data('<center><span class="badge badge-sm light btn-danger">Lost</span></center>');
             // else if(data['lead_current_status'] == 5){
               // $('td', row).eq(9).html('<span class="badge badge-danger">Lost</span>');
 
@@ -2935,7 +2933,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
               
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-primary">guest count required</span>');
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
               
                  let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 // Edit button
@@ -2980,7 +2978,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
               
@@ -2988,7 +2986,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-warning">accommodation required</span>');
                 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
                 
@@ -3039,13 +3037,13 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
                 }
 
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 0){
 
-                // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Quotation not created</span>');
 
@@ -3103,12 +3101,12 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
 
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
 
@@ -3151,11 +3149,11 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 2){
 
-                    // $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
+                    // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
 
                     $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-info">Cancelled/Quotation not created</span>');
 
@@ -3213,16 +3211,16 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(13).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
               }
             }
         
           });
         
 
-           $('td', row).eq(1).html('<center><a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a></center>');
+        //    $('td', row).eq(1).html('<center><a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a></center>');
 
-           $('td', row).eq(4).html('<center>'+data['lead_register_date']+'|'+data['leads_created_time']+'</center>');
+        //    $('td', row).eq(4).html('<center>'+data['leads_created_at']+'</center>');
             
             
            },
@@ -3240,11 +3238,9 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
             { "data": "start_date", "orderable": false },
             { "data": "duration", "orderable": false },
             { "data": "admin_name", "orderable": false },
-            { "data": "meta_ads_setting_name", "orderable": false },
             { "data": "lead_current_status", "orderable": false },
             { "data": "stages_button", "orderable": false },
             { "data": "priority_status_button", "orderable": false },
-            { "data": "leads_createdby_username", "orderable": false },                      
             { "data": "leads_id", "orderable": false }
             
             
@@ -3318,12 +3314,12 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
             // if(data['leads_accomodation_status'] == 0){
 
-            //   $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_room_tariff('+data['room_tariff_hike_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_tariff('+data['room_tariff_hike_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="<?php echo base_url();?>index.php/Room_tariff_management/View/'+data['room_tariff_hike_id']+'" >View Details</a></div></div>');
+            //   $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_room_tariff('+data['room_tariff_hike_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_tariff('+data['room_tariff_hike_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="<?php echo base_url();?>index.php/Room_tariff_management/View/'+data['room_tariff_hike_id']+'" >View Details</a></div></div>');
             // }
             
             //  if(data['leads_accomodation_status'] == 1){
               
-            //   $('td', row).eq(13).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_room_tariff('+data['room_tariff_hike_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_tariff('+data['room_tariff_hike_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="<?php echo base_url();?>index.php/Room_tariff_management/View/'+data['room_tariff_hike_id']+'" >View Details</a></div></div>');
+            //   $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_room_tariff('+data['room_tariff_hike_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_room_tariff('+data['room_tariff_hike_id']+')">Delete</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="guset_count_edit('+data['leads_id']+')">Guest count</a><a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="accomodation_plan('+data['leads_id']+')">Accomodation plan</a><a class="dropdown-item" href="<?php echo base_url();?>index.php/Room_tariff_management/View/'+data['room_tariff_hike_id']+'" >View Details</a></div></div>');
             //  }
 
             //  if(data['leads_accomodation_status'] == 2){
@@ -3582,7 +3578,7 @@ function buildLeadTopSection(d)
                     <div class="mini-info-row">
                         <div class="mini-pill"><strong>Stage:</strong> ${cleanButtonHtml(d.stages_button)}</div>
                         <div class="mini-pill"><strong>Priority:</strong> ${cleanButtonHtml(d.priority_status_button)}</div>
-                        <div class="mini-pill"><strong>Created:</strong> ${formatDate(d.leads_created_date)} ${escapeHtml(d.leads_created_time || '')}</div>
+                        <div class="mini-pill"><strong>Created:</strong> ${formatDateTime(d.leads_created_at)}</div>
                         <div class="mini-pill"><strong>Assigned Staff:</strong> ${escapeHtml(d.staff_name || '-')}</div>
                     </div>
                 </div>
@@ -3635,9 +3631,10 @@ function buildB2CLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -3686,9 +3683,10 @@ function buildMetaLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -3721,9 +3719,10 @@ function buildB2BLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -3751,9 +3750,10 @@ function buildFallbackLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -3827,6 +3827,19 @@ function formatDate(dateStr)
     if (parts.length !== 3) return dateStr;
 
     return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function formatDateTime(dateTimeStr)
+{
+    if (!dateTimeStr || dateTimeStr === '0000-00-00 00:00:00') return '-';
+
+    var parts = dateTimeStr.split(' ');
+    if (parts.length !== 2) return dateTimeStr;
+
+    var dateParts = parts[0].split('-');
+    if (dateParts.length !== 3) return dateTimeStr;
+
+    return dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0] + ' ' + parts[1];
 }
 
 // function getAccommodationStatusText(val)
@@ -6842,7 +6855,23 @@ function initSelect2AccModal(){
   });
 }
 
+function validateAccommodationPlan()
+{
+    let requiredCount = 0;
 
+    $('select[name="accommodation_status[]"]').each(function () {
+        if ($(this).val() === 'R') {
+            requiredCount++;
+        }
+    });
+
+    if (requiredCount === 0) {
+        alert('Please select at least one day accommodation status required');
+        return false;
+    }
+
+    return true;
+}
 
 $('#btnSaveaccplan').off('click').on('click', function(e){
   e.preventDefault();
@@ -6851,6 +6880,9 @@ $('#btnSaveaccplan').off('click').on('click', function(e){
     return;
   }
 
+   if (!validateAccommodationPlan()) {
+        return;
+    }
   const disabled = $('#form4').find(':disabled');
   disabled.prop('disabled', false);
 

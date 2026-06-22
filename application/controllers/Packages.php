@@ -1110,6 +1110,8 @@ public function ajax_add()
     $date = date('Y-m-d');
     $time = date('h:i:sa');
 
+    $date1 = date('Y-m-d h:i:s a', time());
+
     $currentuserid   = $this->session->userdata('user_id');
     $currentusername = $this->session->userdata('admin_name');
 
@@ -1194,9 +1196,9 @@ public function ajax_add()
         'packages_last_cover_page'                  => $packages_last_cover_page,
 
         'packages_createdby_user_id'                => $currentuserid,
-        'packages_createdby_user_name'              => $currentusername,
-        'packages_created_date'                     => $date,
-        'packages_created_time'                     => $time,
+        // 'packages_createdby_user_name'              => $currentusername,
+        'packages_created_at'                     => $date1,
+        // 'packages_created_time'                     => $time,
         'packages_status'                           => 1
     );
 
@@ -1231,6 +1233,18 @@ public function ajax_update()
     if (method_exists($this, '_ajax_add_validate')) {
         $this->_ajax_add_validate();
     }
+
+    if (function_exists('date_default_timezone_set')) {
+        date_default_timezone_set("Asia/Kolkata");
+    }
+
+    $date = date('Y-m-d');
+    $time = date('h:i:sa');
+
+    $date1 = date('Y-m-d h:i:s a', time());
+
+    $currentuserid   = $this->session->userdata('user_id');
+    $currentusername = $this->session->userdata('admin_name');
 
     $id = (int)$this->input->post('packages_id');
 
@@ -1324,7 +1338,10 @@ public function ajax_update()
         'packages_description'                      => $this->input->post('packages_description'),
 
         'packages_first_cover_page'                 => $packages_first_cover_page,
-        'packages_last_cover_page'                  => $packages_last_cover_page
+        'packages_last_cover_page'                  => $packages_last_cover_page,
+        'packages_updatedby_user_id'                => $currentuserid,
+        // 'packages_createdby_user_name'              => $currentusername,
+        'packages_updated_at'                     => $date1,
     );
 
     $this->db->where('packages_id', $id);
@@ -2734,21 +2751,21 @@ foreach ($properties_by_sec[$secIndex][$itinDayId] as $rowKey => $propertyId) {
 		$packages_title = $this->input->post('packages_title');
 		$ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted package: '.$packages_title.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Package_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted package: '.$packages_title.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Package_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 
 	}

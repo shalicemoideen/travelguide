@@ -667,9 +667,9 @@ public function ajax_guest_accommodation_details($lead_id)
 				// 'alternative_number' => $this->input->post('alternative_number'),
 				'description' => $this->input->post('description'),		
 				'leads_createdby_userid' => $currentuserid,			
-				'leads_createdby_username' => $currentusername,			
-				'leads_created_date' => $date,			
-				'leads_created_time' => $time,		
+				// 'leads_createdby_username' => $currentusername,			
+				'leads_created_at' => $date1,			
+				// 'leads_created_time' => $time,		
 				'stage_id_fk' => 1,
 				'lead_current_status' => 1,
 				'leads_status' => 1
@@ -684,20 +684,20 @@ public function ajax_guest_accommodation_details($lead_id)
 		
 		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Added B2C leads: '.$leads_number1.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Lead_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Added B2C leads: '.$leads_number1.'',
+		// 		'id_fk' => $insert,
+		// 		'activity_type' => 'Lead_registration',
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Add',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,				
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		
 		// echo json_encode(array("status" => TRUE));
 		echo json_encode(array(
@@ -736,9 +736,9 @@ public function ajax_guest_accommodation_details($lead_id)
 				'margin' => $this->input->post('margin'),
 				'description' => $this->input->post('description'),		
 				'leads_createdby_userid' => $currentuserid,			
-				'leads_createdby_username' => $currentusername,			
-				'leads_created_date' => $date,			
-				'leads_created_time' => $time,			
+				// 'leads_createdby_username' => $currentusername,			
+				'leads_created_at' => $date,			
+				// 'leads_created_time' => $time,			
 				'leads_status' => 1
 			);
 		
@@ -751,20 +751,20 @@ public function ajax_guest_accommodation_details($lead_id)
 		
 		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Added B2B leads: '.$agent_name.'',
-				'id_fk' => $insert,
-				'activity_type' => 'Lead_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Add',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,				
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Added B2B leads: '.$agent_name.'',
+		// 		'id_fk' => $insert,
+		// 		'activity_type' => 'Lead_registration',
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Add',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,				
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -866,20 +866,20 @@ public function ajax_guest_accommodation_details($lead_id)
 		$id = $this->input->post('id');
 		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited B2C leads: '.$guest_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Lead_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Edited B2C leads: '.$guest_name.'',
+		// 		'id_fk' => $id,
+		// 		'activity_type' => 'Lead_registration',
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Edit',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,	
+		// 		'activity_date' => $date,			
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		
 		$data_b2c = array(
 
@@ -906,9 +906,9 @@ public function ajax_guest_accommodation_details($lead_id)
 				// 'whats_number' => $this->input->post('whats_number'),
 				// 'alternative_number' => $this->input->post('alternative_number'),
 				'description' => $this->input->post('description'),		
-				// 'leads_createdby_userid' => $currentuserid,			
+				'leads_updatedby_user_id' => $currentuserid,			
 				// 'leads_createdby_username' => $currentusername,			
-				// 'leads_created_date' => $date,			
+				'leads_updated_at' => $date1,			
 				// 'leads_created_time' => $time,		
 				// 'stage_id_fk' => 1,
 				// 'leads_status' => 1
@@ -955,20 +955,20 @@ public function ajax_guest_accommodation_details($lead_id)
 		$id = $this->input->post('id');
 		// echo $ip;
 
-		$activity_data = array(
-				'activity_description' => 'Edited B2B leads: '.$agent_name.'',
-				'id_fk' => $id,
-				'activity_type' => 'Lead_registration',
-				'activity_ip' => $ip,
-				'activity_action' => 'Edit',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,	
-				'activity_date' => $date,			
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Edited B2B leads: '.$agent_name.'',
+		// 		'id_fk' => $id,
+		// 		'activity_type' => 'Lead_registration',
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Edit',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,	
+		// 		'activity_date' => $date,			
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		
 
 		$data_b2b = array(
@@ -981,9 +981,9 @@ public function ajax_guest_accommodation_details($lead_id)
 				'description' => $this->input->post('description'),
 				// 'whats_number' => $this->input->post('whats_number'),
 				// 'alternative_number' => $this->input->post('alternative_number'),		
-				// 'leads_createdby_userid' => $currentuserid,			
+				'leads_updatedby_user_id' => $currentuserid,			
 				// 'leads_createdby_username' => $currentusername,			
-				// 'leads_created_date' => $date,			
+				'leads_updated_at' => $date1,			
 				// 'leads_created_time' => $time,			
 				// 'leads_status' => 1
 			);
@@ -1123,6 +1123,87 @@ public function meta_webhook()
     exit;
 }
 
+// public function ajax_meta_lead_status()
+// {
+//     $time_limit = date('Y-m-d H:i:s', strtotime('-24 hours'));
+
+//     $recent_errors = $this->db
+//         ->where('created_at >=', $time_limit)
+//         ->where('status', 'error')
+//         ->count_all_results('meta_lead_logs');
+
+//     if ($recent_errors > 0) {
+//         echo json_encode(array(
+//             'status'  => 'error',
+//             'message' => 'Meta leads could not fetch and not saving to database',
+//             'count'   => $recent_errors
+//         ));
+//         return;
+//     }
+
+//     $recent_success = $this->db
+//         ->where('created_at >=', $time_limit)
+//         ->where('status', 'saved')
+//         ->count_all_results('meta_lead_logs');
+
+//     if ($recent_success > 0) {
+//         echo json_encode(array(
+//             'status'  => 'success',
+//             'message' => 'Meta leads is connected',
+//             'count'   => $recent_success
+//         ));
+//         return;
+//     }
+
+//     echo json_encode(array(
+//         'status'  => 'warning',
+//         'message' => 'Meta leads not fetching',
+//         'count'   => 0
+//     ));
+// }
+
+public function ajax_meta_lead_status()
+{
+    $latest = $this->db
+        ->order_by('created_at', 'DESC')
+        ->limit(1)
+        ->get('meta_lead_logs')
+        ->row_array();
+
+    if (!$latest) {
+        echo json_encode(array(
+            'status'  => 'warning',
+            'message' => 'Meta leads not fetching',
+            'count'   => 0
+        ));
+        return;
+    }
+
+    if ($latest['status'] == 'saved') {
+        echo json_encode(array(
+            'status'  => 'success',
+            'message' => 'Meta leads is connected',
+            'count'   => 1
+        ));
+        return;
+    }
+
+    if ($latest['status'] == 'received') {
+        echo json_encode(array(
+            'status'  => 'warning',
+            'message' => 'Meta lead received but not processed yet',
+            'count'   => 1
+        ));
+        return;
+    }
+
+    echo json_encode(array(
+        'status'  => 'error',
+        'message' => 'Meta leads could not fetch and not saving to database',
+        'count'   => 1
+    ));
+}
+
 private function get_staff_whatsapp_number($staff_id)
 {
     $row = $this->db
@@ -1201,13 +1282,32 @@ private function get_mapped_value($mapped, $keys, $default = '-')
     return $default;
 }
 
-private function send_meta_lead_to_staff_whatsapp($staff_id, $mapped, $lead_number)
+private function insert_meta_staff_whatsapp_log($data)
+{
+    $insert = array(
+        'lead_id_fk' 			=> isset($data['lead_id_fk']) ? (int)$data['lead_id_fk'] : 0,
+		'lead_number'           => isset($data['lead_number']) ? $data['lead_number'] : '',
+        'staff_id_fk'           => isset($data['staff_id_fk']) ? (int)$data['staff_id_fk'] : 0,
+        'staff_name'            => isset($data['staff_name']) ? $data['staff_name'] : '',
+        'staff_whatsapp_number' => isset($data['staff_whatsapp_number']) ? $data['staff_whatsapp_number'] : '',
+        'template_name'         => isset($data['template_name']) ? $data['template_name'] : '',
+        'language_code'         => isset($data['language_code']) ? $data['language_code'] : '',
+        'template_params'       => isset($data['template_params']) ? json_encode($data['template_params']) : '',
+        'api_status'            => isset($data['api_status']) ? $data['api_status'] : '',
+        'http_code'             => isset($data['http_code']) ? (int)$data['http_code'] : 0,
+        'message_id'            => isset($data['message_id']) ? $data['message_id'] : '',
+        'wa_id'                 => isset($data['wa_id']) ? $data['wa_id'] : '',
+        'api_response'          => isset($data['api_response']) ? json_encode($data['api_response']) : '',
+        'api_error'             => isset($data['api_error']) ? $data['api_error'] : '',
+        'created_at'            => date('Y-m-d H:i:s')
+    );
+
+    $this->db->insert('meta_staff_whatsapp_logs', $insert);
+}
+
+private function send_meta_lead_to_staff_whatsapp($lead_id, $staff_id, $mapped, $lead_number)
 {
     $staff_number = $this->get_staff_whatsapp_number($staff_id);
-
-    if ($staff_number == '') {
-        return false;
-    }
 
     $templateName = $this->config->item('meta_lead_template_name');
     $languageCode = $this->config->item('meta_lead_template_language');
@@ -1220,20 +1320,41 @@ private function send_meta_lead_to_staff_whatsapp($staff_id, $mapped, $lead_numb
     $duration    = $this->get_mapped_value($mapped, array('how_many_days_planning', 'how_many_days_planning?', 'duration'), '-');
 
     $all_fields = $this->build_meta_lead_whatsapp_message($mapped);
+
     if (trim($all_fields) == '') {
         $all_fields = '-';
     }
 
     $params = array(
-        $staff_name,   // {{1}}
-        $lead_number,  // {{2}}
-        $guest_name,   // {{3}}
-        $phone,        // {{4}}
-        $city,         // {{5}}
-        $travel_date,  // {{6}}
-        $duration,     // {{7}}
-        $all_fields    // {{8}}
+        $staff_name,
+        $lead_number,
+        $guest_name,
+        $phone,
+        $city,
+        $travel_date,
+        $duration,
+        $all_fields
     );
+
+    if ($staff_number == '') {
+
+        $this->insert_meta_staff_whatsapp_log(array(
+            'lead_id_fk' 			=> $lead_id,
+			'lead_number'           => $lead_number,
+            'staff_id_fk'           => $staff_id,
+            'staff_name'            => $staff_name,
+            'staff_whatsapp_number' => '',
+            'template_name'         => $templateName,
+            'language_code'         => $languageCode,
+            'template_params'       => $params,
+            'api_status'            => 'failed',
+            'http_code'             => 0,
+            'api_response'          => array(),
+            'api_error'             => 'Staff WhatsApp number missing'
+        ));
+
+        return false;
+    }
 
     $result = $this->Whatsapp_model->send_template_message(
         $staff_number,
@@ -1242,15 +1363,49 @@ private function send_meta_lead_to_staff_whatsapp($staff_id, $mapped, $lead_numb
         $params
     );
 
-    file_put_contents(
-        FCPATH . 'meta_staff_whatsapp_log.txt',
-        date('Y-m-d H:i:s') .
-        ' | staff_id: ' . $staff_id .
-        ' | number: ' . $staff_number .
-        ' | params: ' . json_encode($params) .
-        ' | result: ' . json_encode($result) . "\n\n",
-        FILE_APPEND
-    );
+	file_put_contents(
+		FCPATH . 'meta_staff_whatsapp_log.txt',
+		date('Y-m-d H:i:s') .
+		' | lead_id: ' . $lead_id .
+		' | lead_number: ' . $lead_number .
+		' | staff_id: ' . $staff_id .
+		' | number: ' . $staff_number .
+		' | params: ' . json_encode($params) .
+		' | result: ' . json_encode($result) . "\n\n",
+		FILE_APPEND
+	);
+	
+    $message_id = '';
+    $wa_id = '';
+
+    if (
+        isset($result['response']['messages'][0]['id'])
+    ) {
+        $message_id = $result['response']['messages'][0]['id'];
+    }
+
+    if (
+        isset($result['response']['contacts'][0]['wa_id'])
+    ) {
+        $wa_id = $result['response']['contacts'][0]['wa_id'];
+    }
+
+    $this->insert_meta_staff_whatsapp_log(array(
+        'lead_id_fk' 			=> $lead_id,
+		'lead_number'           => $lead_number,
+        'staff_id_fk'           => $staff_id,
+        'staff_name'            => $staff_name,
+        'staff_whatsapp_number' => $staff_number,
+        'template_name'         => $templateName,
+        'language_code'         => $languageCode,
+        'template_params'       => $params,
+        'api_status'            => isset($result['status']) && $result['status'] ? 'success' : 'failed',
+        'http_code'             => isset($result['http_code']) ? $result['http_code'] : 0,
+        'message_id'            => $message_id,
+        'wa_id'                 => $wa_id,
+        'api_response'          => isset($result['response']) ? $result['response'] : array(),
+        'api_error'             => isset($result['error']) ? $result['error'] : ''
+    ));
 
     return $result;
 }
@@ -1266,30 +1421,28 @@ private function send_meta_lead_to_staff_whatsapp($staff_id, $mapped, $lead_numb
 //     $templateName = $this->config->item('meta_lead_template_name');
 //     $languageCode = $this->config->item('meta_lead_template_language');
 
-//     $guest_name = isset($mapped['full_name']) ? $mapped['full_name'] : '';
-// 	$phone = isset($mapped['phone_number']) ? $mapped['phone_number'] : '';
-// 	$city = isset($mapped['city']) ? $mapped['city'] : '';
-// 	$travel_date = isset($mapped['travel_date']) ? $mapped['travel_date'] : '';
-// 	$duration = isset($mapped['how_many_days_planning']) ? $mapped['how_many_days_planning'] : '';
-// 	$staff_name = $this->get_staff_name($staff_id);
+//     $staff_name  = $this->get_staff_name($staff_id);
+//     $guest_name  = $this->get_mapped_value($mapped, array('full_name', 'first_name', 'name'), 'Meta Lead');
+//     $phone       = $this->get_mapped_value($mapped, array('phone_number', 'phone'), '-');
+//     $city        = $this->get_mapped_value($mapped, array('city'), '-');
+//     $travel_date = $this->get_mapped_value($mapped, array('travel_date', 'travel_date?'), '-');
+//     $duration    = $this->get_mapped_value($mapped, array('how_many_days_planning', 'how_many_days_planning?', 'duration'), '-');
 
 //     $all_fields = $this->build_meta_lead_whatsapp_message($mapped);
+//     if (trim($all_fields) == '') {
+//         $all_fields = '-';
+//     }
 
-//     // $params = array(
-//     //     $guest_name,     // {{1}}
-//     //     $lead_number,    // {{2}}
-//     //     $all_fields      // {{3}}
-//     // );
-// 	$params = array(
-//     $staff_name,
-//     $lead_number,
-//     $guest_name,
-//     $phone,
-//     $city,
-//     $travel_date,
-//     $duration,
-//     $all_fields
-// );
+//     $params = array(
+//         $staff_name,   // {{1}}
+//         $lead_number,  // {{2}}
+//         $guest_name,   // {{3}}
+//         $phone,        // {{4}}
+//         $city,         // {{5}}
+//         $travel_date,  // {{6}}
+//         $duration,     // {{7}}
+//         $all_fields    // {{8}}
+//     );
 
 //     $result = $this->Whatsapp_model->send_template_message(
 //         $staff_number,
@@ -1303,6 +1456,7 @@ private function send_meta_lead_to_staff_whatsapp($staff_id, $mapped, $lead_numb
 //         date('Y-m-d H:i:s') .
 //         ' | staff_id: ' . $staff_id .
 //         ' | number: ' . $staff_number .
+//         ' | params: ' . json_encode($params) .
 //         ' | result: ' . json_encode($result) . "\n\n",
 //         FILE_APPEND
 //     );
@@ -1838,9 +1992,13 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
         $duration = '';
         if (isset($mapped['how_many_days_planning'])) {
             $duration = $mapped['how_many_days_planning'];
-        } else if (isset($mapped['phodurationne'])) {
-            $duration = $mapped['duration'];
-        }
+        } 
+		// else if (isset($mapped['phodurationne'])) {
+        //     $duration = $mapped['duration'];
+        // }
+		else if (isset($mapped['duration'])) {
+    		$duration = $mapped['duration'];
+		}
 
         // Address / city / country
         $address_parts = array();
@@ -1866,6 +2024,15 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
         $today = date('Y-m-d');
         $now_time = date('H:i:s');
 
+		$this->load->helper('date');
+		if(function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		// $date = date('Y-m-d');
+		// $time = date('h:i:sa');
+
+        $date1 = date('Y-m-d h:i:s a', time());
+
         if ($created_time !== '') {
             $timestamp = strtotime($created_time);
             if ($timestamp !== false) {
@@ -1875,11 +2042,11 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
         }
 
         // Custom details into description
-        $description = 'Source: Meta Facebook Lead';
-        $description .= "\nLeadgen ID: " . $leadgen_id;
-        $description .= "\nPage ID: " . $page_id;
-        $description .= "\nForm ID: " . $form_id;
-        $description .= "\nAd ID: " . $ad_id;
+        // $description = 'Source: Meta Facebook Lead';
+        // $description .= "\nLeadgen ID: " . $leadgen_id;
+        // $description .= "\nPage ID: " . $page_id;
+        // $description .= "\nForm ID: " . $form_id;
+        // $description .= "\nAd ID: " . $ad_id;
 
         if (!empty($mapped)) {
             $description .= "\n\nField Data:";
@@ -1893,16 +2060,17 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
         // Change these IDs based on your system master data
        	$staff_id_fk = $this->get_next_staff($form_id, $mapped);
 
-        $source_id_fk           = 12; // Facebook / Meta source ID
+        $source_id_fk           = 1; // Facebook / Meta source ID
         $package_id_fk          = 0;
         $country_id_fk          = 99;
         $priority_status_id_fk  = 1;
         $stage_id_fk            = 1;
         $agent_id_fk            = 0;
         $created_user_id        = 1;
-        $created_user_name      = 'Meta Facebook';
+        // $created_user_name      = 'Meta Facebook';
 
-		$lead_number = $this->generate_meta_lead_number();
+		// $lead_number = $this->generate_meta_lead_number();
+		$leads_number1 = $this->generate_meta_lead_number_new();
 
         $insert = array(
             'staff_id_fk'               => $staff_id_fk,
@@ -1912,7 +2080,7 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
             'priority_status_id_fk'     => $priority_status_id_fk,
             'stage_id_fk'               => $stage_id_fk,
             'agent_id_fk'               => $agent_id_fk,
-            'leads_number'              => $lead_number,
+            'leads_number'              => $leads_number1,
             'lead_type'                 => 'Meta Lead',
             'guest_name'                => $guest_name,
             'lead_register_date'        => $today,
@@ -1929,10 +2097,10 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
             'margin'                    => 0,
             'leads_accomodation_status' => 0,
             'description'               => $description,
-            'leads_created_date'        => $today,
-            'leads_created_time'        => $now_time,
+            'leads_created_at'        => $date1,
+            // 'leads_created_time'        => $now_time,
             'leads_createdby_userid'    => $created_user_id,
-            'leads_createdby_username'  => $created_user_name,
+            // 'leads_createdby_username'  => $created_user_name,
 			'lead_current_status'       => 1,
             'leads_status'              => 1,
             'meta_leadgen_id'           => $leadgen_id,
@@ -1943,6 +2111,9 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
         );
 
         $result = $this->db->insert('leads', $insert);
+
+		$lead_id = $this->db->insert_id();
+
 		// if ($result) {
 		// 	$this->send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id, $ad_id);
 		// 	return true;
@@ -1953,22 +2124,37 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
 
 
 		// if ($result) {
-		// 	$this->send_meta_lead_to_staff_whatsapp($staff_id_fk, $mapped, $lead_number);
+		// 	$this->send_meta_lead_to_staff_whatsapp($lead_id,$staff_id_fk, $mapped, $leads_number1);
 		// 	return true;
 		// }
 
-		return false;
+		// return false;
 
-        // return $result ? true : false;
+        return $result ? true : false;
     }
 
     /**
      * Generate lead number
      */
-    private function generate_meta_lead_number()
-    {
-        return 'META-' . date('YmdHis') . '-' . rand(100, 999);
-    }
+    // private function generate_meta_lead_number()
+    // {
+    //     return 'META-' . date('YmdHis') . '-' . rand(100, 999);
+    // }
+
+	private function generate_meta_lead_number_new()
+	{
+		$last = $this->Leads_model->last_meta_lead_number();
+
+		$next = 1;
+
+		if ($last && !empty($last->leads_number)) {
+			$num = str_replace('Meta-Lead-', '', $last->leads_number);
+			$num = (int)$num;
+			$next = $num + 1;
+		}
+
+		return 'Meta-Lead-' . $next;
+	}
 
 	public function add_source() {
         $source_name = $this->input->post('source_name');
@@ -3255,21 +3441,21 @@ private function get_accommodation_date_by_index($start_date, $index)
 		$guest_name = $this->input->post('guest_name');
 		$ip = $this->input->ip_address();
 		
-		$activity_data = array(
-				'activity_description' => 'Deleted lead: '.$guest_name.'',
-				'id_fk' => $this->input->post('id'),
-				'activity_type' => 'Lead_registration',
-				// 'activity_order_number' => $invoice_order_number1,
-				'activity_ip' => $ip,
-				'activity_action' => 'Delete',
-				'activity_by_userid' => $currentuserid,
-				'activity_by_username' => $currentusername,
-				'activity_date_time	' => $date1,
-				'activity_date' => $date,
-				'activity_status' => 1,
-			);
+		// $activity_data = array(
+		// 		'activity_description' => 'Deleted lead: '.$guest_name.'',
+		// 		'id_fk' => $this->input->post('id'),
+		// 		'activity_type' => 'Lead_registration',
+		// 		// 'activity_order_number' => $invoice_order_number1,
+		// 		'activity_ip' => $ip,
+		// 		'activity_action' => 'Delete',
+		// 		'activity_by_userid' => $currentuserid,
+		// 		'activity_by_username' => $currentusername,
+		// 		'activity_date_time	' => $date1,
+		// 		'activity_date' => $date,
+		// 		'activity_status' => 1,
+		// 	);
 		
-		$this->General_model->add($this->activity,$activity_data);
+		// $this->General_model->add($this->activity,$activity_data);
 		echo json_encode(array("status" => TRUE));
 	}
 

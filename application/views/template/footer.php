@@ -220,6 +220,58 @@
 	
 	</script>
 
+	<script>
+		function checkMetaLeadStatus() {
+			$.ajax({
+				url: "<?php echo base_url(); ?>index.php/Leads/ajax_meta_lead_status",
+				type: "GET",
+				dataType: "json",
+				success: function (response) {
+					var $alert = $('#metaLeadStatusAlert');
+					$alert.removeClass('status-success status-error status-warning');
+
+					if (response.status === 'error') {
+						$alert
+							.addClass('status-error')
+							.find('.status-icon')
+							.html('<i class="fas fa-exclamation-circle"></i>');
+						$alert.find('.status-text').text(response.message);
+						$alert.show();
+					} else if (response.status === 'warning') {
+						$alert
+							.addClass('status-warning')
+							.find('.status-icon')
+							.html('<i class="fas fa-exclamation-triangle"></i>');
+						$alert.find('.status-text').text(response.message);
+						$alert.show();
+					} else {
+						$alert
+							.addClass('status-success')
+							.find('.status-icon')
+							.html('<i class="fas fa-check-circle"></i>');
+						$alert.find('.status-text').text(response.message);
+						$alert.show();
+					}
+				},
+				error: function () {
+					var $alert = $('#metaLeadStatusAlert');
+					$alert
+						.removeClass('status-success status-warning')
+						.addClass('status-error')
+						.find('.status-icon')
+						.html('<i class="fas fa-exclamation-circle"></i>');
+					$alert.find('.status-text').text('Meta leads status check failed');
+					$alert.show();
+				}
+			});
+		}
+
+		$(document).ready(function () {
+			checkMetaLeadStatus();
+			setInterval(checkMetaLeadStatus, 60000);
+		});
+	</script>
+
 </body>
 
 <!-- Mirrored from travl.dexignlab.com/django/xhtml/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 11 Jul 2025 04:27:06 GMT -->

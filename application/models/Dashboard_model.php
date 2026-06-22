@@ -19,7 +19,7 @@ class Dashboard_model extends CI_Model{
 			 $this->db->where("leads_createdby_userid",$currentuserid);
 			}
         $today=date('Y-m-d');
-        $between="'$today' between leads_created_date and leads_created_date";
+        $between="'$today' between lead_register_date and lead_register_date";
         $this->db-> select('count(leads_id)as total_count');
         $this->db->from('leads');
         // $this->db->where('lead_current_status',1);

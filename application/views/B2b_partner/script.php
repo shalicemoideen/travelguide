@@ -128,21 +128,21 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                                        columns: [0, 1, 2, 3, 4, 5]
                                     },
                                     title: 'B2B partner details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                                        columns: [0, 1, 2, 3, 4, 5]
                                     },
                                     title: 'B2B partner details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7, 8]
+                                        columns: [0 ,1, 2, 3, 4, 5]
                                     },
                                     title: 'B2B partner details'
                                 },
@@ -191,7 +191,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(9).html(actionHtml);
+            $('td', row).eq(6).html(actionHtml);
 
            },
 
@@ -202,12 +202,9 @@ var table;
         "columns": [
             { "data": "b2b_partner_status", "orderable": false },
             { "data": "b2b_partner_agent_name", "orderable": false },
-            { "data": "b2b_partner_address", "orderable": false },
-            { "data": "name", "orderable": false },
             { "data": "state_name", "orderable": false },
             { "data": "b2b_partner_person_name", "orderable": false },
             { "data": "b2b_partner_contact_number", "orderable": false },
-            { "data": "b2b_partner_email_address", "orderable": false },
             { "data": "b2b_partner_description", "orderable": false },                     
             { "data": "b2b_partner_id", "orderable": false }
             

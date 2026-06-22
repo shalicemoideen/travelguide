@@ -464,7 +464,11 @@ class Quotation_model extends CI_Model{
 
 				a.admin_name as agent_name,
 
-				m.meta_ads_setting_name
+				m.meta_ads_setting_name,
+
+				uc.admin_name as created_by_admin_name,
+
+				uu.admin_name as updated_by_admin_name
 
 			')
 
@@ -487,6 +491,10 @@ class Quotation_model extends CI_Model{
 			->join('user_details a', 'a.user_id = l.agent_id_fk', 'left')
 
 			->join('meta_ads_setting m', 'm.facebook_form_id = l.meta_form_id', 'left')
+
+			->join('user_details uc', 'uc.user_id = l.leads_createdby_userid', 'left')
+
+			->join('user_details uu', 'uu.user_id = l.leads_updatedby_user_id', 'left')
 
 			->where('q.quotation_id', $id)
 
@@ -1484,29 +1492,93 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
 
 
 
+    /* =========================================================
+
+       4) MEAL SUPPLEMENT CALCULATION
+
+       Compare accommodation_plan (guest needs) with room policy
+       (room provides). Supplement = cost of meals the room does
+       NOT provide but the guest requires.
+
+       ========================================================= */
+
+    $roomMealId = isset($ctx['room_meal_plan_id_fk']) ? (int)$ctx['room_meal_plan_id_fk'] : 0;
+
+    $roomMealName = isset($ctx['room_meal_plan_name']) ? $ctx['room_meal_plan_name'] : '';
+
+
+
+    // Meal coverage by plan ID
+
+    $mealCoverage = array(
+
+        1 => array('breakfast'),           // CP
+
+        3 => array('breakfast', 'dinner'), // MAP
+
+        4 => array('breakfast', 'lunch', 'dinner') // AP
+
+    );
+
+
+
+    $neededMeals  = isset($mealCoverage[$meal_id]) ? $mealCoverage[$meal_id] : array();
+
+    $providedMeals = isset($mealCoverage[$roomMealId]) ? $mealCoverage[$roomMealId] : array();
+
+
+
+    // If guest needs EP (no meals) OR room policy exactly matches enquiry => no supplement
+
+    $needsSupplement = false;
+
+    $missingMeals = array();
+
     $supplement = 0;
 
 
 
-    if ($meal_id == 2) {
+    if ($meal_id != 2 && !empty($neededMeals)) {
 
-        // EP => no meals
+        // Find meals needed but not provided by room policy
 
-        $supplement = 0;
+        foreach ($neededMeals as $m) {
 
-    } else {
+            if (!in_array($m, $providedMeals)) {
+
+                $missingMeals[] = $m;
+
+            }
+
+        }
 
 
 
-        /* ============================
+        if (!empty($missingMeals)) {
 
-        4A) USE HIKE IF AVAILABLE
+            $needsSupplement = true;
 
-        ============================ */
+        }
+
+    }
+
+
+
+    /* ============================
+
+    4A) FETCH MEAL RATES
+
+    ============================ */
+
+    $bA = $bC = $lA = $lC = $dA = $dC = 0;
+
+    $mealRatesSource = '';
+
+
+
+    if ($needsSupplement) {
 
         if ($hike) {
-
-
 
             $bA = (double)$hike['hike_room_tariff_hike_breakfast_rate_adult'];
 
@@ -1520,19 +1592,9 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
 
             $dC = (double)$hike['hike_room_tariff_hike_dinner_rate_child'];
 
-
+            $mealRatesSource = 'hike';
 
         } else {
-
-
-
-            /* ============================
-
-            4B) FALLBACK → NORMAL TARIFF
-
-            ============================ */
-
-
 
             $normal = $this->db
 
@@ -1560,8 +1622,6 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
 
             if ($normal) {
 
-
-
                 $bA = (double)$normal['room_tariff_hike_breakfast_rate_adult'];
 
                 $bC = (double)$normal['room_tariff_hike_breakfast_rate_child'];
@@ -1574,59 +1634,73 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
 
                 $dC = (double)$normal['room_tariff_hike_dinner_rate_child'];
 
-
+                $mealRatesSource = 'normal';
 
             } else {
 
-                // no tariff at all
-
                 $bA = $bC = $lA = $lC = $dA = $dC = 0;
+
+                $mealRatesSource = 'none';
 
             }
 
         }
 
-
-
-        /* ============================
-
-        4C) APPLY MEAL LOGIC
-
-        ============================ */
+    }
 
 
 
-        if ($meal_id == 1) {
+    /* ============================
 
-            // CP (Breakfast)
+    4B) CALCULATE SUPPLEMENT FOR MISSING MEALS
 
-            $supplement = ($bA * $adultsForMeal) + ($bC * $childrenForMeal);
+    ============================ */
 
-
-
-        } elseif ($meal_id == 3) {
-
-            // MAP (Breakfast + Dinner)
-
-            $supplement =
-
-                ($bA * $adultsForMeal) + ($bC * $childrenForMeal) +
-
-                ($dA * $adultsForMeal) + ($dC * $childrenForMeal);
+    $mealRatesMissing = array();
 
 
 
-        } elseif ($meal_id == 4) {
+    if ($needsSupplement) {
 
-            // AP (Breakfast + Lunch + Dinner)
+        foreach ($missingMeals as $m) {
 
-            $supplement =
+            if ($m === 'breakfast') {
 
-                ($bA * $adultsForMeal) + ($bC * $childrenForMeal) +
+                if ($bA > 0 || $bC > 0) {
 
-                ($lA * $adultsForMeal) + ($lC * $childrenForMeal) +
+                    $supplement += ($bA * $adultsForMeal) + ($bC * $childrenForMeal);
 
-                ($dA * $adultsForMeal) + ($dC * $childrenForMeal);
+                } else {
+
+                    $mealRatesMissing[] = 'breakfast';
+
+                }
+
+            } elseif ($m === 'lunch') {
+
+                if ($lA > 0 || $lC > 0) {
+
+                    $supplement += ($lA * $adultsForMeal) + ($lC * $childrenForMeal);
+
+                } else {
+
+                    $mealRatesMissing[] = 'lunch';
+
+                }
+
+            } elseif ($m === 'dinner') {
+
+                if ($dA > 0 || $dC > 0) {
+
+                    $supplement += ($dA * $adultsForMeal) + ($dC * $childrenForMeal);
+
+                } else {
+
+                    $mealRatesMissing[] = 'dinner';
+
+                }
+
+            }
 
         }
 
@@ -2002,6 +2076,10 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
 
         'meal_plan_name' => $meal_name,
 
+        'room_meal_plan_id_fk' => $roomMealId,
+
+        'room_meal_plan_name' => $roomMealName,
+
         'used_counts' => array(
 
             'adults' => $adultsForMeal,
@@ -2013,6 +2091,14 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
         ),
 
         'supplement_amount' => (double)$supplement,
+
+        'needs_supplement' => $needsSupplement,
+
+        'missing_meals' => $missingMeals,
+
+        'meal_rates_missing' => $mealRatesMissing,
+
+        'meal_rates_source' => $mealRatesSource,
 
         'rates_source' => $rates_source,
 
@@ -4794,15 +4880,30 @@ public function insert_room_tariff_details($data)
 
         return $this->db
 
-        ->select('q.*,qp.quotation_policies_id_fk,qt.quotation_terms_condition_id_fk,qc.quotation_cancellation_policies_id_fk')
+        ->select('q.*,
+            iec.inclusion_exclusion_common_title,
+            qp.quotation_policies_id_fk,
+            pay.payment_policies_name,
+            qt.quotation_terms_condition_id_fk,
+            tc.terms_condition_name,
+            qc.quotation_cancellation_policies_id_fk,
+            cp.cancellation_policies_name')
 
         ->from('quotation q')
+
+        ->join('inclusion_exclusion_common iec', 'iec.inclusion_exclusion_common_id = q.quotation_inclusion_exclusion_common_id_fk', 'left')
 
         ->join('quotation_payment_policies qp', 'q.quotation_id = qp.quotation_id_fk', 'left')
 
         ->join('quotation_terms_condition qt', 'q.quotation_id = qt.quotation_id_fk', 'left')
 
         ->join('quotation_cancellation_policies qc', 'q.quotation_id = qc.quotation_id_fk', 'left')
+
+        ->join('payment_policies pay', 'pay.payment_policies_id = qp.quotation_policies_id_fk', 'left')
+
+        ->join('terms_condition tc', 'tc.terms_condition_id = qt.quotation_terms_condition_id_fk', 'left')
+
+        ->join('cancellation_policies cp', 'cp.cancellation_policies_id = qc.quotation_cancellation_policies_id_fk', 'left')
 
         ->where('q.quotation_id', $id)
 
@@ -4982,13 +5083,15 @@ public function insert_room_tariff_details($data)
 
                 qpd.*,
 
-                s.state_name,
+                s.state_name, ap.accommodation_date,
 
                 ppd.packages_itinerary_days_id_fk as packages_itinerary_days_id_fk
 
             ')
 
             ->from('quotation_properties_days qpd')
+
+            ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
 
             ->join('state s', 's.state_id = qpd.quotation_properties_days_destination_id_fk', 'left')
 

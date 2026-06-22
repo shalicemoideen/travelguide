@@ -632,6 +632,12 @@
 		***********************************-->
 		<div class="header">
 			<div class="header-content">
+
+				<div id="metaLeadStatusAlert" class="meta-lead-status-alert" style="display: none;">
+					<span class="status-icon"></span>
+					<span class="status-text"></span>
+				</div>
+
 				<nav class="navbar navbar-expand">
 					<div class="collapse navbar-collapse justify-content-between">
 						<!-- <div class="header-left">

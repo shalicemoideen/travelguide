@@ -26,12 +26,9 @@
                                             <tr>
                                                 <th>Sl.no</th>
                                                 <th>Name</th>
-                                                <th>Address</th>
-                                                <th>Country</th>
                                                 <th>Location</th>
                                                 <th>Person name</th>
                                                 <th>Contact number</th>
-                                                <th>Mail address</th>
                                                 <th>Description</th>
                                                 <th>Action</th>
                                             </tr>

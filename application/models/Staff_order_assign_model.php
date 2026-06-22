@@ -13,6 +13,7 @@ class Staff_order_assign_model extends CI_Model{
         return $this->db
             ->select('*')
             ->from('shift')
+            ->where('shift_id !=', 3)
             ->where('shift_status', 1)
             ->order_by('shift_id', 'ASC')
             ->get()

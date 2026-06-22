@@ -126,8 +126,6 @@
                                             <tr>
                                                 <th>Sl.no</th>
                                                 <th>Staff Name</th>
-                                                <th>Address</th>
-                                                <th>Email</th>
                                                 <th>Phone no:</th>
                                                 <th>Role</th>
                                                 <th>Designation</th>

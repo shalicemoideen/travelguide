@@ -98,7 +98,7 @@ function loadQuotationHubSummary(quotation_id)
 
             else if (data.quotation_current_status == 4) statusHtml = '<span class="badge badge-danger">Rejected</span>';
 
-            else if (data.quotation_current_status == 5) statusHtml = '<span class="badge badge-success">Accepted</span>';
+            else if (data.quotation_current_status == 5) statusHtml = '<span class="badge badge-success">Confirmed</span>';
 
             else if (data.quotation_current_status == 6) statusHtml = '<span class="badge badge-danger">Cancelled</span>';
 

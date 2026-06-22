@@ -17,6 +17,16 @@
 .ck-content ol {
   margin-left: 20px !important;
 }
+
+/* Pagination active page number color */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #E23428 !important;
+    background-color: #E23428 !important;
+    color: #fff !important;
+    border-color: #E23428 !important;
+    font-weight: 600;
+}
 </style>
 <style>
 .select2-container--default .select2-selection--single .select2-selection__clear {

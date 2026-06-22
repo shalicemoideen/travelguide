@@ -79,7 +79,24 @@ $("#quotation_current_status_filter").select2({
 });
 $("#leads_id").select2({
   dropdownParent: $("#QuotationModal"),
-  minimumResultsForSearch: 0
+  placeholder: 'Please Select lead',
+  allowClear: true,
+  width: '100%',
+  ajax: {
+    url: '<?php echo base_url(); ?>index.php/Quotation/ajax_filter_leads',
+    dataType: 'json',
+    delay: 250,
+    data: function(params) {
+      return {
+        q: params.term || '',
+        filter_mode: $('#leads_id').data('filter-mode') || 'add_quotation'
+      };
+    },
+    processResults: function(data) {
+      return data;
+    },
+    cache: false
+  }
 });
 // $("#packages_id_fk").select2({
 //   dropdownParent: $("#QuotationModal"),
@@ -303,16 +320,20 @@ var table;
                 }
 
                // Change status button
-                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                }
+                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                // }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
 
-                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                // Quotation hub button
+                if (hasPermission('QUOTATION_HUB')) {
+
+                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
 
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
@@ -352,7 +373,12 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
 
-                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                // Quotation hub button
+                if (hasPermission('QUOTATION_HUB')) {
+
+                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
@@ -391,7 +417,12 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
 
-                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                // Quotation hub button
+                if (hasPermission('QUOTATION_HUB')) {
+
+                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
@@ -430,7 +461,11 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
 
-                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                // Quotation hub button
+                if (hasPermission('QUOTATION_HUB')) {
+
+                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
 
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
@@ -443,7 +478,7 @@ var table;
             }
             else if($table.cell(node).data() == '5') {
             // else if(data['quotation_current_status'] == 5){
-              $table.cell(node).data('<span class="badge badge-success">Accepted</span>');
+              $table.cell(node).data('<span class="badge badge-success">Confirmed</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
               
                 $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
@@ -461,16 +496,20 @@ var table;
                 }
 
                 // Change status button
-                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                }
+                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                // }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
 
-                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                // Quotation hub button
+                if (hasPermission('QUOTATION_HUB')) {
+
+                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
 
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
@@ -497,7 +536,11 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
 
-                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                // Quotation hub button
+                if (hasPermission('QUOTATION_HUB')) {
+
+                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
 
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
@@ -669,12 +712,16 @@ function resetQuotationModalForm() {
     $('#leads_id_hidden').val('');
     $('#packages_id_hidden').val('');
 
-    // if visible dropdowns exist
+    // if visible dropdowns exist — re-enable and clear AJAX Select2
     if ($('#leads_id').length) {
-        $('#leads_id').val('').trigger('change');
+        $('#leads_id').prop('disabled', false).data('filter-mode', 'add_quotation').empty()
+            .append('<option value="">Please Select lead</option>')
+            .val('').trigger('change.select2');
     }
     if ($('#packages_id_fk').length) {
-        $('#packages_id_fk').val('').trigger('change');
+        $('#packages_id_fk').prop('disabled', false)
+            .html('<option value="">Please Select Template</option>')
+            .val('').trigger('change.select2');
     }
 
     // clear select2 fields inside modal
@@ -790,10 +837,7 @@ function add_quotation()
 
     $('#leadPackageRow').removeClass('d-none');
 
-   $('#leads_id').prop('disabled', false);
-
-// remove lead added only for edit modal
-$('#leads_id option[data-edit-lead="1"]').remove();
+   $('#leads_id').prop('disabled', false).data('filter-mode', 'add_quotation');
 
 $('#leads_id').val('').trigger('change.select2');
 
@@ -828,7 +872,7 @@ $('#leads_id_hidden, #packages_id_hidden').val('');
     $('#quotation_date').val(dd + '-' + mm + '-' + yyyy);
 
     $('#QuotationModal').modal('show');
-    $('.modal-title').text('Add Quotation Details');
+    $('#QuotationModal .modal-title').text('Add Quotation Details');
     $('#btnSave').text('Save');
 }
 $('#QuotationModal').on('hidden.bs.modal', function () {
@@ -1469,13 +1513,29 @@ function buildItineraryRowsFromSaved(itineraryDays) {
     `);
   });
 
-  // ✅ Init select2 (same as your normal load)
-  $('.change_itinerary').select2({ width: '100%' });
-  $('.change_itinerary_day').select2({ width: '100%' });
+  // ✅ Init Select2 AJAX for change_itinerary (loads when dropdown opens)
+  $('.change_itinerary').each(function () {
+    const $sel = $(this);
+    if ($sel.hasClass('select2-hidden-accessible')) {
+      $sel.select2('destroy');
+    }
+    $sel.select2({
+      width: '100%',
+      placeholder: 'Please Select Itinerary',
+      allowClear: true,
+      dropdownParent: $('#QuotationitineraryModal'),
+      ajax: {
+        url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
+        dataType: 'json',
+        delay: 250,
+        data: function(params) { return { q: params.term }; },
+        processResults: function(data) { return data; },
+        cache: true
+      }
+    });
+  });
 
-  // ✅ Load dropdown options
-//   if (typeof loadChangeDestinations === 'function') loadChangeDestinations();
-  if (typeof loadRowWiseItineraries === 'function') loadRowWiseItineraries();
+  $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#QuotationitineraryModal') });
 
   // ✅ Init CKEditor
   if (typeof initEditorsForDays === 'function') initEditorsForDays();
@@ -1484,46 +1544,7 @@ function buildItineraryRowsFromSaved(itineraryDays) {
 
 
 
-window.loadRowWiseItineraries = function () {
-
-  $('.change_itinerary').each(function () {
-
-    const $itinerarySelect = $(this);
-
-    // stop if already loaded
-    if ($itinerarySelect.data('loaded') == 1) return;
-
-    $itinerarySelect.html('<option value="">Loading...</option>');
-
-    $.ajax({
-      url: '<?php echo base_url(); ?>index.php/Packages/fetch_itinerary',
-      type: 'POST',
-      dataType: 'json',
-      success: function (res) {
-
-        $itinerarySelect.html('<option value="">Please Select Itinerary</option>');
-
-        (res || []).forEach(function (rowData) {
-          $itinerarySelect.append(`
-            <option value="${rowData.itineraries_id}">
-              ${rowData.itineraries_name}
-            </option>
-          `);
-        });
-
-        $itinerarySelect.data('loaded', 1);
-
-        if ($itinerarySelect.hasClass('select2-hidden-accessible')) {
-          $itinerarySelect.trigger('change.select2');
-        }
-      },
-      error: function () {
-        $itinerarySelect.html('<option value="">Please Select Itinerary</option>');
-      }
-    });
-
-  });
-};
+// loadRowWiseItineraries removed — .change_itinerary now uses Select2 AJAX
 
 window.loadItinerariesByCategoryDuration = function(done){
 
@@ -1756,6 +1777,9 @@ function update_itinerary(id) {
 
             const p = res.quotation_itinerary || {};
 
+            // Init Select2 AJAX for policy dropdowns before showing modal
+            initQuotationItineraryModalSelect2();
+
             $('#QuotationitineraryModal').modal('show');
             $('#quotations_id').val(p.quotation_id || '');
             $('#btnSave').text('Update');
@@ -1797,18 +1821,16 @@ function update_itinerary(id) {
             // build saved itinerary rows directly
             buildItineraryRowsFromSaved(res.itinerary_days || []);
 
-            setTimeout(function () {
-                loadRowWiseItineraries();
-                window.isEditLoading = false;
-            }, 200);
+            window.isEditLoading = false;
 
             // inclusion / exclusion
             if (p.quotation_inclusion_exclusion_checked_type === 'Y') {
-                $('#quotation_inclusion_exclusion_common_id_fk').select2({ width: '100%', dropdownParent: $('#QuotationitineraryModal') });
                 $('#quotation_inclusion_exclusion_checked_type').prop('checked', true).trigger('change');
-                $('#quotation_inclusion_exclusion_common_id_fk')
-                    .val(String(p.quotation_inclusion_exclusion_common_id_fk || ''))
-                    .trigger('change');
+                select2AjaxSetSelected(
+                    '#quotation_inclusion_exclusion_common_id_fk',
+                    p.quotation_inclusion_exclusion_common_id_fk || '',
+                    p.inclusion_exclusion_common_title || ''
+                );
 
                 setTimeout(function () {
                     $('#inclusion').empty();
@@ -1853,10 +1875,11 @@ function update_itinerary(id) {
 
             if (p.quotation_payment_policies_checked_type === 'Y') {
                 $('#quotation_payment_policies_checked_type').prop('checked', true).trigger('change');
-                $('#quotation_policies_id_fk').select2({ width: '100%', dropdownParent: $('#QuotationitineraryModal') });
-                $('#quotation_policies_id_fk')
-                    .val(String(p.quotation_policies_id_fk || ''))
-                    .trigger('change');
+                select2AjaxSetSelected(
+                    '#quotation_policies_id_fk',
+                    p.quotation_policies_id_fk || '',
+                    p.payment_policies_name || ''
+                );
 
                 setTimeout(function () {
                     $('#payment-policies').find('.payment-row').remove();
@@ -1875,10 +1898,11 @@ function update_itinerary(id) {
 
             if (p.quotation_terms_conditions_checked_type === 'Y') {
                 $('#quotation_terms_conditions_checked_type').prop('checked', true).trigger('change');
-                $('#quotation_terms_condition_id_fk').val(String(p.quotation_terms_condition_id_fk || '')).trigger('change');
-                $('#quotation_terms_condition_id_fk')
-                    .val(String(p.quotation_terms_condition_id_fk || ''))
-                    .trigger('change');
+                select2AjaxSetSelected(
+                    '#quotation_terms_condition_id_fk',
+                    p.quotation_terms_condition_id_fk || '',
+                    p.terms_condition_name || ''
+                );
 
                 setTimeout(function () {
                     $('#terms-conditions').find('.terms-row').remove();
@@ -1897,10 +1921,11 @@ function update_itinerary(id) {
 
             if (p.quotation_cancellation_policy_checked_type === 'Y') {
                 $('#quotation_cancellation_policy_checked_type').prop('checked', true).trigger('change');
-                $('#quotation_cancellation_policies_id_fk').select2({ width: '100%', dropdownParent: $('#QuotationitineraryModal') });
-                $('#quotation_cancellation_policies_id_fk')
-                    .val(String(p.quotation_cancellation_policies_id_fk || ''))
-                    .trigger('change');
+                select2AjaxSetSelected(
+                    '#quotation_cancellation_policies_id_fk',
+                    p.quotation_cancellation_policies_id_fk || '',
+                    p.cancellation_policies_name || ''
+                );
 
                 setTimeout(function () {
                     $('#cancellation-policy').find('.cancellation-row').remove();
@@ -2169,11 +2194,105 @@ function update_itinerary(id) {
 
 ////***For loading select2 change detination dropdown*****///
 
-$(document).ready(function () {   
+function select2AjaxSetSelected(selector, id, text) {
+    var $s = $(selector);
+    if (!id || !text) { $s.val(null).trigger('change'); return; }
+    if ($s.find('option[value="' + id + '"]').length === 0) {
+        $s.append(new Option(text, id, true, true));
+    } else {
+        $s.val(id);
+    }
+    $s.trigger('change');
+}
+
+function initQuotationItineraryModalSelect2() {
+    var $modal = $('#QuotationitineraryModal');
+
+    // Inclusions & Exclusions
+    var $inc = $('#quotation_inclusion_exclusion_common_id_fk');
+    if ($inc.length && !$inc.hasClass('select2-hidden-accessible')) {
+        $inc.select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $modal,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_inclusion_exclusion',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    // Payment Policies
+    var $pay = $('#quotation_policies_id_fk');
+    if ($pay.length && !$pay.hasClass('select2-hidden-accessible')) {
+        $pay.select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $modal,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_payment_policies',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    // Terms & Conditions
+    var $tc = $('#quotation_terms_condition_id_fk');
+    if ($tc.length && !$tc.hasClass('select2-hidden-accessible')) {
+        $tc.select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $modal,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_terms_conditions',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    // Cancellation Policies
+    var $can = $('#quotation_cancellation_policies_id_fk');
+    if ($can.length && !$can.hasClass('select2-hidden-accessible')) {
+        $can.select2({
+            width: '100%',
+            placeholder: 'Please Search by title',
+            allowClear: true,
+            dropdownParent: $modal,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_cancellation_policies',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+}
+
+$(document).ready(function () {
+    initQuotationItineraryModalSelect2();
+});
+
+$(document).ready(function () {
   /* ==========================================================
        4. Itinerary change → Load itinerary days
     ========================================================== */
-  
 
     function initDaySelect2(el) {
     el.select2({
@@ -3338,7 +3457,14 @@ function reload_table_status()
 
 function showError(message, element)
 {
-    alert(message);
+    var n = new notify({
+        title: '',
+        style: 'error',
+        message: message,
+        icon: 'fas fa-times'
+    });
+    n.show();
+    setTimeout(function(){ n.hide(); }, 5000);
 
     $('.is-invalid').removeClass('is-invalid');
     $('.select2-error').removeClass('select2-error');
@@ -5252,7 +5378,12 @@ function fetchPropertyCategories(dropdown) {
     const packageId = packageSelect.value;
     if (!packageId) return;
 
-    dropdown.innerHTML = '<option>Loading...</option>';
+    // Disable while loading
+    dropdown.disabled = true;
+    dropdown.innerHTML = '<option value="">Loading...</option>';
+    if ($.fn.select2 && $(dropdown).hasClass('select2-hidden-accessible')) {
+        $(dropdown).trigger('change.select2');
+    }
 
     fetch(`<?php echo base_url(); ?>index.php/Quotation/get_property_categories_by_package?package_id=${packageId}`)
         .then(res => res.json())
@@ -5275,13 +5406,26 @@ function fetchPropertyCategories(dropdown) {
                 dropdown.appendChild(opt);
             });
 
+            // Re-enable after load
+            dropdown.disabled = false;
+
             if ($.fn.select2) {
+                if ($(dropdown).hasClass('select2-hidden-accessible')) {
+                    $(dropdown).select2('destroy');
+                }
                 $(dropdown).select2({
                     width: '100%',
                     placeholder: 'Select template option',
                     allowClear: true,
                     dropdownParent: $('#QuotationModal')
                 });
+            }
+        })
+        .catch(function() {
+            dropdown.innerHTML = '<option value="">Failed to load</option>';
+            dropdown.disabled = false;
+            if ($.fn.select2 && $(dropdown).hasClass('select2-hidden-accessible')) {
+                $(dropdown).trigger('change.select2');
             }
         });
 }
@@ -6688,8 +6832,114 @@ function setHtmlSafeIn(modalEl, selector, html) {
     if (el) el.innerHTML = html || '';
 }
 
-$(document).on('click', '.editRoomBtn', function () {
+function nval(selector)
+{
+    return parseFloat($(selector).val()) || 0;
+}
 
+function clearRoomPricingWarnings()
+{
+    $('#roomPricingWarningBox')
+        .addClass('d-none')
+        .html('');
+}
+
+function showRoomPricingWarnings(messages)
+{
+    if (!messages || messages.length === 0) {
+        clearRoomPricingWarnings();
+        return;
+    }
+
+    var html = '<div class="alert alert-warning mb-0">';
+
+    $.each(messages, function(i, msg) {
+        html += '<div class="mb-1"><i class="bi bi-exclamation-triangle me-1"></i>' + msg + '</div>';
+    });
+
+    html += '</div>';
+
+    $('#roomPricingWarningBox')
+        .removeClass('d-none')
+        .html(html);
+}
+
+function checkRoomPricingWarnings()
+{
+    var messages = [];
+
+    /*
+      CASE 1:
+      Check both auto and manual rates.
+      If all rates are zero, show tariff warning.
+    */
+    var roomAutoRate = nval('[name="auto_room_member_rate"]');
+    var roomManRate  = nval('[name="manual_rate"]');
+
+    var sglAutoRate  = nval('[name="auto_single_occupancy_rate"]');
+    var sglManRate   = nval('[name="manual_single_occupancy_rate"]');
+
+    var ebaAutoRate  = nval('[name="auto_extra_bed_adult_rate"]');
+    var ebaManRate   = nval('[name="manual_extra_bed_adult_rate"]');
+
+    var cwbAutoRate  = nval('[name="auto_extra_bed_child_rate"]');
+    var cwbManRate   = nval('[name="manual_extra_bed_child_rate"]');
+
+    var cnbAutoRate  = nval('[name="auto_child_sharing_bed_rate"]');
+    var cnbManRate   = nval('[name="manual_child_sharing_bed_rate"]');
+
+    var tariffFound =
+        roomAutoRate > 0 || roomManRate > 0 ||
+        sglAutoRate  > 0 || sglManRate  > 0 ||
+        ebaAutoRate  > 0 || ebaManRate  > 0 ||
+        cwbAutoRate  > 0 || cwbManRate  > 0 ||
+        cnbAutoRate  > 0 || cnbManRate  > 0;
+
+    if (!tariffFound) {
+        messages.push(
+            'Rates for all bed units were not found in the tariff. Auto rooming amounts may show as zero — enter per-unit rates manually in the rooming table.'
+        );
+    }
+
+    /*
+      CASE 2:
+      Meal supplement missing.
+      Use tariff data stored on the modal by applyTariffRatesToModal.
+    */
+    var modalEl = document.getElementById('roompricingandguestallocationModal');
+    var tariffData = null;
+    if (modalEl && modalEl.dataset.tariffData) {
+        try { tariffData = JSON.parse(modalEl.dataset.tariffData); } catch (e) { tariffData = null; }
+    }
+
+    if (tariffData && tariffData.needs_supplement) {
+        var autoSupplement  = nval('[name="auto_supplment_cost"]');
+        var manualSupplement = nval('[name="manual_supplment_cost"]');
+
+        // If backend says supplement is needed but couldn't find the tariff rates for missing meals
+        if (tariffData.meal_rates_missing && tariffData.meal_rates_missing.length > 0) {
+            messages.push(
+                'Meal rates not found. Update rates or enter manually in the supplement cost field.'
+            );
+        }
+    }
+
+    showRoomPricingWarnings(messages);
+}
+
+// Check warnings when modal opens (after fields are populated)
+$('#roompricingandguestallocationModal').on('shown.bs.modal', function () {
+    setTimeout(function () {
+        checkRoomPricingWarnings();
+    }, 500);
+});
+
+$(document).on('input change', '#roompricingandguestallocationModal input', function () {
+    checkRoomPricingWarnings();
+});
+
+$(document).on('click', '.editRoomBtn', function () {
+clearRoomPricingWarnings();
     window.__lastRoomEditBtn = this;
 
     let row = $(this).closest('tr');
@@ -6705,35 +6955,84 @@ $(document).on('click', '.editRoomBtn', function () {
             packages_properties_days_id_fk: day_id_fk,
             quotation_properties_rooms_id_fk: room_row_fk
         },
+        // success: function (res) {
+
+        //     if (res.status) {
+
+        //         let d = res.data;
+
+        //         // ✅ SET HIDDEN ID
+        //         $('#modal_quotation_room_tariff_details_id')
+        //             .val(d.quotation_room_tariff_details_id);
+
+        //         // ✅ AUTO SECTION
+        //         $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
+        //         $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
+
+        //         // ✅ MANUAL SECTION
+        //         $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
+        //         $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
+
+        //         // 👉 repeat for all fields (same mapping)
+
+        //         // ✅ TRIGGER TOTAL CALCULATION
+        //         calculateRoomTariffTotals();
+
+        //     } else {
+        //         // no data → reset modal
+        //         $('#modal_quotation_room_tariff_details_id').val('');
+        //         resetRoomTariffModal();
+        //     }
+        // }
+
         success: function (res) {
 
-            if (res.status) {
+    clearRoomPricingWarnings();
 
-                let d = res.data;
+    if (res.status) {
 
-                // ✅ SET HIDDEN ID
-                $('#modal_quotation_room_tariff_details_id')
-                    .val(d.quotation_room_tariff_details_id);
+        let d = res.data;
 
-                // ✅ AUTO SECTION
-                $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
-                $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
+        $('#modal_quotation_room_tariff_details_id')
+            .val(d.quotation_room_tariff_details_id);
 
-                // ✅ MANUAL SECTION
-                $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
-                $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
+        $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
+        $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
 
-                // 👉 repeat for all fields (same mapping)
+        $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
+        $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
 
-                // ✅ TRIGGER TOTAL CALCULATION
-                calculateRoomTariffTotals();
+        $('[name="single_occupancy_auto_rate"]').val(d.single_occupancy_auto_rate);
+        $('[name="single_occupancy_manual_rate"]').val(d.single_occupancy_manual_rate);
 
-            } else {
-                // no data → reset modal
-                $('#modal_quotation_room_tariff_details_id').val('');
-                resetRoomTariffModal();
-            }
-        }
+        $('[name="extra_bed_adult_auto_rate"]').val(d.extra_bed_adult_auto_rate);
+        $('[name="extra_bed_adult_manual_rate"]').val(d.extra_bed_adult_manual_rate);
+
+        $('[name="extra_bed_child_auto_rate"]').val(d.extra_bed_child_auto_rate);
+        $('[name="extra_bed_child_manual_rate"]').val(d.extra_bed_child_manual_rate);
+
+        $('[name="child_sharing_bed_auto_rate"]').val(d.child_sharing_bed_auto_rate);
+        $('[name="child_sharing_bed_manual_rate"]').val(d.child_sharing_bed_manual_rate);
+
+        $('[name="adult_meal_plan_rate"]').val(d.adult_meal_plan_rate || 0);
+        $('[name="child_meal_plan_rate"]').val(d.child_meal_plan_rate || 0);
+        $('[name="adult_supplement_cost"]').val(d.adult_supplement_cost || 0);
+        $('[name="child_supplement_cost"]').val(d.child_supplement_cost || 0);
+
+        calculateRoomTariffTotals();
+
+        setTimeout(function () {
+            checkRoomPricingWarnings();
+        }, 200);
+
+    } else {
+        resetRoomTariffModal();
+
+        setTimeout(function () {
+            checkRoomPricingWarnings();
+        }, 200);
+    }
+}
     });
 
 });
@@ -7479,6 +7778,20 @@ function applyTariffRatesToModal(tariffRes) {
     const d = tariffRes.data || {};
     const rates = d.rates || {};
 
+    // Store tariff data on modal for warning checks
+    const modalEl = document.getElementById('roompricingandguestallocationModal');
+    if (modalEl) {
+        modalEl.dataset.tariffData = JSON.stringify({
+            rates: rates,
+            supplement_amount: d.supplement_amount || 0,
+            needs_supplement: d.needs_supplement || false,
+            missing_meals: d.missing_meals || [],
+            meal_rates_missing: d.meal_rates_missing || [],
+            meal_rates_source: d.meal_rates_source || '',
+            rates_source: d.rates_source || ''
+        });
+    }
+
     // ✅ Rooms | Units RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_room_member_rate"]', rates.room_rate || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_rate"]', rates.room_rate || 0);
@@ -8064,11 +8377,11 @@ function fillSavedManualSection(data) {
 }
 // Status options
 const QUOTATION_STATUSES = [
-  { id: 1, text: 'Generated' },
+//   { id: 1, text: 'Generated' },
   { id: 2, text: 'Draft' },
   { id: 3, text: 'Sent' },
   { id: 4, text: 'Rejected' },
-  { id: 5, text: 'Accepted' },
+//   { id: 5, text: 'Confirmed' },
   { id: 6, text: 'Cancelled' }
 ];
 
@@ -8106,10 +8419,20 @@ function validateManualRoomingPlan() {
     let isValid = true;
 
     function showError(el, msg) {
-        alert(msg);
-        el.focus();
-        el.classList.add('is-invalid');
-        setTimeout(() => el.classList.remove('is-invalid'), 2000);
+        var n = new notify({
+            title: '',
+            style: 'error',
+            message: msg,
+            icon: 'fas fa-times'
+        });
+        n.show();
+        setTimeout(function(){ n.hide(); }, 5000);
+
+        if (el) {
+            el.focus();
+            el.classList.add('is-invalid');
+            setTimeout(() => el.classList.remove('is-invalid'), 2000);
+        }
         isValid = false;
     }
 
@@ -8146,6 +8469,22 @@ function validateManualRoomingPlan() {
         // ❌ Logic validation
         if (count > 0 && rate <= 0) {
             showError(rateEl, `${f.label} rate must be greater than 0`);
+            return false;
+        }
+    }
+
+    // ❌ Supplement cost validation
+    var modalEl2 = document.getElementById('roompricingandguestallocationModal');
+    var tariffData2 = null;
+    if (modalEl2 && modalEl2.dataset.tariffData) {
+        try { tariffData2 = JSON.parse(modalEl2.dataset.tariffData); } catch (e) { tariffData2 = null; }
+    }
+
+    if (tariffData2 && tariffData2.needs_supplement) {
+        let supEl = document.querySelector('[name="manual_supplment_cost"]');
+        let supVal = supEl ? (parseFloat(supEl.value) || 0) : 0;
+        if (supVal <= 0) {
+            showError(supEl, 'Supplement cost is required because the room policy does not cover the enquiry meal plan. Please enter a valid supplement cost.');
             return false;
         }
     }
@@ -8242,6 +8581,21 @@ $(document).ready(function() {
     $('#leads_id').change(function() {
     //alert("oo");
           var leads_id = $('#leads_id').val();
+
+          // If lead cleared, reset template dropdown
+          if (!leads_id) {
+              $('#packages_id_fk').prop('disabled', false)
+                  .html('<option value="">Please Select Template</option>')
+                  .val('').trigger('change.select2');
+              toggleAddOptionBtn();
+              return;
+          }
+
+          // Disable template dropdown while loading
+          $('#packages_id_fk').prop('disabled', true)
+              .html('<option value="">Loading...</option>')
+              .trigger('change.select2');
+
           $.ajax({
               url: "<?php echo base_url(); ?>index.php/Quotation/packageid_underlead/"+leads_id,
               dataType: 'json',
@@ -8261,12 +8615,13 @@ $(document).ready(function() {
                       },
                       success: function(data) {
                           $('#packages_id_fk').html(data);
-                          // $('#city').html('<option value="">Select City</option>');
+                          $('#packages_id_fk').prop('disabled', false).trigger('change.select2');
+                          toggleAddOptionBtn();
                       }
                   });
                   } else {
-                      $('#packages_id_fk').html('<option value="0">Please Select Template</option>');
-                      // $('#city').html('<option value="">Select City</option>');
+                      $('#packages_id_fk').html('<option value="">Please Select Template</option>')
+                          .prop('disabled', false).trigger('change.select2');
                   }
                 
                   }
@@ -8434,23 +8789,9 @@ function edit_quotation(id)
                 ? q.leads_number + ' - ' + q.guest_name
                 : q.guest_name;
 
-            // if ($('#leads_id option[value="' + q.leads_id_fk + '"]').length === 0) {
-            //     $('#leads_id').append(
-            //         '<option value="' + q.leads_id_fk + '">' + leadText + '</option>'
-            //     );
-            // }
-
-            if ($('#leads_id option[value="' + q.leads_id_fk + '"]').length === 0) {
-    $('#leads_id').append(
-        '<option value="' + q.leads_id_fk + '" data-edit-lead="1">' + leadText + '</option>'
-    );
-}
-
-            $('#leads_id')
-                .val(q.leads_id_fk)
-                .prop('disabled', true)
-                .trigger('change.select2');
-
+            var leadOption = new Option(leadText, q.leads_id_fk, true, true);
+            $('#leads_id').data('filter-mode', 'edit').empty().append(leadOption).trigger('change.select2');
+            $('#leads_id').prop('disabled', true);
             $('#leads_id_hidden').val(q.leads_id_fk);
         }
 
@@ -8467,6 +8808,11 @@ function edit_quotation(id)
                 alert('Lead or Template missing');
                 return;
             }
+
+            // Disable template dropdown while loading for edit
+            $('#packages_id_fk').prop('disabled', true)
+                .html('<option value="">Loading...</option>')
+                .trigger('change.select2');
 
             $.ajax({
                 url: "<?php echo base_url(); ?>index.php/Quotation/fetch_package_under_lead",
@@ -8491,7 +8837,7 @@ function edit_quotation(id)
 $('#packages_id_hidden').val(package_id);
 
                     $('#QuotationModal').modal('show');
-                    $('.modal-title').text('Edit Quotation Details');
+                    $('#QuotationModal .modal-title').text('Edit Quotation Details');
                     $('#btnSave').text('Update');
 
                     rebuildQuotationOptionBlocks(res.options || [], package_id, function () {
@@ -8678,6 +9024,22 @@ function rebuildQuotationOptionBlocks(options, packageId, doneCallback)
     });
 }
 
+function formatItineraryDayDate(dateStr)
+{
+    if (!dateStr || dateStr === '0000-00-00') return '';
+
+    var parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+
+    var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return days[d.getDay()] + ', ' + parts[2] + ' ' + months[d.getMonth()] + ' ' + parts[0];
+}
+
 function buildSavedOptionItinerary($block, optionData)
 {
     const container = $block.find('.itineraryContainer');
@@ -8775,10 +9137,18 @@ function buildSavedOptionItinerary($block, optionData)
         });
 
         html += `
+            
+
             <tr class="itineraryDayRow"
-    data-accommodation-date="sss${day.accommodation_date || ''}">
+                data-accommodation-date="${day.accommodation_date || ''}">
                 <td>
                     <strong>${day.quotation_properties_days_day || ''}</strong>
+
+                    ${
+                        day.accommodation_date
+                        ? `<div >${formatItineraryDayDate(day.accommodation_date)}</div>`
+                        : ''
+                    }
                     
                     <input type="hidden" name="packages_itinerary_days_id_fk[]" value="${day.packages_itinerary_days_id_fk || 0}">
                            
@@ -9084,6 +9454,38 @@ function setSelectValueSafe($select, value, text) {
     $select.val(value).trigger('change.select2');
 }
 
+function buildSavedDayLabelByKey(dayId, destinationId, accDate)
+{
+    var label = 'Saved Day';
+
+    $('.optionBlock .itineraryDayRow').each(function () {
+        var rowDayId = $(this).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+        var rowDestId = $(this).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+        var rowDate = $(this).attr('data-accommodation-date') || '';
+
+        if (String(rowDayId) === String(dayId)) {
+            var dayText = $(this).find('td:eq(0) strong').text().trim();
+            var destinationText = $(this).find('td:eq(1)').clone().children().remove().end().text().trim();
+
+            var dateText = rowDate ? formatItineraryDayDate(rowDate) : (accDate ? formatItineraryDayDate(accDate) : '');
+
+            label = dayText;
+
+            if (dateText) {
+                label += ' | ' + dateText;
+            }
+
+            if (destinationText) {
+                label += ' | ' + destinationText;
+            }
+
+            return false;
+        }
+    });
+
+    return label;
+}
+
 function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
 {
     var daySel = $tr.find('.inclusionDaySelect')[0];
@@ -9110,7 +9512,15 @@ function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
 
                 if (packagesPropertiesDaysId) {
                     var dayKey = packagesPropertiesDaysId + '|' + destinationId + '|' + accommodationDate;
-                    html += '<option value="' + dayKey + '">' + dayText + ' | ' + destinationText + '</option>';
+                    // html += '<option value="' + dayKey + '">' + dayText + ' | ' + destinationText + '</option>';
+
+                    var dateText = accommodationDate ? formatItineraryDayDate(accommodationDate) : '';
+
+                    var label = dayText;
+                    if (dateText) label += ' | ' + dateText;
+                    if (destinationText) label += ' | ' + destinationText;
+
+                    html += '<option value="' + dayKey + '">' + label + '</option>';
                 }
             });
         }
@@ -9119,8 +9529,23 @@ function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
     $(daySel).html(html);
     initSelect2(daySel, 'Select Day | Date | Destination');
 
+    // if (savedDayKey && $(daySel).find('option[value="' + savedDayKey + '"]').length === 0) {
+    //     $(daySel).append('<option value="' + savedDayKey + '">Saved Day</option>');
+    // }
+
     if (savedDayKey && $(daySel).find('option[value="' + savedDayKey + '"]').length === 0) {
-        $(daySel).append('<option value="' + savedDayKey + '">Saved Day</option>');
+
+        var savedParts = savedDayKey.split('|');
+
+        var savedDayId = savedParts[0] || '';
+        var savedDestinationId = savedParts[1] || '';
+        var savedDate = savedParts[2] || '';
+
+        var savedLabel = buildSavedDayLabelByKey(savedDayId, savedDestinationId, savedDate);
+
+        $(daySel).append(
+            '<option value="' + savedDayKey + '">' + savedLabel + '</option>'
+        );
     }
 
     if (typeof callback === 'function') callback();
@@ -9656,7 +10081,7 @@ function buildLeadTopSection(d)
                     <div class="mini-info-row">
                         <div class="mini-pill"><strong>Stage:</strong> ${cleanButtonHtml(d.stages_button)}</div>
                         <div class="mini-pill"><strong>Priority:</strong> ${cleanButtonHtml(d.priority_status_button)}</div>
-                        <div class="mini-pill"><strong>Created:</strong> ${formatDate(d.leads_created_date)} ${escapeHtml(d.leads_created_time || '')}</div>
+                        <div class="mini-pill"><strong>Created:</strong> ${formatDateTime(d.leads_created_at)}</div>
                         <div class="mini-pill"><strong>Assigned Staff:</strong> ${escapeHtml(d.staff_name || '-')}</div>
                     </div>
                 </div>
@@ -9709,9 +10134,10 @@ function buildB2CLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -9760,9 +10186,10 @@ function buildMetaLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -9795,9 +10222,10 @@ function buildB2BLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -9825,9 +10253,10 @@ function buildFallbackLayout(d)
 
             <div class="col-md-6">
                 ${buildLeadCard('Created Information', [
-                    ['Created Date', formatDate(d.leads_created_date)],
-                    ['Created Time', d.leads_created_time],
-                    ['Created By User', d.leads_createdby_username]
+                    ['Created Date', formatDateTime(d.leads_created_at)],
+                    ['Created By User', d.created_by_admin_name],
+                    ['Updated Date', formatDateTime(d.leads_updated_at)],
+                    ['Updated By', d.updated_by_admin_name]
                 ])}
             </div>
 
@@ -9901,6 +10330,19 @@ function formatDate(dateStr)
     if (parts.length !== 3) return dateStr;
 
     return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function formatDateTime(dateTimeStr)
+{
+    if (!dateTimeStr || dateTimeStr === '0000-00-00 00:00:00') return '-';
+
+    var parts = dateTimeStr.split(' ');
+    if (parts.length !== 2) return dateTimeStr;
+
+    var dateParts = parts[0].split('-');
+    if (dateParts.length !== 3) return dateTimeStr;
+
+    return dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0] + ' ' + parts[1];
 }
 
 // function getAccommodationStatusText(val)

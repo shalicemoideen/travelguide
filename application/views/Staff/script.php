@@ -90,19 +90,19 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
                                     }
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
                                     }
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7, 8, 9]
+                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7]
                                     }
                                 },
                                
@@ -144,13 +144,13 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(10).html(actionHtml);
+            $('td', row).eq(8).html(actionHtml);
 
 			// $('td', row).eq(10).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_staff('+data['user_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_staff('+data['user_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
            if(data['user_date_of_joining'] == '01-01-1970'){
 
-            $('td', row).eq(7).html('00-00-0000');
+            $('td', row).eq(5).html('00-00-0000');
            }
             
            },
@@ -162,8 +162,6 @@ var table;
         "columns": [
             { "data": "user_status", "orderable": false },
             { "data": "admin_name", "orderable": false },
-            { "data": "user_address", "orderable": false },
-            { "data": "user_email_address", "orderable": false },
             { "data": "user_phone_number", "orderable": false },
             { "data": "roles_name", "orderable": false },   
             { "data": "designation_name", "orderable": false },   

@@ -2500,6 +2500,7 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 		$time = date('h:i:sa');
 
+		$date1 = date('Y-m-d h:i:s a', time());
 
 
 		$currentuserid   = $this->session->userdata('user_id');
@@ -2616,11 +2617,11 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 				'quotation_created_by_userid' => $currentuserid,
 
-				'quotation_created_by_username' => $currentusername,
+				// 'quotation_created_by_username' => $currentusername,
 
-				'quotation_created_date' => $date,
+				'quotation_created_at' => $date1,
 
-				'quotation_created_time' => $time,
+				// 'quotation_created_time' => $time,
 
 				'quotation_current_status' => 2,
 
@@ -3481,16 +3482,33 @@ if (!empty($accommodationPlanIds)) {
     }
 
 
+	$this->load->helper('date');
 
-    $this->load->helper('date');
+	if(function_exists('date_default_timezone_set')) {
+
+		date_default_timezone_set("Asia/Kolkata");
+
+	}
+
+	$date = date('Y-m-d');
+
+	$time = date('h:i:sa');
+
+	
+
+	$date1 = date('Y-m-d h:i:s a', time());
 
 
 
-    if (function_exists('date_default_timezone_set')) {
+	// $itineraries_name = $this->input->post('itineraries_name');
 
-        date_default_timezone_set("Asia/Kolkata");
+	
 
-    }
+	$currentuserid = $this->session->userdata('user_id');
+
+	$currentusertype = $this->session->userdata('user_type');
+
+	$currentusername = $this->session->userdata('admin_name');
 
 
 
@@ -3528,7 +3546,11 @@ if (!empty($accommodationPlanIds)) {
 
             'total_inclusion_amount' => $this->input->post('total_inclusion_amount'),
 
-            'total_special_requirment_amount' => $this->input->post('total_special_requirment_amount')
+            'total_special_requirment_amount' => $this->input->post('total_special_requirment_amount'),
+
+			'quotation_updatedby_user_id' => $currentuserid,
+
+			'quotation_updated_at' => $date1,
 
         );
 
@@ -6910,33 +6932,33 @@ public function ajax_delete()
 
     // activity
 
-    $activity_data = array(
+    // $activity_data = array(
 
-        'activity_description' => 'Deleted quotation: '.$quote_num,
+    //     'activity_description' => 'Deleted quotation: '.$quote_num,
 
-        'id_fk' => $quotation_id,
+    //     'id_fk' => $quotation_id,
 
-        'activity_type' => 'Quotation_registration',
+    //     'activity_type' => 'Quotation_registration',
 
-        'activity_ip' => $this->input->ip_address(),
+    //     'activity_ip' => $this->input->ip_address(),
 
-        'activity_action' => 'Delete',
+    //     'activity_action' => 'Delete',
 
-        'activity_by_userid' => $currentuserid,
+    //     'activity_by_userid' => $currentuserid,
 
-        'activity_by_username' => $currentusername,
+    //     'activity_by_username' => $currentusername,
 
-        'activity_date_time' => $date1,
+    //     'activity_date_time' => $date1,
 
-        'activity_date' => $date,
+    //     'activity_date' => $date,
 
-        'activity_status' => 1,
+    //     'activity_status' => 1,
 
-    );
+    // );
 
 
 
-    $this->General_model->add($this->activity, $activity_data);
+    // $this->General_model->add($this->activity, $activity_data);
 
 
 
@@ -7614,6 +7636,8 @@ public function ajax_delete()
 
 		$this->db->where('quotation_status', 1);
 
+		$this->db->where('quotation_status', 1);
+
 		if ($q) {
 
 			$this->db->like('quotation_number', $q);
@@ -7684,11 +7708,21 @@ public function ajax_delete()
 
 		$q = $this->input->get('q');
 
+		$filter_mode = $this->input->get('filter_mode');
+
 		$this->db->select('leads_id, leads_number, guest_name');
 
 		$this->db->from('leads');
 
 		$this->db->where('leads_status', 1);
+
+		if ($filter_mode === 'add_quotation') {
+			$this->db->where('leads_accomodation_status', 2);
+			$this->db->group_start();
+			$this->db->where('leads_quotation_status', 0);
+			$this->db->or_where('leads_quotation_status', 2);
+			$this->db->group_end();
+		}
 
 		if ($q) {
 

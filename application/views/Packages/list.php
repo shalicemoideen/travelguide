@@ -22,6 +22,17 @@
 .ck-content ol {
   margin-left: 20px !important;
 }
+
+#Package_registration {
+    width: 100% !important;
+    font-size: 13px;
+}
+
+#Package_registration thead th,
+#Package_registration tbody td {
+    font-size: 13px;
+}
+
 </style>
 <style>
 .day-thumb{
