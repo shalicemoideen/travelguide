@@ -31,12 +31,11 @@ class Home extends MY_Controller {
 	
 	public function index()
 	{
-		$template['todayleads'] = $this->Dashboard_model->getToday_leads_count();
-		$template['intake'] = $this->Dashboard_model->getIntake_leads_count();
-		$template['qualified'] = $this->Dashboard_model->getQualified_leads_count();
-		$template['converted'] = $this->Dashboard_model->getConverted_leads_count();
-		$template['notconverted'] = $this->Dashboard_model->getNotQualified_leads_count();
-		$template['lost'] = $this->Dashboard_model->getLost_leads_count();
+		$template['allleads'] = $this->Dashboard_model->getTotalLeadsCount('today');
+		$template['converted'] = $this->Dashboard_model->getConvertedTripsCount('today');
+		$template['checkin'] = $this->Dashboard_model->getCheckinCount('today');
+		$template['checkout'] = $this->Dashboard_model->getCheckoutCount('today');
+		$template['quotations_sent'] = $this->Dashboard_model->getQuotationsCount('today');
 		$template['body'] = 'home/list';
 		$template['script'] = 'home/script';
 		$this->load->view('template', $template);

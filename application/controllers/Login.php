@@ -67,10 +67,10 @@ class Login extends CI_Controller{
                         redirect('/Property_registration/');
                     }
                     if($user_type == 'S'){
-						redirect('Home');
+						redirect('Dashboard');
                     } 
 					if($user_type == 'A'){
-						redirect('Home');
+						redirect('Dashboard');
                     }
                     if($user_type == 'MH'){
                         redirect('Dashboard');

@@ -1,358 +1,93 @@
 <!--**********************************
-			Content body start
-		***********************************-->
-		<div class="content-body">
-			<!-- row -->
-			<div class="container-fluid">
+		Content body start
+	***********************************-->
+<div class="content-body">
+	<div class="container-fluid">
+		<div class="row mb-3">
+			<div class="col-xl-12 text-end">
+				<select id="dashboard-period-select" class="form-select" style="width:auto;display:inline-block;">
+					<option value="today" selected>Today</option>
+					<option value="week">This Week</option>
+					<option value="month">This Month</option>
+					<option value="year">This Year</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-xl-12">
 				<div class="row">
-					<div class="col-xl-12">
-						<div class="row">
-							<div class="col-xl-12">
-								<div class="row">
-									<div class="col-xl-3 col-sm-6">
-										<div class="card booking">
-											<div class="card-body">
-												<div class="booking-status d-flex align-items-center">
-													<span>
-														<svg xmlns="http://www.w3.org/2000/svg" width="28" height="20" viewBox="0 0 28 20">
-														  <path  d="M27,14V7a1,1,0,0,0-1-1H6A1,1,0,0,0,5,7v7a3,3,0,0,0-3,3v8a1,1,0,0,0,2,0V24H28v1a1,1,0,0,0,2,0V17A3,3,0,0,0,27,14ZM7,8H25v6H24V12a2,2,0,0,0-2-2H19a2,2,0,0,0-2,2v2H15V12a2,2,0,0,0-2-2H10a2,2,0,0,0-2,2v2H7Zm12,6V12h3v2Zm-9,0V12h3v2ZM4,17a1,1,0,0,1,1-1H27a1,1,0,0,1,1,1v5H4Z" transform="translate(-2 -6)" fill="var(--primary)"/>
-														</svg>
-													</span>
-													<div class="ms-4">
-														<h2 class="mb-0 font-w600">8,461</h2>
-														<p class="mb-0 text-nowrap">New Booking</p>
-													</div>
-												</div>
-											</div>
-										</div>
+					<div class="col-xl-3 col-sm-6">
+						<div class="card" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;border-radius:12px;">
+							<div class="card-body">
+								<div class="d-flex align-items-center justify-content-between">
+									<div>
+										<h2 class="mb-1 font-w600" id="total_leads_count" style="color:#fff;font-size:2rem;">
+											<a href="<?php echo base_url();?>index.php/Leads" style="color:#fff;">
+												<?php foreach ($allleads as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+											</a>
+										</h2>
+										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Total Leads</p>
 									</div>
-									<div class="col-xl-3 col-sm-6">
-										<div class="card booking">
-											<div class="card-body">
-												<div class="booking-status d-flex align-items-center">
-													<span>
-														<svg xmlns="http://www.w3.org/2000/svg" width="28" height="20" viewBox="0 0 28 20">
-														  <path  d="M27,14V7a1,1,0,0,0-1-1H6A1,1,0,0,0,5,7v7a3,3,0,0,0-3,3v8a1,1,0,0,0,2,0V24H28v1a1,1,0,0,0,2,0V17A3,3,0,0,0,27,14ZM7,8H25v6H24V12a2,2,0,0,0-2-2H19a2,2,0,0,0-2,2v2H15V12a2,2,0,0,0-2-2H10a2,2,0,0,0-2,2v2H7Zm12,6V12h3v2Zm-9,0V12h3v2ZM4,17a1,1,0,0,1,1-1H27a1,1,0,0,1,1,1v5H4Z" transform="translate(-2 -6)" fill="var(--primary)"/>
-														</svg>
-													</span>
-													<div class="ms-4">
-														<h2 class="mb-0 font-w600">8,461</h2>
-														<p class="mb-0 text-nowrap ">New Booking</p>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-									<div class="col-xl-3 col-sm-6">
-										<div class="card booking">
-											<div class="card-body">
-												<div class="booking-status d-flex align-items-center">
-													<span>
-														<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-														  <path  data-name="Path 1957" d="M129.035,178.842v2.8a5.6,5.6,0,0,0,5.6,5.6h14a5.6,5.6,0,0,0,5.6-5.6v-16.8a5.6,5.6,0,0,0-5.6-5.6h-14a5.6,5.6,0,0,0-5.6,5.6v2.8a1.4,1.4,0,0,0,2.8,0v-2.8a2.8,2.8,0,0,1,2.8-2.8h14a2.8,2.8,0,0,1,2.8,2.8v16.8a2.8,2.8,0,0,1-2.8,2.8h-14a2.8,2.8,0,0,1-2.8-2.8v-2.8a1.4,1.4,0,0,0-2.8,0Zm10.62-7-1.81-1.809a1.4,1.4,0,1,1,1.98-1.981l4.2,4.2a1.4,1.4,0,0,1,0,1.981l-4.2,4.2a1.4,1.4,0,1,1-1.98-1.981l1.81-1.81h-12.02a1.4,1.4,0,1,1,0-2.8Z" transform="translate(-126.235 -159.242)" fill="var(--primary)" fill-rule="evenodd"/>
-														</svg>
-													</span>
-													<div class="ms-4">
-														<h2 class="mb-0 font-w600">753</h2>
-														<p class="mb-0">Check In</p>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-									<div class="col-xl-3 col-sm-6">
-										<div class="card booking">
-											<div class="card-body">
-												<div class="booking-status d-flex align-items-center">
-													<span>
-														<svg id="_009-log-out" data-name="009-log-out" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-														  <path  data-name="Path 1957" d="M151.435,178.842v2.8a5.6,5.6,0,0,1-5.6,5.6h-14a5.6,5.6,0,0,1-5.6-5.6v-16.8a5.6,5.6,0,0,1,5.6-5.6h14a5.6,5.6,0,0,1,5.6,5.6v2.8a1.4,1.4,0,0,1-2.8,0v-2.8a2.8,2.8,0,0,0-2.8-2.8h-14a2.8,2.8,0,0,0-2.8,2.8v16.8a2.8,2.8,0,0,0,2.8,2.8h14a2.8,2.8,0,0,0,2.8-2.8v-2.8a1.4,1.4,0,0,1,2.8,0Zm-10.62-7,1.81-1.809a1.4,1.4,0,1,0-1.98-1.981l-4.2,4.2a1.4,1.4,0,0,0,0,1.981l4.2,4.2a1.4,1.4,0,1,0,1.98-1.981l-1.81-1.81h12.02a1.4,1.4,0,1,0,0-2.8Z" transform="translate(-126.235 -159.242)" fill="var(--primary)" fill-rule="evenodd"/>
-														</svg>
-
-													</span>
-													<div class="ms-4">
-														<h2 class="mb-0 font-w600">516</h2>
-														<p class="mb-0">Check Out</p>
-													</div>
-												</div>
-											</div>
-										</div>
+									<div style="opacity:0.35;">
+										<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
 									</div>
 								</div>
 							</div>
-							<div class="col-xl-12">
-								<div class="row">
-									<div class="col-xl-6">
-										<div class="card">
-											<div class="card-header border-0 pb-0">
-												<h4 class="fs-20">Recent Booking Schedule</h4>
-											</div>
-											<div class="card-body pb-2 loadmore-content" id="BookingContent">
-												<div class="text-center event-calender border-bottom booking-calender">
-													<input type='text' class="form-control d-none " id='datetimepicker1' />
-												</div>	
-												<div class="rooms mt-3 d-flex align-items-center justify-content-between flex-wrap">
-													<div class="d-flex align-items-center mb-3">
-														<img src="images/room/room1.jpg" alt="">
-														<div class="ms-4 bed-text">
-															<h4>Queen Bed A-12324</h4>
-															<div class="users d-flex align-items-center">
-																<img src="images/users/user1.jpg" alt="">
-																<div>
-																	<span class="fs-16 font-w500 me-3">James Sukardi</span>
-																	<span>12min ago</span>
-																</div>
-															</div>
-														</div>
-													</div>
-													<span class="date bg-secondary mb-3">3</span>
-												</div>
-												<div class="rooms mt-3 d-flex align-items-center justify-content-between flex-wrap">
-													<div class="d-flex align-items-center mb-3">
-														<img src="images/room/room2.jpg" alt="">
-														<div class="ms-4 bed-text">
-															<h4>Deluxe Room B-1324</h4>
-															<div class="users d-flex align-items-center">
-																<img src="images/users/user2.jpg" alt="">
-																<div>
-																	<span class="fs-16 font-w500 me-3">Angela Moss</span>
-																	<span>12min ago</span>
-																</div>
-															</div>
-														</div>
-													</div>
-													<span class="date2 bg-primary mb-3">16, 17, 18</span>
-												</div>
-												<div class="rooms mt-3 d-flex align-items-center justify-content-between flex-wrap">
-													<div class="d-flex align-items-center mb-3">
-														<img src="images/room/room3.jpg" alt="">
-														<div class="ms-4 bed-text">
-															<h4>King Big C-2445</h4>
-															<div class="users d-flex align-items-center">
-																<img src="images/users/user3.jpg" alt="">
-																<div >
-																	<span class="fs-16 font-w500 me-3">JGeovanny</span>
-																	<span>12min ago</span>
-																</div>
-															</div>
-														</div>
-													</div>
-													<span class="date bg-warning mb-3">3</span>
-												</div>
-											</div>
-											<div class="card-footer border-0 m-auto pt-0">
-												<a href="javascript:void(0);" class="btn  btn-link m-auto dlab-load-more fs-16 font-w500 text-secondary" id="Booking" rel="ajax/booking.html">View more</a>
-											</div>
-										</div>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6">
+						<div class="card" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);border:none;border-radius:12px;">
+							<div class="card-body">
+								<div class="d-flex align-items-center justify-content-between">
+									<div>
+										<h2 class="mb-1 font-w600" id="converted_trips_count" style="color:#fff;font-size:2rem;">
+											<a href="<?php echo base_url();?>index.php/LeadsConverted" style="color:#fff;">
+												<?php foreach ($converted as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+											</a>
+										</h2>
+										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Converted Trips</p>
 									</div>
-									<div class="col-xl-6">
-										<div class="row">
-											<div class="col-xl-12">
-												<div class="card">
-													<div class="card-header border-0 flex-wrap">
-														<h4 class="fs-20">Reservation Stats</h4>
-														<div class="card-action coin-tabs">
-															<ul class="nav nav-tabs" role="tablist">
-																<li class="nav-item">
-																	<a class="nav-link " data-bs-toggle="tab" href="#Daily1" role="tab">Daily</a>
-																</li>
-																<li class="nav-item">
-																	<a class="nav-link " data-bs-toggle="tab" href="#weekly1" role="tab" >Weekly</a>
-																</li>
-																<li class="nav-item">
-																	<a class="nav-link active" data-bs-toggle="tab" href="#monthly1" role="tab" >Monthly</a>
-																</li>
-															</ul>
-														</div>
-													</div>
-													<div class="card-body pb-0">
-														<div class="d-flex flex-wrap">
-															<span class="me-sm-5 me-0 font-w500">
-																<svg class="me-1" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13">
-																  <rect  width="13" height="13" fill="#135846"/>
-																</svg>
-
-																Check In
-															</span>
-															<span class="fs-16 font-w600 me-4">23,451 <small class="text-success fs-12 font-w400">+0.4%</small></span>
-															<span class="me-sm-5 ms-0 font-w500">
-																<svg class="me-1" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13">
-																  <rect  width="13" height="13" fill="#E23428"/>
-																</svg>
-																Check Out
-															</span>
-															<span class="fs-16 font-w600">20,441</span>
-														</div>	
-														<div class="tab-content">
-															<div class="tab-pane fade show active" id="Daily1">
-																<div id="chartBar" class="chartBar"></div>
-															</div>
-															<div class="tab-pane fade " id="weekly1">
-																<div id="chartBar1" class="chartBar"></div>
-															</div>
-															<div class="tab-pane fade " id="monthly1">
-																<div id="chartBar2" class="chartBar"></div>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="col-xl-6 col-sm-6">
-												<div class="card bg-secondary">
-													<div class="card-body">
-														<div class="d-flex align-items-end pb-4 justify-content-between">
-															<span class="fs-14 font-w500 text-white">Available Room Today</span>
-															<span class="fs-20 font-w600 text-white"><span class="pe-2"></span>683</span>
-														</div>
-														<div class="progress default-progress h-auto">
-															<div class="progress-bar bg-white progress-animated" style="width: 60%; height:13px;" role="progressbar">
-																<span class="sr-only">60% Complete</span>
-															</div>
-														</div>
-														
-													</div>
-												</div>
-											</div>
-											<div class="col-xl-6 col-sm-6">
-												<div class="card bg-secondary">
-													<div class="card-body">
-														<div class="d-flex align-items-end pb-4 justify-content-between">
-															<span class="fs-14 font-w500 text-white">Sold Out Room Today</span>
-															<span class="fs-20 font-w600 text-white"><span class="pe-2"></span>156</span>
-														</div>
-														<div class="progress default-progress h-auto">
-															<div class="progress-bar bg-white progress-animated" style="width: 30%; height:13px;" role="progressbar">
-																<span class="sr-only">30% Complete</span>
-															</div>
-														</div>
-														
-													</div>
-												</div>
-											</div>
-											<div class="col-xl-12">
-												<div class="card">
-													<div class="card-body">
-														<div class="row">
-															<div class="col-xl-3 col-sm-3 col-6 mb-4 col-xxl-6">
-																<div class="text-center">
-																	<h3 class="fs-28 font-w600">569</h3>
-																	<span class="fs-16">Total Concierge</span>
-																</div>
-															</div>
-															<div class="col-xl-3 col-sm-3 col-6 mb-4 col-xxl-6">
-																<div class="text-center">
-																	<h3 class="fs-28 font-w600">2,342</h3>
-																	<span class="fs-16">Total Customer</span>
-																</div>
-															</div>
-															<div class="col-xl-3 col-sm-3 col-6 mb-4 col-xxl-6">
-																<div class="text-center">
-																	<h3 class="fs-28 font-w600">992</h3>
-																	<span class="fs-16">Total Room</span>
-																</div>
-															</div>
-															<div class="col-xl-3 col-sm-3 col-6 mb-4 col-xxl-6">
-																<div class="text-center">
-																	<h3 class="fs-28 font-w600">76k</h3>
-																	<span class="fs-16 wspace-no">Total Transaction</span>
-																</div>
-															</div>
-															<div class="mb-5 mt-4 d-flex align-items-center">
-																<div>
-																	<h4><a href="javascript:void(0);" class="text-secondary">Let Travl Generate Your Annualy Report Easily</a></h4>
-																	<span class="fs-12">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 		incididunt ut labo
-																	</span>
-																</div>
-																<div><a href="javascript:void(0);" class="ms-5"><i class="fas fa-arrow-right fs-20"></i></a></div>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
+									<div style="opacity:0.35;">
+										<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
 									</div>
 								</div>
 							</div>
-							<div class="col-xl-12">
-								<div class="card">
-									<div class="card-header border-0 pb-0">
-										<h4 class="fs-20">Latest Review by Customers</h4>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6">
+						<div class="card" style="background:linear-gradient(135deg,#28a745 0%,#20c997 100%);border:none;border-radius:12px;">
+							<div class="card-body">
+								<div class="d-flex align-items-center justify-content-between">
+									<div>
+										<h2 class="mb-1 font-w600" id="checkin_count" style="color:#fff;font-size:2rem;">
+											<a href="<?php echo base_url();?>index.php/Staff_attendance" style="color:#fff;">
+												<?php foreach ($checkin as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+											</a>
+										</h2>
+										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Check-In</p>
 									</div>
-									<div class="card-body pt-0">
-										<div class="front-view-slider owl-carousel owl-carousel owl-loaded owl-drag owl-dot">
-											<div class="items">
-												<div class="customers border">
-													<p class="fs-16">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
-													<div class="d-flex justify-content-between align-items-center mt-4">
-														<div class="customer-profile d-flex ">
-														<img src="images/users/user5.jpg" alt="">
-														<div class="ms-3">
-															<h5 class="mb-0"><a href="javascript:void(0);">Kusnaidi Anderson</a></h5>
-															<span>4m ago</span>
-														</div>
-														</div>
-														<div class="customer-button text-nowrap">
-															<a href="javascript:void(0);"><i class="far fa-check-circle text-success"></i></a>
-															<a href="javascript:void(0);"><i class="far fa-times-circle text-danger"></i></a>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="items">
-												<div class="customers border">
-													<p class="fs-16">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
-													<div class="d-flex justify-content-between align-items-center mt-4">
-														<div class="customer-profile d-flex ">
-														<img src="images/users/user6.jpg" alt="">
-														<div class="ms-3">
-															<h5 class="mb-0"><a href="javascript:void(0);">Kusnaidi Anderson</a></h5>
-															<span>4m ago</span>
-														</div>
-														</div>
-														<div class="customer-button text-nowrap">
-															<a href="javascript:void(0);"><i class="far fa-check-circle text-success"></i></a>
-															<a href="javascript:void(0);"><i class="far fa-times-circle text-danger"></i></a>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="items">
-												<div class="customers border">
-													<p class="fs-16">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
-													<div class="d-flex justify-content-between align-items-center mt-4">
-														<div class="customer-profile d-flex ">
-														<img src="images/users/user7.jpg" alt="">
-														<div class="ms-3">
-															<h5 class="mb-0"><a href="javascript:void(0);">Kusnaidi Anderson</a></h5>
-															<span>4m ago</span>
-														</div>
-														</div>
-														<div class="customer-button text-nowrap">
-															<a href="javascript:void(0);"><i class="far fa-check-circle text-success"></i></a>
-															<a href="javascript:void(0);"><i class="far fa-times-circle text-danger"></i></a>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="items">
-												<div class="customers border">
-													<p class="fs-16">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
-													<div class="d-flex justify-content-between align-items-center mt-4">
-														<div class="customer-profile d-flex ">
-														<img src="images/users/user5.jpg" alt="">
-														<div class="ms-3">
-															<h5 class="mb-0"><a href="javascript:void(0);">Kusnaidi Anderson</a></h5>
-															<span>4m ago</span>
-														</div>
-														</div>
-														<div class="customer-button text-nowrap">
-															<a href="javascript:void(0);"><i class="far fa-check-circle text-success"></i></a>
-															<a href="javascript:void(0);"><i class="far fa-times-circle text-danger"></i></a>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
+									<div style="opacity:0.35;">
+										<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M10 17v-3H3v-4h7V7l5 5-5 5zm9 2H12v-2h7V5h-7V3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"/></svg>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6">
+						<div class="card" style="background:linear-gradient(135deg,#fd7e14 0%,#ffc107 100%);border:none;border-radius:12px;">
+							<div class="card-body">
+								<div class="d-flex align-items-center justify-content-between">
+									<div>
+										<h2 class="mb-1 font-w600" id="checkout_count" style="color:#fff;font-size:2rem;">
+											<a href="<?php echo base_url();?>index.php/Staff_attendance" style="color:#fff;">
+												<?php foreach ($checkout as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+											</a>
+										</h2>
+										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Check-Out</p>
+									</div>
+									<div style="opacity:0.35;">
+										<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M14 7v3h7v4h-7v3l-5-5 5-5zM5 5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7v-2H5V5z"/></svg>
 									</div>
 								</div>
 							</div>
@@ -361,6 +96,66 @@
 				</div>
 			</div>
 		</div>
-		<!--**********************************
-			Content body end
-		***********************************-->
+
+		<!-- ===== PERIOD FILTER CARDS ===== -->
+		<div class="row mt-3">
+			<div class="col-xl-12 col-sm-12">
+				<div class="card" style="background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%);border:none;border-radius:12px;">
+					<div class="card-body">
+						<div class="d-flex align-items-center justify-content-between">
+							<div>
+								<h2 class="mb-1 font-w600" id="quotations_sent_count" style="color:#fff;font-size:2rem;">
+									<?php foreach ($quotations_sent as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+								</h2>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Quotations Sent</p>
+							</div>
+							<div style="opacity:0.35;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM4 0h16v2H4zm0 22h16v2H4z"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- ===== END PERIOD FILTER CARDS ===== -->
+
+		<!-- ===== LEADS ANALYTICS CHARTS ===== -->
+		<div class="row">
+			<div class="col-xl-8 col-lg-8">
+				<div class="card">
+					<div class="card-header border-0 pb-0">
+						<h4 class="fs-20">Leads Incoming &ndash; Last 30 Days</h4>
+					</div>
+					<div class="card-body">
+						<div id="leads_daily_chart"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-4 col-lg-4">
+				<div class="card">
+					<div class="card-header border-0 pb-0">
+						<h4 class="fs-20">Lead Status Breakdown</h4>
+					</div>
+					<div class="card-body">
+						<div id="leads_status_donut"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-12">
+				<div class="card">
+					<div class="card-header border-0 pb-0">
+						<h4 class="fs-20">Staff &ndash; Leads Assigned vs Converted to Trip</h4>
+					</div>
+					<div class="card-body">
+						<div id="leads_staff_chart"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- ===== END LEADS ANALYTICS CHARTS ===== -->
+
+	</div>
+</div>
+<!--**********************************
+		Content body end
+	***********************************-->

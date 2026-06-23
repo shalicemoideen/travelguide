@@ -7,7 +7,7 @@
 		<div class="dlabnav">
 			<div class="dlabnav-scroll">
 				<ul class="metismenu" id="menu">
-					<li class="<?php if($this->uri->segment(1)=="Home"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Home" aria-expanded="false">
+					<li class="<?php if($this->uri->segment(1)=="Dashboard"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Dashboard" aria-expanded="false">
 							<i class="flaticon-025-dashboard"></i>
 							<span class="nav-text">Dashboard</span>
 						</a>
