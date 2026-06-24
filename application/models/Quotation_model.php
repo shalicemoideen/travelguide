@@ -6220,7 +6220,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
             ->select('
                 i.installment_id,
                 i.due_date,
-                i.installment_amount as calculated_amount,
+                i.calculated_amount,
                 i.payment_status,
                 IFNULL(p.paid_amount, 0) as paid_amount
             ')

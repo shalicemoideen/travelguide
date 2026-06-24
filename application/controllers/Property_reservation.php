@@ -95,7 +95,7 @@ class Property_reservation extends MY_Controller {
         $payment      = $this->Property_reservation_model->get_payment_by_reservation($reservation->property_reservation_id);
         $installments = $payment ? $this->Property_reservation_model->get_installments($payment->property_payment_scheduler_id) : array();
         $comments     = $this->Property_reservation_model->get_comments($reservation->property_reservation_id);
-        $total_amount = $this->Property_reservation_model->get_quotation_total_amount($quotation_id);
+        $total_amount = $this->Property_reservation_model->get_property_total_amount($quotation_id, $properties_id);
 
         echo json_encode(array(
             'status'       => true,
@@ -161,7 +161,7 @@ class Property_reservation extends MY_Controller {
         ));
 
         // ---- Payment scheduler ----
-        $payment_type = $this->input->post('payment_type'); // FULL | EMI
+        $payment_type = $this->input->post('payment_type') ?: $this->input->post('hub_payment_type'); // FULL | EMI
         $total_amount = (float)$this->input->post('total_amount');
         $max_emi      = $this->input->post('max_emi_count');
         $split_type   = $this->input->post('split_type');

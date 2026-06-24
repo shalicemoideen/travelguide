@@ -12069,8 +12069,114 @@ function setHtmlSafeIn(modalEl, selector, html) {
     if (el) el.innerHTML = html || '';
 }
 
-$(document).on('click', '.editRoomBtn', function () {
+function nval(selector)
+{
+    return parseFloat($(selector).val()) || 0;
+}
 
+function clearRoomPricingWarnings()
+{
+    $('#roomPricingWarningBox')
+        .addClass('d-none')
+        .html('');
+}
+
+function showRoomPricingWarnings(messages)
+{
+    if (!messages || messages.length === 0) {
+        clearRoomPricingWarnings();
+        return;
+    }
+
+    var html = '<div class="alert alert-warning mb-0">';
+
+    $.each(messages, function(i, msg) {
+        html += '<div class="mb-1"><i class="bi bi-exclamation-triangle me-1"></i>' + msg + '</div>';
+    });
+
+    html += '</div>';
+
+    $('#roomPricingWarningBox')
+        .removeClass('d-none')
+        .html(html);
+}
+
+function checkRoomPricingWarnings()
+{
+    var messages = [];
+
+    /*
+      CASE 1:
+      Check both auto and manual rates.
+      If all rates are zero, show tariff warning.
+    */
+    var roomAutoRate = nval('[name="auto_room_member_rate"]');
+    var roomManRate  = nval('[name="manual_rate"]');
+
+    var sglAutoRate  = nval('[name="auto_single_occupancy_rate"]');
+    var sglManRate   = nval('[name="manual_single_occupancy_rate"]');
+
+    var ebaAutoRate  = nval('[name="auto_extra_bed_adult_rate"]');
+    var ebaManRate   = nval('[name="manual_extra_bed_adult_rate"]');
+
+    var cwbAutoRate  = nval('[name="auto_extra_bed_child_rate"]');
+    var cwbManRate   = nval('[name="manual_extra_bed_child_rate"]');
+
+    var cnbAutoRate  = nval('[name="auto_child_sharing_bed_rate"]');
+    var cnbManRate   = nval('[name="manual_child_sharing_bed_rate"]');
+
+    var tariffFound =
+        roomAutoRate > 0 || roomManRate > 0 ||
+        sglAutoRate  > 0 || sglManRate  > 0 ||
+        ebaAutoRate  > 0 || ebaManRate  > 0 ||
+        cwbAutoRate  > 0 || cwbManRate  > 0 ||
+        cnbAutoRate  > 0 || cnbManRate  > 0;
+
+    if (!tariffFound) {
+        messages.push(
+            'Rates for all bed units were not found in the tariff. Auto rooming amounts may show as zero — enter per-unit rates manually in the rooming table.'
+        );
+    }
+
+    /*
+      CASE 2:
+      Meal supplement missing.
+      Use tariff data stored on the modal by applyTariffRatesToModal.
+    */
+    var modalEl = document.getElementById('roompricingandguestallocationModal');
+    var tariffData = null;
+    if (modalEl && modalEl.dataset.tariffData) {
+        try { tariffData = JSON.parse(modalEl.dataset.tariffData); } catch (e) { tariffData = null; }
+    }
+
+    if (tariffData && tariffData.needs_supplement) {
+        var autoSupplement  = nval('[name="auto_supplment_cost"]');
+        var manualSupplement = nval('[name="manual_supplment_cost"]');
+
+        // If backend says supplement is needed but couldn't find the tariff rates for missing meals
+        if (tariffData.meal_rates_missing && tariffData.meal_rates_missing.length > 0) {
+            messages.push(
+                'Meal rates not found. Update rates or enter manually in the supplement cost field.'
+            );
+        }
+    }
+
+    showRoomPricingWarnings(messages);
+}
+
+// Check warnings when modal opens (after fields are populated)
+$('#roompricingandguestallocationModal').on('shown.bs.modal', function () {
+    setTimeout(function () {
+        checkRoomPricingWarnings();
+    }, 500);
+});
+
+$(document).on('input change', '#roompricingandguestallocationModal input', function () {
+    checkRoomPricingWarnings();
+});
+
+$(document).on('click', '.editRoomBtn', function () {
+clearRoomPricingWarnings();
     window.__lastRoomEditBtn = this;
 
     let row = $(this).closest('tr');
@@ -12086,35 +12192,84 @@ $(document).on('click', '.editRoomBtn', function () {
             packages_properties_days_id_fk: day_id_fk,
             quotation_properties_rooms_id_fk: room_row_fk
         },
+        // success: function (res) {
+
+        //     if (res.status) {
+
+        //         let d = res.data;
+
+        //         // ✅ SET HIDDEN ID
+        //         $('#modal_quotation_room_tariff_details_id')
+        //             .val(d.quotation_room_tariff_details_id);
+
+        //         // ✅ AUTO SECTION
+        //         $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
+        //         $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
+
+        //         // ✅ MANUAL SECTION
+        //         $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
+        //         $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
+
+        //         // 👉 repeat for all fields (same mapping)
+
+        //         // ✅ TRIGGER TOTAL CALCULATION
+        //         calculateRoomTariffTotals();
+
+        //     } else {
+        //         // no data → reset modal
+        //         $('#modal_quotation_room_tariff_details_id').val('');
+        //         resetRoomTariffModal();
+        //     }
+        // }
+
         success: function (res) {
 
-            if (res.status) {
+    clearRoomPricingWarnings();
 
-                let d = res.data;
+    if (res.status) {
 
-                // ✅ SET HIDDEN ID
-                $('#modal_quotation_room_tariff_details_id')
-                    .val(d.quotation_room_tariff_details_id);
+        let d = res.data;
 
-                // ✅ AUTO SECTION
-                $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
-                $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
+        $('#modal_quotation_room_tariff_details_id')
+            .val(d.quotation_room_tariff_details_id);
 
-                // ✅ MANUAL SECTION
-                $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
-                $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
+        $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
+        $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
 
-                // 👉 repeat for all fields (same mapping)
+        $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
+        $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
 
-                // ✅ TRIGGER TOTAL CALCULATION
-                calculateRoomTariffTotals();
+        $('[name="single_occupancy_auto_rate"]').val(d.single_occupancy_auto_rate);
+        $('[name="single_occupancy_manual_rate"]').val(d.single_occupancy_manual_rate);
 
-            } else {
-                // no data → reset modal
-                $('#modal_quotation_room_tariff_details_id').val('');
-                resetRoomTariffModal();
-            }
-        }
+        $('[name="extra_bed_adult_auto_rate"]').val(d.extra_bed_adult_auto_rate);
+        $('[name="extra_bed_adult_manual_rate"]').val(d.extra_bed_adult_manual_rate);
+
+        $('[name="extra_bed_child_auto_rate"]').val(d.extra_bed_child_auto_rate);
+        $('[name="extra_bed_child_manual_rate"]').val(d.extra_bed_child_manual_rate);
+
+        $('[name="child_sharing_bed_auto_rate"]').val(d.child_sharing_bed_auto_rate);
+        $('[name="child_sharing_bed_manual_rate"]').val(d.child_sharing_bed_manual_rate);
+
+        $('[name="adult_meal_plan_rate"]').val(d.adult_meal_plan_rate || 0);
+        $('[name="child_meal_plan_rate"]').val(d.child_meal_plan_rate || 0);
+        $('[name="adult_supplement_cost"]').val(d.adult_supplement_cost || 0);
+        $('[name="child_supplement_cost"]').val(d.child_supplement_cost || 0);
+
+        calculateRoomTariffTotals();
+
+        setTimeout(function () {
+            checkRoomPricingWarnings();
+        }, 200);
+
+    } else {
+        resetRoomTariffModal();
+
+        setTimeout(function () {
+            checkRoomPricingWarnings();
+        }, 200);
+    }
+}
     });
 
 });
@@ -12173,7 +12328,6 @@ document.addEventListener('click', function (e) {
     $('.child-note-foc').text('');
     $('.child-note-foc').hide();
     $('#remaining-row').hide();
-
     var leadId         = btn.dataset.leadId || '';
     var propertyId     = btn.dataset.propertyId || '';
     var roomCategoryId = btn.dataset.roomCategoryId || '';
@@ -12191,11 +12345,11 @@ document.addEventListener('click', function (e) {
                      dayRow?.querySelector('[name="packages_itinerary_days_id_fk[]"]')?.value || '';
 
     if (!leadId || !propertyId || !roomCategoryId || !itineraryDayId || !stayDestId) {
-//       alert("Lead"+leadId);
-//   alert("propertyId"+propertyId);
-//   alert("roomCategoryId"+roomCategoryId);
-//   alert("itineraryDayId"+itineraryDayId);
-//   alert("stayDestId"+stayDestId);
+  //     alert("Lead"+leadId);
+  // alert("propertyId"+propertyId);
+  // alert("roomCategoryId"+roomCategoryId);
+  // alert("itineraryDayId"+itineraryDayId);
+  // alert("stayDestId"+stayDestId);
       alert('Missing lead/property/room/day/destination details');
       console.log({
           leadId: leadId,
@@ -12473,7 +12627,6 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
     // `&stay_destination_id=${encodeURIComponent(stayDestId)}` +
     // `&property_id=${encodeURIComponent(propertyId)}` +
     // `&room_category_id=${encodeURIComponent(roomCategoryId)}`;
-    
 
     const urlTariff =
     `<?php echo base_url(); ?>index.php/Quotation/ajax_get_tariff_by_context` +
@@ -12749,7 +12902,6 @@ function allocateRooms(applied, policy) {
         // -------------------------------
         // ✅ CHECK: ALL ALLOCATED?
         // -------------------------------
-
         if (adults === 0 && children === 0 && baby === 0) {
             return {
                 totalRooms: rooms,
@@ -12862,6 +13014,20 @@ function applyTariffRatesToModal(tariffRes) {
 
     const d = tariffRes.data || {};
     const rates = d.rates || {};
+
+    // Store tariff data on modal for warning checks
+    const modalEl = document.getElementById('roompricingandguestallocationModal');
+    if (modalEl) {
+        modalEl.dataset.tariffData = JSON.stringify({
+            rates: rates,
+            supplement_amount: d.supplement_amount || 0,
+            needs_supplement: d.needs_supplement || false,
+            missing_meals: d.missing_meals || [],
+            meal_rates_missing: d.meal_rates_missing || [],
+            meal_rates_source: d.meal_rates_source || '',
+            rates_source: d.rates_source || ''
+        });
+    }
 
     // ✅ Rooms | Units RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_room_member_rate"]', rates.room_rate || 0);
@@ -13448,35 +13614,13 @@ function fillSavedManualSection(data) {
 }
 // Status options
 const QUOTATION_STATUSES = [
-  { id: 1, text: 'Generated' },
+//   { id: 1, text: 'Generated' },
   { id: 2, text: 'Draft' },
   { id: 3, text: 'Sent' },
   { id: 4, text: 'Rejected' },
-  { id: 5, text: 'Accepted' }
+//   { id: 5, text: 'Confirmed' },
+  { id: 6, text: 'Cancelled' }
 ];
-
-// function initStatusSelect2() {
-//   const $el = $('#quotation_current_status');
-
-//   // destroy old select2 if already applied
-//   if ($el.hasClass('select2-hidden-accessible')) {
-//     $el.select2('destroy');
-//   }
-
-//   $el.empty().append('<option value="">Select Status</option>');
-//   QUOTATION_STATUSES.forEach(s => {
-//     $el.append(`<option value="${s.id}">${s.text}</option>`);
-//   });
-
-//   // IMPORTANT: dropdownParent for modal (fix cursor/search typing)
-//   $el.select2({
-//     width: '100%',
-//     dropdownParent: $('#ChangeStatusModal'),
-//     placeholder: 'Select Status',
-//     allowClear: true,
-//     minimumResultsForSearch: 0
-//   });
-// }
 
 document.addEventListener('input', function (e) {
 
@@ -13512,10 +13656,20 @@ function validateManualRoomingPlan() {
     let isValid = true;
 
     function showError(el, msg) {
-        alert(msg);
-        el.focus();
-        el.classList.add('is-invalid');
-        setTimeout(() => el.classList.remove('is-invalid'), 2000);
+        var n = new notify({
+            title: '',
+            style: 'error',
+            message: msg,
+            icon: 'fas fa-times'
+        });
+        n.show();
+        setTimeout(function(){ n.hide(); }, 5000);
+
+        if (el) {
+            el.focus();
+            el.classList.add('is-invalid');
+            setTimeout(() => el.classList.remove('is-invalid'), 2000);
+        }
         isValid = false;
     }
 
@@ -13552,6 +13706,22 @@ function validateManualRoomingPlan() {
         // ❌ Logic validation
         if (count > 0 && rate <= 0) {
             showError(rateEl, `${f.label} rate must be greater than 0`);
+            return false;
+        }
+    }
+
+    // ❌ Supplement cost validation
+    var modalEl2 = document.getElementById('roompricingandguestallocationModal');
+    var tariffData2 = null;
+    if (modalEl2 && modalEl2.dataset.tariffData) {
+        try { tariffData2 = JSON.parse(modalEl2.dataset.tariffData); } catch (e) { tariffData2 = null; }
+    }
+
+    if (tariffData2 && tariffData2.needs_supplement) {
+        let supEl = document.querySelector('[name="manual_supplment_cost"]');
+        let supVal = supEl ? (parseFloat(supEl.value) || 0) : 0;
+        if (supVal <= 0) {
+            showError(supEl, 'Supplement cost is required because the room policy does not cover the enquiry meal plan. Please enter a valid supplement cost.');
             return false;
         }
     }

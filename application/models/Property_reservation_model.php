@@ -252,6 +252,26 @@ class Property_reservation_model extends CI_Model {
         return $option ? (float)$option->quotation_options_total_quote_rate : 0;
     }
 
+    public function get_property_total_amount($quotation_id, $properties_id)
+    {
+        $result = $this->db
+            ->select('SUM(qrtd.manual_total_rate) AS property_total')
+            ->from('quotation_confirmation qc')
+            ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
+            ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
+            ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_rooms_id = qc.properties_room_id_fk', 'inner')
+            ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id', 'left')
+            ->where('qc.quotation_id_fk', (int)$quotation_id)
+            ->where('qc.property_confirmation_status', 1)
+            ->where('qp.properties_id_fk', (int)$properties_id)
+            ->where('qp.quotation_properties_status', 1)
+            ->where('qpr.quotation_properties_rooms_status', 1)
+            ->get()
+            ->row();
+
+        return $result ? (float)$result->property_total : 0;
+    }
+
     // =========================================================
     // COMMENTS
     // =========================================================

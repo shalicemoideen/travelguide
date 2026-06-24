@@ -316,6 +316,20 @@ class Quotation extends MY_Controller {
 
 
 
+		// When quotation is confirmed, mark the lead as converted to trip
+		if ($status == 5) {
+			$quotation = $this->db->where('quotation_id', $quotation_id)
+								  ->where('quotation_status', 1)
+								  ->get($this->table)
+								  ->row();
+			if ($quotation && !empty($quotation->leads_id_fk)) {
+				$this->db->where('leads_id', (int)$quotation->leads_id_fk);
+				$this->db->update('leads', array('lead_current_status' => 3));
+			}
+		}
+
+
+
 		if ($this->db->affected_rows() > 0) {
 
 			echo json_encode(array('status' => true, 'message' => 'Status updated successfully'));

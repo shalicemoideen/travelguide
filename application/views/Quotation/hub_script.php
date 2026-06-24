@@ -2481,7 +2481,7 @@ function hub_calculateEmiTotal() {
 
         var percentTotal = 0;
 
-        $('.hub-emi-percentage').each(function() {
+        $('#hub_emiTableBody .hub-emi-percentage').each(function() {
 
             var percent = parseFloat($(this).val()) || 0;
 
@@ -2499,7 +2499,7 @@ function hub_calculateEmiTotal() {
 
     } else {
 
-        $('.hub-emi-amount').each(function() {
+        $('#hub_emiTableBody .hub-emi-amount').each(function() {
 
             var amt = parseFloat($(this).val()) || 0;
 
@@ -2947,9 +2947,9 @@ function hubRenderReservation(res) {
     $('#hub_res_total_amount').val(total);
     $('#hub_payment_total_display').text(parseFloat(total).toLocaleString('en-IN'));
     $('input[name="hub_payment_type"]').prop('checked', false);
-    $('#hub_fullSection').hide();
-    $('#hub_emiSection').hide();
-    $('#hub_emiTableBody').html('');
+    $('#hub_res_fullSection').hide();
+    $('#hub_res_emiSection').hide();
+    $('#hub_res_emiTableBody').html('');
 
     if (res.payment) {
         var p = res.payment;
@@ -2963,7 +2963,7 @@ function hubRenderReservation(res) {
             }
         } else if (p.payment_type === 'EMI') {
             $('#hub_pt_emi').prop('checked', true);
-            $('#hub_max_emi_count').val(p.max_emi_count || 3);
+            $('#hub_res_max_emi_count').val(p.max_emi_count || 3);
             $('#hub_split_type_res').val(p.split_type || 'AMOUNT');
             hubTogglePaymentType();
             hubRenderEmiFromData(res.installments, p.split_type);
@@ -2985,23 +2985,23 @@ function hubSetPill(sel, status, doneValue) {
 function hubTogglePaymentType() {
     var type = $('input[name="hub_payment_type"]:checked').val();
     if (type === 'FULL') {
-        $('#hub_fullSection').show();
-        $('#hub_emiSection').hide();
+        $('#hub_res_fullSection').show();
+        $('#hub_res_emiSection').hide();
     } else if (type === 'EMI') {
-        $('#hub_fullSection').hide();
-        $('#hub_emiSection').show();
-        if ($('#hub_emiTableBody tr').length === 0) hubGenerateEmiRows();
+        $('#hub_res_fullSection').hide();
+        $('#hub_res_emiSection').show();
+        if ($('#hub_res_emiTableBody tr').length === 0) hubGenerateEmiRows();
     } else {
-        $('#hub_fullSection').hide();
-        $('#hub_emiSection').hide();
+        $('#hub_res_fullSection').hide();
+        $('#hub_res_emiSection').hide();
     }
 }
 
 function hubGenerateEmiRows() {
-    var count = parseInt($('#hub_max_emi_count').val()) || 3;
+    var count = parseInt($('#hub_res_max_emi_count').val()) || 3;
     var total = parseFloat($('#hub_res_total_amount').val()) || 0;
     var split = $('#hub_split_type_res').val();
-    $('#hub_emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
+    $('#hub_res_emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
     var html = '';
     for (var i = 1; i <= count; i++) {
         var def = split === 'PERCENTAGE' ? (100 / count).toFixed(2) : (total / count).toFixed(2);
@@ -3013,13 +3013,13 @@ function hubGenerateEmiRows() {
         }
         html += '</td><td><input type="date" class="form-control form-control-sm" name="emi_due_date[]"></td><td class="hub-emi-calc text-end">0.00</td></tr>';
     }
-    $('#hub_emiTableBody').html(html);
+    $('#hub_res_emiTableBody').html(html);
     hubCalcEmiTotal();
 }
 
 function hubRenderEmiFromData(installments, split) {
     if (!installments) return;
-    $('#hub_emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
+    $('#hub_res_emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
     var html = '';
     for (var i = 0; i < installments.length; i++) {
         var inst = installments[i];
@@ -3032,7 +3032,7 @@ function hubRenderEmiFromData(installments, split) {
         html += '</td><td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" value="' + (inst.due_date || '') + '"></td>';
         html += '<td class="hub-emi-calc text-end">' + parseFloat(inst.calculated_amount || 0).toFixed(2) + '</td></tr>';
     }
-    $('#hub_emiTableBody').html(html);
+    $('#hub_res_emiTableBody').html(html);
     hubCalcEmiTotal();
 }
 
@@ -3041,24 +3041,24 @@ function hubCalcEmiTotal() {
     var split = $('#hub_split_type_res').val();
     var sum = 0;
     if (split === 'PERCENTAGE') {
-        $('.hub-emi-percentage').each(function() {
+        $('#hub_res_emiTableBody .hub-emi-percentage').each(function() {
             var pct  = parseFloat($(this).val()) || 0;
             var calc = (total * pct) / 100;
             sum += calc;
             $(this).closest('tr').find('.hub-emi-calc').text(calc.toFixed(2));
         });
     } else {
-        $('.hub-emi-amount').each(function() {
+        $('#hub_res_emiTableBody .hub-emi-amount').each(function() {
             var amt = parseFloat($(this).val()) || 0;
             sum += amt;
             $(this).closest('tr').find('.hub-emi-calc').text(amt.toFixed(2));
         });
     }
-    $('#hub_emiCalcTotal').text(sum.toFixed(2));
+    $('#hub_res_emiCalcTotal').text(sum.toFixed(2));
     if (Math.abs(sum - total) > 0.01) {
-        $('#hub_emiCalcTotal').addClass('text-danger');
+        $('#hub_res_emiCalcTotal').addClass('text-danger');
     } else {
-        $('#hub_emiCalcTotal').removeClass('text-danger');
+        $('#hub_res_emiCalcTotal').removeClass('text-danger');
     }
 }
 

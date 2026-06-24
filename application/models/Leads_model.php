@@ -138,7 +138,7 @@ class Leads_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
 		$this->db->select('*,DATE_FORMAT(lead_register_date,\'%d-%m-%Y\') as lead_register_date,DATE_FORMAT(start_date,\'%d-%m-%Y\') as start_date,DATE_FORMAT(end_date,\'%d-%m-%Y\') as end_date');
 		$this->db->from('leads');
@@ -269,7 +269,7 @@ class Leads_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
 		$this->db->select('*,DATE_FORMAT(lead_register_date,\'%d-%m-%Y\') as lead_register_date,DATE_FORMAT(start_date,\'%d-%m-%Y\') as start_date,DATE_FORMAT(end_date,\'%d-%m-%Y\') as end_date');
 		$this->db->from('leads');
@@ -413,7 +413,7 @@ class Leads_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
 		$this->db->select('*,DATE_FORMAT(lead_register_date,\'%d-%m-%Y\') as lead_register_date,DATE_FORMAT(start_date,\'%d-%m-%Y\') as start_date,DATE_FORMAT(end_date,\'%d-%m-%Y\') as end_date');
 		$this->db->from('leads');
@@ -548,7 +548,7 @@ class Leads_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
 		$this->db->select('*,DATE_FORMAT(lead_register_date,\'%d-%m-%Y\') as lead_register_date,DATE_FORMAT(start_date,\'%d-%m-%Y\') as start_date,DATE_FORMAT(end_date,\'%d-%m-%Y\') as end_date');
 		$this->db->from('leads');

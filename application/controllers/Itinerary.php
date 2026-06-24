@@ -697,9 +697,18 @@ public function ajax_update()
 {
     $this->_validate();
 
-    if (function_exists('date_default_timezone_set')) {
+	if (function_exists('date_default_timezone_set')) {
         date_default_timezone_set("Asia/Kolkata");
     }
+
+    $date  = date('Y-m-d');
+    $time  = date('h:i:sa');
+    $date1 = date('Y-m-d h:i:s a', time());
+
+    $itineraries_name = $this->input->post('itineraries_name');
+
+    $currentuserid   = $this->session->userdata('user_id');
+    $currentusername = $this->session->userdata('admin_name');
 
     $itineraries_id = (int)$this->input->post('id');
 

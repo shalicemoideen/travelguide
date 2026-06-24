@@ -1,5 +1,9 @@
 <style>
- 
+ .modal-lg {
+    max-width: 95%;
+
+    
+}
 .modal-quote {
     max-width: 95%;
 }
@@ -146,7 +150,7 @@
 #B2C_Leads_table,
 #meta_Leads_table {
     width: 100% !important;
-    font-size: 11px;
+    font-size: 13px;
     table-layout: auto;
 }
 
@@ -155,13 +159,13 @@
 #B2C_Leads_table tbody td,
 #meta_Leads_table tbody td {
     padding: 4px 6px;
-    font-size: 11px;
+    font-size: 13px;
     white-space: nowrap;
 }
 
 #B2C_Leads_table thead th,
 #meta_Leads_table thead th {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -2338,14 +2342,47 @@ a.leads-number-link:hover {
      - Adds hidden inputs for saving amounts + totals later
      - Keeps your existing IDs + roles intact
 -->
-
+<style>
+#roompricingandguestallocationModal .modal-content{border:none;border-radius:14px;overflow:hidden;}
+#roompricingandguestallocationModal .rm-header{background:linear-gradient(135deg,#1a237e 0%,#3949ab 100%);padding:16px 22px;}
+#roompricingandguestallocationModal .rm-header .modal-title{color:#fff;font-size:15px;font-weight:700;letter-spacing:.3px;}
+#roompricingandguestallocationModal .rm-header .btn-close{filter:invert(1) brightness(2);}
+#roompricingandguestallocationModal .modal-body{background:#f4f6fb;padding:20px;}
+#roompricingandguestallocationModal .rm-info-card{background:#fff;border:1px solid #e3e8f7;border-radius:10px;padding:12px 16px;height:100%;}
+#roompricingandguestallocationModal .rm-info-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#7986cb;margin-bottom:4px;}
+#roompricingandguestallocationModal .rm-info-value{font-size:13px;font-weight:600;color:#1a237e;}
+#roompricingandguestallocationModal .rm-sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#3949ab;padding:5px 0 5px 10px;border-left:3px solid #3949ab;margin-bottom:10px;}
+#roompricingandguestallocationModal .table thead th{background:#e8eaf6;color:#283593;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #c5cae9;padding:8px 10px;}
+#roompricingandguestallocationModal .table tbody td{font-size:12px;padding:7px 10px;vertical-align:middle;}
+#roompricingandguestallocationModal .rm-auto-badge{background:#e8f5e9;color:#2e7d32;font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;display:inline-block;}
+#roompricingandguestallocationModal .rm-manual-badge{background:#fff3e0;color:#e65100;font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;display:inline-block;}
+#roompricingandguestallocationModal .rm-amt{background:#e8eaf6;color:#283593;font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;display:inline-block;margin-top:4px;white-space:nowrap;}
+#roompricingandguestallocationModal .rm-total-auto{background:#e8f5e9;color:#1b5e20;font-size:14px;font-weight:700;padding:4px 14px;border-radius:8px;}
+#roompricingandguestallocationModal .rm-total-manual{background:#fff3e0;color:#bf360c;font-size:14px;font-weight:700;padding:4px 14px;border-radius:8px;}
+#roompricingandguestallocationModal .rm-remaining{background:#fff;border:1px solid #c5cae9;border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#roompricingandguestallocationModal .rm-rem-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#5c6bc0;}
+#roompricingandguestallocationModal .rm-rem-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+#roompricingandguestallocationModal .rm-rem-pill.db{background:#e3f2fd;color:#0d47a1;}
+#roompricingandguestallocationModal .rm-rem-pill.eb{background:#f3e5f5;color:#6a1b9a;}
+#roompricingandguestallocationModal .rm-rem-pill.sb{background:#e8f5e9;color:#1b5e20;}
+#roompricingandguestallocationModal .pax-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:14px;font-size:12px;font-weight:600;margin:2px;}
+#roompricingandguestallocationModal .pax-chip i{font-size:16px;line-height:1;}
+#roompricingandguestallocationModal .pax-chip.adult{background:#e3f2fd;color:#0d47a1;}
+#roompricingandguestallocationModal .pax-chip.child{background:#fce4ec;color:#880e4f;}
+#roompricingandguestallocationModal .pax-chip.baby{background:#f9fbe7;color:#558b2f;}
+#roompricingandguestallocationModal .pax-chip.db{background:#e8eaf6;color:#283593;}
+#roompricingandguestallocationModal .pax-chip.eb{background:#f3e5f5;color:#6a1b9a;}
+#roompricingandguestallocationModal .pax-chip.sb{background:#e8f5e9;color:#1b5e20;}
+#roompricingandguestallocationModal .pax-chip.sgl{background:#fff3e0;color:#e65100;}
+#roompricingandguestallocationModal .modal-footer{background:#eef0ff;border-top:1px solid #c5cae9;}
+</style>
 <div class="modal fade" id="roompricingandguestallocationModal" tabindex="-1" aria-hidden="true"
      data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-quote">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
 
-      <div class="modal-header">
-        <h5 class="modal-title" id="roomModalTitle">Room pricing & guest allocation</h5>
+      <div class="modal-header rm-header">
+        <h5 class="modal-title" id="roomModalTitle"><i class="la la-calculator me-2"></i>Rooming Plan Calculation</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
@@ -2367,128 +2404,120 @@ a.leads-number-link:hover {
           <div id="admissionNote" class="small text-danger mt-2"></div>
 
           <!-- Top info -->
-          <div class="row g-3 mb-3">
+          <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <div class="border rounded p-2 h-100">
-                <div class="fw-semibold mb-1">Lead</div>
-                <div class="small text-muted" id="modalLeadInfo">-</div>
+              <div class="rm-info-card">
+                <div class="rm-info-label"><i class="la la-user me-1"></i>Lead</div>
+                <div class="rm-info-value" id="modalLeadInfo">-</div>
               </div>
             </div>
-
             <div class="col-md-6">
-              <div class="border rounded p-2 h-100">
-                <div class="fw-semibold mb-1">Property & Room</div>
-                <div class="small text-muted" id="modalRoomInfo">-</div>
+              <div class="rm-info-card">
+                <div class="rm-info-label"><i class="la la-building me-1"></i>Property &amp; Room</div>
+                <div class="rm-info-value" id="modalRoomInfo">-</div>
               </div>
             </div>
           </div>
 
-          <!-- Guest details -->
-          <div class="table-responsive mb-3">
-            <table class="guest-details table table-bordered">
-              <thead class="table-light text-center">
-                <tr>
-                  <th>Type</th>
-                  <th>Guest Count</th>
-                  <th>Meal Plan</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <!-- IN ENQUIRY -->
-                <tr>
-                  <td><strong>In Enquiry</strong></td>
-                  <td>
-                    Adult: <span data-role="enquiry-adult">0</span> |
-                    Child: <span data-role="enquiry-child">0</span>
-                  </td>
-                  <td><span data-role="enquiry-meal">-</span></td>
-                </tr>
-
-                <!-- ROOM POLICY -->
-                <tr>
-                  <td><strong>Room Policy</strong></td>
-                  <td data-role="room-policy-ages">Baby - | Child -</td>
-                  <td><span data-role="meal-plan">-</span></td>
-                </tr>
-
-                <!-- APPLIED PLAN -->
-                <tr>
-                  <td><strong>Applied Plan</strong></td>
-                  <td>
-                    Adult: <span data-role="applied-adult">0</span> |
-                    Child: <span data-role="applied-child">0</span> |
-                    Baby: <span data-role="applied-baby">0</span>
-                  </td>
-                  <td>
-                    <span data-role="applied-meal">-</span>
-                    <span id="mealMismatchIconWrap"></span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- Guest Summary -->
+          <div class="mb-4">
+            <div class="rm-sec-title">Guest Summary</div>
+            <div class="table-responsive">
+              <table class="guest-details table table-bordered bg-white mb-0">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Guest Count</th>
+                    <th>Meal Plan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="fw-semibold">In Enquiry</span></td>
+                    <td>
+                      <span class="pax-chip adult"><i class="la la-male"></i> <span data-role="enquiry-adult">0</span></span>
+                      <span class="pax-chip child"><i class="la la-child"></i> <span data-role="enquiry-child">0</span></span>
+                    </td>
+                    <td><span data-role="enquiry-meal" class="badge" style="background:#e8eaf6;color:#283593;">-</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="fw-semibold">Room Policy</span></td>
+                    <td data-role="room-policy-ages" style="font-size:12px;color:#555;">Baby - | Child -</td>
+                    <td><span data-role="meal-plan" class="badge" style="background:#e8eaf6;color:#283593;">-</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="fw-semibold">Applied Plan</span></td>
+                    <td>
+                      <span class="pax-chip adult"><i class="la la-male"></i> <span data-role="applied-adult">0</span></span>
+                      <span class="pax-chip child"><i class="la la-child"></i> <span data-role="applied-child">0</span></span>
+                      <span class="pax-chip baby"><i class="la la-baby"></i> <span data-role="applied-baby">0</span></span>
+                    </td>
+                    <td>
+                      <span data-role="applied-meal" class="badge" style="background:#e8eaf6;color:#283593;">-</span>
+                      <span id="mealMismatchIconWrap"></span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <!-- Pax wise bed utilization -->
-          <div class="table-responsive mb-3">
-            <h5 class="fw-bold mt-3 mb-2">Pax-wise Bed Utilization</h5>
-
-            <table class="pax-wise-bed-utilization table table-bordered">
-              <thead class="table-light text-center">
-                <tr>
-                  <th>Pax Type</th>
-                  <th>Double Bed (DB)</th>
-                  <th>Extra Bed (EB)</th>
-                  <th>Single / Sharing Bed (SB)</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr>
-                  <td><strong>Adult</strong></td>
-                  <td>DB: <span data-role="adult-db">0</span></td>
-                  <td>EB: <span data-role="adult-eb">0</span></td>
-                  <td>SGL: <span data-role="adult-sgl">0</span></td>
-                </tr>
-
-                <tr>
-                  <td><strong>Child</strong></td>
-                  <td>DB: <span data-role="child-db">0</span></td>
-                  <td>EB: <span data-role="child-eb">0</span></td>
-                  <td>SB: <span data-role="child-sb">0</span></td>
-                </tr>
-
-                <tr>
-                  <td><strong>Baby</strong></td>
-                  <td>DB: <span data-role="baby-db">0</span></td>
-                  <td>EB: <span data-role="baby-eb">0</span></td>
-                  <td>SB: <span data-role="baby-sb">0</span></td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div id="appliedMealWarningWrap"></div>
-
-            <div class="mt-2">
+          <!-- Pax-wise Bed Utilization -->
+          <div class="mb-4">
+            <div class="rm-sec-title">Pax-wise Bed Utilization</div>
+            <div class="table-responsive">
+              <table class="pax-wise-bed-utilization table table-bordered bg-white mb-0">
+                <thead>
+                  <tr>
+                    <th>Pax Type</th>
+                    <th>Double Bed (DB)</th>
+                    <th>Extra Bed (EB)</th>
+                    <th>Sharing / Single (SB/SGL)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="pax-chip adult"><i class="la la-male"></i> Adult</span></td>
+                    <td><span class="pax-chip db">DB: <span data-role="adult-db">0</span></span></td>
+                    <td><span class="pax-chip eb">EB: <span data-role="adult-eb">0</span></span></td>
+                    <td><span class="pax-chip sgl">SGL: <span data-role="adult-sgl">0</span></span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="pax-chip child"><i class="la la-child"></i> Child</span></td>
+                    <td><span class="pax-chip db">DB: <span data-role="child-db">0</span></span></td>
+                    <td><span class="pax-chip eb">EB: <span data-role="child-eb">0</span></span></td>
+                    <td><span class="pax-chip sb">SB: <span data-role="child-sb">0</span></span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="pax-chip baby"><i class="la la-baby"></i> Baby</span></td>
+                    <td><span class="pax-chip db">DB: <span data-role="baby-db">0</span></span></td>
+                    <td><span class="pax-chip eb">EB: <span data-role="baby-eb">0</span></span></td>
+                    <td><span class="pax-chip sb">SB: <span data-role="baby-sb">0</span></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="appliedMealWarningWrap" class="mt-2"></div>
+            <div class="mt-1">
               <div id="paxNoteSurplus" class="small text-success"></div>
               <div id="paxNoteExcess" class="small text-warning"></div>
               <div id="paxNoteAlert" class="small text-danger"></div>
             </div>
           </div>
 
-          <!-- ✅ Synchronize table (amount shown, manual mirrors auto counts, totals separate) -->
+          <!-- Rooming Plan -->
+          <div class="mb-3">
+            <div class="rm-sec-title">
+              Rooming Plan
+              <button type="button" id="sync-btn" class="btn btn-sm ms-2" style="background:#3949ab;color:#fff;font-size:11px;padding:3px 12px;border-radius:6px;"><i class="la la-sync me-1"></i>Sync</button>
+            </div>
           <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0 auto-synchronize">
-              <thead class="table-light">
+            <table class="table table-bordered align-middle mb-0 auto-synchronize bg-white">
+              <thead>
                 <tr>
-                  <th style="width: 28%;">Synchronize <button type="button"
-                            id="sync-btn"
-                            class="btn btn-sm btn-primary ms-2">
-                        Sync
-                    </button>
-                  </th>
-                  <th style="width: 36%;">Auto Rooming Plan</th>
-                  <th style="width: 36%;">Manual Rooming Plan</th>
+                  <th style="width:26%;">Item</th>
+                  <th style="width:37%;"><span class="rm-auto-badge">Auto Rooming Plan</span></th>
+                  <th style="width:37%;"><span class="rm-manual-badge">Manual Rooming Plan</span></th>
                 </tr>
               </thead>
 
@@ -2502,146 +2531,74 @@ a.leads-number-link:hover {
 
                 <!-- Rooms | Units -->
                 <tr data-line="rooms">
-                  <td class="fw-semibold">Rooms | Units</td>
-
+                  <td class="fw-semibold" style="font-size:12px;">Rooms / Units</td>
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="auto_room_member_count" placeholder="Count" data-plan="auto" data-line="rooms" data-field="count" disabled></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="auto_room_member_count" placeholder="count"
-                               data-plan="auto" data-line="rooms" data-field="count" disabled>
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="auto_room_member_rate" placeholder="rate"
-                                 data-plan="auto" data-line="rooms" data-field="rate" disabled>
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-auto-rooms">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="auto_amount_rooms" value="0"
-                               data-save="auto" data-line="rooms" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="auto_room_member_rate" placeholder="Rate" data-plan="auto" data-line="rooms" data-field="rate" disabled>
+                        <div class="rm-amt">Amt: <span data-role="amount-auto-rooms">0</span></div>
+                        <input type="hidden" name="auto_amount_rooms" value="0" data-save="auto" data-line="rooms" data-save-field="amount">
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_count" placeholder="Count" data-plan="manual" data-line="rooms" data-field="count"></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="manual_count" placeholder="count"
-                               data-plan="manual" data-line="rooms" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="manual_rate" placeholder="rate"
-                                 data-plan="manual" data-line="rooms" data-field="rate">
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-manual-rooms">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="manual_amount_rooms" value="0"
-                               data-save="manual" data-line="rooms" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="manual_rate" placeholder="Rate" data-plan="manual" data-line="rooms" data-field="rate">
+                        <div class="rm-amt">Amt: <span data-role="amount-manual-rooms">0</span></div>
+                        <input type="hidden" name="manual_amount_rooms" value="0" data-save="manual" data-line="rooms" data-save-field="amount">
                       </div>
                     </div>
                   </td>
                 </tr>
 
-                <!-- Extra Bed ( Adult ) -->
+                <!-- Extra Bed Adult -->
                 <tr data-line="eb_adult">
-                  <td class="fw-semibold">Extra Bed ( Adult )</td>
-
+                  <td class="fw-semibold" style="font-size:12px;">Extra Bed (Adult)</td>
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="auto_extra_bed_adult_count" placeholder="Count" data-plan="auto" data-line="eb_adult" data-field="count" disabled></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="auto_extra_bed_adult_count" placeholder="count"
-                               data-plan="auto" data-line="eb_adult" data-field="count" disabled>
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="auto_extra_bed_adult_rate" placeholder="rate"
-                                 data-plan="auto" data-line="eb_adult" data-field="rate" disabled>
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-auto-eb_adult">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="auto_amount_eb_adult" value="0"
-                               data-save="auto" data-line="eb_adult" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="auto_extra_bed_adult_rate" placeholder="Rate" data-plan="auto" data-line="eb_adult" data-field="rate" disabled>
+                        <div class="rm-amt">Amt: <span data-role="amount-auto-eb_adult">0</span></div>
+                        <input type="hidden" name="auto_amount_eb_adult" value="0" data-save="auto" data-line="eb_adult" data-save-field="amount">
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_count" placeholder="Count" data-plan="manual" data-line="eb_adult" data-field="count"></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="manual_extra_bed_adult_count" placeholder="count"
-                               data-plan="manual" data-line="eb_adult" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="manual_extra_bed_adult_rate" placeholder="rate"
-                                 data-plan="manual" data-line="eb_adult" data-field="rate">
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-manual-eb_adult">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="manual_amount_eb_adult" value="0"
-                               data-save="manual" data-line="eb_adult" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_rate" placeholder="Rate" data-plan="manual" data-line="eb_adult" data-field="rate">
+                        <div class="rm-amt">Amt: <span data-role="amount-manual-eb_adult">0</span></div>
+                        <input type="hidden" name="manual_amount_eb_adult" value="0" data-save="manual" data-line="eb_adult" data-save-field="amount">
                       </div>
                     </div>
                   </td>
                 </tr>
 
-                <!-- Extra Bed ( Child ) -->
+                <!-- Extra Bed Child -->
                 <tr data-line="eb_child">
-                  <td class="fw-semibold">Extra Bed ( Child )</td>
-
+                  <td class="fw-semibold" style="font-size:12px;">Extra Bed (Child)</td>
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="auto_extra_bed_child_count" placeholder="Count" data-plan="auto" data-line="eb_child" data-field="count" disabled></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="auto_extra_bed_child_count" placeholder="count"
-                               data-plan="auto" data-line="eb_child" data-field="count" disabled>
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="auto_extra_bed_child_rate" placeholder="rate"
-                                 data-plan="auto" data-line="eb_child" data-field="rate" disabled>
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-auto-eb_child">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="auto_amount_eb_child" value="0"
-                               data-save="auto" data-line="eb_child" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="auto_extra_bed_child_rate" placeholder="Rate" data-plan="auto" data-line="eb_child" data-field="rate" disabled>
+                        <div class="rm-amt">Amt: <span data-role="amount-auto-eb_child">0</span></div>
+                        <input type="hidden" name="auto_amount_eb_child" value="0" data-save="auto" data-line="eb_child" data-save-field="amount">
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_count" placeholder="Count" data-plan="manual" data-line="eb_child" data-field="count"></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="manual_extra_bed_child_count" placeholder="count"
-                               data-plan="manual" data-line="eb_child" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="manual_extra_bed_child_rate" placeholder="rate"
-                                 data-plan="manual" data-line="eb_child" data-field="rate">
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-manual-eb_child">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="manual_amount_eb_child" value="0"
-                               data-save="manual" data-line="eb_child" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_rate" placeholder="Rate" data-plan="manual" data-line="eb_child" data-field="rate">
+                        <div class="rm-amt">Amt: <span data-role="amount-manual-eb_child">0</span></div>
+                        <input type="hidden" name="manual_amount_eb_child" value="0" data-save="manual" data-line="eb_child" data-save-field="amount">
                       </div>
                     </div>
                   </td>
@@ -2649,50 +2606,24 @@ a.leads-number-link:hover {
 
                 <!-- Child Sharing Bed -->
                 <tr data-line="sb_child">
-                  <td class="fw-semibold">Child Sharing Bed
-                    <span class="child-note-foc">child on FOC basis</span>
-                  </td>
-
+                  <td class="fw-semibold" style="font-size:12px;">Child Sharing Bed<br><span class="child-note-foc">child on FOC basis</span></td>
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="auto_child_sharing_bed_count" placeholder="Count" data-plan="auto" data-line="sb_child" data-field="count" disabled></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="auto_child_sharing_bed_count" placeholder="count"
-                               data-plan="auto" data-line="sb_child" data-field="count" disabled>
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="auto_child_sharing_bed_rate" placeholder="rate"
-                                 data-plan="auto" data-line="sb_child" data-field="rate" disabled>
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-auto-sb_child">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="auto_amount_sb_child" value="0"
-                               data-save="auto" data-line="sb_child" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="auto_child_sharing_bed_rate" placeholder="Rate" data-plan="auto" data-line="sb_child" data-field="rate" disabled>
+                        <div class="rm-amt">Amt: <span data-role="amount-auto-sb_child">0</span></div>
+                        <input type="hidden" name="auto_amount_sb_child" value="0" data-save="auto" data-line="sb_child" data-save-field="amount">
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_count" placeholder="Count" data-plan="manual" data-line="sb_child" data-field="count"></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="manual_child_sharing_bed_count" placeholder="count"
-                               data-plan="manual" data-line="sb_child" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="manual_child_sharing_bed_rate" placeholder="rate"
-                                 data-plan="manual" data-line="sb_child" data-field="rate">
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-manual-sb_child">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="manual_amount_sb_child" value="0"
-                               data-save="manual" data-line="sb_child" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_rate" placeholder="Rate" data-plan="manual" data-line="sb_child" data-field="rate">
+                        <div class="rm-amt">Amt: <span data-role="amount-manual-sb_child">0</span></div>
+                        <input type="hidden" name="manual_amount_sb_child" value="0" data-save="manual" data-line="sb_child" data-save-field="amount">
                       </div>
                     </div>
                   </td>
@@ -2700,148 +2631,87 @@ a.leads-number-link:hover {
 
                 <!-- Single Occupancy -->
                 <tr data-line="sgl">
-                  <td class="fw-semibold">Single Occupancy</td>
-
+                  <td class="fw-semibold" style="font-size:12px;">Single Occupancy</td>
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="auto_single_occupancy_count" placeholder="Count" data-plan="auto" data-line="sgl" data-field="count" disabled></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="auto_single_occupancy_count" placeholder="count"
-                               data-plan="auto" data-line="sgl" data-field="count" disabled>
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="auto_single_occupancy_rate" placeholder="rate"
-                                 data-plan="auto" data-line="sgl" data-field="rate" disabled>
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-auto-sgl">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="auto_amount_sgl" value="0"
-                               data-save="auto" data-line="sgl" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="auto_single_occupancy_rate" placeholder="Rate" data-plan="auto" data-line="sgl" data-field="rate" disabled>
+                        <div class="rm-amt">Amt: <span data-role="amount-auto-sgl">0</span></div>
+                        <input type="hidden" name="auto_amount_sgl" value="0" data-save="auto" data-line="sgl" data-save-field="amount">
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_single_occupancy_count" placeholder="Count" data-plan="manual" data-line="sgl" data-field="count"></div>
                       <div class="col-6">
-                        <input type="number" class="form-control form-control-sm"
-                               name="manual_single_occupancy_count" placeholder="count"
-                               data-plan="manual" data-line="sgl" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="manual_single_occupancy_rate" placeholder="rate"
-                                 data-plan="manual" data-line="sgl" data-field="rate">
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-manual-sgl">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="manual_amount_sgl" value="0"
-                               data-save="manual" data-line="sgl" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="manual_single_occupancy_rate" placeholder="Rate" data-plan="manual" data-line="sgl" data-field="rate">
+                        <div class="rm-amt">Amt: <span data-role="amount-manual-sgl">0</span></div>
+                        <input type="hidden" name="manual_amount_sgl" value="0" data-save="manual" data-line="sgl" data-save-field="amount">
                       </div>
                     </div>
                   </td>
                 </tr>
 
-                <!-- Supplement Cost (count NA) -->
+                <!-- Supplement Cost -->
                 <tr data-line="supplement">
-                  <td class="fw-semibold">Supplement Cost</td>
-
+                  <td class="fw-semibold" style="font-size:12px;">Supplement Cost</td>
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="text" class="form-control form-control-sm text-center fw-bold" name="auto_supplment_cost_count" value="NA" disabled data-plan="auto" data-line="supplement" data-field="count" style="background:#f0f0f0;color:#999;"></div>
                       <div class="col-6">
-                        <input type="text" class="form-control form-control-sm"
-                               name="auto_supplment_cost_count" value="NA" disabled
-                               data-plan="auto" data-line="supplement" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="auto_supplment_cost" placeholder="rate"
-                                 data-plan="auto" data-line="supplement" data-field="rate" disabled>
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-auto-supplement">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="auto_amount_supplement" value="0"
-                               data-save="auto" data-line="supplement" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="auto_supplment_cost" placeholder="Rate" data-plan="auto" data-line="supplement" data-field="rate" disabled>
+                        <div class="rm-amt">Amt: <span data-role="amount-auto-supplement">0</span></div>
+                        <input type="hidden" name="auto_amount_supplement" value="0" data-save="auto" data-line="supplement" data-save-field="amount">
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div class="row g-2">
+                    <div class="row g-1">
+                      <div class="col-6"><input type="text" class="form-control form-control-sm text-center fw-bold" name="manual_supplment_cost_count" value="NA" disabled data-plan="manual" data-line="supplement" data-field="count" style="background:#f0f0f0;color:#999;"></div>
                       <div class="col-6">
-                        <input type="text" class="form-control form-control-sm"
-                               name="manual_supplment_cost_count" value="NA" disabled
-                               data-plan="manual" data-line="supplement" data-field="count">
-                      </div>
-                      <div class="col-6">
-                        <div class="input-group input-group-sm">
-                          <input type="number" class="form-control"
-                                 name="manual_supplment_cost" placeholder="rate"
-                                 data-plan="manual" data-line="supplement" data-field="rate">
-                          <span class="input-group-text">
-                            Amt: <span data-role="amount-manual-supplement">0</span>
-                          </span>
-                        </div>
-                        <input type="hidden" name="manual_amount_supplement" value="0"
-                               data-save="manual" data-line="supplement" data-save-field="amount">
+                        <input type="number" class="form-control form-control-sm" name="manual_supplment_cost" placeholder="Rate" data-plan="manual" data-line="supplement" data-field="rate">
+                        <div class="rm-amt">Amt: <span data-role="amount-manual-supplement">0</span></div>
+                        <input type="hidden" name="manual_amount_supplement" value="0" data-save="manual" data-line="supplement" data-save-field="amount">
                       </div>
                     </div>
                   </td>
                 </tr>
 
-                <tr id="remaining-row" style="display:none;">
-
-                    <td class="fw-semibold">
-                        Remaining Capacity:
-
-                        <span class="badge bg-success ms-2" id="remaining-db" style="display:none;">
-                            DB: 0
-                        </span>
-
-                        <span class="badge bg-success ms-1" id="remaining-eb" style="display:none;">
-                            EB: 0
-                        </span>
-
-                        <span class="badge bg-success ms-1" id="remaining-sb" style="display:none;">
-                            SB: 0
-                        </span>
-                    </td>
-                  
-                </tr>
               </tbody>
-
-              <!-- ✅ Totals footer: Auto + Manual -->
-              <tfoot class="table-light">
-                <tr>
-                  <td class="fw-semibold text-end">Total Rate</td>
-
-                  <td class="fw-bold text-center">
-                    <span data-role="total-auto">0</span>
+              <!-- Totals footer -->
+              <tfoot>
+                <tr style="background:#f4f6fb;">
+                  <td class="fw-bold text-end" style="font-size:12px;color:#3949ab;">Total Rate</td>
+                  <td class="text-center">
+                    <span class="rm-total-auto" data-role="total-auto">0</span>
                     <input type="hidden" name="auto_total_rate" id="auto_total_rate" value="0">
                   </td>
-
-                  <td class="fw-bold text-center">
-                    <span data-role="total-manual">0</span>
+                  <td class="text-center">
+                    <span class="rm-total-manual" data-role="total-manual">0</span>
                     <input type="hidden" name="manual_total_rate" id="manual_total_rate" value="0">
                   </td>
                 </tr>
               </tfoot>
             </table>
           </div>
+          </div>
+<div id="roomPricingWarningBox" class="mt-3 d-none"></div>
+          <!-- Remaining Capacity -->
+          <div id="remaining-row" class="rm-remaining mt-3" style="display:none;">
+            <span class="rm-rem-label"><i class="la la-bed me-1"></i>Remaining Capacity</span>
+            <span class="rm-rem-pill db" id="remaining-db" style="display:none;">DB: 0</span>
+            <span class="rm-rem-pill eb" id="remaining-eb" style="display:none;">EB: 0</span>
+            <span class="rm-rem-pill sb" id="remaining-sb" style="display:none;">SB: 0</span>
+          </div>
 
         </form>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="btnSave1">Save</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:8px;padding:6px 20px;"><i class="la la-times me-1"></i>Close</button>
+        <button type="button" class="btn btn-sm" id="btnSave1" style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;border-radius:8px;padding:6px 24px;"><i class="la la-save me-1"></i>Save</button>
       </div>
 
     </div>

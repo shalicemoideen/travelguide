@@ -24142,11 +24142,10 @@ button {
   border: 0rem solid transparent;
   border-radius: 0.75rem;
   box-shadow: 0rem 0.3125rem 0.3125rem 0rem rgba(82, 63, 105, 0.05);
-  height: calc(100% - 30px); }
+  }
   @media only screen and (max-width: 35.9375rem) {
     .card {
-      margin-bottom: 0.938rem;
-      height: calc(100% - 0.938rem); } }
+      margin-bottom: 0.938rem; } }
   .card-body {
     padding: 1.875rem; }
     @media only screen and (max-width: 35.9375rem) {

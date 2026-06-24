@@ -66,10 +66,10 @@
     table-layout: auto;
 }
 
-#B2C_Leads_table th, 
+#B2C_Leads_table th,
 #B2C_Leads_table td {
     padding: 5px 8px !important; /* Tightens the spacing */
-    font-size: 12px;             /* Smaller text to fit more columns */
+    font-size: 14px;             /* Larger text for readability */
     white-space: nowrap;         /* Prevents text from wrapping to multiple lines */
 }
 
@@ -85,10 +85,10 @@
     table-layout: auto;
 }
 
-#meta_Leads_table th, 
+#meta_Leads_table th,
 #meta_Leads_table td {
     padding: 5px 8px !important; /* Tightens the spacing */
-    font-size: 12px;             /* Smaller text to fit more columns */
+    font-size: 14px;             /* Larger text for readability */
     white-space: nowrap;         /* Prevents text from wrapping to multiple lines */
 }
 

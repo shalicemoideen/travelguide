@@ -524,7 +524,7 @@
                                                                 <input type="hidden" name="total_amount" id="hub_res_total_amount" value="0">
                                                             </div>
                                                         </div>
-                                                        <div id="hub_fullSection" style="display:none;">
+                                                        <div id="hub_res_fullSection" style="display:none;">
                                                             <div class="row g-3">
                                                                 <div class="col-md-4">
                                                                     <label class="form-label fw-semibold">Payment Cut-off Date</label>
@@ -532,11 +532,11 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div id="hub_emiSection" style="display:none;">
+                                                        <div id="hub_res_emiSection" style="display:none;">
                                                             <div class="row g-3 mb-3">
                                                                 <div class="col-md-3">
                                                                     <label class="form-label fw-semibold">No. of Installments</label>
-                                                                    <input type="number" min="2" max="24" value="3" class="form-control" id="hub_max_emi_count" name="max_emi_count" onchange="hubGenerateEmiRows()">
+                                                                    <input type="number" min="2" max="24" value="3" class="form-control" id="hub_res_max_emi_count" name="max_emi_count" onchange="hubGenerateEmiRows()">
                                                                 </div>
                                                                 <div class="col-md-3">
                                                                     <label class="form-label fw-semibold">Split By</label>
@@ -551,16 +551,16 @@
                                                                     <thead class="table-light">
                                                                         <tr>
                                                                             <th width="60">#</th>
-                                                                            <th id="hub_emiValHeader">Amount</th>
+                                                                            <th id="hub_res_emiValHeader">Amount</th>
                                                                             <th width="150">Due Date</th>
                                                                             <th width="130">Calculated</th>
                                                                         </tr>
                                                                     </thead>
-                                                                    <tbody id="hub_emiTableBody"></tbody>
+                                                                    <tbody id="hub_res_emiTableBody"></tbody>
                                                                     <tfoot>
                                                                         <tr class="table-warning">
                                                                             <td colspan="3" class="text-end fw-bold">Total</td>
-                                                                            <td id="hub_emiCalcTotal">0.00</td>
+                                                                            <td id="hub_res_emiCalcTotal">0.00</td>
                                                                         </tr>
                                                                     </tfoot>
                                                                 </table>

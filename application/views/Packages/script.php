@@ -878,6 +878,11 @@ loadDestinationMap(function(map){
 
     $tr.find('.stay-destination-text').text(name);
     $tr.find('.active-destination-name').val(name);
+
+    // Stamp original values so the clear handler can restore them
+    $tr.find('.active-destination-id')
+      .data('original-id',   id)
+      .data('original-name', name);
   });
 });
 
@@ -1096,10 +1101,12 @@ function edit_package(id, mode) {
 
       // payment
       if (p.packages_payment_policies_checked_type === 'Y') {
+        window._loadingPackage = true;
         $('#packages_payment_policies_checked_type').prop('checked', true).trigger('change');
         select2AjaxSetSelected('#payment_policies_id_fk', p.payment_policies_id_fk, p.payment_policies_name);
 
         setTimeout(function () {
+          window._loadingPackage = false;
           $('#payment-policies').find('.payment-row').remove();
 
           (res.payment_policies || []).forEach(function (r) {
@@ -1115,10 +1122,12 @@ function edit_package(id, mode) {
 
       // terms
       if (p.packages_terms_conditions_checked_type === 'Y') {
+        window._loadingPackage = true;
         $('#packages_terms_conditions_checked_type').prop('checked', true).trigger('change');
         select2AjaxSetSelected('#terms_condition_id_fk', p.terms_condition_id_fk, p.terms_condition_name);
 
         setTimeout(function () {
+          window._loadingPackage = false;
           $('#terms-conditions').find('.terms-row').remove();
 
           (res.terms || []).forEach(function (r) {
@@ -1134,10 +1143,12 @@ function edit_package(id, mode) {
 
       // cancellation
       if (p.packages_cancellation_policy_checked_type === 'Y') {
+        window._loadingPackage = true;
         $('#packages_cancellation_policy_checked_type').prop('checked', true).trigger('change');
         select2AjaxSetSelected('#cancellation_policies_id_fk', p.cancellation_policies_id_fk, p.cancellation_policies_name);
 
         setTimeout(function () {
+          window._loadingPackage = false;
           $('#cancellation-policy').find('.cancellation-row').remove();
 
           (res.cancellation || []).forEach(function (r) {
@@ -2009,10 +2020,23 @@ $(document).on('change', '.change_destination', function () {
   const newDestId   = $(this).val();
   const newDestName = $(this).find('option:selected').text();
 
-  if (!newDestId) return;
+  if (!newDestId) {
+    // Cleared — restore original stay destination and clear property block (no confirmation needed)
+    const origId   = $row.find('.active-destination-id').data('original-id')   || '';
+    const origName = $row.find('.active-destination-id').data('original-name')  || '';
+
+    $row.find('.active-destination-id').val(origId);
+    $row.find('.active-destination-name').val(origName);
+    $row.find('.destination-post').val(origId);
+    $row.find('.stay-destination-text').text(origName);
+
+    if (typeof resetPropertiesBlock === 'function') resetPropertiesBlock();
+    return;
+  }
 
   $row.find('.active-destination-id').val(newDestId);
   $row.find('.active-destination-name').val(newDestName);
+  $row.find('.stay-destination-text').text(newDestName);
 
   // ✅ IMPORTANT: this is the posted array field
   $row.find('.destination-post').val(newDestId);
@@ -2262,6 +2286,16 @@ $('#packages_itinerary_id_fk').on('change', function () {
       });
 
       $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal') });
+
+      // Stamp original destination values so the clear handler can restore them
+      $('#itinerary tr').each(function () {
+        const $tr  = $(this);
+        const $aid = $tr.find('.active-destination-id');
+        if ($aid.length && !$aid.data('original-id')) {
+          $aid.data('original-id',   $aid.val());
+          $aid.data('original-name', $tr.find('.active-destination-name').val() || '');
+        }
+      });
 
       // ✅ INIT CKEDITOR for each row
       initEditorsForDays();
@@ -2918,6 +2952,8 @@ $(document).ready(function () {
        =============================== */
     $ddl.on('change', function () {
 
+        if (window._loadingPackage) return;
+
         const id = $(this).val();
 
         clearRows();
@@ -3047,6 +3083,8 @@ $(document).ready(function () {
        =============================== */
     $ddl.on('change', function () {
 
+        if (window._loadingPackage) return;
+
         const id = $(this).val();
 
         clearTermsRows();
@@ -3174,6 +3212,8 @@ $(document).ready(function () {
        DROPDOWN CHANGE
        =============================== */
     $ddl.on('change', function () {
+
+        if (window._loadingPackage) return;
 
         const id = $(this).val();
 
@@ -4277,6 +4317,9 @@ $(document).on('change', '.change_destination', function () {
   const now  = $sel.val();
 
   if (prev == now) return;
+
+  // Clearing is handled directly in the first change handler — no confirm needed
+  if (!now) return;
 
   if (isPropertiesActiveOrDirty()) {
 
