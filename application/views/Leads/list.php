@@ -2399,6 +2399,13 @@ a.leads-number-link:hover {
           <input type="hidden" id="modal_packages_properties_days_id_fk" value="">
 <input type="hidden" id="modal_quotation_properties_rooms_id_fk" value="">
 <input type="hidden" id="modal_quotation_room_tariff_details_id" name="quotation_room_tariff_details_id" value="">
+<input type="hidden" id="modal_policy_db" value="0">
+<input type="hidden" id="modal_policy_eb" value="0">
+<input type="hidden" id="modal_policy_sb" value="0">
+<input type="hidden" id="modal_applied_adults" value="0">
+<input type="hidden" id="modal_applied_children" value="0">
+<input type="hidden" id="modal_applied_baby" value="0">
+<input type="hidden" id="modal_min_rooms_required" value="0">
 
 
           <div id="admissionNote" class="small text-danger mt-2"></div>
@@ -2544,7 +2551,10 @@ a.leads-number-link:hover {
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_count" placeholder="Count" data-plan="manual" data-line="rooms" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_count" placeholder="Count" data-plan="manual" data-line="rooms" data-field="count">
+                        <div id="manual-room-count-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_rate" placeholder="Rate" data-plan="manual" data-line="rooms" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-rooms">0</span></div>
@@ -2569,7 +2579,10 @@ a.leads-number-link:hover {
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_count" placeholder="Count" data-plan="manual" data-line="eb_adult" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_count" placeholder="Count" data-plan="manual" data-line="eb_adult" data-field="count">
+                        <div id="manual-eb-adult-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_rate" placeholder="Rate" data-plan="manual" data-line="eb_adult" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-eb_adult">0</span></div>
@@ -2594,7 +2607,10 @@ a.leads-number-link:hover {
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_count" placeholder="Count" data-plan="manual" data-line="eb_child" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_count" placeholder="count" data-plan="manual" data-line="eb_child" data-field="count">
+                        <div id="manual-eb-child-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_rate" placeholder="Rate" data-plan="manual" data-line="eb_child" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-eb_child">0</span></div>
@@ -2619,7 +2635,10 @@ a.leads-number-link:hover {
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_count" placeholder="Count" data-plan="manual" data-line="sb_child" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_count" placeholder="count" data-plan="manual" data-line="sb_child" data-field="count">
+                        <div id="manual-sb-child-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_rate" placeholder="Rate" data-plan="manual" data-line="sb_child" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-sb_child">0</span></div>

@@ -7041,6 +7041,11 @@ function updateRemainingUI(result) {
 
     const cap = result.capacity;
 
+    if (!cap) {
+        $('#remaining-row').hide();
+        return;
+    }
+
     let hasRemaining = false;
 
     // DB
@@ -7371,12 +7376,16 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
 
         /* ================= AUTO ALLOCATION ================= */
         if (typeof autoAllocateBeds === 'function' && typeof applyAutoAllocationToModal === 'function') {
-            var allocation = allocateRooms(policy, appliedPlan);
-            applyAutoAllocationToModal(allocation);
-            updateRemainingUI(allocation);
+            try {
+                var allocation = allocateRooms(policy, appliedPlan);
+                applyAutoAllocationToModal(allocation);
+                updateRemainingUI(allocation);
 
-            // 1) copy auto -> manual so manual starts same
-            syncAutoToManualCountsAndRates();
+                // 1) copy auto -> manual so manual starts same
+                syncAutoToManualCountsAndRates();
+            } catch (allocErr) {
+                console.warn('Auto allocation skipped:', allocErr.message);
+            }
 
            // 2) calculate amounts + totals for both
           //  refreshAllAmountsAndTotals();

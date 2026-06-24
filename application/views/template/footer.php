@@ -109,7 +109,6 @@
 <!-- <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script> -->
  <!-- <script src="<?php echo base_url();?>assets/vendor/ckeditor/ckeditor.js"></script> -->
   <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-  <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/inline/ckeditor.js"></script>
    <!-- <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/super-build/ckeditor.js"></script> -->
 
 	<!-- Magnific Popup -->
