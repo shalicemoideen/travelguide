@@ -2406,6 +2406,8 @@ a.leads-number-link:hover {
 <input type="hidden" id="modal_applied_children" value="0">
 <input type="hidden" id="modal_applied_baby" value="0">
 <input type="hidden" id="modal_min_rooms_required" value="0">
+<input type="hidden" id="modal_baby_sb_count" value="0">
+<input type="hidden" id="modal_baby_eb_count" value="0">
 
 
           <div id="admissionNote" class="small text-danger mt-2"></div>

@@ -13011,11 +13011,17 @@ function applyAutoAllocationToModal(result) {
     setTextSafe('#roompricingandguestallocationModal [data-role="baby-sgl"]',  result.baby?.sgl  ?? 0);
 
     baby_child_sharing_count = result.baby?.sb;
+    var total_baby_foc = (result.baby?.sb ?? 0) + (result.baby?.eb ?? 0);
 
-    if(baby_child_sharing_count > 0){
-        $('.child-note-foc').text(`Child on FOC basis (${baby_child_sharing_count})`);
+    if(total_baby_foc > 0){
+        $('.child-note-foc').text(`Child on FOC basis (${total_baby_foc})`);
         $('.child-note-foc').show();
     }
+
+    var _babySbEl = document.getElementById('modal_baby_sb_count');
+    var _babyEbEl = document.getElementById('modal_baby_eb_count');
+    if (_babySbEl) _babySbEl.value = result.baby?.sb ?? 0;
+    if (_babyEbEl) _babyEbEl.value = result.baby?.eb ?? 0;
     // ---------------------------
     // WARNINGS (optional)
     // ---------------------------
@@ -13750,7 +13756,9 @@ document.addEventListener('input', function (e) {
             var _mSbC = parseInt(_sbCEl?.value || 0);
 
             var _totalEB    = _mEbA + _mEbC;
-            var _totalCap  = _rooms * _pDb + _totalEB + _mSbC;
+            var _babySb = parseInt(document.getElementById('modal_baby_sb_count')?.value || 0);
+            var _babyEb = parseInt(document.getElementById('modal_baby_eb_count')?.value || 0);
+            var _totalCap  = _rooms * _pDb + _totalEB + _mSbC + _babySb + _babyEb;
             var _totalGuests = _adults + _children + _baby;
 
             if (_ebAWarn) {
@@ -13854,7 +13862,9 @@ function validateManualRoomingPlan() {
         var mEbChild  = parseInt(ebChildEl?.value || 0);
         var mSbChild  = parseInt(sbChildEl?.value || 0);
 
-        var totalCap    = manualRooms * policyDb + mEbAdult + mEbChild + mSbChild;
+        var babySb = parseInt(document.getElementById('modal_baby_sb_count')?.value || 0);
+        var babyEb = parseInt(document.getElementById('modal_baby_eb_count')?.value || 0);
+        var totalCap    = manualRooms * policyDb + mEbAdult + mEbChild + mSbChild + babySb + babyEb;
         var totalGuests = appAdults + appChildren + appBaby;
         if (totalCap < totalGuests) {
             alert(
