@@ -12873,15 +12873,7 @@ function allocateRooms(applied, policy) {
         let remainingSB = totalSB - babySB;
 
         // -------------------------------
-        // 🧒 2. CHILD → SB
-        // -------------------------------
-        let childSB = Math.min(children, remainingSB);
-        children -= childSB;
-
-        remainingSB -= childSB;
-
-        // -------------------------------
-        // 👨 3. ADULT → DB
+        // 👨 2. ADULT → DB
         // -------------------------------
         let adultDB = Math.min(adults, totalDB);
         adults -= adultDB;
@@ -12889,12 +12881,20 @@ function allocateRooms(applied, policy) {
         let remainingDB = totalDB - adultDB;
 
         // -------------------------------
-        // 🧒 4. CHILD → DB
+        // 🧒 3. CHILD → remaining DB (use free DB slots before SB/EB)
         // -------------------------------
         let childDB = Math.min(children, remainingDB);
         children -= childDB;
 
         remainingDB -= childDB;
+
+        // -------------------------------
+        // 🧒 4. CHILD → SB (only if DB is full)
+        // -------------------------------
+        let childSB = Math.min(children, remainingSB);
+        children -= childSB;
+
+        remainingSB -= childSB;
 
         // -------------------------------
         // 👶 5. BABY → EB
@@ -13749,9 +13749,13 @@ document.addEventListener('input', function (e) {
             var _mEbC = parseInt(_ebCEl?.value || 0);
             var _mSbC = parseInt(_sbCEl?.value || 0);
 
+            var _totalEB    = _mEbA + _mEbC;
+            var _totalCap  = _rooms * _pDb + _totalEB + _mSbC;
+            var _totalGuests = _adults + _children + _baby;
+
             if (_ebAWarn) {
-                if (_mEbA < _req.adultEB) {
-                    _ebAWarn.textContent = 'Below adequate: need ' + _req.adultEB + ' EB for adult(s)';
+                if (_totalEB > _req.maxEB) {
+                    _ebAWarn.textContent = 'Total EB (' + _totalEB + ') exceeds capacity: max ' + _req.maxEB + ' for ' + _rooms + ' room(s)';
                     _ebAWarn.style.display = 'block';
                     if (_ebAEl) _ebAEl.classList.add('is-invalid');
                 } else {
@@ -13761,8 +13765,8 @@ document.addEventListener('input', function (e) {
             }
 
             if (_ebCWarn) {
-                if (_mEbC < _req.childEB) {
-                    _ebCWarn.textContent = 'Below adequate: need ' + _req.childEB + ' EB for child(ren)';
+                if (_totalEB > _req.maxEB) {
+                    _ebCWarn.textContent = 'Total EB (' + _totalEB + ') exceeds capacity: max ' + _req.maxEB + ' for ' + _rooms + ' room(s)';
                     _ebCWarn.style.display = 'block';
                     if (_ebCEl) _ebCEl.classList.add('is-invalid');
                 } else {
@@ -13772,9 +13776,12 @@ document.addEventListener('input', function (e) {
             }
 
             if (_sbCWarn) {
-                var _reqSB = _req.childSB + _req.babySB;
-                if (_mSbC < _reqSB) {
-                    _sbCWarn.textContent = 'Below adequate: need ' + _reqSB + ' sharing bed(s)';
+                if (_mSbC > _req.maxSB) {
+                    _sbCWarn.textContent = 'SB (' + _mSbC + ') exceeds capacity: max ' + _req.maxSB + ' for ' + _rooms + ' room(s)';
+                    _sbCWarn.style.display = 'block';
+                    if (_sbCEl) _sbCEl.classList.add('is-invalid');
+                } else if (_totalCap < _totalGuests) {
+                    _sbCWarn.textContent = 'Insufficient beds: capacity ' + _totalCap + ' < guests ' + _totalGuests + '. Add rooms, EB, or SB.';
                     _sbCWarn.style.display = 'block';
                     if (_sbCEl) _sbCEl.classList.add('is-invalid');
                 } else {
@@ -13847,34 +13854,15 @@ function validateManualRoomingPlan() {
         var mEbChild  = parseInt(ebChildEl?.value || 0);
         var mSbChild  = parseInt(sbChildEl?.value || 0);
 
-        if (mEbAdult < req.adultEB) {
+        var totalCap    = manualRooms * policyDb + mEbAdult + mEbChild + mSbChild;
+        var totalGuests = appAdults + appChildren + appBaby;
+        if (totalCap < totalGuests) {
             alert(
-                'Extra Bed (Adult) count is below adequate.\n\n' +
-                'Entered: ' + mEbAdult + '  |  Required: ' + req.adultEB + '\n' +
-                '(Policy EB per room: ' + policyEb + ' × ' + manualRooms + ' rooms = max ' + req.maxEB + ')'
+                'Bed capacity is insufficient for all guests.\n\n' +
+                'Capacity: ' + manualRooms + ' rooms × DB(' + policyDb + ') + EB(' + (mEbAdult + mEbChild) + ') + SB(' + mSbChild + ') = ' + totalCap + '\n' +
+                'Guests: Adults(' + appAdults + ') + Children(' + appChildren + ') + Baby(' + appBaby + ') = ' + totalGuests + '\n\n' +
+                'Please increase room count, Extra Beds, or Child Sharing Beds.'
             );
-            if (ebAdultEl) { ebAdultEl.focus(); ebAdultEl.classList.add('is-invalid'); setTimeout(() => ebAdultEl.classList.remove('is-invalid'), 3000); }
-            return false;
-        }
-
-        if (mEbChild < req.childEB) {
-            alert(
-                'Extra Bed (Child) count is below adequate.\n\n' +
-                'Entered: ' + mEbChild + '  |  Required: ' + req.childEB + '\n' +
-                '(Policy EB per room: ' + policyEb + ' × ' + manualRooms + ' rooms = max ' + req.maxEB + ')'
-            );
-            if (ebChildEl) { ebChildEl.focus(); ebChildEl.classList.add('is-invalid'); setTimeout(() => ebChildEl.classList.remove('is-invalid'), 3000); }
-            return false;
-        }
-
-        var reqSB = req.childSB + req.babySB;
-        if (mSbChild < reqSB) {
-            alert(
-                'Child Sharing Bed count is below adequate.\n\n' +
-                'Entered: ' + mSbChild + '  |  Required: ' + reqSB + '\n' +
-                '(Policy SB per room: ' + policySb + ' × ' + manualRooms + ' rooms = max ' + req.maxSB + ')'
-            );
-            if (sbChildEl) { sbChildEl.focus(); sbChildEl.classList.add('is-invalid'); setTimeout(() => sbChildEl.classList.remove('is-invalid'), 3000); }
             return false;
         }
 
