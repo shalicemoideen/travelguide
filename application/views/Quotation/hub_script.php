@@ -84,6 +84,8 @@ function loadQuotationHubSummary(quotation_id)
 
             $('#hubEndDate').text(data.end_date || '-');
 
+            $('#hub_lead_id').val(data.leads_id || '');
+
 
 
             var statusHtml = '-';
@@ -224,6 +226,8 @@ function updateQuotationHubActions(status) {
     toggleTab('tabTourVoucher', group2Enabled, group2Tooltip);
 
     toggleTab('tabDriverItinerary', group2Enabled, group2Tooltip);
+
+    toggleTab('tabFinancialPosting', group2Enabled, group2Tooltip);
 
 }
 
@@ -3203,4 +3207,328 @@ $(document).on('click', '#btnDriverItinerary', function () {
         "_blank"
     );
 });
+
+// ==================== Financial Posting ====================
+
+$(document).on('shown.bs.tab', 'a[data-bs-toggle="tab"][href="#financialPostingTab"]', function () {
+    var leadId = $('#hub_lead_id').val();
+    if (leadId) {
+        fpLoad(leadId);
+    }
+});
+
+$(document).on('input', '#fpHubTable .fp-quoted, #fpHubTable .fp-actual', function() {
+    fpCalculate();
+});
+
+
+function fpLoad(leadId) {
+    if (!leadId) {
+        alert('Lead ID missing');
+        return;
+    }
+
+    $('#fp_leads_id').val(leadId);
+    $('#fp_record_id').val('');
+
+    // Clear dynamic rows
+    $('#fpHubTable tbody tr.fp-hotel-day').remove();
+    $('#fpHubTable tbody tr.fp-expense').remove();
+
+    // Reset static fields
+    $('[name="fp_driver_quoted"]').val('');
+    $('[name="fp_driver_actual"]').val('');
+    $('[name="fp_driver_desc"]').val('');
+    $('#fpMargin').text('0.00');
+    $('#fpNotes').val('');
+    $('#fpActualCost').text('0.00');
+    $('#fpCostAfterPost').text('0.00');
+    $('#fpHotelReservationAmount').text('0.00');
+    $('#fpPreQuotedAmount').text('0.00');
+
+    var quotationId = $('#quotation_id').val() || 0;
+    var defaultsRequest = quotationId ?
+        $.ajax({
+            url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_financial_posting_defaults/" + quotationId,
+            type: "GET",
+            dataType: "json"
+        }) : $.Deferred().resolve({status: false}).promise();
+
+    $.when(
+        $.ajax({
+            url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_financial_posting/" + leadId,
+            type: "GET",
+            dataType: "json"
+        }),
+        defaultsRequest
+    ).done(function(fpRes, defaultsRes) {
+        var fpData = fpRes[0];
+        var defaultsData = defaultsRes[0];
+        var hasRecord = fpData.status;
+        var defaults = (defaultsData.status && defaultsData.data) ? defaultsData.data : null;
+
+        console.log('FP defaults response:', defaultsData);
+        console.log('FP defaults:', defaults);
+
+        if (defaults) {
+            $('#fpHotelReservationAmount').text(parseFloat(defaults.hotel_reservation_amount || 0).toFixed(2));
+            $('#fpPreQuotedAmount').text(parseFloat(defaults.pre_quoted_amount || 0).toFixed(2));
+        }
+
+        if (!hasRecord) {
+            // No record yet — auto-populate driver, hotel rows and margin from defaults
+            if (defaults) {
+                $('[name="fp_driver_quoted"]').val(defaults.driver_quote_amount || '');
+                $('[name="fp_driver_actual"]').val(defaults.driver_quote_amount || '');
+                if (defaults.hotel_days && defaults.hotel_days.length) {
+                    defaults.hotel_days.forEach(function(day) {
+                        fpAddHotelDay(day.day_label, day.day_cost, day.day_cost, '');
+                    });
+                }
+                if (defaults.margin_value) {
+                    $('#fpMargin').text(parseFloat(defaults.margin_value || 0).toFixed(2));
+                }
+            }
+            fpCalculate();
+            return;
+        }
+
+        var d = fpData.data;
+        $('#fp_record_id').val(d.fp_id || '');
+        $('#fp_leads_id').val(d.fp_leads_id_fk || leadId);
+        $('[name="fp_driver_quoted"]').val(d.fp_driver_quoted || '');
+        $('[name="fp_driver_actual"]').val(d.fp_driver_actual || '');
+        $('[name="fp_driver_desc"]').val(d.fp_driver_desc || '');
+        $('#fpMargin').text(d.fp_margin != null ? parseFloat(d.fp_margin).toFixed(2) : '0.00');
+        $('#fpNotes').val(d.fp_notes || '');
+
+        if (d.hotel_days && d.hotel_days.length) {
+            d.hotel_days.forEach(function(day) {
+                fpAddHotelDay(day.fphd_day_label, day.fphd_quoted_amount, day.fphd_actual_amount, day.fphd_description);
+            });
+        }
+
+        if (d.expenses && d.expenses.length) {
+            d.expenses.forEach(function(exp) {
+                fpAddExpense(exp.fpe_label, exp.fpe_amount, exp.fpe_description);
+            });
+        }
+
+        // If driver quote/actual or margin was saved empty, fall back to quotation defaults
+        if (defaults) {
+            if (!$('[name="fp_driver_quoted"]').val()) {
+                $('[name="fp_driver_quoted"]').val(defaults.driver_quote_amount || '');
+            }
+            if (!$('[name="fp_driver_actual"]').val()) {
+                $('[name="fp_driver_actual"]').val(defaults.driver_quote_amount || '');
+            }
+            if (($('#fpMargin').text() === '' || parseFloat($('#fpMargin').text()) == 0) && defaults.margin_value) {
+                $('#fpMargin').text(parseFloat(defaults.margin_value || 0).toFixed(2));
+            }
+        }
+
+        fpCalculate();
+    }).fail(function() {
+        alert('Failed to load financial posting');
+    });
+}
+
+function fpAddHotelDay(label, quoted, actual, desc) {
+    label = label || '';
+    quoted = (quoted !== undefined && quoted !== null) ? quoted : '';
+    actual = (actual !== undefined && actual !== null) ? actual : '';
+    desc = desc || '';
+
+    var dayIndex = $('#fpHubTable tbody tr.fp-hotel-day').length + 1;
+    var dayLabel = label || 'Day ' + dayIndex + ' hotel cost';
+
+    var html = '<tr class="fp-hotel-day table-light fp-label">' +
+        '<td class="fw-bold"><input type="text" class="form-control form-control-sm" name="hotel_labels[]" value="' + escapeHtml(dayLabel) + '"></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="hotel_quoted[]" value="' + quoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-actual" name="hotel_actual[]" value="' + actual + '" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td><input type="text" class="form-control form-control-sm" name="hotel_descs[]" value="' + escapeHtml(desc) + '" placeholder="Description"></td>' +
+        '<td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger" onclick="fpRemoveRow(this)"><i class="la la-trash"></i></button></td>' +
+        '</tr>';
+
+    var $lastHotel = $('#fpHubTable tbody tr.fp-hotel-day').last();
+    if ($lastHotel.length) {
+        $lastHotel.after(html);
+    } else {
+        $('#fpHotelDayHeader').after(html);
+    }
+    fpCalculate();
+}
+
+function fpAddExpense(label, amount, desc) {
+    label = label || '';
+    amount = (amount !== undefined && amount !== null) ? amount : '';
+    desc = desc || '';
+
+    var html = '<tr class="fp-expense table-light fp-label">' +
+        '<td class="fw-bold"><input type="text" class="form-control form-control-sm" name="exp_labels[]" value="' + escapeHtml(label) + '" placeholder="Other expense"></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="exp_quoted[]" value="" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-actual" name="exp_amounts[]" value="' + amount + '" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td><input type="text" class="form-control form-control-sm" name="exp_descs[]" value="' + escapeHtml(desc) + '" placeholder="Description"></td>' +
+        '<td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger" onclick="fpRemoveRow(this)"><i class="la la-trash"></i></button></td>' +
+        '</tr>';
+
+    var $lastExpense = $('#fpHubTable tbody tr.fp-expense').last();
+    if ($lastExpense.length) {
+        $lastExpense.after(html);
+    } else {
+        $('#fpOtherExpHeader').after(html);
+    }
+    fpCalculate();
+}
+
+function fpRemoveRow(btn) {
+    $(btn).closest('tr').remove();
+    fpCalculate();
+}
+
+function fpCalculate() {
+    var quotedTotal = 0;
+    var actualTotal = 0;
+
+    $('#fpHubTable .fp-quoted').each(function() {
+        quotedTotal += parseFloat($(this).val()) || 0;
+    });
+
+    $('#fpHubTable .fp-actual').each(function() {
+        actualTotal += parseFloat($(this).val()) || 0;
+    });
+
+    var margin = parseFloat($('#fpMargin').text()) || 0;
+    var totalAfterMargin = actualTotal + margin;
+    var preQuoted = parseFloat($('#fpPreQuotedAmount').text()) || 0;
+    var difference = preQuoted - totalAfterMargin;
+
+    $('#fpActualCost').text(quotedTotal.toFixed(2));
+    $('#fpCostAfterPost').text(actualTotal.toFixed(2));
+    $('#fpTotalAfterMargin').text(totalAfterMargin.toFixed(2));
+    $('#fpDifference').text(difference.toFixed(2));
+
+    var badgeStyle = {'padding':'3px 12px','border-radius':'6px','color':'#fff'};
+    if (difference > 0) {
+        $('#fpDifference').removeClass('text-danger text-muted').addClass('text-white')
+            .css($.extend({}, badgeStyle, {'background':'#198754'}));
+    } else if (difference < 0) {
+        $('#fpDifference').removeClass('text-success text-muted').addClass('text-white')
+            .css($.extend({}, badgeStyle, {'background':'#dc3545'}));
+    } else {
+        $('#fpDifference').removeClass('text-success text-danger').addClass('text-white')
+            .css($.extend({}, badgeStyle, {'background':'#6c757d'}));
+    }
+
+    var totalMargin = margin + difference;
+    $('#fpTotalMargin').text(totalMargin.toFixed(2));
+    if (totalMargin > 0) {
+        $('#fpTotalMargin').removeClass('text-danger text-muted').addClass('text-white')
+            .css($.extend({}, badgeStyle, {'background':'#198754'}));
+    } else if (totalMargin < 0) {
+        $('#fpTotalMargin').removeClass('text-success text-muted').addClass('text-white')
+            .css($.extend({}, badgeStyle, {'background':'#dc3545'}));
+    } else {
+        $('#fpTotalMargin').removeClass('text-success text-danger').addClass('text-white')
+            .css($.extend({}, badgeStyle, {'background':'#6c757d'}));
+    }
+}
+
+function fpSubmit() {
+    var leadId = $('#fp_leads_id').val();
+    var recordId = $('#fp_record_id').val();
+
+    if (!leadId) {
+        alert('Lead ID missing');
+        return;
+    }
+
+    var payload = {
+        fp_leads_id_fk: leadId,
+        fp_record_id: recordId,
+        fp_driver_quoted: parseFloat($('[name="fp_driver_quoted"]').val()) || 0,
+        fp_driver_actual: parseFloat($('[name="fp_driver_actual"]').val()) || 0,
+        fp_driver_desc: $('[name="fp_driver_desc"]').val() || '',
+        fp_actual_cost: parseFloat($('#fpActualCost').text()) || 0,
+        fp_cost_after: parseFloat($('#fpCostAfterPost').text()) || 0,
+        fp_margin: parseFloat($('#fpMargin').text()) || 0,
+        fp_notes: $('#fpNotes').val() || '',
+        hotel_labels: [],
+        hotel_quoted: [],
+        hotel_actual: [],
+        hotel_descs: [],
+        exp_labels: [],
+        exp_amounts: [],
+        exp_descs: []
+    };
+
+    $('#fpHubTable tr.fp-hotel-day').each(function() {
+        payload.hotel_labels.push($(this).find('[name="hotel_labels[]"]').val() || '');
+        payload.hotel_quoted.push(parseFloat($(this).find('[name="hotel_quoted[]"]').val()) || 0);
+        payload.hotel_actual.push(parseFloat($(this).find('[name="hotel_actual[]"]').val()) || 0);
+        payload.hotel_descs.push($(this).find('[name="hotel_descs[]"]').val() || '');
+    });
+
+    $('#fpHubTable tr.fp-expense').each(function() {
+        payload.exp_labels.push($(this).find('[name="exp_labels[]"]').val() || '');
+        payload.exp_amounts.push(parseFloat($(this).find('[name="exp_amounts[]"]').val()) || 0);
+        payload.exp_descs.push($(this).find('[name="exp_descs[]"]').val() || '');
+    });
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_save_financial_posting",
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify(payload),
+        success: function(res) {
+            if (res.status) {
+                $('#fp_record_id').val(res.fp_id || recordId);
+                var n = new notify({
+                    title: '',
+                    style: 'success',
+                    message: 'Financial posting saved successfully',
+                    icon: 'fas fa-check'
+                });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            } else {
+                var n = new notify({
+                    title: '',
+                    style: 'error',
+                    message: res.message || 'Failed to save financial posting',
+                    icon: 'fas fa-times'
+                });
+                n.show(); setTimeout(function(){ n.hide(); }, 5000);
+            }
+        },
+        error: function() {
+            var n = new notify({
+                title: '',
+                style: 'error',
+                message: 'Server error occurred',
+                icon: 'fas fa-times'
+            });
+            n.show(); setTimeout(function(){ n.hide(); }, 5000);
+        }
+    });
+}
+
+function fpReset() {
+    var leadId = $('#hub_lead_id').val();
+    if (leadId) {
+        fpLoad(leadId);
+    } else {
+        $('#fpHubTable tbody tr.fp-hotel-day').remove();
+        $('#fpHubTable tbody tr.fp-expense').remove();
+        $('[name="fp_driver_quoted"]').val('');
+        $('[name="fp_driver_actual"]').val('');
+        $('[name="fp_driver_desc"]').val('');
+        $('#fpMargin').text('0.00');
+        $('#fpNotes').val('');
+        $('#fpActualCost').text('0.00');
+        $('#fpCostAfterPost').text('0.00');
+        $('#fpHotelReservationAmount').text('0.00');
+        $('#fpPreQuotedAmount').text('0.00');
+        $('#fp_record_id').val('');
+    }
+}
 </script>

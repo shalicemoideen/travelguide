@@ -410,9 +410,9 @@ class Quotation_model extends CI_Model{
 
         return $this->db
 
-            ->select('q.quotation_number, q.quotation_current_status,
+            ->select('q.quotation_number, q.quotation_current_status, q.leads_id_fk,
 
-                    l.guest_name, l.leads_number, l.lead_type,
+                    l.guest_name, l.leads_number, l.lead_type, l.leads_id,
 
                     l.start_date, l.duration, l.end_date,
 
@@ -847,6 +847,176 @@ class Quotation_model extends CI_Model{
             ->get()
 
             ->result_array();
+
+    }
+
+
+
+    public function get_financial_posting_defaults($quotation_id)
+
+    {
+
+        $quotation_id = (int)$quotation_id;
+
+
+
+        try {
+
+            // Prefer the confirmed option; fall back to the first active option
+
+            $confirmed = $this->db
+
+                ->select('qc.option_id_fk')
+
+                ->from('quotation_confirmation qc')
+
+                ->where('qc.quotation_id_fk', $quotation_id)
+
+                ->where('qc.property_confirmation_status', 1)
+
+                ->group_by('qc.option_id_fk')
+
+                ->order_by('qc.id', 'ASC')
+
+                ->limit(1)
+
+                ->get()
+
+                ->row_array();
+
+
+
+            $option_id = isset($confirmed['option_id_fk']) ? (int)$confirmed['option_id_fk'] : 0;
+
+
+
+            if (!$option_id) {
+
+                $first = $this->db
+
+                    ->select('quotation_options_id')
+
+                    ->from('quotation_options')
+
+                    ->where('quotation_id_fk', $quotation_id)
+
+                    ->where('quotation_options_status', 1)
+
+                    ->order_by('quotation_options_id', 'ASC')
+
+                    ->limit(1)
+
+                    ->get()
+
+                    ->row_array();
+
+                $option_id = isset($first['quotation_options_id']) ? (int)$first['quotation_options_id'] : 0;
+
+            }
+
+
+
+            $defaults = [
+
+                'driver_quote_amount'       => 0,
+
+                'hotel_reservation_amount'  => 0,
+
+                'pre_quoted_amount'         => 0,
+
+                'margin_value'              => 0,
+
+                'option_id'                 => $option_id,
+
+            ];
+
+
+
+            if (!$option_id) {
+
+                return $defaults;
+
+            }
+
+
+
+            $option = $this->db
+
+                ->select('quotation_options_cab_amount, quotation_options_total_quote_rate, quotation_options_total_cost, quotation_options_margin_value')
+
+                ->from('quotation_options')
+
+                ->where('quotation_options_id', $option_id)
+
+                ->limit(1)
+
+                ->get()
+
+                ->row_array();
+
+
+
+            if ($option) {
+
+                $defaults['driver_quote_amount'] = (float)$option['quotation_options_cab_amount'];
+
+                $defaults['pre_quoted_amount']    = (float)$option['quotation_options_total_quote_rate'];
+
+                $defaults['margin_value']         = (float)$option['quotation_options_margin_value'];
+
+            }
+
+
+
+            $hotelDays = $this->db
+
+                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, COALESCE(SUM(qpr.total_room_cost), 0) as day_cost', FALSE)
+
+                ->from('quotation_properties_rooms qpr')
+
+                ->join('quotation_properties qp', 'qp.quotation_properties_id = qpr.quotation_properties_id_fk')
+
+                ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qp.quotation_properties_days_id_fk')
+
+                ->where('qpd.quotation_options_id_fk', $option_id)
+
+                ->where('qpd.quotation_properties_days_status', 1)
+
+                ->where('qp.quotation_properties_status', 1)
+
+                ->where('qpr.quotation_properties_rooms_status', 1)
+
+                ->group_by('qpd.quotation_properties_days_id')
+
+                ->order_by('qpd.quotation_properties_days_id', 'ASC')
+
+                ->get()
+
+                ->result_array();
+
+
+
+            $hotelTotal = 0;
+
+            foreach ($hotelDays as $day) {
+
+                $hotelTotal += (float)$day['day_cost'];
+
+            }
+
+            $defaults['hotel_reservation_amount'] = $hotelTotal;
+
+            $defaults['hotel_days'] = $hotelDays;
+
+
+
+            return $defaults;
+
+        } catch (Exception $e) {
+
+            return ['error' => $e->getMessage()];
+
+        }
 
     }
 

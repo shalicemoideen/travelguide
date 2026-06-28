@@ -7770,6 +7770,132 @@ public function ajax_delete()
 
 	}
 
+	public function ajax_save_financial_posting()
+	{
+		$raw     = file_get_contents('php://input');
+		$payload = json_decode($raw, true);
+
+		if (!$payload) {
+			echo json_encode(['status' => false, 'message' => 'Invalid payload']);
+			return;
+		}
+
+		$leadId   = (int)(isset($payload['fp_leads_id_fk']) ? $payload['fp_leads_id_fk'] : 0);
+		$recordId = (int)(isset($payload['fp_record_id'])   ? $payload['fp_record_id']   : 0);
+
+		if (!$leadId) {
+			echo json_encode(['status' => false, 'message' => 'Lead ID required']);
+			return;
+		}
+
+		$main = [
+			'fp_leads_id_fk'   => $leadId,
+			'fp_driver_quoted' => (float)(isset($payload['fp_driver_quoted']) ? $payload['fp_driver_quoted'] : 0),
+			'fp_driver_actual' => (float)(isset($payload['fp_driver_actual']) ? $payload['fp_driver_actual'] : 0),
+			'fp_driver_desc'   => isset($payload['fp_driver_desc']) ? $payload['fp_driver_desc'] : '',
+			'fp_actual_cost'   => (float)(isset($payload['fp_actual_cost'])   ? $payload['fp_actual_cost']   : 0),
+			'fp_cost_after'    => (float)(isset($payload['fp_cost_after'])    ? $payload['fp_cost_after']    : 0),
+			'fp_margin'        => (float)(isset($payload['fp_margin'])        ? $payload['fp_margin']        : 0),
+			'fp_notes'         => isset($payload['fp_notes']) ? $payload['fp_notes'] : '',
+		];
+
+		if ($recordId > 0) {
+			$this->db->where('fp_id', $recordId)->update('financial_posting', $main);
+			$fpId = $recordId;
+			$this->db->where('fphd_fp_id_fk', $fpId)->delete('financial_posting_hotel_days');
+			$this->db->where('fpe_fp_id_fk',  $fpId)->delete('financial_posting_expenses');
+		} else {
+			$this->db->insert('financial_posting', $main);
+			$fpId = $this->db->insert_id();
+		}
+
+		$hotelLabels = isset($payload['hotel_labels'])  ? $payload['hotel_labels']  : [];
+		$hotelQuoted = isset($payload['hotel_quoted'])  ? $payload['hotel_quoted']  : [];
+		$hotelActual = isset($payload['hotel_actual'])  ? $payload['hotel_actual']  : [];
+		$hotelDescs  = isset($payload['hotel_descs'])   ? $payload['hotel_descs']   : [];
+		foreach ($hotelLabels as $i => $label) {
+			$this->db->insert('financial_posting_hotel_days', [
+				'fphd_fp_id_fk'      => $fpId,
+				'fphd_day_label'     => $label,
+				'fphd_quoted_amount' => (float)(isset($hotelQuoted[$i]) ? $hotelQuoted[$i] : 0),
+				'fphd_actual_amount' => (float)(isset($hotelActual[$i]) ? $hotelActual[$i] : 0),
+				'fphd_description'   => isset($hotelDescs[$i]) ? $hotelDescs[$i] : '',
+				'fphd_sort_order'    => $i,
+			]);
+		}
+
+		$expLabels  = isset($payload['exp_labels'])  ? $payload['exp_labels']  : [];
+		$expAmounts = isset($payload['exp_amounts']) ? $payload['exp_amounts'] : [];
+		$expDescs   = isset($payload['exp_descs'])   ? $payload['exp_descs']   : [];
+		foreach ($expLabels as $i => $label) {
+			$this->db->insert('financial_posting_expenses', [
+				'fpe_fp_id_fk'    => $fpId,
+				'fpe_label'       => $label,
+				'fpe_amount'      => (float)(isset($expAmounts[$i]) ? $expAmounts[$i] : 0),
+				'fpe_description' => isset($expDescs[$i]) ? $expDescs[$i] : '',
+			]);
+		}
+
+		echo json_encode(['status' => true, 'fp_id' => $fpId]);
+	}
+
+	public function ajax_get_financial_posting($leadId)
+	{
+		$leadId = (int)$leadId;
+		if (!$leadId) {
+			echo json_encode(['status' => false, 'message' => 'Invalid lead ID']);
+			return;
+		}
+
+		$main = $this->db
+			->where('fp_leads_id_fk', $leadId)
+			->order_by('fp_id', 'DESC')
+			->limit(1)
+			->get('financial_posting')
+			->row_array();
+
+		if (!$main) {
+			echo json_encode(['status' => false, 'message' => 'No record found']);
+			return;
+		}
+
+		$fpId = $main['fp_id'];
+
+		$hotelDays = $this->db
+			->where('fphd_fp_id_fk', $fpId)
+			->order_by('fphd_sort_order', 'ASC')
+			->get('financial_posting_hotel_days')
+			->result_array();
+
+		$expenses = $this->db
+			->where('fpe_fp_id_fk', $fpId)
+			->get('financial_posting_expenses')
+			->result_array();
+
+		echo json_encode([
+			'status' => true,
+			'data'   => array_merge($main, [
+				'hotel_days' => $hotelDays,
+				'expenses'   => $expenses,
+			]),
+		]);
+	}
+
+	public function ajax_get_financial_posting_defaults($quotation_id)
+	{
+		$quotation_id = (int)$quotation_id;
+		if (!$quotation_id) {
+			echo json_encode(['status' => false, 'message' => 'Invalid quotation ID']);
+			return;
+		}
+
+		$defaults = $this->Quotation_model->get_financial_posting_defaults($quotation_id);
+
+		echo json_encode([
+			'status' => true,
+			'data'   => $defaults,
+		]);
+	}
 }
 
 

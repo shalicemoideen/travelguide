@@ -462,7 +462,6 @@ $('#travel_daterange').on('cancel.daterangepicker', function() {
     $(this).val('');
 });
 var save_method; //for save method string
-var table1;
   $(document).ready(function() {
     
     
@@ -13942,6 +13941,7 @@ function validateManualRoomingPlan() {
     if (tariffData2 && tariffData2.needs_supplement) {
         let supEl = document.querySelector('[name="manual_supplment_cost"]');
         let supVal = supEl ? (parseFloat(supEl.value) || 0) : 0;
+
         if (supVal <= 0) {
             showError(supEl, 'Supplement cost is required because the room policy does not cover the enquiry meal plan. Please enter a valid supplement cost.');
             return false;
@@ -13950,5 +13950,5 @@ function validateManualRoomingPlan() {
 
     return isValid;
 }
-  
+
 </script>

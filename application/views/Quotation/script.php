@@ -7381,6 +7381,22 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
                 applyAutoAllocationToModal(allocation);
                 updateRemainingUI(allocation);
 
+                // Store context for manual validation
+                var _pDb = document.getElementById('modal_policy_db');
+                var _pEb = document.getElementById('modal_policy_eb');
+                var _pSb = document.getElementById('modal_policy_sb');
+                var _pAdults = document.getElementById('modal_applied_adults');
+                var _pChildren = document.getElementById('modal_applied_children');
+                var _pBaby = document.getElementById('modal_applied_baby');
+                var _pMin = document.getElementById('modal_min_rooms_required');
+                if (_pDb) _pDb.value = policy.db;
+                if (_pEb) _pEb.value = policy.eb;
+                if (_pSb) _pSb.value = policy.sb;
+                if (_pAdults) _pAdults.value = appliedPlan.adults;
+                if (_pChildren) _pChildren.value = appliedPlan.children;
+                if (_pBaby) _pBaby.value = appliedPlan.baby;
+                if (_pMin) _pMin.value = allocation.totalRooms;
+
                 // 1) copy auto -> manual so manual starts same
                 syncAutoToManualCountsAndRates();
             } catch (allocErr) {
@@ -7624,15 +7640,7 @@ function allocateRooms(applied, policy) {
         let remainingSB = totalSB - babySB;
 
         // -------------------------------
-        // 🧒 2. CHILD → SB
-        // -------------------------------
-        let childSB = Math.min(children, remainingSB);
-        children -= childSB;
-
-        remainingSB -= childSB;
-
-        // -------------------------------
-        // 👨 3. ADULT → DB
+        // 👨 2. ADULT → DB
         // -------------------------------
         let adultDB = Math.min(adults, totalDB);
         adults -= adultDB;
@@ -7640,12 +7648,20 @@ function allocateRooms(applied, policy) {
         let remainingDB = totalDB - adultDB;
 
         // -------------------------------
-        // 🧒 4. CHILD → DB
+        // 🧒 3. CHILD → remaining DB (use free DB slots before SB/EB)
         // -------------------------------
         let childDB = Math.min(children, remainingDB);
         children -= childDB;
 
         remainingDB -= childDB;
+
+        // -------------------------------
+        // 🧒 4. CHILD → SB (only if DB is full)
+        // -------------------------------
+        let childSB = Math.min(children, remainingSB);
+        children -= childSB;
+
+        remainingSB -= childSB;
 
         // -------------------------------
         // 👶 5. BABY → EB
@@ -7762,11 +7778,18 @@ function applyAutoAllocationToModal(result) {
     setTextSafe('#roompricingandguestallocationModal [data-role="baby-sgl"]',  result.baby?.sgl  ?? 0);
 
     baby_child_sharing_count = result.baby?.sb;
+    var total_baby_foc = (result.baby?.sb ?? 0) + (result.baby?.eb ?? 0);
 
-    if(baby_child_sharing_count > 0){
-        $('.child-note-foc').text(`Child on FOC basis (${baby_child_sharing_count})`);
+    if(total_baby_foc > 0){
+        $('.child-note-foc').text(`Child on FOC basis (${total_baby_foc})`);
         $('.child-note-foc').show();
     }
+
+    var _babySbEl = document.getElementById('modal_baby_sb_count');
+    var _babyEbEl = document.getElementById('modal_baby_eb_count');
+    if (_babySbEl) _babySbEl.value = result.baby?.sb ?? 0;
+    if (_babyEbEl) _babyEbEl.value = result.baby?.eb ?? 0;
+
     // ---------------------------
     // WARNINGS (optional)
     // ---------------------------
@@ -8421,7 +8444,130 @@ document.addEventListener('input', function (e) {
             rateEl.classList.remove('is-invalid');
         }
     }
+
+    // Live room count adequacy warning
+    if (el.name === 'manual_count') {
+        var minRooms = parseInt(document.getElementById('modal_min_rooms_required')?.value || 0);
+        var enteredRooms = parseInt(el.value || 0);
+        var warnDiv = document.getElementById('manual-room-count-warning');
+        if (warnDiv && minRooms > 0) {
+            if (enteredRooms < minRooms) {
+                var policyDb = parseInt(document.getElementById('modal_policy_db')?.value || 0);
+                var policyEb = parseInt(document.getElementById('modal_policy_eb')?.value || 0);
+                var policySb = parseInt(document.getElementById('modal_policy_sb')?.value || 0);
+                var appAdults = parseInt(document.getElementById('modal_applied_adults')?.value || 0);
+                var appChildren = parseInt(document.getElementById('modal_applied_children')?.value || 0);
+                var appBaby = parseInt(document.getElementById('modal_applied_baby')?.value || 0);
+                warnDiv.textContent =
+                    'Insufficient rooms: ' + enteredRooms + ' chosen, min ' + minRooms + ' required ' +
+                    '(Policy DB:' + policyDb + ' EB:' + policyEb + ' SB:' + policySb +
+                    ' | Guests Adults:' + appAdults + ' Children:' + appChildren + ' Baby:' + appBaby + ')';
+                warnDiv.style.display = 'block';
+                el.classList.add('is-invalid');
+            } else {
+                warnDiv.style.display = 'none';
+                el.classList.remove('is-invalid');
+            }
+        }
+    }
+
+    // Live EB / SB adequacy warnings
+    var _ebSbFields = ['manual_count', 'manual_extra_bed_adult_count', 'manual_extra_bed_child_count', 'manual_child_sharing_bed_count'];
+    if (_ebSbFields.includes(el.name)) {
+        var _rooms    = parseInt(document.querySelector('[name="manual_count"]')?.value || 0);
+        var _pDb      = parseInt(document.getElementById('modal_policy_db')?.value || 0);
+        var _pEb      = parseInt(document.getElementById('modal_policy_eb')?.value || 0);
+        var _pSb      = parseInt(document.getElementById('modal_policy_sb')?.value || 0);
+        var _adults   = parseInt(document.getElementById('modal_applied_adults')?.value || 0);
+        var _children = parseInt(document.getElementById('modal_applied_children')?.value || 0);
+        var _baby     = parseInt(document.getElementById('modal_applied_baby')?.value || 0);
+
+        if (_rooms > 0 && (_adults + _children + _baby) > 0) {
+            var _req = computeRequiredBedCounts(_rooms, _pDb, _pEb, _pSb, _adults, _children, _baby);
+
+            var _ebAEl   = document.querySelector('[name="manual_extra_bed_adult_count"]');
+            var _ebCEl   = document.querySelector('[name="manual_extra_bed_child_count"]');
+            var _sbCEl   = document.querySelector('[name="manual_child_sharing_bed_count"]');
+            var _ebAWarn = document.getElementById('manual-eb-adult-warning');
+            var _ebCWarn = document.getElementById('manual-eb-child-warning');
+            var _sbCWarn = document.getElementById('manual-sb-child-warning');
+
+            var _mEbA = parseInt(_ebAEl?.value || 0);
+            var _mEbC = parseInt(_ebCEl?.value || 0);
+            var _mSbC = parseInt(_sbCEl?.value || 0);
+
+            var _totalEB   = _mEbA + _mEbC;
+            var _babySb    = parseInt(document.getElementById('modal_baby_sb_count')?.value || 0);
+            var _babyEb    = parseInt(document.getElementById('modal_baby_eb_count')?.value || 0);
+            var _totalCap  = _rooms * _pDb + _totalEB + _mSbC + _babySb + _babyEb;
+            var _totalGuests = _adults + _children + _baby;
+
+            if (_ebAWarn) {
+                if (_totalEB > _req.maxEB) {
+                    _ebAWarn.textContent = 'Total EB (' + _totalEB + ') exceeds capacity: max ' + _req.maxEB + ' for ' + _rooms + ' room(s)';
+                    _ebAWarn.style.display = 'block';
+                    if (_ebAEl) _ebAEl.classList.add('is-invalid');
+                } else {
+                    _ebAWarn.style.display = 'none';
+                    if (_ebAEl) _ebAEl.classList.remove('is-invalid');
+                }
+            }
+
+            if (_ebCWarn) {
+                if (_totalEB > _req.maxEB) {
+                    _ebCWarn.textContent = 'Total EB (' + _totalEB + ') exceeds capacity: max ' + _req.maxEB + ' for ' + _rooms + ' room(s)';
+                    _ebCWarn.style.display = 'block';
+                    if (_ebCEl) _ebCEl.classList.add('is-invalid');
+                } else {
+                    _ebCWarn.style.display = 'none';
+                    if (_ebCEl) _ebCEl.classList.remove('is-invalid');
+                }
+            }
+
+            if (_sbCWarn) {
+                if (_mSbC > _req.maxSB) {
+                    _sbCWarn.textContent = 'SB (' + _mSbC + ') exceeds capacity: max ' + _req.maxSB + ' for ' + _rooms + ' room(s)';
+                    _sbCWarn.style.display = 'block';
+                    if (_sbCEl) _sbCEl.classList.add('is-invalid');
+                } else if (_totalCap < _totalGuests) {
+                    _sbCWarn.textContent = 'Insufficient beds: capacity ' + _totalCap + ' < guests ' + _totalGuests + '. Add rooms, EB, or SB.';
+                    _sbCWarn.style.display = 'block';
+                    if (_sbCEl) _sbCEl.classList.add('is-invalid');
+                } else {
+                    _sbCWarn.style.display = 'none';
+                    if (_sbCEl) _sbCEl.classList.remove('is-invalid');
+                }
+            }
+        }
+    }
 });
+
+function computeRequiredBedCounts(rooms, policyDb, policyEb, policySb, adults, children, baby) {
+    var totalDB = rooms * policyDb;
+    var totalEB = rooms * policyEb;
+    var totalSB = rooms * policySb;
+    var a = adults, c = children, b = baby;
+
+    var babySB  = Math.min(b, totalSB);              b -= babySB;
+    var childSB = Math.min(c, totalSB - babySB);     c -= childSB;
+    var adultDB = Math.min(a, totalDB);              a -= adultDB;
+    var remDB   = totalDB - adultDB;
+    var childDB = Math.min(c, remDB);                c -= childDB;
+    var babyEB  = Math.min(b, totalEB);              b -= babyEB;
+    var remEB   = totalEB - babyEB;
+    var adultEB = Math.min(a, remEB);                a -= adultEB; remEB -= adultEB;
+    var childEB = Math.min(c, remEB);                c -= childEB;
+
+    return {
+        fits:    (a === 0 && c === 0 && b === 0),
+        adultEB: adultEB,
+        childEB: childEB,
+        childSB: childSB,
+        babySB:  babySB,
+        maxEB:   totalEB,
+        maxSB:   totalSB
+    };
+}
 
 function validateManualRoomingPlan() {
 
@@ -8478,6 +8624,79 @@ function validateManualRoomingPlan() {
         // ❌ Logic validation
         if (count > 0 && rate <= 0) {
             showError(rateEl, `${f.label} rate must be greater than 0`);
+            return false;
+        }
+    }
+
+    // Capacity adequacy check
+    var minRooms    = parseInt(document.getElementById('modal_min_rooms_required')?.value || 0);
+    var policyDb    = parseInt(document.getElementById('modal_policy_db')?.value || 0);
+    var policyEb    = parseInt(document.getElementById('modal_policy_eb')?.value || 0);
+    var policySb    = parseInt(document.getElementById('modal_policy_sb')?.value || 0);
+    var appAdults   = parseInt(document.getElementById('modal_applied_adults')?.value || 0);
+    var appChildren = parseInt(document.getElementById('modal_applied_children')?.value || 0);
+    var appBaby     = parseInt(document.getElementById('modal_applied_baby')?.value || 0);
+
+    var manualCountEl = document.querySelector('[name="manual_count"]');
+    var manualRooms   = parseInt(manualCountEl?.value || 0);
+
+    if (minRooms > 0 && manualRooms < minRooms) {
+        alert(
+            'Room count is inadequate.\n\n' +
+            'You entered: ' + manualRooms + ' room(s)\n' +
+            'Minimum required: ' + minRooms + ' room(s)\n\n' +
+            'Room policy — DB: ' + policyDb + ' | EB: ' + policyEb + ' | SB: ' + policySb + '\n' +
+            'Guest requirement — Adults: ' + appAdults + ' | Children: ' + appChildren + ' | Baby: ' + appBaby
+        );
+        if (manualCountEl) {
+            manualCountEl.focus();
+            manualCountEl.classList.add('is-invalid');
+            setTimeout(() => manualCountEl.classList.remove('is-invalid'), 3000);
+        }
+        return false;
+    }
+
+    // EB / SB adequacy check
+    if (manualRooms > 0 && (appAdults + appChildren + appBaby) > 0) {
+        var req = computeRequiredBedCounts(manualRooms, policyDb, policyEb, policySb, appAdults, appChildren, appBaby);
+
+        var ebAdultEl = document.querySelector('[name="manual_extra_bed_adult_count"]');
+        var ebChildEl = document.querySelector('[name="manual_extra_bed_child_count"]');
+        var sbChildEl = document.querySelector('[name="manual_child_sharing_bed_count"]');
+        var mEbAdult  = parseInt(ebAdultEl?.value || 0);
+        var mEbChild  = parseInt(ebChildEl?.value || 0);
+        var mSbChild  = parseInt(sbChildEl?.value || 0);
+
+        var babySb = parseInt(document.getElementById('modal_baby_sb_count')?.value || 0);
+        var babyEb = parseInt(document.getElementById('modal_baby_eb_count')?.value || 0);
+        var totalCap    = manualRooms * policyDb + mEbAdult + mEbChild + mSbChild + babySb + babyEb;
+        var totalGuests = appAdults + appChildren + appBaby;
+
+        if (totalCap < totalGuests) {
+            alert(
+                'Bed capacity is insufficient for all guests.\n\n' +
+                'Capacity: ' + manualRooms + ' rooms × DB(' + policyDb + ') + EB(' + (mEbAdult + mEbChild) + ') + SB(' + mSbChild + ') = ' + totalCap + '\n' +
+                'Guests: Adults(' + appAdults + ') + Children(' + appChildren + ') + Baby(' + appBaby + ') = ' + totalGuests + '\n\n' +
+                'Please increase room count, Extra Beds, or Child Sharing Beds.'
+            );
+            return false;
+        }
+
+        if (mEbAdult + mEbChild > req.maxEB) {
+            alert(
+                'Total Extra Bed count exceeds room capacity.\n\n' +
+                'EB Adult: ' + mEbAdult + ' + EB Child: ' + mEbChild + ' = ' + (mEbAdult + mEbChild) + '\n' +
+                'Max EB capacity: ' + req.maxEB + ' (' + manualRooms + ' rooms × EB:' + policyEb + ')'
+            );
+            return false;
+        }
+
+        if (mSbChild > req.maxSB) {
+            alert(
+                'Child Sharing Bed count exceeds room capacity.\n\n' +
+                'Entered: ' + mSbChild + '\n' +
+                'Max SB capacity: ' + req.maxSB + ' (' + manualRooms + ' rooms × SB:' + policySb + ')'
+            );
             return false;
         }
     }

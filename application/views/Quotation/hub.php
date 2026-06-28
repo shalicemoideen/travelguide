@@ -97,6 +97,64 @@
     pointer-events: none;
 }
 </style>
+<style>
+/* Financial Posting tab — light blue / teal theme */
+#financialPostingTab .fp-card-header {
+    background: linear-gradient(135deg, #00838f 0%, #006064 100%);
+    color: #fff;
+}
+#financialPostingTab .fp-card-header .card-title,
+#financialPostingTab .fp-card-header h5,
+#financialPostingTab .fp-card-header i {
+    color: #fff;
+}
+#financialPostingTab .fp-table thead th {
+    background: #b2dfdb;
+    color: #004d40;
+    border: 1px solid #80cbc4;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+#financialPostingTab .fp-table tbody td {
+    border: 1px solid #e0f2f1;
+    vertical-align: middle;
+}
+#financialPostingTab .fp-table tbody tr.fp-label td:first-child,
+#financialPostingTab .fp-table tbody tr.fp-label-row td:first-child {
+    background: #e0f2f1;
+    font-weight: 600;
+    color: #004d40;
+}
+#financialPostingTab .fp-table tbody tr.fp-total td,
+#financialPostingTab .fp-table tbody tr.fp-total-row td {
+    background: #e0f2f1;
+    color: #00695c;
+    font-weight: 700;
+}
+#financialPostingTab .fp-table tbody tr.fp-total td:first-child,
+#financialPostingTab .fp-table tbody tr.fp-total-row td:first-child {
+    background: #b2dfdb;
+    color: #004d40;
+}
+#financialPostingTab .fp-section-header {
+    background: #e0f2f1 !important;
+    color: #00695c !important;
+    font-size: 12px;
+    font-weight: 700;
+}
+#financialPostingTab .fp-section-header .btn {
+    font-size: 11px;
+    padding: 2px 10px;
+}
+#financialPostingTab .fp-table .form-control {
+    border: 1px solid #80cbc4;
+}
+#financialPostingTab .fp-table .form-control:focus {
+    border-color: #00838f;
+    box-shadow: 0 0 0 2px rgba(0, 131, 143, 0.15);
+}
+</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -104,6 +162,7 @@
             <div class="container-fluid">
 				<div class="quotation-hub-summary">
                     <input type="hidden" id="quotation_id" value="<?= isset($quotation_id) ? (int)$quotation_id : 0; ?>">
+                    <input type="hidden" id="hub_lead_id" value="">
                     <div class="row g-3 mb-3">
                         <div class="col-xl-3 col-lg-3 col-md-6">
                             <div class="quotation-info-card">
@@ -213,6 +272,11 @@
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#driverItineraryTab" id="tabDriverItinerary">
                                                 <i class="la la-car me-2"></i> Driver itinerary
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#financialPostingTab" id="tabFinancialPosting">
+                                                <i class="la la-file-invoice-dollar me-2"></i> Financial posting
                                             </a>
                                         </li>
                                         <!-- <li class="nav-item">
@@ -340,6 +404,105 @@
                                                  <button type="button" class="btn btn-primary" id="btnDriverItinerary">
             Display Driver Itinerary
         </button>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="financialPostingTab">
+                                            <div class="pt-4">
+                                                <div class="card border-0 shadow-sm">
+                                                    <div class="card-header fp-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                        <h5 class="mb-0 fw-bold"><i class="la la-file-invoice-dollar me-2"></i>Financial Posting</h5>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn btn-info btn-sm" onclick="fpSubmit()"><i class="la la-save me-1"></i>Submit</button>
+                                                            <button type="button" class="btn btn-secondary btn-sm" onclick="fpReset()"><i class="la la-refresh me-1"></i>Reset</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <input type="hidden" id="fp_leads_id" value="">
+                                                        <input type="hidden" id="fp_record_id" value="">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered align-middle fp-table" id="fpHubTable">
+                                                                <thead class="table-info">
+                                                                    <tr>
+                                                                        <th style="width:30%">Item</th>
+                                                                        <th style="width:20%">Quoted Amount</th>
+                                                                        <th style="width:20%">Actual Amount</th>
+                                                                        <th>Description</th>
+                                                                        <th style="width:40px"></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <!-- Driver quote amount -->
+                                                                    <tr class="table-light fp-label" id="fpDriverRow">
+                                                                        <td class="fw-bold">Driver Quote Amount</td>
+                                                                        <td><input type="number" class="form-control form-control-sm fp-quoted" name="fp_driver_quoted" placeholder="0.00" min="0" step="0.01" readonly></td>
+                                                                        <td><input type="number" class="form-control form-control-sm fp-actual" name="fp_driver_actual" placeholder="0.00" min="0" step="0.01"></td>
+                                                                        <td><input type="text" class="form-control form-control-sm" name="fp_driver_desc" placeholder="Description"></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Hotel day header -->
+                                                                    <tr id="fpHotelDayHeader">
+                                                                        <td colspan="5" class="fp-section-header">
+                                                                            Hotel Costs — <button type="button" class="btn btn-sm btn-info" onclick="fpAddHotelDay()"><i class="la la-plus me-1"></i>Add Day</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <!-- Other expense header -->
+                                                                    <tr id="fpOtherExpHeader">
+                                                                        <td colspan="5" class="fp-section-header">
+                                                                            Other Expenses — <button type="button" class="btn btn-sm btn-info" onclick="fpAddExpense()"><i class="la la-plus me-1"></i>Add Expense</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <!-- Totals -->
+                                                                    <tr class="table-info fw-bold fp-total" id="fpActualCostRow">
+                                                                        <td>Actual Cost <small class="text-muted fw-normal">(sum of Quoted)</small></td>
+                                                                        <td colspan="3"><span id="fpActualCost">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <tr class="table-info fw-bold fp-total" id="fpCostAfterRow">
+                                                                        <td>Cost After Financial Post <small class="text-muted fw-normal">(sum of Actual)</small></td>
+                                                                        <td colspan="3"><span id="fpCostAfterPost">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Margin -->
+                                                                    <tr class="table-light fp-label" id="fpMarginRow">
+                                                                        <td class="fw-bold">Margin</td>
+                                                                        <td colspan="3"><span id="fpMargin" class="fw-bold text-secondary">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Total After Margin -->
+                                                                    <tr class="table-info fw-bold fp-total" id="fpTotalAfterMarginRow">
+                                                                        <td>Total <small class="text-muted fw-normal">(Actual + Margin)</small></td>
+                                                                        <td colspan="3"><span id="fpTotalAfterMargin">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Pre quoted amount (reference) -->
+                                                                    <tr class="table-light fp-label" id="fpPreQuotedRow">
+                                                                        <td class="fw-bold">Pre Quoted Amount</td>
+                                                                        <td colspan="3"><span id="fpPreQuotedAmount" class="fw-bold text-primary">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Difference -->
+                                                                    <tr class="table-light fp-label" id="fpDifferenceRow">
+                                                                        <td class="fw-bold">Difference <small class="text-muted fw-normal">(Pre Quoted − Total)</small></td>
+                                                                        <td colspan="3"><span id="fpDifference" class="fw-bold" style="font-size:1.25rem;">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Total Margin (final profit) -->
+                                                                    <tr class="table-light fp-label" id="fpTotalMarginRow">
+                                                                        <td class="fw-bold">Total Margin <small class="text-muted fw-normal">(Margin + Difference)</small></td>
+                                                                        <td colspan="3"><span id="fpTotalMargin" class="fw-bold" style="font-size:1.25rem;">0.00</span></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                    <!-- Description -->
+                                                                    <tr class="table-light fp-label" id="fpNotesRow">
+                                                                        <td class="fw-bold">Description / Notes</td>
+                                                                        <td colspan="3"><textarea class="form-control" id="fpNotes" name="fp_notes" rows="2" placeholder="Enter overall description"></textarea></td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="tab-pane fade" id="receiptSchedulerTab">

@@ -1077,6 +1077,15 @@
           <input type="hidden" id="modal_packages_properties_days_id_fk" value="">
 <input type="hidden" id="modal_quotation_properties_rooms_id_fk" value="">
 <input type="hidden" id="modal_quotation_room_tariff_details_id" name="quotation_room_tariff_details_id" value="">
+<input type="hidden" id="modal_policy_db" value="0">
+<input type="hidden" id="modal_policy_eb" value="0">
+<input type="hidden" id="modal_policy_sb" value="0">
+<input type="hidden" id="modal_applied_adults" value="0">
+<input type="hidden" id="modal_applied_children" value="0">
+<input type="hidden" id="modal_applied_baby" value="0">
+<input type="hidden" id="modal_min_rooms_required" value="0">
+<input type="hidden" id="modal_baby_sb_count" value="0">
+<input type="hidden" id="modal_baby_eb_count" value="0">
 
 
           <div id="admissionNote" class="small text-danger mt-2"></div>
@@ -1222,7 +1231,10 @@
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_count" placeholder="Count" data-plan="manual" data-line="rooms" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_count" placeholder="Count" data-plan="manual" data-line="rooms" data-field="count">
+                        <div id="manual-room-count-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_rate" placeholder="Rate" data-plan="manual" data-line="rooms" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-rooms">0</span></div>
@@ -1247,7 +1259,10 @@
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_count" placeholder="Count" data-plan="manual" data-line="eb_adult" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_count" placeholder="Count" data-plan="manual" data-line="eb_adult" data-field="count">
+                        <div id="manual-eb-adult-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_extra_bed_adult_rate" placeholder="Rate" data-plan="manual" data-line="eb_adult" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-eb_adult">0</span></div>
@@ -1272,7 +1287,10 @@
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_count" placeholder="Count" data-plan="manual" data-line="eb_child" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_count" placeholder="Count" data-plan="manual" data-line="eb_child" data-field="count">
+                        <div id="manual-eb-child-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_extra_bed_child_rate" placeholder="Rate" data-plan="manual" data-line="eb_child" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-eb_child">0</span></div>
@@ -1297,7 +1315,10 @@
                   </td>
                   <td>
                     <div class="row g-1">
-                      <div class="col-6"><input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_count" placeholder="Count" data-plan="manual" data-line="sb_child" data-field="count"></div>
+                      <div class="col-6">
+                        <input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_count" placeholder="Count" data-plan="manual" data-line="sb_child" data-field="count">
+                        <div id="manual-sb-child-warning" class="text-danger small mt-1" style="display:none;"></div>
+                      </div>
                       <div class="col-6">
                         <input type="number" class="form-control form-control-sm" name="manual_child_sharing_bed_rate" placeholder="Rate" data-plan="manual" data-line="sb_child" data-field="rate">
                         <div class="rm-amt">Amt: <span data-role="amount-manual-sb_child">0</span></div>
@@ -1784,6 +1805,115 @@
 </div>
 
 <div id="day-hover-popup" style="display:none;"></div>
+
+<!-- ==================== FINANCIAL POSTING MODAL ==================== -->
+<style>
+#financialPostingModal .fp-header{background:linear-gradient(135deg,#00838f 0%,#006064 100%);padding:14px 22px;}
+#financialPostingModal .fp-header .modal-title{color:#fff;font-size:15px;font-weight:700;}
+#financialPostingModal .fp-header .btn-close{filter:invert(1) brightness(2);}
+#financialPostingModal .modal-body{background:#f0f4f4;padding:20px;}
+#financialPostingModal .fp-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+#financialPostingModal .fp-table thead th{background:#b2dfdb;color:#004d40;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:9px 12px;border:1px solid #80cbc4;}
+#financialPostingModal .fp-table tbody td{padding:7px 10px;border:1px solid #e0f2f1;vertical-align:middle;font-size:13px;}
+#financialPostingModal .fp-table tbody tr.fp-label-row td:first-child{font-weight:600;color:#004d40;background:#e0f2f1;}
+#financialPostingModal .fp-table tbody tr.fp-total-row td:first-child{font-weight:700;color:#004d40;background:#b2dfdb;}
+#financialPostingModal .fp-table tbody tr.fp-total-row td{font-weight:700;color:#00695c;background:#e0f2f1;}
+#financialPostingModal .fp-input{border:1px solid #80cbc4;border-radius:5px;padding:4px 8px;font-size:12px;width:100%;outline:none;}
+#financialPostingModal .fp-input:focus{border-color:#00838f;box-shadow:0 0 0 2px rgba(0,131,143,.15);}
+#financialPostingModal .fp-calc-val{font-weight:700;color:#00695c;font-size:13px;}
+#financialPostingModal .fp-add-btn{font-size:11px;padding:3px 10px;border-radius:5px;}
+#financialPostingModal .fp-remove-btn{color:#e53935;background:none;border:none;cursor:pointer;font-size:14px;padding:0 4px;}
+#financialPostingModal .modal-footer{background:#e0f2f1;border-top:1px solid #80cbc4;}
+</style>
+<div class="modal fade" id="financialPostingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header fp-header border-0 p-0">
+        <div class="fp-header w-100 d-flex align-items-center justify-content-between">
+          <span class="modal-title"><i class="la la-file-invoice-dollar me-2"></i>Financial Posting</span>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="fp_leads_id" value="">
+        <input type="hidden" id="fp_record_id" value="">
+
+        <table class="fp-table" id="fpTable">
+          <thead>
+            <tr>
+              <th style="width:28%">Item</th>
+              <th style="width:20%">Quoted Amount</th>
+              <th style="width:20%">Actual Amount</th>
+              <th>Description</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- DRIVER ALLOWANCE (fixed) -->
+            <tr class="fp-label-row" id="fpDriverRow">
+              <td>Driver Allowance</td>
+              <td><input type="number" class="fp-input fp-quoted" name="fp_driver_quoted" placeholder="0.00" min="0" step="0.01"></td>
+              <td><input type="number" class="fp-input fp-actual"  name="fp_driver_actual" placeholder="0.00" min="0" step="0.01"></td>
+              <td><input type="text"   class="fp-input" name="fp_driver_desc" placeholder="Description"></td>
+              <td></td>
+            </tr>
+
+            <!-- HOTEL DAY ROWS (dynamic) -->
+            <tr id="fpHotelDayHeader">
+              <td colspan="5" style="background:#e8f5e9;font-size:11px;font-weight:700;color:#2e7d32;padding:5px 12px;">
+                Hotel Costs — <button type="button" class="btn btn-sm btn-success fp-add-btn" onclick="fpAddHotelDay()">+ Add Day</button>
+              </td>
+            </tr>
+            <!-- hotel day rows injected here by JS -->
+
+            <!-- OTHER EXPENSE ROWS (dynamic) -->
+            <tr id="fpOtherExpHeader">
+              <td colspan="5" style="background:#fff8e1;font-size:11px;font-weight:700;color:#f57f17;padding:5px 12px;">
+                Other Expenses — <button type="button" class="btn btn-sm btn-warning fp-add-btn" onclick="fpAddExpense()">+ Add Expense</button>
+              </td>
+            </tr>
+            <!-- expense rows injected here by JS -->
+
+            <!-- TOTALS -->
+            <tr class="fp-total-row">
+              <td>Actual Cost <small class="text-muted fw-normal">(sum of Quoted)</small></td>
+              <td colspan="3"><span class="fp-calc-val" id="fpActualCost">0.00</span></td>
+              <td></td>
+            </tr>
+            <tr class="fp-total-row">
+              <td>Cost After Financial Post <small class="text-muted fw-normal">(sum of Actual)</small></td>
+              <td colspan="3"><span class="fp-calc-val" id="fpCostAfterPost">0.00</span></td>
+              <td></td>
+            </tr>
+
+            <!-- MARGIN -->
+            <tr class="fp-label-row">
+              <td>Margin</td>
+              <td colspan="3"><input type="number" class="fp-input" id="fpMargin" name="fp_margin" placeholder="Enter margin amount" min="0" step="0.01" style="max-width:200px;"></td>
+              <td></td>
+            </tr>
+
+            <!-- DESCRIPTION -->
+            <tr class="fp-label-row">
+              <td>Description / Notes</td>
+              <td colspan="3"><textarea class="fp-input" id="fpNotes" name="fp_notes" rows="2" placeholder="Enter overall description"></textarea></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success btn-sm" onclick="fpSubmit()"><i class="la la-save me-1"></i>Submit</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- ==================== END FINANCIAL POSTING MODAL ==================== -->
 
 <style>
     .itinerary-modal-content {
