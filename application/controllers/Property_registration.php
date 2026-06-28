@@ -1188,7 +1188,7 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 		
 				$id = $this->input->post('id');
 				
-				$this->General_model->add($this->activity,$activity_data);
+				
 
 				$data = array(
 
@@ -1393,7 +1393,7 @@ private function validate_upload_file($field, $maxBytes = 2097152)
 			if($this->input->post('properties_room_category_child_rate_applied_guest_to_year') == '')
 			{
 				$data['inputerror'][] = 'properties_room_category_child_rate_applied_guest_to_year';
-				$data['error_string'][] = 'Room child rate applied to year required';
+				$data['error_string'][] = 'Room child rate applied to year required,';
 				$data['status'] = FALSE;
 			}
 		}

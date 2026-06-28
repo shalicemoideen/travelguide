@@ -646,27 +646,38 @@ $(document).ready(function () {
     //     }
     // });
 
-    $(document).on('change blur', '#properties_room_category_child_rate_applied_guest_to_year', function(e){ 
+    // Live update adult_rate_applied_guest_over while typing
+    $(document).on('input', '#properties_room_category_child_rate_applied_guest_to_year', function(e){
+        var child_rate_appliedto_year = parseFloat($(this).val());
+        var child_rate_appliedfrom_year = parseFloat($('#properties_room_category_child_rate_applied_guest_from_year').val());
 
-    var child_rate_appliedto_year = parseFloat($(this).val());
-    var child_rate_appliedfrom_year = parseFloat($('#properties_room_category_child_rate_applied_guest_from_year').val());
-
-    if (!isNaN(child_rate_appliedto_year) && !isNaN(child_rate_appliedfrom_year)) {
-
-        if(child_rate_appliedto_year < child_rate_appliedfrom_year){
-
-            $(this).val('');
-            $("#greater2_alert").html("To year should be greater than from year").show();
-        }
-        else{
+        if (!isNaN(child_rate_appliedto_year) && child_rate_appliedto_year >= child_rate_appliedfrom_year) {
             $("#greater2_alert").hide();
-
             var sumchild_rate_appliedto_year = child_rate_appliedto_year + 1;
             $('#properties_room_category_adult_rate_applied_guest_over').val(sumchild_rate_appliedto_year);
             $('#properties_room_category_adult_rate_applied_guest_over_hidden').val(sumchild_rate_appliedto_year);
         }
-    }
-});
+    });
+
+    // Validate only when leaving the field
+    $(document).on('change blur', '#properties_room_category_child_rate_applied_guest_to_year', function(e){
+        var child_rate_appliedto_year = parseFloat($(this).val());
+        var child_rate_appliedfrom_year = parseFloat($('#properties_room_category_child_rate_applied_guest_from_year').val());
+
+        if (!isNaN(child_rate_appliedto_year) && !isNaN(child_rate_appliedfrom_year)) {
+            if (child_rate_appliedto_year < child_rate_appliedfrom_year) {
+                $(this).val('');
+                $('#properties_room_category_adult_rate_applied_guest_over').val('');
+                $('#properties_room_category_adult_rate_applied_guest_over_hidden').val('');
+                $("#greater2_alert").html("To year should be greater than from year").show();
+            } else {
+                $("#greater2_alert").hide();
+                var sumchild_rate_appliedto_year = child_rate_appliedto_year + 1;
+                $('#properties_room_category_adult_rate_applied_guest_over').val(sumchild_rate_appliedto_year);
+                $('#properties_room_category_adult_rate_applied_guest_over_hidden').val(sumchild_rate_appliedto_year);
+            }
+        }
+    });
 
 });
 
@@ -697,53 +708,53 @@ $('#end_date3').bootstrapMaterialDatePicker({
 //     });
 
 
-// $('#upload_tariff_document_from_date').datepicker({
-//     format: 'dd-mm-yyyy',
-//     autoclose: true,
-//     todayHighlight: true
-// });
-
-// $('#upload_tariff_document_to_date').datepicker({
-//     format: 'dd-mm-yyyy',
-//     autoclose: true,
-//     todayHighlight: true
-// });
-
-var selecteduploadFromDate = null;
-
-// FROM DATE
 $('#upload_tariff_document_from_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
     todayHighlight: true
-}).on('changeDate', function (e) {
-    selecteduploadFromDate = e.date;
 });
 
-
-// TO DATE
 $('#upload_tariff_document_to_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
     todayHighlight: true
-}).on('show', function () {
-
-    if (selecteduploadFromDate) {
-
-        var firstDayOfMonthupload = new Date(
-            selecteduploadFromDate.getFullYear(),
-            selecteduploadFromDate.getMonth(),
-            1
-        );
-
-        // Set month view correctly
-        $(this).datepicker('update', firstDayOfMonthupload);
-
-        // Clear the textbox value
-        $(this).val('');
-    }
-
 });
+
+var selecteduploadFromDate = null;
+
+// FROM DATE
+// $('#upload_tariff_document_from_date').datepicker({
+//     format: 'dd-mm-yyyy',
+//     autoclose: true,
+//     todayHighlight: true
+// }).on('changeDate', function (e) {
+//     selecteduploadFromDate = e.date;
+// });
+
+
+// // TO DATE
+// $('#upload_tariff_document_to_date').datepicker({
+//     format: 'dd-mm-yyyy',
+//     autoclose: true,
+//     todayHighlight: true
+// }).on('show', function () {
+
+//     if (selecteduploadFromDate) {
+
+//         var firstDayOfMonthupload = new Date(
+//             selecteduploadFromDate.getFullYear(),
+//             selecteduploadFromDate.getMonth(),
+//             1
+//         );
+
+//         // Set month view correctly
+//         $(this).datepicker('update', firstDayOfMonthupload);
+
+//         // Clear the textbox value
+//         $(this).val('');
+//     }
+
+// });
 
 var selectedRoomTariffFromDate = null;
 
@@ -751,22 +762,32 @@ $('#room_tariff_hike_from_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
     todayHighlight: false
-}).on('changeDate', function(e) {
-    selectedRoomTariffFromDate = e.date;
+}).on('changeDate', function () {
+    // Parse directly from the input value string (dd-mm-yyyy) — avoids all UTC/timezone issues
+    var val = $(this).val();
+    if (!val) return;
+    var parts = val.split('-');  // [dd, mm, yyyy]
+    if (parts.length !== 3) return;
+    var year  = parseInt(parts[2], 10);
+    var month = parseInt(parts[1], 10) - 1;  // JS months are 0-indexed
+    $('#room_tariff_hike_to_date').data('fromYear', year);
+    $('#room_tariff_hike_to_date').data('fromMonth', month);
 });
 
 $('#room_tariff_hike_to_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
     todayHighlight: false
-}).on('show', function() {
-    if (selectedRoomTariffFromDate) {
-        var firstDayOfMonth = new Date(
-            selectedRoomTariffFromDate.getFullYear(),
-            selectedRoomTariffFromDate.getMonth(),
-            1
-        );
-        $(this).datepicker('update', firstDayOfMonth);
+}).on('show', function () {
+    var year  = $(this).data('fromYear');
+    var month = $(this).data('fromMonth');
+    if (year === undefined || month === undefined) return;
+    // Clear flags so user can freely navigate after first open
+    $(this).removeData('fromYear').removeData('fromMonth');
+    var dp = $(this).data('datepicker');
+    if (dp) {
+        dp.viewDate = new Date(Date.UTC(year, month, 1));
+        dp.fill();
     }
 });
 
@@ -774,22 +795,28 @@ $('#hike_room_tariff_hike_from_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
     todayHighlight: false
-}).on('changeDate', function(e) {
-    selectedRoomTariffFromDate = e.date;
+}).on('changeDate', function () {
+    var val = $(this).val();
+    if (!val) return;
+    var parts = val.split('-');
+    if (parts.length !== 3) return;
+    $('#hike_room_tariff_hike_to_date').data('fromYear', parseInt(parts[2], 10));
+    $('#hike_room_tariff_hike_to_date').data('fromMonth', parseInt(parts[1], 10) - 1);
 });
 
 $('#hike_room_tariff_hike_to_date').datepicker({
     format: 'dd-mm-yyyy',
     autoclose: true,
     todayHighlight: false
-}).on('show', function() {
-    if (selectedRoomTariffFromDate) {
-        var firstDayOfMonth = new Date(
-            selectedRoomTariffFromDate.getFullYear(),
-            selectedRoomTariffFromDate.getMonth(),
-            1
-        );
-        $(this).datepicker('update', firstDayOfMonth);
+}).on('show', function () {
+    var year  = $(this).data('fromYear');
+    var month = $(this).data('fromMonth');
+    if (year === undefined || month === undefined) return;
+    $(this).removeData('fromYear').removeData('fromMonth');
+    var dp = $(this).data('datepicker');
+    if (dp) {
+        dp.viewDate = new Date(Date.UTC(year, month, 1));
+        dp.fill();
     }
 });
 
@@ -2037,6 +2064,10 @@ $(document).ready(function(){
                     initRoomDetailsTable(propertyId);
                 }
             );
+        } else if(target === "#Room_details" && tabsLoaded.rooms) {
+            if (typeof $table1 !== 'undefined' && $table1) {
+                $table1.ajax.reload(null, false);
+            }
         }
 
         // UPLOAD TARIFF TAB
@@ -3966,6 +3997,9 @@ function add_property_inclusion()
 { 
     save_method = 'add';
     $("#id3").val('');
+     $('#property_inclusions_name').val('');
+    $('#property_inclusions_amount').val('');
+    $('#property_inclusions_description').val('');
     $('#form3')[0].reset(); // reset form on modals
     $('.form-group').removeClass('input-warning-o'); // clear error class
     $('.help-block').empty(); // clear error string
@@ -4506,6 +4540,50 @@ function RoomTariffmodalclose()
 }
 ////***For close the modal *****///
 
+// HikeRoomTariffModal: Room Rate -> Single (same block); Adult EB / Child EB / Child Sharing -> sync all blocks
+$(document).on('input', '#HikeRoomTariffModal .hike-rt-room-rate', function () {
+    var val = $(this).val();
+    var block = $(this).data('block');
+    $('#HikeRoomTariffModal .hike-rt-single[data-block="' + block + '"]').val(val);
+});
+
+$(document).on('input', '#HikeRoomTariffModal .hike-rt-adult-eb', function () {
+    var val = $(this).val();
+    $('#HikeRoomTariffModal .hike-rt-adult-eb').val(val);
+});
+
+$(document).on('input', '#HikeRoomTariffModal .hike-rt-child-eb', function () {
+    var val = $(this).val();
+    $('#HikeRoomTariffModal .hike-rt-child-eb').val(val);
+});
+
+$(document).on('input', '#HikeRoomTariffModal .hike-rt-child-sharing', function () {
+    var val = $(this).val();
+    $('#HikeRoomTariffModal .hike-rt-child-sharing').val(val);
+});
+
+// Auto-fill: Room Rate -> Single; Adult EB / Child EB / Child Sharing -> sync all room blocks
+$(document).on('input', '#RoomTariffModal .rt-room-rate', function () {
+    var val = $(this).val();
+    var block = $(this).data('block');
+    $('#RoomTariffModal .rt-single[data-block="' + block + '"]').val(val);
+});
+
+$(document).on('input', '#RoomTariffModal .rt-adult-eb', function () {
+    var val = $(this).val();
+    $('#RoomTariffModal .rt-adult-eb').val(val);
+});
+
+$(document).on('input', '#RoomTariffModal .rt-child-eb', function () {
+    var val = $(this).val();
+    $('#RoomTariffModal .rt-child-eb').val(val);
+});
+
+$(document).on('input', '#RoomTariffModal .rt-child-sharing', function () {
+    var val = $(this).val();
+    $('#RoomTariffModal .rt-child-sharing').val(val);
+});
+
 ////***For open the modal *****///
 $('#RoomTariffModal').on('shown.bs.modal', function () {
     // $("#state_id_fk").select2('open');
@@ -4686,9 +4764,11 @@ function renderRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
 
         // room header inputs
         html += `
+            <div class="rt-room-block" data-room-id="${roomId}">
             <hr>
             <div class="profile-details">
-                <div class="profile-name px-3 pt-2">
+                <div class="profile-name px-3 pt-2 d-flex align-items-center gap-2">
+                    <span class="rt-drag-handle" title="Drag to reorder" style="cursor:grab;color:#aaa;font-size:1.2em;margin-right:8px;">&#9776;</span>
                     <input type="hidden" name="room_tariff_hike_rate_id[${num}]" value="${rateRow ? rateRow.room_tariff_hike_rate_id : ''}">
                     <input type="hidden" name="room_id_fk[${num}]" value="${roomId}">
                     <h4 class="text-primary mb-0">${room.properties_room_category_name}</h4>
@@ -4698,36 +4778,41 @@ function renderRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
             <div class="row rates">
                 <div class="col-md-2">
                     <label><b>Room rate</b> *</label>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control rt-room-rate"
                         name="room_tariff_hike_rate_room_rate[${num}]"
+                        data-block="${num}"
                         value="${rateRow ? (rateRow.room_tariff_hike_rate_room_rate || '') : ''}" required>
                 </div>
 
                 <div class="col-md-2">
                     <label><b>Adult Extra Bed</b></label>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control rt-adult-eb"
                         name="room_tariff_hike_rate_adult_with_extra_bed[${num}]"
+                        data-block="${num}"
                         value="${rateRow ? (rateRow.room_tariff_hike_rate_adult_with_extra_bed || '') : ''}" required>
                 </div>
 
                 <div class="col-md-2">
                     <label><b>Child Extra Bed</b></label>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control rt-child-eb"
                         name="room_tariff_hike_rate_child_with_extra_bed[${num}]"
+                        data-block="${num}"
                         value="${rateRow ? (rateRow.room_tariff_hike_rate_child_with_extra_bed || '') : ''}" required>
                 </div>
 
                 <div class="col-md-2">
                     <label><b>Child Sharing</b></label>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control rt-child-sharing"
                         name="room_tariff_hike_rate_child_sharing_bed[${num}]"
+                        data-block="${num}"
                         value="${rateRow ? (rateRow.room_tariff_hike_rate_child_sharing_bed || '') : ''}" required>
                 </div>
 
                 <div class="col-md-2">
                     <label><b>Single</b></label>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control rt-single"
                         name="room_tariff_hike_rate_single_occupancy[${num}]"
+                        data-block="${num}"
                         value="${rateRow ? (rateRow.room_tariff_hike_rate_single_occupancy || '') : ''}" required>
                 </div>
 
@@ -4824,12 +4909,28 @@ function renderRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
                     </table>
                 </div>
             </div>
+            </div>
         `;
 
         num++;
     });
 
     $("#row1").html(html);
+
+    // Init drag-to-reorder on room blocks
+    $("#row1").sortable({
+        items: '.rt-room-block',
+        handle: '.rt-drag-handle',
+        axis: 'y',
+        tolerance: 'pointer',
+        stop: function() {
+            var orders = [];
+            $("#row1 .rt-room-block").each(function(index) {
+                orders.push({ room_id: $(this).data('room-id'), order: index + 1 });
+            });
+            $.post("<?php echo base_url(); ?>index.php/Room_tariff_management/ajax_update_room_order", { orders: orders });
+        }
+    });
 }
 
 ////***For editing room tariff details from adding modal form  *****///
@@ -5576,8 +5677,55 @@ function add_room_hike_tariff(roomTariffId)
       $('#hike_properties_id_fk').val(res.parent.properties_id_fk);
       $('#hike_property_name').val(res.parent.properties_name || '');
 
-      // build room blocks same style
-      renderHikeRoomBlocks(res.rooms, res.weekdays, null, null);
+      // Set modal title with parent tariff date range in red
+      var fromDateFormatted = toDMY(res.parent.room_tariff_hike_from_date);
+      var toDateFormatted   = toDMY(res.parent.room_tariff_hike_to_date);
+      $('#hikeRoomTariffModalTitle').html('Hike Room Tariff &nbsp;<span style="color:red;font-size:0.85em;">(' + fromDateFormatted + ' - ' + toDateFormatted + ')</span>');
+
+      // Pre-fill meal rates and description from parent tariff
+      $('#hike_room_tariff_hike_breakfast_rate_adult').val(res.parent.room_tariff_hike_breakfast_rate_adult || '');
+      $('#hike_room_tariff_hike_breakfast_rate_child').val(res.parent.room_tariff_hike_breakfast_rate_child || '');
+      $('#hike_room_tariff_hike_lunch_rate_adult').val(res.parent.room_tariff_hike_lunch_rate_adult || '');
+      $('#hike_room_tariff_hike_lunch_rate_child').val(res.parent.room_tariff_hike_lunch_rate_child || '');
+      $('#hike_room_tariff_hike_dinner_rate_adult').val(res.parent.room_tariff_hike_dinner_rate_adult || '');
+      $('#hike_room_tariff_hike_dinner_rate_child').val(res.parent.room_tariff_hike_dinner_rate_child || '');
+      $('#hike_room_tariff_hike_description').val(res.parent.room_tariff_hike_description || '');
+
+      // Build ratesByRoom map from parent tariff rates (keyed by room_id_fk)
+      // Map parent field names (room_tariff_hike_rate_*) to hike field names (hike_room_tariff_hike_rate_*)
+      var ratesByRoom = {};
+      (res.rates || []).forEach(function(r) {
+        ratesByRoom[String(r.room_id_fk)] = {
+          hike_room_tariff_hike_rate_id:                   '',
+          hike_room_tariff_hike_rate_room_rate:            r.room_tariff_hike_rate_room_rate,
+          hike_room_tariff_hike_rate_adult_with_extra_bed: r.room_tariff_hike_rate_adult_with_extra_bed,
+          hike_room_tariff_hike_rate_child_with_extra_bed: r.room_tariff_hike_rate_child_with_extra_bed,
+          hike_room_tariff_hike_rate_child_sharing_bed:    r.room_tariff_hike_rate_child_sharing_bed,
+          hike_room_tariff_hike_rate_single_occupancy:     r.room_tariff_hike_rate_single_occupancy,
+          hike_room_tariff_hike_rate_some_days_type:       r.room_tariff_hike_rate_some_days_type
+        };
+      });
+
+      // Build weekByRoomDay map from parent tariff weekday rates
+      // Map parent week fields to hike week fields that renderHikeRoomBlocks expects
+      var weekByRoomDay = {};
+      (res.weekRates || []).forEach(function(w) {
+        var roomId = String(w.room_id_fk);
+        var dayId  = String(w.week_days_id_fk);
+        if (!weekByRoomDay[roomId]) weekByRoomDay[roomId] = {};
+        weekByRoomDay[roomId][dayId] = {
+          hike_week_days_id_fk:                                   w.week_days_id_fk,
+          hike_room_tariff_hike_rate_id_fk:                       '',
+          hike_room_tariff_week_days_rate_room_amount:            w.room_tariff_week_days_rate_room_amount,
+          hike_room_tariff_week_days_rate_adult_with_extra_bed:   w.room_tariff_week_days_rate_adult_with_extra_bed,
+          hike_room_tariff_week_days_rate_child_with_extra_bed:   w.room_tariff_week_days_rate_child_with_extra_bed,
+          hike_room_tariff_week_days_rate_child_sharing_bed:      w.room_tariff_week_days_rate_child_sharing_bed,
+          hike_room_tariff_week_days_rate_single_occupancy:       w.room_tariff_week_days_rate_single_occupancy
+        };
+      });
+
+      // build room blocks pre-filled with parent tariff rates
+      renderHikeRoomBlocks(res.rooms, res.weekdays, ratesByRoom, weekByRoomDay);
 
       $('#HikeRoomTariffModal').modal('show');
     }
@@ -5606,6 +5754,15 @@ function edit_hike_room_tariff(hikeId)
       $('#hike_properties_id_fk').val(h.hike_properties_id_fk);
 
       $('#hike_property_name').val($('#properties_id_fk option[value="'+h.hike_properties_id_fk+'"]').text());
+
+      // Set modal title with parent tariff date range in red
+      if (res.parent && res.parent.room_tariff_hike_from_date) {
+        var fromDateFormatted = toDMY(res.parent.room_tariff_hike_from_date);
+        var toDateFormatted   = toDMY(res.parent.room_tariff_hike_to_date);
+        $('#hikeRoomTariffModalTitle').html('Hike Room Tariff &nbsp;<span style="color:red;font-size:0.85em;">(' + fromDateFormatted + ' - ' + toDateFormatted + ')</span>');
+      } else {
+        $('#hikeRoomTariffModalTitle').text('Hike Room Tariff');
+      }
 
       $('#hike_room_tariff_hike_from_date').val(toDMY(h.hike_room_tariff_hike_from_date));
       $('#hike_room_tariff_hike_to_date').val(toDMY(h.hike_room_tariff_hike_to_date));
@@ -5654,9 +5811,11 @@ function renderHikeRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
     var someType = rateRow ? (rateRow.hike_room_tariff_hike_rate_some_days_type || 'N') : 'N';
 
     html += `
+      <div class="rt-room-block" data-room-id="${roomId}">
       <hr>
       <div class="profile-details">
-        <div class="profile-name px-3 pt-2">
+        <div class="profile-name px-3 pt-2 d-flex align-items-center gap-2">
+          <span class="rt-drag-handle" title="Drag to reorder" style="cursor:grab;color:#aaa;font-size:1.2em;margin-right:8px;">&#9776;</span>
           <input type="hidden" name="hike_room_tariff_hike_rate_id[${num}]" value="${rateRow ? rateRow.hike_room_tariff_hike_rate_id : ''}">
           <input type="hidden" name="room_id_fk[${num}]" value="${roomId}">
           <h4 class="text-primary mb-0">${room.properties_room_category_name}</h4>
@@ -5666,31 +5825,31 @@ function renderHikeRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
       <div class="row rates">
         <div class="col-md-2">
           <label><b>Room rate</b>*</label>
-          <input type="number" class="form-control" name="hike_room_tariff_hike_rate_room_rate[${num}]"
+          <input type="number" class="form-control hike-rt-room-rate" data-block="${num}" name="hike_room_tariff_hike_rate_room_rate[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_room_rate || '') : ''}" required>
         </div>
 
         <div class="col-md-2">
           <label><b>Adult Extra Bed</b></label>
-          <input type="number" class="form-control" name="hike_room_tariff_hike_rate_adult_with_extra_bed[${num}]"
+          <input type="number" class="form-control hike-rt-adult-eb" data-block="${num}" name="hike_room_tariff_hike_rate_adult_with_extra_bed[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_adult_with_extra_bed || '') : ''}" required>
         </div>
 
         <div class="col-md-2">
           <label><b>Child Extra Bed</b></label>
-          <input type="number" class="form-control" name="hike_room_tariff_hike_rate_child_with_extra_bed[${num}]"
+          <input type="number" class="form-control hike-rt-child-eb" data-block="${num}" name="hike_room_tariff_hike_rate_child_with_extra_bed[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_child_with_extra_bed || '') : ''}" required>
         </div>
 
         <div class="col-md-2">
           <label><b>Child Sharing</b></label>
-          <input type="number" class="form-control" name="hike_room_tariff_hike_rate_child_sharing_bed[${num}]"
+          <input type="number" class="form-control hike-rt-child-sharing" data-block="${num}" name="hike_room_tariff_hike_rate_child_sharing_bed[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_child_sharing_bed || '') : ''}" required>
         </div>
 
         <div class="col-md-2">
           <label><b>Single</b></label>
-          <input type="number" class="form-control" name="hike_room_tariff_hike_rate_single_occupancy[${num}]"
+          <input type="number" class="form-control hike-rt-single" data-block="${num}" name="hike_room_tariff_hike_rate_single_occupancy[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_single_occupancy || '') : ''}" required>
         </div>
 
@@ -5770,12 +5929,28 @@ function renderHikeRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
           </table>
         </div>
       </div>
+      </div>
     `;
 
     num++;
   });
 
   $("#hike_rooms_container").html(html);
+
+  // Init drag-to-reorder on hike room blocks
+  $("#hike_rooms_container").sortable({
+    items: '.rt-room-block',
+    handle: '.rt-drag-handle',
+    axis: 'y',
+    tolerance: 'pointer',
+    stop: function() {
+      var orders = [];
+      $("#hike_rooms_container .rt-room-block").each(function(index) {
+        orders.push({ room_id: $(this).data('room-id'), order: index + 1 });
+      });
+      $.post("<?php echo base_url(); ?>index.php/Room_tariff_management/ajax_update_room_order", { orders: orders });
+    }
+  });
 }
 
 $(document).on("change", "#hike_rooms_container .item", function(){
@@ -6149,9 +6324,9 @@ function triggerAutoFillPrevHikeTariff(){
   autoFillTimer = setTimeout(autoFillPrevHikeTariff, 250);
 }
 
-$('#hike_room_tariff_hike_from_date, #hike_room_tariff_hike_to_date').on('change blur', function(){
-  triggerAutoFillPrevHikeTariff();
-});
+// $('#hike_room_tariff_hike_from_date, #hike_room_tariff_hike_to_date').on('change blur', function(){
+//   triggerAutoFillPrevHikeTariff();
+// });
 
 
 

@@ -209,3 +209,5 @@ ALTER TABLE leads CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ALTER TABLE meta_lead_logs CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ALTER TABLE meta_staff_whatsapp_logs CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ALTER TABLE `properties_room_category` ADD `room_category_show_order` INT NOT NULL AFTER `properties_room_category_description`;

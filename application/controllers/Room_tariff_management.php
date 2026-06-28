@@ -202,6 +202,24 @@ public function ajax_last_hike_tariff()
       echo json_encode($this->Room_tariff_management_model->weekdays_array_list());
     }
 
+  public function ajax_update_room_order()
+  {
+      $orders = $this->input->post('orders'); // array of {room_id, order}
+      if (!is_array($orders)) {
+          echo json_encode(['status' => false]);
+          return;
+      }
+      foreach ($orders as $item) {
+          $room_id = (int)$item['room_id'];
+          $order   = (int)$item['order'];
+          if ($room_id > 0) {
+              $this->db->where('properties_room_category_id', $room_id)
+                       ->update('properties_room_category', ['room_category_show_order' => $order]);
+          }
+      }
+      echo json_encode(['status' => true]);
+  }
+
 
 	public function ajax_check_date_range()
 	{
@@ -284,10 +302,10 @@ public function ajax_last_hike_tariff()
 	
   public function ajax_add()
 	{
-		if (!has_permission('ROOM_TARIFF_CREATE')) {
-	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
-	        return;
-	    }
+		// if (!has_permission('ROOM_TARIFF_CREATE')) {
+	    //     echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	    //     return;
+	    // }
 
 		$this->_validate();
 		
@@ -471,10 +489,10 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function ajax_update()
 {
-	if (!has_permission('ROOM_TARIFF_UPDATE')) {
-        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
-        return;
-    }
+	// if (!has_permission('ROOM_TARIFF_UPDATE')) {
+    //     echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+    //     return;
+    // }
 
     $this->_validate();
 
@@ -674,10 +692,10 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function delete()
 	{
-		if (!has_permission('ROOM_TARIFF_DELETE')) {
-	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
-	        return;
-	    }
+		// if (!has_permission('ROOM_TARIFF_DELETE')) {
+	    //     echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	    //     return;
+	    // }
 
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
@@ -729,10 +747,10 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function delete_hike()
 	{
-		if (!has_permission('ROOM_TARIFF_DELETE_HIKE')) {
-	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
-	        return;
-	    }
+		// if (!has_permission('ROOM_TARIFF_DELETE_HIKE')) {
+	    //     echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	    //     return;
+	    // }
 
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
@@ -819,14 +837,31 @@ $week_day_id = $this->input->post('week_day_id');
 
 		$property_id = (int)$parent['properties_id_fk'];
 
-		$rooms = $this->Room_tariff_management_model->rooms_array_list($property_id);
+		$rooms    = $this->Room_tariff_management_model->rooms_array_list($property_id);
 		$weekdays = $this->Room_tariff_management_model->weekdays_array_list();
 
+		// Fetch per-room rates from parent tariff
+		$rates = $this->db->where('room_tariff_hike_id_fk', $room_tariff_hike_id)
+			->where('room_tariff_hike_rate_status', 1)
+			->get('room_tariff_hike_rate')
+			->result_array();
+
+		// Fetch weekday rates from parent tariff
+		$weekRates = $this->db->select('w.*, r.room_id_fk AS room_id_fk')
+			->from('room_tariff_week_days_rate w')
+			->join('room_tariff_hike_rate r', 'r.room_tariff_hike_rate_id = w.week_days_room_tariff_hike_id_fk')
+			->where('r.room_tariff_hike_id_fk', $room_tariff_hike_id)
+			->where('w.room_tariff_week_days_rate_status', 1)
+			->get()
+			->result_array();
+
 		echo json_encode(array(
-			"status" => true,
-			"parent" => $parent,
-			"rooms" => $rooms,
-			"weekdays" => $weekdays
+			"status"    => true,
+			"parent"    => $parent,
+			"rooms"     => $rooms,
+			"weekdays"  => $weekdays,
+			"rates"     => $rates,
+			"weekRates" => $weekRates
 		));
 	}
 
@@ -888,10 +923,10 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function ajax_hike_add()
 	{
-		if (!has_permission('ROOM_TARIFF_ADD_HIKE')) {
-	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
-	        return;
-	    }
+		// if (!has_permission('ROOM_TARIFF_ADD_HIKE')) {
+	    //     echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	    //     return;
+	    // }
 
 		$this->_validate(); // reuse, or create _validate_hike()
 
@@ -1087,9 +1122,13 @@ $week_day_id = $this->input->post('week_day_id');
 		$rooms = $this->Room_tariff_management_model->rooms_array_list($full['hike']['hike_properties_id_fk']);
 		$weekdays = $this->Room_tariff_management_model->weekdays_array_list();
 
+		// Fetch parent tariff dates for modal title
+		$parent = $this->Room_tariff_management_model->get_room_tariff_hike((int)$full['hike']['room_tariff_hike_id_fk']);
+
 		echo json_encode(array(
 			"status" => true,
 			"hike" => $full['hike'],
+			"parent" => $parent ?: (object)[],
 			"rooms" => $rooms,
 			"weekdays" => $weekdays,
 			"rates" => $full['rates'],
@@ -1099,10 +1138,10 @@ $week_day_id = $this->input->post('week_day_id');
 
 	public function ajax_hike_update()
 	{
-		if (!has_permission('ROOM_TARIFF_UPDATE_HIKE')) {
-	        echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
-	        return;
-	    }
+		// if (!has_permission('ROOM_TARIFF_UPDATE_HIKE')) {
+	    //     echo json_encode(['status' => FALSE, 'message' => 'Permission denied']);
+	    //     return;
+	    // }
 
 		$this->_validate();
 
@@ -1181,6 +1220,8 @@ $week_day_id = $this->input->post('week_day_id');
 	
 	$date1 = date('Y-m-d h:i:s a', time());
 	
+	$currentuserid   = $this->session->userdata('user_id');
+		$currentusername = $this->session->userdata('admin_name');
 		// update header
 		$header = array(
 			'hike_room_tariff_hike_from_date' => $from_date,

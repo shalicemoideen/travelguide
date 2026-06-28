@@ -1311,17 +1311,29 @@ function moveToFirstValidationError() {
     return;
   }
 
-  $('html, body').animate({
-    scrollTop: $target.offset().top - 140
-  }, 400);
+  // Bootstrap 5 scrolls the .modal element itself (not html/body or .modal-body)
+  const $scrollParent = $('#PackagesModal');
+  if ($scrollParent.length && $scrollParent.is(':visible')) {
+    // scrollTop(0) first so offset() reads from a stable top position after repaint
+    $scrollParent.scrollTop(0);
+    setTimeout(function () {
+      const newScroll = $target.offset().top - $scrollParent.offset().top - 100;
+      $scrollParent.scrollTop(newScroll < 0 ? 0 : newScroll);
 
-  setTimeout(function () {
+      if ($field.hasClass('select2-hidden-accessible') && $field.is(':visible')) {
+        try { $field.select2('open'); } catch (e) {}
+      } else if (!$field.hasClass('day-editor') && $field.is(':visible')) {
+        $field.focus();
+      }
+    }, 0);
+  } else {
+    $('html, body').scrollTop($target.offset().top - 140);
     if ($field.hasClass('select2-hidden-accessible') && $field.is(':visible')) {
       try { $field.select2('open'); } catch (e) {}
     } else if (!$field.hasClass('day-editor') && $field.is(':visible')) {
       $field.focus();
     }
-  }, 450);
+  }
 }
 
 function validatePackageForm() {
@@ -4343,26 +4355,26 @@ $(document).on('change', '.change_destination', function () {
 ////***For properties blocks when change destination or change itinerary *****///
 
 // Allowed extensions
-const allowedImageExt = ['jpg', 'jpeg', 'png'];
+// const allowedImageExt = ['jpg', 'jpeg', 'png'];
 
-$(document).on('change', '.day-image-input', function () {
+// $(document).on('change', '.day-image-input', function () {
 
-  const file = this.files[0];
-  if (!file) return;
+//   const file = this.files[0];
+//   if (!file) return;
 
-  const fileName = file.name.toLowerCase();
-  const extension = fileName.split('.').pop();
+//   const fileName = file.name.toLowerCase();
+//   const extension = fileName.split('.').pop();
 
-  if ($.inArray(extension, allowedImageExt) === -1) {
+//   if ($.inArray(extension, allowedImageExt) === -1) {
 
-    alert('Only JPG, JPEG and PNG files are allowed.');
+//     alert('Only JPG, JPEG and PNG files are allowed.');
 
-    // Clear invalid file
-    $(this).val('');
+//     // Clear invalid file
+//     $(this).val('');
 
-    return false;
-  }
-});
+//     return false;
+//   }
+// });
 
 ////***For reload the datatable for delete *****///
 

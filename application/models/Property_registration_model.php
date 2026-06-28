@@ -214,7 +214,8 @@ class Property_registration_model extends CI_Model{
 		$this->db->from('properties_room_category');
 		$this->db->join('properties', 'properties.properties_id = properties_room_category.properties_id_fk','left');
 		$this->db->join('meal_plan', 'meal_plan.meal_plan_id = properties_room_category.room_meal_plan_id_fk','left');
-		$this->db->order_by('properties_room_category_id', 'DESC');
+		$this->db->order_by('room_category_show_order', 'ASC');
+		$this->db->order_by('properties_room_category_id', 'ASC');
 
         $query = $this->db->get();
         // echo $this->db->last_query();exit();
@@ -853,7 +854,7 @@ class Property_registration_model extends CI_Model{
 	public function get_by_id2($id)
 	{
 		// $this->db->from($this->table2);
-		$this->db->select('*,DATE_FORMAT(upload_tariff_document_from_date,\'%d/%m/%Y\') as upload_tariff_document_from_date,DATE_FORMAT(upload_tariff_document_to_date	,\'%d/%m/%Y\') as upload_tariff_document_to_date');
+		$this->db->select('*,DATE_FORMAT(upload_tariff_document_from_date,\'%d-%m-%Y\') as upload_tariff_document_from_date,DATE_FORMAT(upload_tariff_document_to_date	,\'%d-%m-%Y\') as upload_tariff_document_to_date');
 		$this->db->from('upload_tariff_document');
 		$this->db->where("upload_tariff_document_status",1);
 		$this->db->where('upload_tariff_document_id',$id);

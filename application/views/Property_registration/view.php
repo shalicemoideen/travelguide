@@ -305,9 +305,15 @@
                                                                             </label>
                                                                             <div class="col-lg-6">
                                                                                 <?php if(isset($records->properties_hotel_logo) && $records->properties_hotel_logo): ?>
-                                                                                    <a href="<?php echo base_url(); ?>uploads/Property-doc/logo/<?php echo $records->properties_hotel_logo; ?>" target="_blank" class="btn btn-sm btn-primary">
-                                                                                        <i class="fa fa-file"></i> <?php echo $records->properties_hotel_logo; ?>
-                                                                                    </a>
+                                                                                    <?php
+                                                                                        $logoFile = $records->properties_hotel_logo;
+                                                                                        $logoExt  = pathinfo($logoFile, PATHINFO_EXTENSION);
+                                                                                        $logoName = (isset($records->properties_name) ? $records->properties_name : 'property') . '_logo.' . $logoExt;
+                                                                                    ?>
+                                                                                    <button type="button" class="btn btn-sm btn-primary"
+                                                                                        onclick="downloadViewFile('<?php echo base_url(); ?>uploads/Property-doc/logo/<?php echo $logoFile; ?>', '<?php echo htmlspecialchars($logoName); ?>')">
+                                                                                        <i class="fa fa-download"></i> Download Logo
+                                                                                    </button>
                                                                                 <?php endif; ?>
                                                                             </div>
                                                                         </div>
@@ -316,9 +322,15 @@
                                                                             </label>
                                                                             <div class="col-lg-6">
                                                                                 <?php if(isset($records->properties_photos) && $records->properties_photos): ?>
-                                                                                    <a href="<?php echo base_url(); ?>uploads/Property-doc/photo/<?php echo $records->properties_photos; ?>" target="_blank" class="btn btn-sm btn-primary">
-                                                                                        <i class="fa fa-file"></i> <?php echo $records->properties_photos; ?>
-                                                                                    </a>
+                                                                                    <?php
+                                                                                        $photoFile = $records->properties_photos;
+                                                                                        $photoExt  = pathinfo($photoFile, PATHINFO_EXTENSION);
+                                                                                        $photoName = (isset($records->properties_name) ? $records->properties_name : 'property') . '.' . $photoExt;
+                                                                                    ?>
+                                                                                    <button type="button" class="btn btn-sm btn-primary"
+                                                                                        onclick="downloadViewFile('<?php echo base_url(); ?>uploads/Property-doc/photo/<?php echo $photoFile; ?>', '<?php echo htmlspecialchars($photoName); ?>')">
+                                                                                        <i class="fa fa-download"></i> Download Photo
+                                                                                    </button>
                                                                                 <?php endif; ?>
                                                                             </div>
                                                                         </div>
@@ -901,7 +913,7 @@
     <div class="modal-content">
 
       <div class="modal-header">
-        <h3 class="modal-title">Hike Room Tariff</h3>
+        <h3 class="modal-title" id="hikeRoomTariffModalTitle">Hike Room Tariff</h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -1226,6 +1238,27 @@
         </div>
     </div>
 </div>
+
+<script>
+function downloadViewFile(url, downloadName) {
+    fetch(url, { method: 'HEAD' })
+        .then(function(response) {
+            if (response.ok) {
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = downloadName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                alert('No file exists');
+            }
+        })
+        .catch(function() {
+            alert('No file exists');
+        });
+}
+</script>
 
 <div class="modal fade" id="deleterow5Modal" role="dialog" data-backdrop="static"  data-keyboard="false">
     <div class="modal-dialog" role="document">

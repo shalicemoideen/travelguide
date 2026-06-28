@@ -237,7 +237,8 @@ class Room_tariff_management_model extends CI_Model{
                             
 
                         where properties_id_fk = $properties_id AND
-                            properties_room_category_status = 1";
+                            properties_room_category_status = 1
+                        ORDER BY room_category_show_order ASC, properties_room_category_id ASC";
 
         
 
