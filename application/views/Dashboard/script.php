@@ -956,10 +956,12 @@ $(document).ready(function(){
       data: { period: period },
       success: function(data){
         $('#total_leads_count').text(data.allleads);
-        $('#converted_trips_count').text(data.converted);
+        $('#converted_trips_count').find('a').text(data.converted);
         $('#checkin_count').text(data.checkin);
         $('#checkout_count').text(data.checkout);
         $('#quotations_sent_count').text(data.quotations);
+        $('#converted-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period);
+        
       },
       error: function(){
         console.log('Error loading period counts');

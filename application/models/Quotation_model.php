@@ -18,6 +18,8 @@ class Quotation_model extends CI_Model{
 
         parent::__construct();
 
+        $this->load->model('IncentiveConfig_model');
+
     }
 
 
@@ -5097,6 +5099,156 @@ public function insert_room_tariff_details($data)
 
 		return $this->db->insert_id();
 
+	}
+
+
+
+    public function fetch_staff_users()
+
+	{
+		$this->db->order_by('admin_name', 'ASC');
+		$this->db->where('user_status', 1);
+		$this->db->where('user_type', 'S');
+		$query = $this->db->get('user_details');
+		return $query->result();
+	}
+
+
+
+    public function getConvertedTripsReport($param = array())
+
+	{
+
+		$guest_name = isset($param['guest_name']) ? $param['guest_name'] : '';
+		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
+		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
+		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+
+		if ($guest_name) {
+			$this->db->like('l.guest_name', $guest_name);
+		}
+		if ($staff_id) {
+			$this->db->where('l.staff_id_fk', $staff_id);
+		}
+		if ($start_date) {
+			$this->db->where('l.start_date >=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where('l.start_date <=', $end_date);
+		}
+
+		$this->db->where('l.leads_status', 1);
+		$this->db->where('l.lead_current_status', 3);
+
+		if (isset($param['length']) && $param['length'] != -1 && isset($param['start']) && $param['start'] != 'false') {
+			$this->db->limit($param['length'], $param['start']);
+		}
+
+		$this->db->select("
+			l.leads_id,
+			l.leads_number,
+			l.guest_name,
+			l.whats_number,
+			DATE_FORMAT(l.start_date, '%d-%m-%Y') AS travel_start_date,
+			DATE_FORMAT(l.end_date, '%d-%m-%Y') AS travel_end_date,
+			l.duration,
+			DATE_FORMAT(l.lead_register_date, '%d-%m-%Y') AS lead_register_date,
+			ud.admin_name AS staff_name,
+			q.quotation_number,
+			COALESCE(gc.total_adults, 0) AS total_adults,
+			COALESCE(gc.total_children, 0) AS total_children,
+			COALESCE(fp.fp_cost_after, 0) AS total_financial_cost,
+			COALESCE(qo.quotation_options_total_quote_rate, 0) AS pre_quoted_amount,
+			(COALESCE(qo.quotation_options_total_quote_rate, 0) - COALESCE(fp.fp_cost_after, 0)) AS profit
+		", FALSE);
+
+		$this->db->from('leads l');
+		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
+		$this->db->join('(
+			SELECT q1.leads_id_fk, q1.quotation_number, q1.quotation_id
+			FROM quotation q1
+			INNER JOIN (
+				SELECT leads_id_fk, MAX(quotation_id) AS max_qid
+				FROM quotation
+				WHERE quotation_status = 1
+				GROUP BY leads_id_fk
+			) q2 ON q2.leads_id_fk = q1.leads_id_fk AND q2.max_qid = q1.quotation_id
+		) q', 'q.leads_id_fk = l.leads_id', 'left');
+		$this->db->join('(
+			SELECT fp1.fp_leads_id_fk, fp1.fp_cost_after
+			FROM financial_posting fp1
+			INNER JOIN (
+				SELECT fp_leads_id_fk, MAX(fp_id) AS max_fp_id
+				FROM financial_posting
+				GROUP BY fp_leads_id_fk
+			) fp2 ON fp2.fp_leads_id_fk = fp1.fp_leads_id_fk AND fp2.max_fp_id = fp1.fp_id
+		) fp', 'fp.fp_leads_id_fk = l.leads_id', 'left');
+		$this->db->join('(
+			SELECT qo1.quotation_id_fk, qo1.quotation_options_total_quote_rate
+			FROM quotation_options qo1
+			INNER JOIN (
+				SELECT quotation_id_fk, MIN(quotation_options_id) AS min_oid
+				FROM quotation_options
+				WHERE quotation_options_status = 1
+				GROUP BY quotation_id_fk
+			) qo2 ON qo2.quotation_id_fk = qo1.quotation_id_fk AND qo2.min_oid = qo1.quotation_options_id
+		) qo', 'qo.quotation_id_fk = q.quotation_id', 'left');
+		$this->db->join('(
+			SELECT gc1.guset_count_lead_id_fk,
+				SUM(gcd1.adults) AS total_adults,
+				SUM(gcd1.children) AS total_children
+			FROM guset_count gc1
+			LEFT JOIN guset_count_details gcd1 ON gcd1.guset_count_id_fk = gc1.guset_count_id
+				AND gcd1.guset_count_details_status = 1
+			WHERE gc1.guset_count_status = 1
+			GROUP BY gc1.guset_count_lead_id_fk
+		) gc', 'gc.guset_count_lead_id_fk = l.leads_id', 'left');
+
+		$this->db->order_by('l.leads_id', 'DESC');
+
+		$query = $this->db->get();
+		$rows  = $query->result();
+
+		$slabs = $this->IncentiveConfig_model->get_all_slabs();
+		foreach ($rows as $row) {
+			$row->incentive = $this->IncentiveConfig_model->calculate_incentive($row->profit, $slabs);
+		}
+
+		$data['data'] = $rows;
+		$data['recordsTotal'] = $this->getConvertedTripsReportCount($param);
+		$data['recordsFiltered'] = $data['recordsTotal'];
+
+		return $data;
+	}
+
+
+
+    public function getConvertedTripsReportCount($param = array())
+
+	{
+		$guest_name = isset($param['guest_name']) ? $param['guest_name'] : '';
+		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
+		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
+		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+
+		if ($guest_name) {
+			$this->db->like('guest_name', $guest_name);
+		}
+		if ($staff_id) {
+			$this->db->where('staff_id_fk', $staff_id);
+		}
+		if ($start_date) {
+			$this->db->where('start_date >=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where('start_date <=', $end_date);
+		}
+
+		$this->db->where('leads_status', 1);
+		$this->db->where('lead_current_status', 3);
+		$this->db->from('leads');
+
+		return $this->db->count_all_results();
 	}
 
 

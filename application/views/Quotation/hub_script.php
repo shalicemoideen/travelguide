@@ -3366,7 +3366,7 @@ function fpAddExpense(label, amount, desc) {
 
     var html = '<tr class="fp-expense table-light fp-label">' +
         '<td class="fw-bold"><input type="text" class="form-control form-control-sm" name="exp_labels[]" value="' + escapeHtml(label) + '" placeholder="Other expense"></td>' +
-        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="exp_quoted[]" value="" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td class="text-center text-muted">—</td>' +
         '<td><input type="number" class="form-control form-control-sm fp-actual" name="exp_amounts[]" value="' + amount + '" placeholder="0.00" min="0" step="0.01"></td>' +
         '<td><input type="text" class="form-control form-control-sm" name="exp_descs[]" value="' + escapeHtml(desc) + '" placeholder="Description"></td>' +
         '<td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger" onclick="fpRemoveRow(this)"><i class="la la-trash"></i></button></td>' +

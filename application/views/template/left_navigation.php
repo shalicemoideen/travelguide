@@ -274,12 +274,22 @@
 						'QUOTATION_UPDATE',
 						'QUOTATION_DELETE'
 					])): ?>
-					<li class="<?php if($this->uri->segment(1)=="Quotation"){echo "active";}?>"><a  href="<?php echo base_url();?>index.php/Quotation" aria-expanded="false">
+					<li class="<?php if($this->uri->segment(1)=="Quotation" && $this->uri->segment(2)!="converted_trips_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation" aria-expanded="false">
 							<i class="flaticon-017-clipboard"></i>
 							<span class="nav-text">Quotation</span>
 						</a>
 					</li>
 					<?php endif; ?>
+
+					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(1)=="IncentiveConfig"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
+							<i class="bi bi-bar-chart-line-fill"></i>
+							<span class="nav-text">Reports</span>
+						</a>
+						<ul aria-expanded="false">
+							<li class="<?php if($this->uri->segment(2)=="converted_trips_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/converted_trips_report">Converted Trips</a></li>
+							<li class="<?php if($this->uri->segment(1)=="IncentiveConfig"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/IncentiveConfig">Incentive Config</a></li>
+						</ul>
+					</li>
 					<?php if($this->session->userdata('user_type') == 'A'){ ?>
 					<li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
 						<!-- <i class="flaticon-050-info"></i> -->

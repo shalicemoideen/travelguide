@@ -165,13 +165,17 @@ class Dashboard_model extends CI_Model{
                 $start_date = date('Y-m-d');
                 break;
             case 'week':
-                $start_date = date('Y-m-d', strtotime('monday this week'));
+                $dow        = (int)date('w');
+                $start_date = date('Y-m-d', strtotime('-' . $dow . ' days'));
+                $end_date   = date('Y-m-d', strtotime('+' . (6 - $dow) . ' days'));
                 break;
             case 'month':
-                $start_date = date('Y-m-d', strtotime('first day of this month'));
+                $start_date = date('Y-m-01');
+                $end_date   = date('Y-m-t');
                 break;
             case 'year':
-                $start_date = date('Y-m-d', strtotime('first day of january this year'));
+                $start_date = date('Y-01-01');
+                $end_date   = date('Y-12-31');
                 break;
         }
         return array('start' => $start_date, 'end' => $end_date);
@@ -200,16 +204,16 @@ class Dashboard_model extends CI_Model{
         $currentuserid = $this->session->userdata('user_id');
         $currentusertype = $this->session->userdata('user_type');
         if($currentusertype == 'S'){
-            $this->db->where("leads_createdby_userid", $currentuserid);
+            $this->db->where("staff_id_fk", $currentuserid);
         }
         $this->db->select('count(leads_id) as total_count');
         $this->db->from('leads');
         $this->db->where('lead_current_status', 3);
         $this->db->where('leads_status', 1);
         if($range['start']){
-            $this->db->where('lead_register_date >=', $range['start']);
+            $this->db->where('start_date >=', $range['start']);
         }
-        $this->db->where('lead_register_date <=', $range['end']);
+        $this->db->where('start_date <=', $range['end']);
         $query = $this->db->get();
         return $query->result();
     }
