@@ -55,9 +55,15 @@ class Dashboard extends MY_Controller {
 	{
 		$m_month = $this->input->get('m_month') ? $this->input->get('m_month') : date('m');
 		$m_year  = $this->input->get('m_year') ? $this->input->get('m_year') : date('Y');
-		$m_staff = $this->input->get('m_staff');
 		$y_year  = $this->input->get('y_year') ? $this->input->get('y_year') : date('Y');
-		$y_staff = $this->input->get('y_staff');
+
+		if ($this->currentusertype != 'A') {
+			$m_staff = $this->currentuserid;
+			$y_staff = $this->currentuserid;
+		} else {
+			$m_staff = $this->input->get('m_staff');
+			$y_staff = $this->input->get('y_staff');
+		}
 
 		// Monthly data: leads per day in the selected month
 		$days_in_month = cal_days_in_month(CAL_GREGORIAN, $m_month, $m_year);

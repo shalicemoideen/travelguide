@@ -32,7 +32,6 @@ class Role_model extends CI_Model{
 			 // $this->db->where("roles_created_by_userid",$currentuserid);
 			// }
 		$this->db->where('status', 1); 
-		$this->db->where('id !=', '1');
 		$this->db->select('*');
 		$this->db->from($this->table); 
 		$this->db->order_by('created_at', 'DESC');
@@ -58,7 +57,6 @@ class Role_model extends CI_Model{
 		
 		$this->db->select('*');
 		$this->db->from($this->table);
-		$this->db->where('id !=', '1');
 		$this->db->order_by('created_at', 'DESC');
 		$query = $this->db->get();
     	return $query->num_rows();
