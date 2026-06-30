@@ -15,8 +15,8 @@ class Dashboard_model extends CI_Model{
         $currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 			
-		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			if($currentusertype == 'S'){
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
         $today=date('Y-m-d');
         $between="'$today' between lead_register_date and lead_register_date";
@@ -33,7 +33,7 @@ class Dashboard_model extends CI_Model{
         $currentuserid = $this->session->userdata('user_id');
         $currentusertype = $this->session->userdata('user_type');
         if($currentusertype == 'S'){
-            $this->db->where("leads_createdby_userid", $currentuserid);
+            $this->db->where("staff_id_fk", $currentuserid);
         }
         $this->db->select('count(leads_id) as total_count');
         $this->db->from('leads');
@@ -49,7 +49,7 @@ class Dashboard_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
         
         $this->db-> select('count(leads_id)as total_count');
@@ -67,7 +67,7 @@ class Dashboard_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
         $this->db-> select('count(leads_id)as total_count');
         $this->db->from('leads');
@@ -83,9 +83,9 @@ class Dashboard_model extends CI_Model{
         $currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
 			
-// 		if($currentusertype == 'S'){
-// 			 $this->db->where("leads_createdby_userid",$currentuserid);
-// 			}
+		if($currentusertype == 'S'){
+			 $this->db->where("staff_id_fk",$currentuserid);
+			}
         $this->db-> select('count(leads_id)as total_count');
         $this->db->from('leads');
         $this->db->where('lead_current_status',3);
@@ -101,7 +101,7 @@ class Dashboard_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
         $this->db-> select('count(leads_id)as total_count');
         $this->db->from('leads');
@@ -117,7 +117,7 @@ class Dashboard_model extends CI_Model{
 		$currentusertype = $this->session->userdata('user_type');
 			
 		if($currentusertype == 'S'){
-			 $this->db->where("leads_createdby_userid",$currentuserid);
+			 $this->db->where("staff_id_fk",$currentuserid);
 			}
         $this->db-> select('count(leads_id)as total_count');
         $this->db->from('leads');
@@ -186,7 +186,7 @@ class Dashboard_model extends CI_Model{
         $currentuserid = $this->session->userdata('user_id');
         $currentusertype = $this->session->userdata('user_type');
         if($currentusertype == 'S'){
-            $this->db->where("leads_createdby_userid", $currentuserid);
+            $this->db->where("staff_id_fk", $currentuserid);
         }
         $this->db->select('count(leads_id) as total_count');
         $this->db->from('leads');
@@ -220,6 +220,8 @@ class Dashboard_model extends CI_Model{
 
     public function getCheckinCount($period = 'today'){
         $range = $this->_getPeriodRange($period);
+        $currentuserid   = $this->session->userdata('user_id');
+        $currentusertype = $this->session->userdata('user_type');
         $this->db->select('COALESCE(SUM(gcd.adults + gcd.children), 0) as total_count');
         $this->db->from('quotation q');
         $this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'inner');
@@ -227,6 +229,9 @@ class Dashboard_model extends CI_Model{
         $this->db->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id', 'inner');
         $this->db->where('q.quotation_current_status', 5);
         $this->db->where('q.quotation_status', 1);
+        if($currentusertype == 'S'){
+            $this->db->where('l.staff_id_fk', $currentuserid);
+        }
         if($range['start']){
             $this->db->where('l.start_date >=', $range['start']);
         }
@@ -238,6 +243,8 @@ class Dashboard_model extends CI_Model{
 
     public function getCheckoutCount($period = 'today'){
         $range = $this->_getPeriodRange($period);
+        $currentuserid   = $this->session->userdata('user_id');
+        $currentusertype = $this->session->userdata('user_type');
         $this->db->select('COALESCE(SUM(gcd.adults + gcd.children), 0) as total_count');
         $this->db->from('quotation q');
         $this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'inner');
@@ -245,6 +252,9 @@ class Dashboard_model extends CI_Model{
         $this->db->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id', 'inner');
         $this->db->where('q.quotation_current_status', 5);
         $this->db->where('q.quotation_status', 1);
+        if($currentusertype == 'S'){
+            $this->db->where('l.staff_id_fk', $currentuserid);
+        }
         if($range['start']){
             $this->db->where('l.end_date >=', $range['start']);
         }
@@ -262,7 +272,7 @@ class Dashboard_model extends CI_Model{
         $end_date   = date('Y-m-d');
 
         if($currentusertype == 'S'){
-            $this->db->where("leads_createdby_userid", $currentuserid);
+            $this->db->where("staff_id_fk", $currentuserid);
         }
         $this->db->select("DATE_FORMAT(lead_register_date, '%d %b') as day_label, lead_register_date as raw_date, COUNT(leads_id) as total_count");
         $this->db->from('leads');
@@ -276,12 +286,17 @@ class Dashboard_model extends CI_Model{
     }
 
     public function getStaffLeadsAssignedVsConverted(){
+        $currentuserid   = $this->session->userdata('user_id');
+        $currentusertype = $this->session->userdata('user_type');
         $this->db->select("u.admin_name as staff_name, COUNT(l.leads_id) as total_assigned, SUM(CASE WHEN l.lead_current_status = 3 THEN 1 ELSE 0 END) as total_converted");
         $this->db->from('leads l');
         $this->db->join('user_details u', 'u.user_id = l.staff_id_fk', 'left');
         $this->db->where('l.leads_status', 1);
         $this->db->where('l.staff_id_fk !=', 0);
         $this->db->where('l.staff_id_fk IS NOT NULL', null, false);
+        if ($currentusertype == 'S') {
+            $this->db->where('l.staff_id_fk', $currentuserid);
+        }
         $this->db->group_by('l.staff_id_fk');
         $this->db->order_by('total_assigned', 'DESC');
         $this->db->limit(10);
@@ -294,7 +309,7 @@ class Dashboard_model extends CI_Model{
         $currentusertype = $this->session->userdata('user_type');
 
         if($currentusertype == 'S'){
-            $this->db->where("leads_createdby_userid", $currentuserid);
+            $this->db->where("staff_id_fk", $currentuserid);
         }
         $this->db->select("lead_current_status, COUNT(leads_id) as total_count");
         $this->db->from('leads');
@@ -323,10 +338,15 @@ class Dashboard_model extends CI_Model{
                 break;
         }
 
+        $currentuserid   = $this->session->userdata('user_id');
+        $currentusertype = $this->session->userdata('user_type');
         $this->db->select('COUNT(quotation_id) as total_count');
         $this->db->from('quotation');
         $this->db->where('quotation_status', 1);
         $this->db->where('quotation_current_status<', 30); // Sent
+        if($currentusertype == 'S'){
+            $this->db->where('quotation_created_by_userid', $currentuserid);
+        }
         if($start_date){
             $this->db->where('quotation_date >=', $start_date);
         }
@@ -358,7 +378,7 @@ class Dashboard_model extends CI_Model{
         $currentusertype = $this->session->userdata('user_type');
 
         if($currentusertype == 'S'){
-            $this->db->where("leads_createdby_userid", $currentuserid);
+            $this->db->where("staff_id_fk", $currentuserid);
         }
 
         $this->db->select('COUNT(leads_id) as total_count');
