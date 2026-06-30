@@ -748,9 +748,9 @@ function buildItineraryRowsFromSaved(itineraryDays) {
         <td>
           <div>
             <b>${item.packages_itineraries_days_day || ('Day ' + rowNum)}</b>
-            | ${item.packages_itineraries_days_title || ''}
-            ${tbBadge}
           </div>
+          <input type="text" name="packages_itineraries_days_title[]" class="form-control mt-1" value="${item.packages_itineraries_days_title || ''}" placeholder="Day title">
+          <div>${tbBadge}</div>
 
           <input type="hidden" name="is_travel_back[]" class="is-travel-back" value="${isTB ? '1' : '0'}">
 
@@ -776,9 +776,9 @@ function buildItineraryRowsFromSaved(itineraryDays) {
             rows="6">${item.packages_itineraries_days_description || ''}</textarea>
 
           <!-- Needed for saving -->
+          <input type="hidden" name="packages_itinerary_days_id[]" value="${item.packages_itinerary_days_id || ''}">
           <input type="hidden" name="itineraries_days_id_fk[]" value="${item.itineraries_days_id_fk || ''}">
           <input type="hidden" name="packages_itineraries_days_day[]" value="${item.packages_itineraries_days_day || ''}">
-          <input type="hidden" name="packages_itineraries_days_title[]" value="${item.packages_itineraries_days_title || ''}">
 
           <!-- IMPORTANT: this is the posted destination array -->
           <input type="hidden"
@@ -1311,29 +1311,17 @@ function moveToFirstValidationError() {
     return;
   }
 
-  // Bootstrap 5 scrolls the .modal element itself (not html/body or .modal-body)
-  const $scrollParent = $('#PackagesModal');
-  if ($scrollParent.length && $scrollParent.is(':visible')) {
-    // scrollTop(0) first so offset() reads from a stable top position after repaint
-    $scrollParent.scrollTop(0);
-    setTimeout(function () {
-      const newScroll = $target.offset().top - $scrollParent.offset().top - 100;
-      $scrollParent.scrollTop(newScroll < 0 ? 0 : newScroll);
+  $('html, body').animate({
+    scrollTop: $target.offset().top - 140
+  }, 400);
 
-      if ($field.hasClass('select2-hidden-accessible') && $field.is(':visible')) {
-        try { $field.select2('open'); } catch (e) {}
-      } else if (!$field.hasClass('day-editor') && $field.is(':visible')) {
-        $field.focus();
-      }
-    }, 0);
-  } else {
-    $('html, body').scrollTop($target.offset().top - 140);
+  setTimeout(function () {
     if ($field.hasClass('select2-hidden-accessible') && $field.is(':visible')) {
       try { $field.select2('open'); } catch (e) {}
     } else if (!$field.hasClass('day-editor') && $field.is(':visible')) {
       $field.focus();
     }
-  }
+  }, 450);
 }
 
 function validatePackageForm() {
@@ -2186,8 +2174,10 @@ $('#packages_itinerary_id_fk').on('change', function () {
           <tr data-row-num="${rowNum}" data-required-status="${isTB ? 2 : 0}" data-is-tb="${isTB ? 1 : 0}">
             <td>
               <div>
-                <b>${item.itineraries_days_day}</b> | ${item.itineraries_days_title}${tbBadge}
+                <b>${item.itineraries_days_day}</b>
               </div>
+              <input type="text" name="packages_itineraries_days_title[]" class="form-control mt-1" value="${item.itineraries_days_title}" placeholder="Day title">
+              <div>${tbBadge}</div>
 
               <input type="hidden" name="is_travel_back[]" class="is-travel-back" value="${isTB ? '1' : '0'}">
 
@@ -2214,9 +2204,9 @@ $('#packages_itinerary_id_fk').on('change', function () {
                 rows="6">${item.itineraries_days_description || ''}</textarea>
 
               <!-- Needed for saving -->
+              <input type="hidden" name="packages_itinerary_days_id[]" value="">
               <input type="hidden" name="itineraries_days_id_fk[]" value="${item.itineraries_days_id}">
               <input type="hidden" name="packages_itineraries_days_day[]" value="${item.itineraries_days_day}">
-              <input type="hidden" name="packages_itineraries_days_title[]" value="${item.itineraries_days_title}">
               <input type="hidden" name="packages_itineraries_days_destination_id_fk[]" class="destination-post" value="${item.itineraries_days_destination_id_fk}">
 
               <!-- default image filename (so controller can store if no new upload) -->

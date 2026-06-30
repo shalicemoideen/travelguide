@@ -1054,70 +1054,150 @@ button:hover{background:#172554;}
   white-space:normal;
 }
 
-/* ===== PAYMENT ===== */
-.payment-account-wrap{
-  margin-top:12mm;
+/* ===== PAYMENT / ACCOUNT DETAILS ===== */
+.payment-account-design{
   display:grid;
-  grid-template-columns:80mm 1fr;
-  gap:14mm;
-  align-items:start;
-  width:100%;
+  grid-template-columns:40% 60%;
+  gap:0;
+  background:#f2f2f2;
+  margin-top:8mm;
+  border-radius:5px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  page-break-inside:avoid;
+  break-inside:avoid;
 }
-.payment-qr-box{
-  width:100%;
+
+.payment-account-design.no-qr-panel{
+  grid-template-columns:1fr;
 }
-.payment-qr-box img{
-  width:100%;
-  max-width:80mm;
-  height:auto;
-  object-fit:contain;
-  display:block;
-  border:1px solid #dcdcdc;
-  border-radius:6px;
-  padding:4px;
+
+.payment-qr-panel{
   background:#fff;
+  border:1px solid #e0e0e0;
+  border-top:4px solid #1976d2;
+  border-bottom:4px solid #25146f;
+  text-align:center;
+  padding:6mm 5mm;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
 }
-.payment-account-box{
-  width:100%;
-}
-.payment-account-title{
-  font-size:24px;
-  font-weight:700;
-  color:#1f2937;
-  margin:0 0 10px 0;
-  padding-bottom:8px;
-  border-bottom:1px solid #d9d9d9;
-}
-.payment-bank-item{
-  margin-bottom:14px;
-}
-.payment-bank-logo{
-  display:block;
+
+.payment-qr-bank-logo{
   max-width:30mm;
-  height:auto;
-  margin-bottom:8px;
+  max-height:12mm;
+  object-fit:contain;
+  margin-bottom:3mm;
 }
-.payment-bank-lines{
-  font-size:19px;
-  line-height:1.6;
-  color:#111;
-}
-.payment-bank-lines strong{
+
+.payment-qr-company{
+  font-size:12px;
   font-weight:700;
+  color:#444;
+  margin-bottom:3mm;
+  text-transform:uppercase;
+  letter-spacing:0.3px;
 }
+
+.payment-scan-title{
+  font-size:22px;
+  font-weight:800;
+  color:#25146f;
+  margin:2mm 0 3mm;
+  letter-spacing:1px;
+}
+
+.payment-main-qr{
+  width:55mm;
+  max-width:100%;
+  height:auto;
+  margin-bottom:2mm;
+}
+
+.payment-upi-id{
+  font-size:12px;
+  font-weight:700;
+  color:#333;
+  margin:2mm 0 3mm;
+}
+
 .payment-icons{
-  margin-top:6mm;
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:10px;
   flex-wrap:wrap;
+  gap:6px;
+  margin-top:2mm;
 }
+
 .payment-icons img{
-  height:19px;
+  height:24px;
   width:auto;
   object-fit:contain;
   display:block;
+}
+
+.payment-account-panel{
+  background:#efefef;
+  padding:6mm 8mm;
+}
+
+.payment-account-title{
+  font-family:Georgia, serif;
+  font-size:24px;
+  font-weight:700;
+  color:#222;
+  border-bottom:1px solid #ccc;
+  padding-bottom:3mm;
+  margin-bottom:4mm;
+}
+
+.payment-account-grid{
+  display:block;
+}
+
+.payment-account-grid.multi-account-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4mm 8mm;
+}
+
+.payment-bank-item{
+  padding:3mm 0 4mm 0;
+  border-bottom:1px solid #ccc;
+}
+
+.payment-account-grid.multi-account-grid .payment-bank-item{
+  padding:2mm 0;
+  border-bottom:none;
+}
+
+.payment-bank-item:last-child{
+  border-bottom:none;
+}
+
+.payment-bank-logo{
+  max-width:30mm;
+  max-height:12mm;
+  object-fit:contain;
+  margin-bottom:2mm;
+}
+
+.payment-bank-lines{
+  font-family:Georgia, serif;
+  font-size:15px;
+  line-height:1.5;
+  color:#111;
+}
+
+.payment-bank-lines div{
+  margin-bottom:1px;
+}
+
+.payment-bank-lines strong{
+  font-weight:700;
 }
 </style>
 <style>
@@ -1192,6 +1272,22 @@ button:hover{background:#172554;}
   bottom:6mm;
 } */
 
+.prepared-by-box{
+  margin-top:5mm;
+  font-size:20px;
+  line-height:1.8;
+}
+
+.prepared-by-name{
+  font-size:24px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.prepared-by-line{
+  font-size:20px;
+  margin-bottom:2px;
+}
  .common-flow-content{
   position:absolute;
   top:38mm;
@@ -1458,7 +1554,7 @@ $ICON_EMAIL_GOLD = '
 $ICON_WEB_GOLD = $ICON_WEB;
 
 function q_preview_amount($value){
-    return number_format((float)$value, 2);
+    return number_format((float)$value, 0);
 }
 ?>
 
@@ -1544,7 +1640,7 @@ function q_preview_amount($value){
       <?php $dayImage = !empty($day->quotation_itineraries_days_image) ? base_url('uploads/quotation_day_images/'.$day->quotation_itineraries_days_image) : ''; ?>
       <div class="pdf-page daypage">
         <div class="daypage-logo">
-          <img src="<?= base_url('assets/images/Royale-logo-new.png'); ?>" alt="Logo">
+          <img src="<?= base_url('assets/images/Royale-logo-new1.png'); ?>" alt="Logo">
         </div>
 
         <div class="daypage-top">
@@ -1893,11 +1989,13 @@ $children = isset($guest['children']) ? (int)$guest['children'] : 0;
                 <div class="property-contact">
                   <div class="contact-row">
                     <img src="<?= base_url('assets/images/phone-grey.png'); ?>" alt="Phone" class="contact-icon-img">
-                    <span class="contact-value"><?= $companyPhone; ?></span>
+                    <!-- <span class="contact-value"><?= $companyPhone; ?></span> -->
+                     <span class="contact-value">919072609079</span>
                   </div>
                   <div class="contact-row">
                     <img src="<?= base_url('assets/images/email-grey.png'); ?>" alt="Email" class="contact-icon-img">
-                    <span class="contact-value"><?= $companyEmail; ?></span>
+                    <!-- <span class="contact-value"><?= $companyEmail; ?></span> -->
+                     <span class="contact-value">sales@royaleindia.in</span>
                   </div>
                 </div>
               </div>
@@ -1907,9 +2005,9 @@ $children = isset($guest['children']) ? (int)$guest['children'] : 0;
               </div>
             </div>
 
-            <div class="property-main-title">
+            <!-- <div class="property-main-title">
               PACKAGE COST &amp; ACCOMMODATION SUMMARY
-            </div>
+            </div> -->
 
             <div class="standard-summary-row">
               <div class="standard-left-summary">
@@ -2187,38 +2285,98 @@ $children   = isset($guest_total['children']) ? (int)$guest_total['children'] : 
   <?php endif; ?>
 
   <?php if (!empty($account_details)): ?>
-  <div class="payment-account-wrap flow-section">
-    <div class="payment-qr-box">
-      <?php if (!empty($account_details->qr_code)): ?>
-        <img src="<?= base_url('uploads/qr-code/'.$account_details->qr_code); ?>" alt="QR Code">
-      <?php endif; ?>
 
-      <div class="payment-icons">
-        <img src="<?= base_url('assets/images/UPI.JPG'); ?>">
-        <img src="<?= base_url('assets/images/phonepay.png'); ?>">
-        <img src="<?= base_url('assets/images/google-pay.png'); ?>">
-        <img src="<?= base_url('assets/images/paytm.png'); ?>">
-        <img src="<?= base_url('assets/images/bhim.png'); ?>">
+<?php
+$accounts = is_array($account_details) ? $account_details : array($account_details);
+
+$qrAccount = null;
+foreach ($accounts as $acc) {
+    if (!empty($acc->qr_status) && (int)$acc->qr_status === 1 && !empty($acc->qr_code)) {
+        $qrAccount = $acc;
+        break;
+    }
+}
+?>
+
+<div class="payment-account-wrap flow-section payment-account-design <?= empty($qrAccount) ? 'no-qr-panel' : ''; ?>">
+
+  <?php if (!empty($qrAccount)): ?>
+  <!-- LEFT QR PANEL -->
+  <div class="payment-qr-panel">
+
+    <?php if (!empty($qrAccount->bank_logo)): ?>
+      <img src="<?= base_url('uploads/bank_logo/'.$qrAccount->bank_logo); ?>"
+           alt="Bank Logo" class="payment-qr-bank-logo">
+    <?php endif; ?>
+
+    <?php if (!empty($qrAccount->account_name)): ?>
+      <div class="payment-qr-company">
+        <?= htmlspecialchars($qrAccount->account_name); ?>
       </div>
+    <?php endif; ?>
+
+    <div class="payment-scan-title">SCAN &amp; PAY</div>
+
+    <?php if (!empty($qrAccount->qr_code)): ?>
+      <img src="<?= base_url('uploads/qr-code/'.$qrAccount->qr_code); ?>"
+           alt="QR Code" class="payment-main-qr">
+    <?php endif; ?>
+
+    <?php if (isset($qrAccount->up_id) && !empty($qrAccount->up_id)): ?>
+      <div class="payment-upi-id">
+        UPI ID: <?= htmlspecialchars($qrAccount->up_id); ?>
+      </div>
+    <?php endif; ?>
+
+    <div class="payment-icons">
+      <img src="<?= base_url('assets/images/UPI.jpg'); ?>" alt="UPI">
+      <img src="<?= base_url('assets/images/bhim.png'); ?>" alt="BHIM">
+      <img src="<?= base_url('assets/images/google-pay.png'); ?>" alt="Google Pay">
+      <img src="<?= base_url('assets/images/paytm.png'); ?>" alt="Paytm">
+      <img src="<?= base_url('assets/images/phonepay.png'); ?>" alt="PhonePe">
     </div>
 
-    <div class="payment-account-box">
-      <div class="payment-account-title">Account Details</div>
-      <div class="payment-bank-item">
-        <?php if (!empty($account_details->bank_logo)): ?>
-          <img src="<?= base_url('uploads/bank_logo/'.$account_details->bank_logo); ?>" alt="Bank Logo" class="payment-bank-logo">
-        <?php endif; ?>
-
-        <div class="payment-bank-lines">
-          <?php if (!empty($account_details->account_name)): ?><div><strong>A/c Name:</strong> <?= htmlspecialchars($account_details->account_name); ?></div><?php endif; ?>
-          <?php if (!empty($account_details->account_number)): ?><div><strong>A/c No:</strong> <?= htmlspecialchars($account_details->account_number); ?></div><?php endif; ?>
-          <?php if (!empty($account_details->ifsc_code)): ?><div><strong>IFSC:</strong> <?= htmlspecialchars($account_details->ifsc_code); ?></div><?php endif; ?>
-          <?php if (!empty($account_details->branch_name)): ?><div><strong>BRANCH:</strong> <?= htmlspecialchars($account_details->branch_name); ?></div><?php endif; ?>
-        </div>
-      </div>
-    </div>
   </div>
   <?php endif; ?>
+
+  <!-- RIGHT ACCOUNT DETAILS -->
+  <div class="payment-account-panel">
+    <div class="payment-account-title">Account Details</div>
+
+    <div class="payment-account-grid <?= count($accounts) > 2 ? 'multi-account-grid' : ''; ?>">
+      <?php foreach ($accounts as $acc): ?>
+        <div class="payment-bank-item">
+
+          <?php if (!empty($acc->bank_logo)): ?>
+            <img src="<?= base_url('uploads/bank_logo/'.$acc->bank_logo); ?>"
+                 alt="Bank Logo" class="payment-bank-logo">
+          <?php endif; ?>
+
+          <div class="payment-bank-lines">
+            <?php if (!empty($acc->account_name)): ?>
+              <div><strong>A/c Name:</strong> <?= htmlspecialchars($acc->account_name); ?></div>
+            <?php endif; ?>
+
+            <?php if (!empty($acc->account_number)): ?>
+              <div><strong>A/c No:</strong> <?= htmlspecialchars($acc->account_number); ?></div>
+            <?php endif; ?>
+
+            <?php if (!empty($acc->ifsc_code)): ?>
+              <div><strong>IFSC:</strong> <?= htmlspecialchars($acc->ifsc_code); ?></div>
+            <?php endif; ?>
+
+            <?php if (!empty($acc->branch_name)): ?>
+              <div><strong>BRANCH:</strong> <?= htmlspecialchars($acc->branch_name); ?></div>
+            <?php endif; ?>
+          </div>
+
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+</div>
+<?php endif; ?>
 
   <?php if (!empty($optional_addons)): ?>
   <div class="simple-section flow-section">
@@ -2280,6 +2438,32 @@ $children   = isset($guest_total['children']) ? (int)$guest_total['children'] : 
           </div>
         <?php endif; ?>
       <?php endforeach; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <?php if (!empty($prepared_by)): ?>
+  <div class="simple-section flow-section">
+    <div class="simple-pill-title">PREPARED BY</div>
+    <div class="prepared-by-box">
+      <div class="prepared-by-name">
+        <?= htmlspecialchars($prepared_by->admin_name); ?>
+      </div>
+      <?php if (!empty($prepared_by->designation_name)): ?>
+      <div class="prepared-by-line">
+        <?= htmlspecialchars($prepared_by->designation_name); ?>
+      </div>
+      <?php endif; ?>
+      <?php if (!empty($prepared_by->user_phone_number)): ?>
+      <div class="prepared-by-line">
+        Ph No : <?= htmlspecialchars($prepared_by->user_phone_number); ?>
+      </div>
+      <?php endif; ?>
+      <?php if (!empty($prepared_by->user_email_address)): ?>
+      <div class="prepared-by-line">
+        Mail ID : <?= htmlspecialchars($prepared_by->user_email_address); ?>
+      </div>
+      <?php endif; ?>
     </div>
   </div>
   <?php endif; ?>
@@ -2675,14 +2859,25 @@ function buildCommonPages() {
         if (!ensureFits(pointClone)) {
           listBox.removeChild(pointClone);
 
-          // new page WITHOUT repeated title
+          // If no points were placed yet, the title is alone on the page;
+          // bring it to the next page along with the first point.
+          const titleIsAlone = listBox.children.length === 0;
+
+          if (titleIsAlone) {
+            content.removeChild(sectionBox);
+          }
+
           newPage();
 
           sectionBox = document.createElement('div');
-          sectionBox.className = 'simple-section flow-section continued-section';
+          sectionBox.className = 'simple-section flow-section' + (titleIsAlone ? '' : ' continued-section');
 
           listBox = document.createElement('div');
           listBox.className = 'simple-list-block';
+
+          if (titleIsAlone) {
+            sectionBox.appendChild(title.cloneNode(true));
+          }
 
           sectionBox.appendChild(listBox);
           content.appendChild(sectionBox);

@@ -4549,17 +4549,23 @@ $(document).on('input', '#HikeRoomTariffModal .hike-rt-room-rate', function () {
 
 $(document).on('input', '#HikeRoomTariffModal .hike-rt-adult-eb', function () {
     var val = $(this).val();
-    $('#HikeRoomTariffModal .hike-rt-adult-eb').val(val);
+    var $inputs = $('#HikeRoomTariffModal .hike-rt-adult-eb');
+    var idx = $inputs.index(this);
+    $inputs.slice(idx + 1).val(val);
 });
 
 $(document).on('input', '#HikeRoomTariffModal .hike-rt-child-eb', function () {
     var val = $(this).val();
-    $('#HikeRoomTariffModal .hike-rt-child-eb').val(val);
+    var $inputs = $('#HikeRoomTariffModal .hike-rt-child-eb');
+    var idx = $inputs.index(this);
+    $inputs.slice(idx + 1).val(val);
 });
 
 $(document).on('input', '#HikeRoomTariffModal .hike-rt-child-sharing', function () {
     var val = $(this).val();
-    $('#HikeRoomTariffModal .hike-rt-child-sharing').val(val);
+    var $inputs = $('#HikeRoomTariffModal .hike-rt-child-sharing');
+    var idx = $inputs.index(this);
+    $inputs.slice(idx + 1).val(val);
 });
 
 // Auto-fill: Room Rate -> Single; Adult EB / Child EB / Child Sharing -> sync all room blocks
@@ -4571,17 +4577,23 @@ $(document).on('input', '#RoomTariffModal .rt-room-rate', function () {
 
 $(document).on('input', '#RoomTariffModal .rt-adult-eb', function () {
     var val = $(this).val();
-    $('#RoomTariffModal .rt-adult-eb').val(val);
+    var $inputs = $('#RoomTariffModal .rt-adult-eb');
+    var idx = $inputs.index(this);
+    $inputs.slice(idx + 1).val(val);
 });
 
 $(document).on('input', '#RoomTariffModal .rt-child-eb', function () {
     var val = $(this).val();
-    $('#RoomTariffModal .rt-child-eb').val(val);
+    var $inputs = $('#RoomTariffModal .rt-child-eb');
+    var idx = $inputs.index(this);
+    $inputs.slice(idx + 1).val(val);
 });
 
 $(document).on('input', '#RoomTariffModal .rt-child-sharing', function () {
     var val = $(this).val();
-    $('#RoomTariffModal .rt-child-sharing').val(val);
+    var $inputs = $('#RoomTariffModal .rt-child-sharing');
+    var idx = $inputs.index(this);
+    $inputs.slice(idx + 1).val(val);
 });
 
 ////***For open the modal *****///

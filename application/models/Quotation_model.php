@@ -5619,6 +5619,8 @@ public function insert_room_tariff_details($data)
 
             'account_details'     => $this->get_default_account_details(),
 
+            'prepared_by'         => $this->get_prepared_by_user($quotation->quotation_created_by_userid),
+
         );
 
     }
@@ -5631,9 +5633,29 @@ public function insert_room_tariff_details($data)
 
         return $this->db
 
-            
+            ->where('account_details_status', 1)
 
-            ->get('account_details')->row();
+            ->get('account_details')->result();
+
+    }
+
+    public function get_prepared_by_user($user_id)
+
+    {
+
+        $this->db->select('ud.user_id, ud.admin_name, ud.user_email_address, ud.user_phone_number, d.designation_name');
+
+        $this->db->from('user_details ud');
+
+        $this->db->join('designation d', 'd.designation_id = ud.designation_id_fk', 'left');
+
+        $this->db->where('ud.user_id', $user_id);
+
+        $this->db->where('ud.user_status', 1);
+
+        $query = $this->db->get();
+
+        return $query->row();
 
     }
 

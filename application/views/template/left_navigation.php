@@ -113,7 +113,16 @@
 							])): ?>
 							<li class="<?php if($this->uri->segment(1)=="Location"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Location">Location</a></li>
 
-							<?php endif;if (has_any_permission([
+							<?php endif; ?>
+							<?php if (has_any_permission([
+							    'ACCOUNT_DETAILS_VIEW',
+							    'ACCOUNT_DETAILS_CREATE',
+							    'ACCOUNT_DETAILS_UPDATE',
+							    'ACCOUNT_DETAILS_DELETE'
+							])): ?>
+							<li class="<?php if($this->uri->segment(1)=="Account_details"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Account_details">Account Details</a></li>
+							<?php endif; ?>
+							<?php if (has_any_permission([
 							    'DESTINATION_VIEW',
 							    'DESTINATION_CREATE',
 							    'DESTINATION_UPDATE',

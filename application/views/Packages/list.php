@@ -312,9 +312,9 @@
                                         <!-- <thead><tr><th><strong>Day</strong></th><th><strong>Stay Destination</strong></th><th><strong>Content</strong></th><th><strong>Change Destination</strong></th><th><strong>change Content</strong></th></tr></thead> -->
                                         <thead>
                                             <tr>
-                                                <th>Day</th>
-                                                <th>Stay Destination</th>
-                                                <th style="width:40%;">Description</th>
+                                                <th style="width:50%; min-width:250px;">Day</th>
+                                                <th>Destination</th>
+                                                <th style="width:30%;">Description</th>
                                                 <th style="width:15%;">Image</th>
                                                 <th>Change Destination</th>
                                                 <th>Change Content</th>

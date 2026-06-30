@@ -143,6 +143,17 @@ class Packages_model extends CI_Model{
 		return $query->result();
 	}
 
+	function get_prepared_by_user($user_id)
+	{
+		$this->db->select('ud.user_id, ud.admin_name, ud.user_email_address, ud.user_phone_number, d.designation_name');
+		$this->db->from('user_details ud');
+		$this->db->join('designation d', 'd.designation_id = ud.designation_id_fk', 'left');
+		$this->db->where('ud.user_id', $user_id);
+		$this->db->where('ud.user_status', 1);
+		$query = $this->db->get();
+		return $query->row();
+	}
+
     function fetch_package_category()
 	{
 		$this->db->order_by("package_category_id", "ASC");
@@ -321,6 +332,13 @@ class Packages_model extends CI_Model{
         return $this->db
             
             ->get('account_details')->row();
+    }
+
+    public function get_all_accountdetails()
+    {
+        return $this->db
+            ->where('account_details_status', 1)
+            ->get('account_details')->result();
     }
 
     /* ================= PROPERTIES ================= */

@@ -134,6 +134,8 @@ class Quotation extends MY_Controller {
 
 		$data['notes']           = $this->Quotation_model->get_quotation_notes($quotation_id);
 
+		$data['prepared_by']     = $this->Quotation_model->get_prepared_by_user($data['quotation']->quotation_created_by_userid);
+
 
 
 		// option/property/room + totals
