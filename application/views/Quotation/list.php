@@ -662,12 +662,8 @@
                                     <div class=" form-group">
                                         <label class="col-lg-5 col-form-label" for="leads">Template  <span class="text-danger">*</span>
                                         </label>
-                                        
-                                            <select name="packages_id_fk" id="packages_id_fk" class="form-control input-lg lst-flt-select2" required>                                     
-                                                <option value="">Please Select Template</option>
-                                                
-                                            </select>
-                                        
+                                        <div id="template_name_display" class="form-control-static" style="padding-top:7px; font-weight:600; min-height:34px;"></div>
+                                        <input type="hidden" name="packages_id_fk" id="packages_id_fk" value="">
                                     </div>
                                 </div>
                             </div>
@@ -865,8 +861,8 @@
                                                     </select>
           </td>
           <td>
-            <select class="form-select form-select-sm specialReqSelect"
-                    name="quotation_special_requirements_id_fk[]"></select>
+            <input type="text" class="form-control form-control-sm specialReqName"
+                   name="quotation_special_requirements_name[]" placeholder="Enter Requirement">
           </td>
           <td>
             <input type="number" class="form-control form-control-sm specialReqCost"

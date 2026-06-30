@@ -8355,7 +8355,7 @@ function resetQuotationModalForm() {
         $firstInc.find('select').each(function () {
             $(this).html('<option value="">Select</option>').val('').trigger('change');
         });
-        $firstInc.find('.removeInclusionBtn').prop('disabled', true);
+        $firstInc.find('.removeInclusionBtn').prop('disabled', false);
     }
 
     // reset special requirement table
@@ -8369,7 +8369,7 @@ function resetQuotationModalForm() {
             // $(this).html('<option value="">Select</option>').val('').trigger('change');
             $(this).html('<option value="">Select</option>').val('').trigger('change.select2');
         });
-        $firstSp.find('.removeSpecialReqBtn').prop('disabled', true);
+        $firstSp.find('.removeSpecialReqBtn').prop('disabled', false);
     }
 
     // uncheck and hide addon boxes
@@ -8576,7 +8576,7 @@ function num(v) {
     return isNaN(n) ? 0 : n;
 }
 
-$('.specialReqSelect, .specialReqDaySelect, .inclusionDaySelect, .inclusionPropertySelect, .inclusionNameSelect')
+$('.specialReqDaySelect, .inclusionDaySelect, .inclusionPropertySelect, .inclusionNameSelect')
 .each(function () {
     $(this).trigger('change.select2');
 });
@@ -8896,9 +8896,9 @@ $('.is-invalid').removeClass('is-invalid');
     if (!$('#packages_id_hidden').val())
         return showError('Please select Template', $('#packages_id_hidden')[0]), false;
 
-    if (!validateUniquePropertyDropdowns()) {
-        return false;
-    }
+    // if (!validateUniquePropertyDropdowns()) {
+    //     return false;
+    // }
 
     const optionBlocks = document.querySelectorAll('.optionBlock');
     if (!optionBlocks || optionBlocks.length === 0) {
@@ -9135,6 +9135,12 @@ if (amountTypeEl) {
     /* ================= 8. PROPERTY INCLUSIONS ================= */
 
 if ($('#quotation_property_inclusion_type').is(':checked')) {
+    const incRows = document.querySelectorAll('#inclusionTable tbody tr');
+    if (!incRows.length) {
+        valid = false;
+        alert('At least one Property Based Inclusion is required');
+        return false;
+    }
 
     document.querySelectorAll('#inclusionTable tbody tr').forEach(tr => {
         if (!valid) return;
@@ -9200,29 +9206,29 @@ if (!valid) return false;
 
     /* ================= 9. SPECIAL REQUIREMENTS ================= */
 if ($('#quotation_special_requirement_type').is(':checked')) {
+    const reqRows = document.querySelectorAll('#specialReqTable tbody tr');
+    if (!reqRows.length) {
+        valid = false;
+        alert('At least one Special Requirement is required');
+        return false;
+    }
 
     document.querySelectorAll('#specialReqTable tbody tr').forEach(tr => {
         if (!valid) return;
 
         const daySel = tr.querySelector('.specialReqDaySelect');
-        const reqSel = tr.querySelector('.specialReqSelect');
+        const reqName = tr.querySelector('.specialReqName');
         const amtEl  = tr.querySelector('.specialReqCost');
 
         if (!daySel?.value)
-            return valid = false, 
-        // showError('Select Day | Date | Destination for Requirement', daySel);
+            return valid = false,
         showError(
     'Select Day | Date | Destination for Requirement',
     $(daySel).next('.select2')[0] || daySel
 );
 
-        if (!reqSel?.value)
-            return valid = false, 
-        // showError('Select Special Requirement', reqSel);
-        showError(
-    'Select Special Requirement',
-    $(reqSel).next('.select2')[0] || reqSel
-);
+        if (!reqName?.value?.trim())
+            return valid = false, showError('Enter Special Requirement', reqName);
 
         if (num(amtEl?.value) <= 0)
             return valid = false, showError('Requirement amount required', amtEl);
@@ -9307,7 +9313,7 @@ $(document).ready(function () {
 
         $first.find('.inclusionPropertySelect').html('<option value="">Select Property</option>');
         $first.find('.inclusionNameSelect').html('<option value="">Select Inclusion</option>');
-        $first.find('.removeInclusionBtn').prop('disabled', true);
+        $first.find('.removeInclusionBtn').prop('disabled', false);
 
         if (typeof recalcInclusionTotal === 'function') {
             recalcInclusionTotal();
@@ -9324,7 +9330,7 @@ $(document).ready(function () {
             $(this).val(null).trigger('change');
         });
 
-        $first.find('.removeSpecialReqBtn').prop('disabled', true);
+        $first.find('.removeSpecialReqBtn').prop('disabled', false);
 
         if (typeof recalcSpecialReqTotal === 'function') {
             recalcSpecialReqTotal();
@@ -9630,77 +9636,6 @@ function clearInclusionSelect(selectEl) {
     setSelect2Empty(selectEl, 'Select Inclusion');
 }
 
-function applySpecialReqCostFromSelect(sel) {
-    if (!sel) return;
-
-    var row = sel.closest('tr');
-    if (!row) return;
-
-    var costInput = row.querySelector('.specialReqCost');
-    if (!costInput) return;
-
-    var opt = sel.options[sel.selectedIndex];
-    var cost = opt ? (opt.getAttribute('data-cost') || '0') : '0';
-
-    costInput.value = cost;
-
-    if (typeof recalcSpecialReqTotal === 'function') {
-        recalcSpecialReqTotal();
-    }
-}
-
-$(document).on('change', '.specialReqSelect', function () {
-    applySpecialReqCostFromSelect(this);
-});
-
-$(document).on('select2:select', '.specialReqSelect', function () {
-    applySpecialReqCostFromSelect(this);
-});
-
-$(document).on('select2:clear', '.specialReqSelect', function () {
-    var row = this.closest('tr');
-    var costInput = row ? row.querySelector('.specialReqCost') : null;
-
-    if (costInput) costInput.value = '';
-
-    if (typeof recalcSpecialReqTotal === 'function') {
-        recalcSpecialReqTotal();
-    }
-});
-
-/* ✅ Fallback if Select2 not active */
-document.addEventListener('change', function (e) {
-  const sel = e.target.closest('.specialReqSelect');
-  if (!sel) return;
-  applySpecialReqCostFromSelect(sel);
-});
-
-
-function fillSpecialReqSelect(selectEl) {
-    if (!selectEl) return;
-
-    var currentVal = $(selectEl).val() || '';
-
-    var html = '<option value="">Select Requirement</option>';
-    __specialReqOptions.forEach(function (r) {
-        html += '<option value="' + r.special_requirements_id + '" data-cost="' + (r.special_requirements_cost || 0) + '">' +
-                    r.special_requirements_name +
-                '</option>';
-    });
-
-    $(selectEl).html(html);
-
-    if (currentVal && $(selectEl).find('option[value="' + currentVal + '"]').length) {
-        $(selectEl).val(currentVal);
-    } else {
-        $(selectEl).val('');
-    }
-
-    initSelect2(selectEl, 'Select Requirement');
-    applySpecialReqCostFromSelect(selectEl);
-}
-
-
 document.getElementById('addSpecialReqBtn').addEventListener('click', function (e) {
     e.preventDefault();
 
@@ -9710,30 +9645,10 @@ document.getElementById('addSpecialReqBtn').addEventListener('click', function (
     var row = tbody.lastElementChild;
 
     fillDaySelect(row.querySelector('.specialReqDaySelect'));
-    fillSpecialReqSelect(row.querySelector('.specialReqSelect'));
 
     if (typeof recalcSpecialReqTotal === 'function') {
         recalcSpecialReqTotal();
     }
-});
-
-// ✅ Works with normal select + select2
-document.addEventListener('change', function (e) {
-  const sel = e.target.closest('.specialReqSelect');
-  if (!sel) return;
-
-  const row = sel.closest('tr');
-  const costInput = row?.querySelector('.specialReqCost');
-  if (!costInput) return;
-
-  // read selected option data-cost
-  const opt = sel.options[sel.selectedIndex];
-  const cost = opt && opt.dataset ? (opt.dataset.cost || '0') : '0';
-
-  costInput.value = cost;
-
-  // ✅ update total instantly
-  recalcSpecialReqTotal();
 });
 
 
@@ -9785,10 +9700,6 @@ function loadInclusionAndRequirementDropdownData() {
 
         document.querySelectorAll('.specialReqDaySelect').forEach(function (el) {
             fillDaySelect(el);
-        });
-
-        document.querySelectorAll('.specialReqSelect').forEach(function (el) {
-            fillSpecialReqSelect(el);
         });
 
         if (typeof recalcInclusionTotal === 'function') {
@@ -9917,9 +9828,8 @@ function createSpecialReqRow() {
                 </select>
             </td>
             <td>
-                <select class="form-select form-select-sm specialReqSelect" name="quotation_special_requirements_id_fk[]">
-                    <option value="">Select Requirement</option>
-                </select>
+                <input type="text" class="form-control form-control-sm specialReqName"
+                       name="quotation_special_requirements_name[]" placeholder="Enter Requirement">
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm specialReqCost"
@@ -10372,31 +10282,9 @@ $(document).on('select2:opening', '.propertyDropdown', function () {
     $(this).data('old-value', $(this).val() || '');
 });
 
-// ✅ validate on change
+// ✅ validate on change (duplicate check disabled)
 $(document).on('change', '.propertyDropdown', function () {
-    var current = this;
-    var selectedValue = $(current).val() || '';
-    var oldValue = $(current).data('old-value') || '';
-
-    if (!selectedValue) return;
-
-    var duplicateFound = false;
-
-    $('.propertyDropdown').not(current).each(function () {
-        if (($(this).val() || '') === selectedValue) {
-            duplicateFound = true;
-            return false;
-        }
-    });
-
-    if (duplicateFound) {
-        alert('This template option is already selected.');
-
-        // ✅ restore previous value correctly
-        $(current).val(oldValue).trigger('change.select2');
-
-        return false;
-    }
+    // Allow duplicate template option selection
 });
 
 $(document).on('change', '.propertyDropdown', function () {
@@ -10410,6 +10298,13 @@ $(document).on('change', '.propertyDropdown', function () {
 
     const selectedOption = dropdown.options[dropdown.selectedIndex];
     const designType = selectedOption ? (selectedOption.getAttribute('data-design-type') || '') : '';
+    const optionText = selectedOption ? (selectedOption.textContent || '').trim() : '';
+
+    // Auto-fill option title from selected template option
+    const titleInput = optionBlock.querySelector('[name="quotation_options_title[]"]');
+    if (titleInput && optionText && optionText !== 'Select template option') {
+        titleInput.value = optionText;
+    }
 
     const designDropdown = optionBlock.querySelector('.design-type-select');
     if (designDropdown) {
@@ -11623,14 +11518,14 @@ function buildQuotationPayload() {
     payload.special_requirements = [];
     document.querySelectorAll('#specialReqTable tbody tr').forEach(tr => {
       const dayKey = tr.querySelector('[name="specialreq_day_key[]"]')?.value || '';
-      const reqId = tr.querySelector('[name="quotation_special_requirements_id_fk[]"]')?.value || '';
+      const reqName = tr.querySelector('[name="quotation_special_requirements_name[]"]')?.value || '';
       const cost = tr.querySelector('[name="special_requirements_cost[]"]')?.value || '';
 
-      if (!dayKey || !reqId) return;
+      if (!dayKey || !reqName?.trim()) return;
 
       payload.special_requirements.push({
         dayKey,
-        quotation_special_requirements_id_fk: reqId,
+        quotation_special_requirements_name: reqName.trim(),
         cost
       });
     });

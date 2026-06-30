@@ -3714,11 +3714,13 @@ public function insert_room_tariff_details($data)
 
         $status=1;
 
-        $this->db->select('package_id_fk');
+        $this->db->select('l.package_id_fk, p.packages_title');
 
-        $this->db->from('leads');
+        $this->db->from('leads l');
 
-        $this->db->where('leads_id', $leads_id);
+        $this->db->join('packages p', 'p.packages_id = l.package_id_fk', 'left');
+
+        $this->db->where('l.leads_id', $leads_id);
 
         $query = $this->db->get();
 
@@ -5331,11 +5333,13 @@ public function insert_room_tariff_details($data)
 
     return $this->db
 
-        ->select('q.*, l.leads_number, l.guest_name,,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date')
+        ->select('q.*, l.leads_number, l.guest_name, p.packages_title, DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date')
 
         ->from('quotation q')
 
         ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+
+        ->join('packages p', 'p.packages_id = q.package_id_fk', 'left')
 
         ->where('q.quotation_status', 1)
 
@@ -5539,7 +5543,7 @@ public function insert_room_tariff_details($data)
 
         return $this->db
 
-            ->select('qsr.*')
+            ->select('qsr.*, qsr.quotation_special_requirements_name')
 
             ->from('quotation_special_requirements qsr')
 
@@ -6263,11 +6267,9 @@ public function get_quotation_special_requirements_preview($quotation_id)
 
     return $this->db
 
-        ->select('qsr.*, sr.special_requirements_name')
+        ->select('qsr.*, qsr.quotation_special_requirements_name as special_requirements_name')
 
         ->from('quotation_special_requirements qsr')
-
-        ->join('special_requirements sr', 'sr.special_requirements_id = qsr.quotation_special_requirements_id_fk', 'left')
 
         ->where('qsr.quotation_id_fk', (int)$quotation_id)
 
@@ -6521,14 +6523,9 @@ public function get_quotation_special_requirements_preview($quotation_id)
         ->select('
             qsr.quotation_special_requirements_cost,
             qsr.accommodation_date,
-            sr.special_requirements_name
+            qsr.quotation_special_requirements_name as special_requirements_name
         ')
         ->from('quotation_special_requirements qsr')
-        ->join(
-            'special_requirements sr',
-            'sr.special_requirements_id = qsr.quotation_special_requirements_id_fk',
-            'left'
-        )
         ->where('qsr.quotation_id_fk', $main['quotation_id'])
         // ->where('qsr.quotation_options_id_fk', $main['quotation_options_id'])
         ->where('qsr.quotation_special_requirements_status', 1)

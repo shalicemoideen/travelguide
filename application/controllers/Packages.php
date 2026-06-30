@@ -532,7 +532,7 @@ class Packages extends MY_Controller {
     $data['days']             = $this->Packages_model->get_itinerary_days($package_id);
     $data['itinerary']        = $data['days']; // if your old code still uses $itinerary
 
-    $data['account_details']       = $this->Packages_model->get_accountdetails();
+    $data['account_details']       = $this->Packages_model->get_all_accountdetails();
     $data['inclusions']       = $this->Packages_model->get_inclusions($package_id);
     $data['exclusions']       = $this->Packages_model->get_exclusions($package_id);
     $data['optional_addons']  = $this->Packages_model->get_optional_addons($package_id);
@@ -542,6 +542,7 @@ class Packages extends MY_Controller {
     $data['cancel']           = $this->Packages_model->get_cancellation($package_id);
     $data['notes']            = $this->Packages_model->get_notes($package_id);
     $data['properties']       = $this->Packages_model->get_properties_grouped($package_id);
+    $data['prepared_by']      = $this->Packages_model->get_prepared_by_user($package->packages_createdby_user_id);
 
     $this->load->view('Packages/preview_direct', $data);
 }
@@ -1924,6 +1925,7 @@ $refMaps['itinerary']['main'] = $packages_itinerary_id;
        2) ITINERARY DAYS
        REQUIRED STATUS SAVED HERE
     ============================= */
+    $packages_itinerary_days_id                  = (array)$this->input->post('packages_itinerary_days_id');
     $itineraries_days_id_fk                      = (array)$this->input->post('itineraries_days_id_fk');
     $packages_itineraries_days_day               = (array)$this->input->post('packages_itineraries_days_day');
     $packages_itineraries_days_destination_id_fk = (array)$this->input->post('packages_itineraries_days_destination_id_fk');
@@ -2001,28 +2003,13 @@ $refMaps['itinerary']['main'] = $packages_itinerary_id;
             'packages_itinerary_days_status'              => 1
         );
 
-        if ($is_update) {
+        $pkgDayId = isset($packages_itinerary_days_id[$k]) ? (int)$packages_itinerary_days_id[$k] : 0;
 
-            $oldDay = $this->db
-                ->where('packages_itinerary_id_fk', $packages_itinerary_id)
-                ->where('itineraries_days_id_fk', $itinDayId)
-                ->get($this->packages_itinerary_days)
-                ->row_array();
-
-            if ($oldDay) {
-                $pkgInsertedId = (int)$oldDay['packages_itinerary_days_id'];
-
-                $this->db->where('packages_itinerary_days_id', $pkgInsertedId);
-                $this->db->update($this->packages_itinerary_days, $data_day);
-            } else {
-                $pkgInsertedId = $this->General_model->add_returnID(
-                    $this->packages_itinerary_days,
-                    $data_day
-                );
-            }
-
+        if ($is_update && $pkgDayId > 0) {
+            $this->db->where('packages_itinerary_days_id', $pkgDayId);
+            $this->db->update($this->packages_itinerary_days, $data_day);
+            $pkgInsertedId = $pkgDayId;
         } else {
-
             $pkgInsertedId = $this->General_model->add_returnID(
                 $this->packages_itinerary_days,
                 $data_day

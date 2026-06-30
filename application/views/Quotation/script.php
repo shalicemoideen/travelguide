@@ -103,19 +103,9 @@ $("#leads_id").select2({
 //   minimumResultsForSearch: 0
 // });
 function toggleAddOptionBtn() {
-    var packageId = $('#packages_id_fk').val();
+    var packageId = $('#packages_id_fk').val() || $('#packages_id_hidden').val();
     $('#addOptionBtn').prop('disabled', !packageId);
 }
-
-$('#packages_id_fk').select2({
-    dropdownParent: $('#QuotationModal'),
-    minimumResultsForSearch: 0,
-    width: '100%'
-});
-
-$('#packages_id_fk').on('change select2:select select2:clear', function () {
-    toggleAddOptionBtn();
-});
 
 /* run once on load */
 // toggleAddOptionBtn();
@@ -659,7 +649,7 @@ function clearQuotationOnPackageChange() {
         $first.find('.inclusionPropertySelect').html('<option value="">Select Property</option>');
         $first.find('.inclusionNameSelect').html('<option value="">Select Inclusion</option>');
 
-        $first.find('.removeInclusionBtn').prop('disabled', true);
+        $first.find('.removeInclusionBtn').prop('disabled', false);
     }
 
     // ===== SPECIAL REQUIREMENT RESET =====
@@ -672,9 +662,7 @@ function clearQuotationOnPackageChange() {
         $first.find('input').val('');
         $first.find('select').val('').trigger('change');
 
-        $first.find('.specialReqSelect').html('<option value="">Select Requirement</option>');
-
-        $first.find('.removeSpecialReqBtn').prop('disabled', true);
+        $first.find('.removeSpecialReqBtn').prop('disabled', false);
     }
 
     // ❗ reset totals
@@ -712,17 +700,16 @@ function resetQuotationModalForm() {
     $('#leads_id_hidden').val('');
     $('#packages_id_hidden').val('');
 
-    // if visible dropdowns exist — re-enable and clear AJAX Select2
+    // clear lead dropdown
     if ($('#leads_id').length) {
         $('#leads_id').prop('disabled', false).data('filter-mode', 'add_quotation').empty()
             .append('<option value="">Please Select lead</option>')
             .val('').trigger('change.select2');
     }
-    if ($('#packages_id_fk').length) {
-        $('#packages_id_fk').prop('disabled', false)
-            .html('<option value="">Please Select Template</option>')
-            .val('').trigger('change.select2');
-    }
+    // clear template display and hidden field
+    $('#template_name_display').text('');
+    $('#packages_id_fk').val('');
+    $('#packages_id_hidden').val('');
 
     // clear select2 fields inside modal
     $('#QuotationModal').find('select').each(function () {
@@ -753,7 +740,7 @@ function resetQuotationModalForm() {
             // $(this).html('<option value="">Select</option>').val('').trigger('change');
             $(this).html('<option value="">Select</option>').val('').trigger('change.select2');
         });
-        $firstInc.find('.removeInclusionBtn').prop('disabled', true);
+        $firstInc.find('.removeInclusionBtn').prop('disabled', false);
     }
 
     // reset special requirement table
@@ -763,10 +750,8 @@ function resetQuotationModalForm() {
 
         var $firstSp = $spTbody.find('tr:eq(0)');
         $firstSp.find('input').val('');
-        $firstSp.find('select').each(function () {
-            $(this).html('<option value="">Select</option>').val('').trigger('change');
-        });
-        $firstSp.find('.removeSpecialReqBtn').prop('disabled', true);
+        $firstSp.find('select').val('').trigger('change');
+        $firstSp.find('.removeSpecialReqBtn').prop('disabled', false);
     }
 
     // uncheck and hide addon boxes
@@ -841,13 +826,11 @@ function add_quotation()
 
 $('#leads_id').val('').trigger('change.select2');
 
-$('#packages_id_fk')
-    .prop('disabled', false)
-    .html('<option value="">Please Select Template</option>')
-    .val('')
-    .trigger('change.select2');
+$('#template_name_display').text('');
+$('#packages_id_fk').val('');
+$('#packages_id_hidden').val('');
 
-$('#leads_id_hidden, #packages_id_hidden').val('');
+$('#leads_id_hidden').val('');
 
     // ✅ clear option blocks/details
     $('#optionsContainer').empty();
@@ -3512,7 +3495,7 @@ function num(v) {
     return isNaN(n) ? 0 : n;
 }
 
-$('.specialReqSelect, .specialReqDaySelect, .inclusionDaySelect, .inclusionPropertySelect, .inclusionNameSelect')
+$('.specialReqDaySelect, .inclusionDaySelect, .inclusionPropertySelect, .inclusionNameSelect')
 .each(function () {
     $(this).trigger('change.select2');
 });
@@ -3585,15 +3568,15 @@ $('.is-invalid').removeClass('is-invalid');
         return showError('Please select Lead', $('#leads_id')[0]), false;
 
     if (!$('#packages_id_fk').val())
-        return showError('Please select Template', $('#packages_id_fk')[0]), false;
+        return showError('Please select Template', $('#template_name_display')[0]), false;
 
-    if (!validateUniquePropertyDropdowns()) {
-        return false;
-    }
+    // if (!validateUniquePropertyDropdowns()) {
+    //     return false;
+    // }
 
     const optionBlocks = document.querySelectorAll('.optionBlock');
     if (!optionBlocks || optionBlocks.length === 0) {
-        showError('Please add at least one Template Option', document.getElementById('packages_id_fk'));
+        showError('Please add at least one Template Option', document.getElementById('addOptionBtn'));
         return false;
     }
 
@@ -3826,6 +3809,12 @@ if (amountTypeEl) {
     /* ================= 8. PROPERTY INCLUSIONS ================= */
 
 if ($('#quotation_property_inclusion_type').is(':checked')) {
+    const incRows = document.querySelectorAll('#inclusionTable tbody tr');
+    if (!incRows.length) {
+        valid = false;
+        alert('At least one Property Based Inclusion is required');
+        return false;
+    }
 
     document.querySelectorAll('#inclusionTable tbody tr').forEach(tr => {
         if (!valid) return;
@@ -3891,29 +3880,29 @@ if (!valid) return false;
 
     /* ================= 9. SPECIAL REQUIREMENTS ================= */
 if ($('#quotation_special_requirement_type').is(':checked')) {
+    const reqRows = document.querySelectorAll('#specialReqTable tbody tr');
+    if (!reqRows.length) {
+        valid = false;
+        alert('At least one Special Requirement is required');
+        return false;
+    }
 
     document.querySelectorAll('#specialReqTable tbody tr').forEach(tr => {
         if (!valid) return;
 
         const daySel = tr.querySelector('.specialReqDaySelect');
-        const reqSel = tr.querySelector('.specialReqSelect');
+        const reqName = tr.querySelector('.specialReqName');
         const amtEl  = tr.querySelector('.specialReqCost');
 
         if (!daySel?.value)
-            return valid = false, 
-        // showError('Select Day | Date | Destination for Requirement', daySel);
+            return valid = false,
         showError(
     'Select Day | Date | Destination for Requirement',
     $(daySel).next('.select2')[0] || daySel
 );
 
-        if (!reqSel?.value)
-            return valid = false, 
-        // showError('Select Special Requirement', reqSel);
-        showError(
-    'Select Special Requirement',
-    $(reqSel).next('.select2')[0] || reqSel
-);
+        if (!reqName?.value?.trim())
+            return valid = false, showError('Enter Special Requirement', reqName);
 
         if (num(amtEl?.value) <= 0)
             return valid = false, showError('Requirement amount required', amtEl);
@@ -4056,7 +4045,7 @@ $(document).ready(function () {
 
         $first.find('.inclusionPropertySelect').html('<option value="">Select Property</option>');
         $first.find('.inclusionNameSelect').html('<option value="">Select Inclusion</option>');
-        $first.find('.removeInclusionBtn').prop('disabled', true);
+        $first.find('.removeInclusionBtn').prop('disabled', false);
 
         if (typeof recalcInclusionTotal === 'function') {
             recalcInclusionTotal();
@@ -4073,7 +4062,7 @@ $(document).ready(function () {
             $(this).val(null).trigger('change');
         });
 
-        $first.find('.removeSpecialReqBtn').prop('disabled', true);
+        $first.find('.removeSpecialReqBtn').prop('disabled', false);
 
         if (typeof recalcSpecialReqTotal === 'function') {
             recalcSpecialReqTotal();
@@ -4197,28 +4186,7 @@ $(document).ready(function () {
         toggleBox($(this), $('#specialReqBox'), resetSpecialReqBox);
     });
 
-    // visible package select
-    // $(document).on('change', '#packages_id_fk', function () {
-    //     resetAddonBlocks();
-    // });
-
-    $(document).on('change', '#packages_id_fk', function () {
-        if (window.isQuotationEditLoading) return;
-        resetAddonBlocks();
-    });
-    // visible package select2
-    // $(document).on('select2:select select2:clear', '#packages_id_fk', function () {
-    //     resetAddonBlocks();
-    // });
-
-    $(document).on('select2:select select2:clear', '#packages_id_fk', function () {
-        if (window.isQuotationEditLoading) return;
-        resetAddonBlocks();
-    });
-    // hidden package field used in leads page modal version
-    // $(document).on('change', '#packages_id_hidden', function () {
-    //     resetAddonBlocks();
-    // });
+    // Template is auto-determined by lead; reset handled in lead change handler
     $(document).on('change', '#packages_id_hidden', function () {
         if (window.isQuotationEditLoading) return;
         resetAddonBlocks();
@@ -4424,50 +4392,7 @@ function clearInclusionSelect(selectEl) {
     setSelect2Empty(selectEl, 'Select Inclusion');
 }
 
-function applySpecialReqCostFromSelect(sel) {
-    if (!sel) return;
-
-    var row = sel.closest('tr');
-    if (!row) return;
-
-    var costInput = row.querySelector('.specialReqCost');
-    if (!costInput) return;
-
-    var opt = sel.options[sel.selectedIndex];
-    var cost = opt ? (opt.getAttribute('data-cost') || '0') : '0';
-
-    costInput.value = cost;
-
-    if (typeof recalcSpecialReqTotal === 'function') {
-        recalcSpecialReqTotal();
-    }
-}
-
-$(document).on('change', '.specialReqSelect', function () {
-    applySpecialReqCostFromSelect(this);
-});
-
-$(document).on('select2:select', '.specialReqSelect', function () {
-    applySpecialReqCostFromSelect(this);
-});
-
-$(document).on('select2:clear', '.specialReqSelect', function () {
-    var row = this.closest('tr');
-    var costInput = row ? row.querySelector('.specialReqCost') : null;
-
-    if (costInput) costInput.value = '';
-
-    if (typeof recalcSpecialReqTotal === 'function') {
-        recalcSpecialReqTotal();
-    }
-});
-
-/* ✅ Fallback if Select2 not active */
-document.addEventListener('change', function (e) {
-  const sel = e.target.closest('.specialReqSelect');
-  if (!sel) return;
-  applySpecialReqCostFromSelect(sel);
-});
+/* Special requirement name is now a text input; no dropdown handlers needed */
 
 // function fillSpecialReqSelect(selectEl) {
 //     if (!selectEl) return;
@@ -4498,29 +4423,7 @@ document.addEventListener('change', function (e) {
 //     applySpecialReqCostFromSelect(selectEl);
 // }
 
-function fillSpecialReqSelect(selectEl) {
-    if (!selectEl) return;
-
-    var currentVal = $(selectEl).val() || '';
-
-    var html = '<option value="">Select Requirement</option>';
-    __specialReqOptions.forEach(function (r) {
-        html += '<option value="' + r.special_requirements_id + '" data-cost="' + (r.special_requirements_cost || 0) + '">' +
-                    r.special_requirements_name +
-                '</option>';
-    });
-
-    $(selectEl).html(html);
-
-    if (currentVal && $(selectEl).find('option[value="' + currentVal + '"]').length) {
-        $(selectEl).val(currentVal);
-    } else {
-        $(selectEl).val('');
-    }
-
-    initSelect2(selectEl, 'Select Requirement');
-    applySpecialReqCostFromSelect(selectEl);
-}
+/* fillSpecialReqSelect removed — special requirement name is now a text input */
 
 // document.getElementById('addSpecialReqBtn').addEventListener('click', function (e) {
 //   e.preventDefault();
@@ -4544,30 +4447,17 @@ document.getElementById('addSpecialReqBtn').addEventListener('click', function (
     var row = tbody.lastElementChild;
 
     fillDaySelect(row.querySelector('.specialReqDaySelect'));
-    fillSpecialReqSelect(row.querySelector('.specialReqSelect'));
 
     if (typeof recalcSpecialReqTotal === 'function') {
         recalcSpecialReqTotal();
     }
 });
 
-// ✅ Works with normal select + select2
-document.addEventListener('change', function (e) {
-  const sel = e.target.closest('.specialReqSelect');
-  if (!sel) return;
-
-  const row = sel.closest('tr');
-  const costInput = row?.querySelector('.specialReqCost');
-  if (!costInput) return;
-
-  // read selected option data-cost
-  const opt = sel.options[sel.selectedIndex];
-  const cost = opt && opt.dataset ? (opt.dataset.cost || '0') : '0';
-
-  costInput.value = cost;
-
-  // ✅ update total instantly
-  recalcSpecialReqTotal();
+// ✅ Auto-recalc total when cost changes
+document.addEventListener('input', function (e) {
+  if (e.target.closest('.specialReqCost')) {
+    recalcSpecialReqTotal();
+  }
 });
 
 // function fillSpecialReqSelect(selectEl) {
@@ -4645,10 +4535,6 @@ function loadInclusionAndRequirementDropdownData(callback) {
             fillDaySelect(el);
         });
 
-        document.querySelectorAll('.specialReqSelect').forEach(function (el) {
-            fillSpecialReqSelect(el);
-        });
-
         if (typeof callback === 'function') callback();
     })
     .catch(function (err) {
@@ -4669,18 +4555,8 @@ function loadInclusionAndRequirementDropdownData(callback) {
 //     loadInclusionAndRequirementDropdownData();
 // });
 
-// // ✅ if you still also use visible package dropdown somewhere else
-$(document).on('change', '#packages_id_fk, #leads_id', function () {
-    loadInclusionAndRequirementDropdownData();
-    clearQuotationOnPackageChange();
-      // ✅ fix bootstrap scroll recalculation
-    setTimeout(function () {
-        $('#QuotationModal').modal('handleUpdate');
-    }, 100);
-});
-
-// ✅ Select2-safe trigger
-$(document).on('select2:select', '#packages_id_fk, #leads_id', function () {
+// Load inclusion/requirement data when lead changes (template is auto-determined by lead)
+$(document).on('change', '#leads_id', function () {
     loadInclusionAndRequirementDropdownData();
     clearQuotationOnPackageChange();
       // ✅ fix bootstrap scroll recalculation
@@ -4782,9 +4658,8 @@ function createSpecialReqRow() {
                 </select>
             </td>
             <td>
-                <select class="form-select form-select-sm specialReqSelect" name="quotation_special_requirements_id_fk[]">
-                    <option value="">Select Requirement</option>
-                </select>
+                <input type="text" class="form-control form-control-sm specialReqName"
+                       name="quotation_special_requirements_name[]" placeholder="Enter Requirement">
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm specialReqCost"
@@ -5160,18 +5035,10 @@ document.addEventListener('input', function (e) {
 let optionCount = 0;
 
 /* ================= ENABLE ADD OPTION AFTER PACKAGE ================= */
-
+// Template is auto-determined by lead selection; toggle handled in lead change handler
 const packageSelect = document.getElementById('packages_id_fk');
 const addOptionBtn = document.getElementById('addOptionBtn');
 const optionsContainer = document.getElementById('optionsContainer');
-
-packageSelect.addEventListener('change', () => {
-  alert("dd")
-    addOptionBtn.disabled = !packageSelect.value;
-    optionsContainer.innerHTML = '';
-    optionCount = 0;
-    // loadDayDestOptionsForInclusionAndReq();
-});
 
 /* ================= ADD OPTION ================= */
 
@@ -5263,36 +5130,9 @@ function fetchVehicles(selectEl, callback) {
 }
 /* ================= LOAD ITINERARY ON OPTION SELECT ================= */
 
-// ✅ store old value BEFORE dropdown opens
-$(document).on('select2:opening', '.propertyDropdown', function () {
-    $(this).data('old-value', $(this).val() || '');
-});
-
-// ✅ validate on change
+// ✅ validate on change (duplicate check disabled)
 $(document).on('change', '.propertyDropdown', function () {
-    var current = this;
-    var selectedValue = $(current).val() || '';
-    var oldValue = $(current).data('old-value') || '';
-
-    if (!selectedValue) return;
-
-    var duplicateFound = false;
-
-    $('.propertyDropdown').not(current).each(function () {
-        if (($(this).val() || '') === selectedValue) {
-            duplicateFound = true;
-            return false;
-        }
-    });
-
-    if (duplicateFound) {
-        alert('This template option is already selected.');
-
-        // ✅ restore previous value correctly
-        $(current).val(oldValue).trigger('change.select2');
-
-        return false;
-    }
+    // Allow duplicate template option selection
 });
 
 $(document).on('change', '.propertyDropdown', function () {
@@ -5306,6 +5146,13 @@ $(document).on('change', '.propertyDropdown', function () {
 
     const selectedOption = dropdown.options[dropdown.selectedIndex];
     const designType = selectedOption ? (selectedOption.getAttribute('data-design-type') || '') : '';
+    const optionText = selectedOption ? (selectedOption.textContent || '').trim() : '';
+
+    // Auto-fill option title from selected template option
+    const titleInput = optionBlock.querySelector('[name="quotation_options_title[]"]');
+    if (titleInput && optionText && optionText !== 'Select template option') {
+        titleInput.value = optionText;
+    }
 
     const designDropdown = optionBlock.querySelector('.design-type-select');
     if (designDropdown) {
@@ -6387,14 +6234,14 @@ function buildQuotationPayload() {
     payload.special_requirements = [];
     document.querySelectorAll('#specialReqTable tbody tr').forEach(tr => {
       const dayKey = tr.querySelector('[name="specialreq_day_key[]"]')?.value || '';
-      const reqId = tr.querySelector('[name="quotation_special_requirements_id_fk[]"]')?.value || '';
+      const reqName = tr.querySelector('[name="quotation_special_requirements_name[]"]')?.value?.trim() || '';
       const cost = tr.querySelector('[name="special_requirements_cost[]"]')?.value || '';
 
-      if (!dayKey || !reqId) return;
+      if (!dayKey || !reqName) return;
 
       payload.special_requirements.push({
         dayKey,
-        quotation_special_requirements_id_fk: reqId,
+        quotation_special_requirements_name: reqName,
         cost
       });
     });
@@ -8807,58 +8654,52 @@ document.getElementById('leads_id').addEventListener('change', function () {
 
 $(document).ready(function() {
     $('#leads_id').change(function() {
-    //alert("oo");
+          // Skip during edit mode loading
+          if (window.isQuotationEditLoading) return;
+
           var leads_id = $('#leads_id').val();
 
-          // If lead cleared, reset template dropdown
+          // If lead cleared, reset template display
           if (!leads_id) {
-              $('#packages_id_fk').prop('disabled', false)
-                  .html('<option value="">Please Select Template</option>')
-                  .val('').trigger('change.select2');
+              $('#template_name_display').text('');
+              $('#packages_id_fk').val('');
+              $('#packages_id_hidden').val('');
               toggleAddOptionBtn();
+              clearQuotationOnPackageChange();
               return;
           }
 
-          // Disable template dropdown while loading
-          $('#packages_id_fk').prop('disabled', true)
-              .html('<option value="">Loading...</option>')
-              .trigger('change.select2');
+          $('#template_name_display').text('Loading...');
 
           $.ajax({
               url: "<?php echo base_url(); ?>index.php/Quotation/packageid_underlead/"+leads_id,
               dataType: 'json',
               type: 'POST',
-              success:
-              function(data) {
+              success: function(data) {
+                var packages_id = data['package_id_fk'] || '';
+                var packages_title = data['packages_title'] || '';
 
-                packages_id = data['package_id_fk'];
-                // alert(packages_id);
-
-                 if(packages_id != '') {
-                  $.ajax({
-                      url: "<?php echo base_url(); ?>index.php/Quotation/fetch_package_under_lead",
-                      method: "POST",
-                      data: {
-                          packages_id: packages_id
-                      },
-                      success: function(data) {
-                          $('#packages_id_fk').html(data);
-                          $('#packages_id_fk').prop('disabled', false).trigger('change.select2');
-                          toggleAddOptionBtn();
-                      }
-                  });
-                  } else {
-                      $('#packages_id_fk').html('<option value="">Please Select Template</option>')
-                          .prop('disabled', false).trigger('change.select2');
-                  }
-                
-                  }
-            
+                if (packages_id && packages_title) {
+                    $('#template_name_display').text(packages_title);
+                    $('#packages_id_fk').val(packages_id);
+                    $('#packages_id_hidden').val(packages_id);
+                    toggleAddOptionBtn();
+                    loadInclusionAndRequirementDropdownData();
+                    clearQuotationOnPackageChange();
+                } else {
+                    $('#template_name_display').text('');
+                    $('#packages_id_fk').val('');
+                    $('#packages_id_hidden').val('');
+                    toggleAddOptionBtn();
+                }
+              },
+              error: function() {
+                $('#template_name_display').text('');
+                $('#packages_id_fk').val('');
+                $('#packages_id_hidden').val('');
+                toggleAddOptionBtn();
+              }
           });
-
-    
-       
-
     });
 });
 
@@ -9030,6 +8871,8 @@ function edit_quotation(id)
 // $('#leads_id_hidden').val(leads_id);
 
             $('#packages_id_hidden').val(package_id);
+            $('#packages_id_fk').val(package_id);
+            $('#template_name_display').text(q.packages_title || '');
 
             if (!leads_id || !package_id) {
                 window.isQuotationEditLoading = false;
@@ -9037,71 +8880,38 @@ function edit_quotation(id)
                 return;
             }
 
-            // Disable template dropdown while loading for edit
-            $('#packages_id_fk').prop('disabled', true)
-                .html('<option value="">Loading...</option>')
-                .trigger('change.select2');
+            $('#QuotationModal').modal('show');
+            $('#QuotationModal .modal-title').text('Edit Quotation Details');
+            $('#btnSave').text('Update');
 
-            $.ajax({
-                url: "<?php echo base_url(); ?>index.php/Quotation/fetch_package_under_lead",
-                method: "POST",
-                data: {
-                    packages_id: package_id,
-                    leads_id: leads_id
-                },
-                success: function(html) {
+            rebuildQuotationOptionBlocks(res.options || [], package_id, function () {
 
-                    $('#packages_id_fk').html(html);
+                loadInclusionAndRequirementDropdownData(function () {
 
-                    // ✅ do not use normal change here, it may clear modal
-                    // $('#packages_id_fk').val(package_id).trigger('change.select2');
-                    // $('#packages_id_hidden').val(package_id);
+                    if ((res.property_inclusions || []).length > 0) {
+                        $('#quotation_property_inclusion_type').prop('checked', true);
+                        $('#inclusionBox').show();
 
-                    $('#packages_id_fk')
-    .val(package_id)
-    .prop('disabled', true)
-    .trigger('change.select2');
+                        refillSavedPropertyInclusions(res.property_inclusions || []);
+                    }
 
-$('#packages_id_hidden').val(package_id);
+                    if ((res.special_requirements || []).length > 0) {
+                        $('#quotation_special_requirement_type').prop('checked', true);
+                        $('#specialReqBox').show();
 
-                    $('#QuotationModal').modal('show');
-                    $('#QuotationModal .modal-title').text('Edit Quotation Details');
-                    $('#btnSave').text('Update');
-
-                    rebuildQuotationOptionBlocks(res.options || [], package_id, function () {
-
-                        loadInclusionAndRequirementDropdownData(function () {
-
-                            if ((res.property_inclusions || []).length > 0) {
-                                $('#quotation_property_inclusion_type').prop('checked', true);
-                                $('#inclusionBox').show();
-
-                                refillSavedPropertyInclusions(res.property_inclusions || []);
-                            }
-
-                            if ((res.special_requirements || []).length > 0) {
-                                $('#quotation_special_requirement_type').prop('checked', true);
-                                $('#specialReqBox').show();
-
-                                refillSavedSpecialRequirements(res.special_requirements || []);
-                            }
-
-                            setTimeout(function () {
-                                window.isQuotationEditLoading = false;
-                            }, 500);
-                        });
-                    });
+                        refillSavedSpecialRequirements(res.special_requirements || []);
+                    }
 
                     setTimeout(function () {
                         window.isQuotationEditLoading = false;
-                        $('#addOptionBtn').prop('disabled', false).removeClass('disabled');
                     }, 500);
-                },
-                error: function () {
-                    window.isQuotationEditLoading = false;
-                    alert('Failed to load template dropdown');
-                }
+                });
             });
+
+            setTimeout(function () {
+                window.isQuotationEditLoading = false;
+                $('#addOptionBtn').prop('disabled', false).removeClass('disabled');
+            }, 500);
         },
         error: function ()
         {
@@ -9111,14 +8921,7 @@ $('#packages_id_hidden').val(package_id);
     });
 }
 
-$(document).on('change', '#packages_id_fk', function () {
-    if (window.isQuotationEditLoading) {
-        return;
-    }
-
-    clearQuotationOnPackageChange();
-    loadInclusionAndRequirementDropdownData();
-});
+/* Template is auto-determined by lead; #packages_id_fk is now hidden */
 
 function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callback) {
     if (!$select || !$select.length) return;
@@ -10007,7 +9810,7 @@ function refillSavedSpecialRequirements(rows)
         ].join('|');
 
         $tr.find('.specialReqDaySelect').val(dayKey).trigger('change');
-        $tr.find('.specialReqSelect').val(row.quotation_special_requirements_id_fk || '').trigger('change');
+        $tr.find('.specialReqName').val(row.quotation_special_requirements_name || '');
         $tr.find('.specialReqCost').val(row.quotation_special_requirements_cost || '');
     });
 

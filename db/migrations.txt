@@ -231,4 +231,6 @@ CREATE TABLE IF NOT EXISTS `account_details` (
 ALTER TABLE `account_details` ADD `account_details_created_user_id` INT NULL DEFAULT NULL AFTER `branch_name`, ADD `account_details_created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP AFTER `account_details_created_user_id`, ADD `account_details_updated_user_id` INT NULL DEFAULT NULL AFTER `account_details_created_at`, ADD `account_details_updated_at` DATETIME on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP AFTER `account_details_updated_user_id`;
 ALTER TABLE `account_details` CHANGE `account_details_status` `account_details_status` TINYINT(4) NULL DEFAULT '1';
 ALTER TABLE `account_details` ADD `qr_status` INT NULL DEFAULT '0' AFTER `branch_name`;
-ALTER TABLE `account_details` ADD `up_id` VARCHAR(255) NOT NULL AFTER `branch_name`;
+ALTER TABLE `account_details` ADD `up_id` VARCHAR(255) NOT NULL AFTER `branch_name`
+
+ALTER TABLE `quotation_special_requirements` ADD `quotation_special_requirements_name` VARCHAR(255) NOT NULL AFTER `quotation_special_requirements_id_fk`;

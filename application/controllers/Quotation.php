@@ -2372,7 +2372,7 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
             'accommodation_date' => $acc_date, // if column exists
 
-            'quotation_special_requirements_id_fk' => (int)$sr['quotation_special_requirements_id_fk'],
+            'quotation_special_requirements_name' => $sr['quotation_special_requirements_name'],
 
             'quotation_special_requirements_cost' => $sr['cost'],
 
@@ -3191,7 +3191,7 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
 						'accommodation_date' => $acc_date,
 
-						'quotation_special_requirements_id_fk' => (int)$sr['quotation_special_requirements_id_fk'],
+						'quotation_special_requirements_name' => $sr['quotation_special_requirements_name'],
 
 						'quotation_special_requirements_cost' => $sr['cost'],
 
@@ -4200,7 +4200,7 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
                     'accommodation_date' => $acc_date,
 
-                    'quotation_special_requirements_id_fk' => isset($sr['quotation_special_requirements_id_fk']) ? (int)$sr['quotation_special_requirements_id_fk'] : 0,
+                    'quotation_special_requirements_name' => isset($sr['quotation_special_requirements_name']) ? $sr['quotation_special_requirements_name'] : '',
 
                     'quotation_special_requirements_cost' => isset($sr['cost']) ? $sr['cost'] : 0,
 
