@@ -47,6 +47,11 @@ class Receipt_scheduler extends MY_Controller {
 
     public function add()
     {
+        if (!has_permission('RECEIPT_SCHEDULER')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Receipt Scheduler'));
+            return;
+        }
+
         $quotation_id = $this->input->post('quotation_id_fk');
         $payment_type = $this->input->post('payment_type');
         $total_amount = $this->input->post('total_amount');
@@ -132,6 +137,11 @@ class Receipt_scheduler extends MY_Controller {
 
     public function edit()
     {
+        if (!has_permission('RECEIPT_SCHEDULER')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Receipt Scheduler'));
+            return;
+        }
+
         $scheduler_id = $this->input->post('receipt_scheduler_id');
         $payment_type = $this->input->post('payment_type');
         $total_amount = $this->input->post('total_amount');
@@ -212,6 +222,11 @@ class Receipt_scheduler extends MY_Controller {
 
     public function delete()
     {
+        if (!has_permission('RECEIPT_SCHEDULER')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Receipt Scheduler'));
+            return;
+        }
+
         $id = $this->input->post('receipt_scheduler_id');
         $result = $this->Receipt_scheduler_model->delete_by_id($id);
         
@@ -232,6 +247,11 @@ class Receipt_scheduler extends MY_Controller {
 
     public function record_payment()
     {
+        if (!has_permission('RECEIPT_SCHEDULER')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Receipt Scheduler'));
+            return;
+        }
+
         $installment_id = $this->input->post('installment_id');
         $payment_amount = $this->input->post('payment_amount');
         $payment_date = $this->input->post('payment_date');

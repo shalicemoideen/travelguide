@@ -113,6 +113,11 @@ class Property_reservation extends MY_Controller {
 
     public function save_blocking()
     {
+        if (!has_permission('PROPERTY_RESERVATION')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
+            return;
+        }
+
         $id = (int)$this->input->post('property_reservation_id');
         if ($id <= 0) {
             echo json_encode(array('error' => true, 'message' => 'Reservation not found'));
@@ -138,6 +143,11 @@ class Property_reservation extends MY_Controller {
 
     public function save_confirmation()
     {
+        if (!has_permission('PROPERTY_RESERVATION')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
+            return;
+        }
+
         $id = (int)$this->input->post('property_reservation_id');
         if ($id <= 0) {
             echo json_encode(array('error' => true, 'message' => 'Reservation not found'));
@@ -250,6 +260,11 @@ class Property_reservation extends MY_Controller {
 
     public function save_reconfirmation()
     {
+        if (!has_permission('PROPERTY_RESERVATION')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
+            return;
+        }
+
         $id = (int)$this->input->post('property_reservation_id');
         if ($id <= 0) {
             echo json_encode(array('error' => true, 'message' => 'Reservation not found'));
@@ -275,6 +290,11 @@ class Property_reservation extends MY_Controller {
 
     public function add_comment()
     {
+        if (!has_permission('PROPERTY_RESERVATION')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
+            return;
+        }
+
         $id   = (int)$this->input->post('property_reservation_id');
         $text = trim($this->input->post('comment_text'));
 

@@ -1990,6 +1990,7 @@ function resetPackageModal() {
   $('#myDiv8, #myDiv9').hide();
 
   $('#add_notes').find('.note-row').remove();
+  $('#myDiv10').hide();
 
   $('#property').empty().hide();
   $('[onClick="addMore10();"]').closest('.terms_add, .mb-3').hide();
@@ -3316,8 +3317,8 @@ $(document).ready(function () {
     const $chk = $('#packages_notes_checked_type');
     const $box = $('#add_notes');
 
-    // Hide/show the whole Notes card column (col-xl-10 col-lg-10)
-    const $cardCol = $box.closest('.col-xl-10.col-lg-10');
+    // Hide/show the whole Notes card column
+    const $cardCol = $('#myDiv10');
 
     // The add button block (we keep it, and insert rows before it)
     const $btnBlock = $box.find('.mb-3.col-md-6').first();
@@ -3326,7 +3327,7 @@ $(document).ready(function () {
        INITIAL STATE
        =============================== */
     if (!$chk.is(':checked')) {
-        $btnBlock.hide();
+        $cardCol.hide();
     }
 
     /* ===============================
@@ -3335,10 +3336,10 @@ $(document).ready(function () {
     $chk.on('change', function () {
 
         if ($(this).is(':checked')) {
-            $btnBlock.slideDown();
+            $cardCol.slideDown();
             clearNoteRows();
         } else {
-            $btnBlock.slideUp();
+            $cardCol.slideUp();
             clearNoteRows();
         }
     });
@@ -3821,46 +3822,57 @@ function $roomsSelectHasValue($select, val) {
     const sectionId = sectionCount;
 
     const $section = $(`
-      <div class="property-section border rounded p-3 mb-4" data-section="${sectionId}">
-        <div class="d-flex align-items-end justify-content-between mb-3 gap-3 flex-wrap">
-          <div style="width:320px;">
-            <label><b>Category Name</b></label>
-            <input type="text"
-                  name="property_category_name[${sectionId}]"
-                  class="form-control"
-                  placeholder="Enter category name"
-                  required>
-          </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingProperty${sectionId}">
+          <button class="accordion-button fw-bold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProperty${sectionId}" aria-expanded="false" aria-controls="collapseProperty${sectionId}">
+            <i class="la la-building me-2 property-icon"></i> Property Section <span class="property-title-count ms-1">#${sectionId}</span>
+          </button>
+        </h2>
+        <div id="collapseProperty${sectionId}" class="accordion-collapse collapse" aria-labelledby="headingProperty${sectionId}" data-bs-parent="#propertyAccordion">
+          <div class="accordion-body p-0">
+            <div class="property-section border rounded p-3 mb-0" data-section="${sectionId}">
+              <div class="d-flex align-items-end justify-content-between mb-2 gap-3 flex-wrap">
+                <div style="width:260px;">
+                  <label><b>Category Name</b></label>
+                  <input type="text"
+                        name="property_category_name[${sectionId}]"
+                        class="form-control"
+                        placeholder="Enter category name"
+                        required>
+                </div>
 
-          <div style="width:250px;">
-            <label><b>Design Type</b></label>
-            <select name="packages_properties_common_design_type[${sectionId}]"
-                    class="form-control design-type-select"
-                    style="width:100%;">
-              <option value="">Select Design</option>
-              <option value="Standard">Standard</option>
-              <option value="Exclusive">Exclusive</option>
-            </select>
-          </div>
+                <div style="width:200px;">
+                  <label><b>Design Type</b></label>
+                  <select name="packages_properties_common_design_type[${sectionId}]"
+                          class="form-control design-type-select"
+                          style="width:100%;">
+                    <option value="">Select Design</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Exclusive">Exclusive</option>
+                  </select>
+                </div>
 
-          <div>
-            <button type="button" class="btn btn-danger btn-sm remove-section">Remove Section</button>
-          </div>
-        </div>
+                <div>
+                  <button type="button" class="btn btn-danger btn-sm remove-section">Remove Section</button>
+                </div>
+              </div>
 
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width:120px;">Day</th>
-                <th style="width:220px;">Stay Destination</th>
-                <th style="width:320px;">Property</th>
-                <th>Rooms</th>
-                <th style="width:120px;"></th>
-              </tr>
-            </thead>
-            <tbody class="property-days-body"></tbody>
-          </table>
+              <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width:100px;">Day</th>
+                      <th style="width:180px;">Stay Destination</th>
+                      <th style="width:280px;">Property</th>
+                      <th>Rooms</th>
+                      <th style="width:100px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="property-days-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `);
@@ -3937,6 +3949,17 @@ function $roomsSelectHasValue($select, val) {
 
     $('#property').append($section);
     $section.find('.design-type-select').select2({ width: '100%' });
+
+    // Auto-expand newly added property section
+    const collapseEl = $section.find('.accordion-collapse')[0];
+    if (collapseEl) {
+      const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: true });
+    }
+
+    // Focus category name input for better UX
+    setTimeout(function() {
+      $section.find('input[name^="property_category_name"]').focus();
+    }, 300);
   };
 
 
@@ -4150,12 +4173,13 @@ function refreshPropertyDestinationNames() {
   });
 
   $(document).on('click', '.remove-section', function () {
-    $(this).closest('.property-section').find('select').each(function(){
+    const $accordionItem = $(this).closest('.accordion-item');
+    $accordionItem.find('.property-section select').each(function(){
       if ($(this).hasClass('select2-hidden-accessible')) {
         $(this).select2('destroy');
       }
     });
-    $(this).closest('.property-section').remove();
+    $accordionItem.remove();
   });
 
 

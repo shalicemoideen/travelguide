@@ -928,45 +928,53 @@
           <!-- show property name read-only -->
           <div class="row">
 
-            <div class="col-md-4">
+            <div class="col-md-4 form-group">
               <label><b>Hike From date</b> *</label>
               <input type="text" class="form-control" name="hike_room_tariff_hike_from_date" id="hike_room_tariff_hike_from_date" required>
+              <span class="help-block" style="color:red"></span>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 form-group">
               <label><b>Hike To date</b> *</label>
               <input type="text" class="form-control" name="hike_room_tariff_hike_to_date" id="hike_room_tariff_hike_to_date" required>
+              <span class="help-block" style="color:red"></span>
             </div>
           </div>
 
           <!-- rates header -->
           <div class="row mt-3">
-            <div class="col-md-3">
+            <div class="col-md-3 form-group">
               <label><b>Adult breakfast rate</b> *</label>
               <input type="number" class="form-control" name="hike_room_tariff_hike_breakfast_rate_adult" id="hike_room_tariff_hike_breakfast_rate_adult" required>
+              <span class="help-block" style="color:red"></span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 form-group">
               <label><b>Child breakfast rate</b> *</label>
               <input type="number" class="form-control" name="hike_room_tariff_hike_breakfast_rate_child" id="hike_room_tariff_hike_breakfast_rate_child" required>
+              <span class="help-block" style="color:red"></span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 form-group">
               <label><b>Adult lunch rate</b> *</label>
               <input type="number" class="form-control" name="hike_room_tariff_hike_lunch_rate_adult" id="hike_room_tariff_hike_lunch_rate_adult" required>
+              <span class="help-block" style="color:red"></span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 form-group">
               <label><b>Child lunch rate</b> *</label>
               <input type="number" class="form-control" name="hike_room_tariff_hike_lunch_rate_child" id="hike_room_tariff_hike_lunch_rate_child" required>
+              <span class="help-block" style="color:red"></span>
             </div>
           </div>
 
           <div class="row mt-3">
-            <div class="col-md-3">
+            <div class="col-md-3 form-group">
               <label><b>Adult dinner rate</b> *</label>
               <input type="number" class="form-control" name="hike_room_tariff_hike_dinner_rate_adult" id="hike_room_tariff_hike_dinner_rate_adult" required>
+              <span class="help-block" style="color:red"></span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 form-group">
               <label><b>Child dinner rate</b> *</label>
               <input type="number" class="form-control" name="hike_room_tariff_hike_dinner_rate_child" id="hike_room_tariff_hike_dinner_rate_child" required>
+              <span class="help-block" style="color:red"></span>
             </div>
 
             <div class="col-md-6">

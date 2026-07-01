@@ -1,38 +1,141 @@
 <style>
     .modal-lg {
-    max-width: 95%;
-
+        max-width: 95%;
+    }
     .modal-body {
-    max-height: calc(100vh - 210px);
-    overflow-y: auto;
-}
-}
-.ck-content ul { list-style: disc; margin-left:20px; }
-.ck-content ol { list-style: decimal; margin-left:20px; }
+        max-height: calc(100vh - 180px);
+        overflow-y: auto;
+        padding: 1rem 1.25rem;
+    }
 
-.ck-content ul li {
-  list-style: disc !important;
-}
+    /* Compact form controls */
+    #PackagesModal .form-control,
+    #PackagesModal .form-select,
+    #PackagesModal select.form-control {
+        font-size: 12px;
+        padding: 0.3rem 0.5rem;
+        min-height: 32px;
+    }
+    #PackagesModal label,
+    #PackagesModal .col-form-label {
+        font-size: 12px;
+        margin-bottom: 0.2rem;
+        font-weight: 600;
+    }
+    #PackagesModal .form-group {
+        margin-bottom: 0.5rem;
+    }
+    #PackagesModal .row {
+        --bs-gutter-y: 0.5rem;
+    }
+    #PackagesModal h3.modal-title {
+        font-size: 16px;
+    }
+    #PackagesModal .card-title {
+        font-size: 13px;
+    }
+    #PackagesModal .card-header {
+        padding: 0.5rem 0.75rem;
+    }
+    #PackagesModal .card-body {
+        padding: 0.75rem;
+    }
+    #PackagesModal table th,
+    #PackagesModal table td {
+        font-size: 12px;
+        padding: 0.4rem 0.5rem;
+    }
+    #PackagesModal .btn {
+        font-size: 12px;
+        padding: 0.3rem 0.6rem;
+    }
+    #PackagesModal .btn-sm {
+        font-size: 11px;
+        padding: 0.2rem 0.4rem;
+    }
+    #PackagesModal hr {
+        margin: 0.6rem 0;
+    }
+    #PackagesModal .form-check-label {
+        font-size: 12px;
+    }
 
-.ck-content ol li {
-  list-style: decimal !important;
-}
+    /* Property accordion styles */
+    #propertyAccordion .accordion-header {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    #propertyAccordion .accordion-button {
+        width: 100%;
+        font-size: 13px;
+        padding: 0.85rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: none;
+        border-radius: 0;
+        min-height: 48px;
+        background: linear-gradient(135deg, #5b73e8 0%, #7c8fe0 100%);
+        color: #fff;
+    }
+    #propertyAccordion .accordion-button:not(.collapsed) {
+        background: linear-gradient(135deg, #4a62d6 0%, #6b7fd0 100%);
+        color: #fff;
+        box-shadow: none;
+    }
+    #propertyAccordion .accordion-button:focus {
+        box-shadow: none;
+        border-color: transparent;
+    }
+    #propertyAccordion .accordion-button::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        filter: brightness(1.5);
+    }
+    #propertyAccordion .accordion-button:not(.collapsed)::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        transform: rotate(-180deg);
+    }
+    #propertyAccordion .property-icon {
+        color: #fff !important;
+        font-size: 18px;
+        vertical-align: middle;
+    }
+    #propertyAccordion .accordion-body {
+        padding: 0;
+    }
+    #propertyAccordion .accordion-item {
+        border: 1px solid #dee2e6;
+        border-radius: 0;
+        margin-bottom: 0.75rem;
+        overflow: hidden;
+    }
 
-.ck-content ul,
-.ck-content ol {
-  margin-left: 20px !important;
-}
+    .ck-content ul { list-style: disc; margin-left:20px; }
+    .ck-content ol { list-style: decimal; margin-left:20px; }
 
-#Package_registration {
-    width: 100% !important;
-    font-size: 13px;
-}
+    .ck-content ul li {
+      list-style: disc !important;
+    }
 
-#Package_registration thead th,
-#Package_registration tbody td {
-    font-size: 13px;
-}
+    .ck-content ol li {
+      list-style: decimal !important;
+    }
 
+    .ck-content ul,
+    .ck-content ol {
+      margin-left: 20px !important;
+    }
+
+    #Package_registration {
+        width: 100% !important;
+        font-size: 13px;
+    }
+
+    #Package_registration thead th,
+    #Package_registration tbody td {
+        font-size: 13px;
+    }
 </style>
 <style>
 .day-thumb{
@@ -512,7 +615,7 @@
                             <div class="row">
                                 
                                 <div class="form-check custom-checkbox checkbox-success check-lg me-3"><input type="checkbox" class="form-check-input sc_chkbox"  id="packages_notes_checked_type" name="packages_notes_checked_type" value="Y" required=""><label class="form-check-label" for="customCheckBox2"><b> Add Notes</b></label></div>
-                                    <div class="col-xl-10 col-lg-10">
+                                    <div class="col-xl-10 col-lg-10" id="myDiv10">
                                         <div class="card">
                                             
                                             <div class="card-body">
@@ -529,12 +632,16 @@
                             </div><hr>
                            
                             <div class="row">
-                                 <div class="form-check custom-checkbox checkbox-success check-lg me-3"><input type="checkbox" class="form-check-input sc_chkbox"  id="packages_property_type" value="Y" name="packages_property_checked_type" required=""><label class="form-check-label" for="customCheckBox2"><b> Add Properties</b></label></div>
-                                 <div id="property"></div>   
-                                 
-                                            <div class="mb-3 col-md-6 terms_add">
-                                                        <button class="btn btn-primary add" type="button" id="submit"  onClick="addMore10();">+ Add new</button>
-                                                    </div>
+                                 <div class="form-check custom-checkbox checkbox-success check-lg me-3">
+                                    <input type="checkbox" class="form-check-input sc_chkbox" id="packages_property_type" value="Y" name="packages_property_checked_type" required="">
+                                    <label class="form-check-label" for="customCheckBox2"><b> Add Properties</b></label>
+                                 </div>
+                                 <div class="accordion" id="propertyAccordion">
+                                    <div id="property"></div>
+                                 </div>
+                                 <div class="mb-3 col-md-6 terms_add mt-2">
+                                    <button class="btn btn-primary add" type="button" id="submit" onClick="addMore10();">+ Add new property</button>
+                                 </div>
                             </div>
                         </form>
                     </div>

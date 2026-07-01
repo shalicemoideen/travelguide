@@ -150,6 +150,8 @@
                                                 <th>Destination</th>
                                                 <th>Tariff Status</th>
                                                 <th>Action</th>
+                                                <th class="d-none">Sales Contact Phone</th>
+                                                <th class="d-none">Sales Contact Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>

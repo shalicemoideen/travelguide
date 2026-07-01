@@ -380,6 +380,11 @@ class Quotation extends MY_Controller {
 
 public function client_confirmation_preview($quotation_id)
 {
+    if (!has_permission('CLIENT_CONFIRMATION')) {
+        show_error('Permission denied: Client Confirmation');
+        return;
+    }
+
     $data = $this->Quotation_model->get_client_confirmation_preview($quotation_id);
 
     if (empty($data)) {
@@ -561,6 +566,16 @@ public function client_confirmation_preview($quotation_id)
 	public function ajax_save_confirmation()
 
 	{
+
+		if (!has_permission('CLIENT_CONFIRMATION')) {
+
+			echo json_encode(array('status' => false, 'message' => 'Permission denied: Client Confirmation'));
+
+			return;
+
+		}
+
+
 
 		$quotation_id = (int)$this->input->post('quotation_id');
 
@@ -1070,6 +1085,11 @@ public function ajax_get_applied_plan_context()
 
 public function property_reservation_preview($quotation_id)
 {
+    if (!has_permission('PROPERTY_RESERVATION')) {
+        show_error('Permission denied: Property Reservation');
+        return;
+    }
+
     $data = $this->Quotation_model->get_property_reservation_preview($quotation_id);
 
     if (empty($data['properties'])) {
@@ -1082,6 +1102,11 @@ public function property_reservation_preview($quotation_id)
 
 public function property_voucher_preview($quotation_id)
 {
+    if (!has_permission('PROPERTY_VOUCHER')) {
+        show_error('Permission denied: Property Voucher');
+        return;
+    }
+
     $data = $this->Quotation_model->get_property_voucher_preview($quotation_id);
 
     $this->load->view(
@@ -1092,6 +1117,11 @@ public function property_voucher_preview($quotation_id)
 
 public function tour_voucher_preview($quotation_id)
 {
+    if (!has_permission('TOUR_VOUCHER')) {
+        show_error('Permission denied: Tour Voucher');
+        return;
+    }
+
     $data = $this->Quotation_model->get_tour_voucher_preview($quotation_id);
 
     if (empty($data['main'])) {
@@ -1104,6 +1134,11 @@ public function tour_voucher_preview($quotation_id)
 
 public function driver_itinerary_preview($quotation_id)
 {
+    if (!has_permission('DRIVER_ITINERARY')) {
+        show_error('Permission denied: Driver Itinerary');
+        return;
+    }
+
     $data = $this->Quotation_model->get_driver_itinerary_preview($quotation_id);
 
     if (empty($data['main'])) {
@@ -4648,6 +4683,26 @@ public function ajax_update_quotation_status()
 
 
 
+    // Permission check based on target status
+
+    if ($status == 1 && !has_permission('GENERATE_QUOTATION')) {
+
+        echo json_encode(['status' => false, 'message' => 'Permission denied: Generate Quotation']);
+
+        return;
+
+    }
+
+    if ($status == 5 && !has_permission('CONFIRM_QUOTATION')) {
+
+        echo json_encode(['status' => false, 'message' => 'Permission denied: Confirm Quotation']);
+
+        return;
+
+    }
+
+
+
     $this->db->where('quotation_id', $id)
 
              ->update('quotation', [
@@ -7774,6 +7829,11 @@ public function ajax_delete()
 
 	public function ajax_save_financial_posting()
 	{
+		if (!has_permission('FINANCIAL_POSTING')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied: Financial Posting']);
+			return;
+		}
+
 		$raw     = file_get_contents('php://input');
 		$payload = json_decode($raw, true);
 

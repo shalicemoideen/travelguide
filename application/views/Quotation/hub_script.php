@@ -149,9 +149,9 @@ function updateQuotationHubActions(status) {
 
 
 
-    // Status 2=Draft, 3=Sent, 4=Rejected: Show Generate button
+    // Status 2=Draft, 3=Sent, 4=Rejected: Show Generate button (permission required)
 
-    if (status == 2 || status == 3 || status == 4) {
+    if ((status == 2 || status == 3 || status == 4) && hasPermission('GENERATE_QUOTATION')) {
 
         buttonsHtml = '<button type="button" class="btn btn-primary btn-sm" onclick="showGenerateModal()">' +
 
@@ -159,9 +159,9 @@ function updateQuotationHubActions(status) {
 
     }
 
-    // Status 1=Generated: Show Confirm button
+    // Status 1=Generated: Show Confirm button (permission required)
 
-    else if (status == 1) {
+    else if (status == 1 && hasPermission('CONFIRM_QUOTATION')) {
 
         buttonsHtml = '<button type="button" class="btn btn-success btn-sm" onclick="showConfirmModal()">' +
 
@@ -236,6 +236,9 @@ function updateQuotationHubActions(status) {
 function toggleTab(tabId, enabled, tooltipMessage) {
 
     var $tab = $('#' + tabId);
+
+    // Tab may not exist in DOM if user lacks permission — silently skip
+    if (!$tab.length) return;
 
     // Dispose existing tooltip
 

@@ -107,7 +107,7 @@ class Staff_model extends CI_Model{
 	function fetch_roles()
 	{
 		$this->db->order_by("id", "ASC");
-		$this->db->where('id !=', '2');
+		$this->db->where('id !=', '1');
 		$this->db->where("status",1);
 		// $this->db->where("user_type",'S');
 		$query = $this->db->get("tr_roles");

@@ -4938,7 +4938,10 @@ if (dateType === 'WITH') {
 
 var packageId = $('#package_id_fk').val();
 
-if (packageId && packageHasProperties === false) {
+// Skip properties check during update if package hasn't changed
+var packageChanged = packageId !== previous_saved_package_id;
+
+if (packageId && packageChanged && packageHasProperties === false) {
     $('#package_properties_msg')
         .removeClass('d-none')
         .text('Selected template does not have properties saved. Please update properties.');
@@ -7555,9 +7558,9 @@ function loadPackagesByFilter(selectedPackageId) {
                     .prop('disabled', false);
 
                 if (selectedPackageId && $('#package_id_fk option[value="' + selectedPackageId + '"]').length) {
-                    $('#package_id_fk').val(selectedPackageId).trigger('change.select2');
+                    $('#package_id_fk').val(selectedPackageId).trigger('change');
                 } else {
-                    $('#package_id_fk').val('').trigger('change.select2');
+                    $('#package_id_fk').val('').trigger('change');
                 }
             } else {
                 emptyPackageDropdown('No template available for selected filter.');

@@ -24,12 +24,72 @@ $(document).ready(function () {
 
 ////***Latest dropdown select2*****///
 
-$("#user_id_filter").select2();
-$("#role_id_filter").select2();
-$("#designation_id_filter").select2();
-$("#role_id_fk").select2();
-$("#designation_id_fk").select2();
-$("#languages").select2();
+function initCommonSelect2(scope) {
+
+    scope = scope || document;
+
+    $(scope).find('.lst-flt-select2').each(function () {
+
+        let $select = $(this);
+
+        // avoid re-initializing
+        if ($select.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+
+        // find nearest opened modal if this select is inside modal
+        let $modal = $select.closest('.modal');
+
+        let options = {
+            width: '100%',
+            minimumResultsForSearch: 0
+        };
+
+        // only set dropdownParent when inside modal
+        if ($modal.length) {
+            options.dropdownParent = $modal;
+        }
+
+        $select.select2(options);
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
+});
+
+// initialize page select2
+$(document).ready(function () {
+    initCommonSelect2(document);
+});
+
+// call this after opening any modal
+$('#StaffModal').on('shown.bs.modal', function () {
+    initCommonSelect2(this);
+});
+
+// $("#user_id_filter").select2();
+// $("#role_id_filter").select2();
+// $("#designation_id_filter").select2();
+// Initialize role select directly (not covered by global select2-init.js)
+// $("#role_id_fk").select2({ dropdownParent: $('#StaffModal') });
+
+// Re-init multi-selects inside modal after global select2-init.js completes (runs in footer)
+$(window).on('load', function() {
+    ['#designation_id_fk', '#shift_id_fk', '#languages'].forEach(function(selector) {
+        var $el = $(selector);
+        if ($el.hasClass('select2-hidden-accessible')) {
+            $el.select2('destroy');
+        }
+        $el.select2({ dropdownParent: $('#StaffModal') });
+    });
+});
 
 ////***Latest dropdown select2*****///
 

@@ -2384,21 +2384,48 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 8, 9],
+                                        format: {
+                                            body: function(data, row, column, node) {
+                                                if (column === 6) {
+                                                    var text = $(node).find('.badge').text();
+                                                    return text || $(node).text();
+                                                }
+                                                return data;
+                                            }
+                                        }
                                     },
                                     title: 'Property registration details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 8, 9],
+                                        format: {
+                                            body: function(data, row, column, node) {
+                                                if (column === 6) {
+                                                    var text = $(node).find('.badge').text();
+                                                    return text || $(node).text();
+                                                }
+                                                return data;
+                                            }
+                                        }
                                     },
                                     title: 'Property registration details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 8, 9],
+                                        format: {
+                                            body: function(data, row, column, node) {
+                                                if (column === 6) {
+                                                    var text = $(node).find('.badge').text();
+                                                    return text || $(node).text();
+                                                }
+                                                return data;
+                                            }
+                                        }
                                     },
                                     title: 'Property registration details'
                                 },
@@ -2489,6 +2516,8 @@ var table;
             { "data": "rcname", "orderable": false },
             { "data": "tariff_status", "orderable": false },
             { "data": "properties_id", "orderable": false },
+            { "data": "properties_sales_contact_phone_number", "orderable": false, "visible": false },
+            { "data": "properties_sales_contact_email", "orderable": false, "visible": false },
 
 
 
@@ -2646,9 +2675,25 @@ function add_property()
     $('#location_id_fk').empty().append('<option value="">Please Select Location</option>');
     $('#properties_destination_id_fk').empty().append('<option value="">Please Select Destination</option>');
 
-    // Hide thumbnails (optional)
-    $('#hotel_logo_preview').hide();
-    $('#property_photo_preview').hide();
+    // Clear hidden text fields
+    $('#properties_hotel_logo_txt').val('');
+    $('#properties_photos_txt').val('');
+
+    // Clear file inputs
+    $('#properties_hotel_logo').val('');
+    $('#properties_photos').val('');
+
+    // Hide and reset hotel logo preview box
+    $('#hotel_logo_preview_box').hide();
+    $('#hotel_logo_preview_img').attr('src', '').hide();
+    $('#hotel_logo_preview_pdf').hide();
+    $('#hotel_logo_preview_link').attr('href', '#');
+
+    // Hide and reset property photo preview box
+    $('#property_photo_preview_box').hide();
+    $('#property_photo_preview_img').attr('src', '').hide();
+    $('#property_photo_preview_pdf').hide();
+    $('#property_photo_preview_link').attr('href', '#');
 
     $('#PropertyModal').modal('show');
     $('.modal-title').text('Add property Details');
@@ -2736,7 +2781,7 @@ function edit_property(id)
             if (data.location_id_fk) {
                 $('#location_id_fk').empty().append('<option value="">Please Select Location</option>');
                 var option = new Option(data.location_name, data.location_id_fk, true, true);
-                $('#location_id_fk').append(option).trigger('change');
+                $('#location_id_fk').append(option); // no trigger('change') to avoid race with the on('change') handler
 
                 // Load destinations based on location after location is set
                 $.ajax({
@@ -5656,9 +5701,36 @@ $.validator.addMethod("hikeDatesValid", function(value, element) {
 }, "Invalid hike date range");
 
 $("#hike_form").validate({
+    debug: false,
+    focusInvalid: true,
     rules: {
         hike_room_tariff_hike_from_date: { required: true },
         hike_room_tariff_hike_to_date:   { required: true, hikeDatesValid: true }
+    },
+    errorClass: 'text-danger',
+    validClass: 'success',
+    highlight: function(element) {
+        $(element).closest('.form-group').removeClass('input-success-o').addClass('input-warning-o');
+    },
+    unhighlight: function(element) {
+        $(element).closest('.form-group').removeClass('input-warning-o').addClass('input-success-o');
+        $(element).closest('.form-group').find('.help-block').text('');
+    },
+    errorPlacement: function(error, element) {
+        $(element).closest('.form-group').find('.help-block').text(error.text());
+    },
+    invalidHandler: function(form, validator) {
+        if (!validator.numberOfInvalids()) return;
+        setTimeout(function() {
+            var $el = $(validator.errorList[0].element);
+            var $modalBody = $('#HikeRoomTariffModal .modal-body');
+            if ($modalBody.length && $el.length) {
+                $modalBody.animate({
+                    scrollTop: $el.offset().top - $modalBody.offset().top + $modalBody.scrollTop() - 100
+                }, 300);
+                $el.focus();
+            }
+        }, 0);
     }
 });
 
@@ -5672,6 +5744,8 @@ function add_room_hike_tariff(roomTariffId)
 {
   hike_save_method = 'add';
   $('#hike_form')[0].reset();
+  $('#hike_form .form-group').removeClass('input-warning-o input-success-o');
+  $('#hike_form .help-block').empty();
   $('#hike_rooms_container').html('');
   $('#hike_room_tariff_hike_id').val('');
   $('#room_tariff_hike_id_fk').val(roomTariffId);
@@ -5748,6 +5822,8 @@ function edit_hike_room_tariff(hikeId)
 {
   hike_save_method = 'update';
   $('#hike_form')[0].reset();
+  $('#hike_form .form-group').removeClass('input-warning-o input-success-o');
+  $('#hike_form .help-block').empty();
   $('#hike_rooms_container').html('');
 
   $.ajax({
@@ -5835,37 +5911,42 @@ function renderHikeRoomBlocks(rooms, weekdays, ratesByRoom, weekByRoomDay)
       </div>
 
       <div class="row rates">
-        <div class="col-md-2">
+        <div class="col-md-2 form-group">
           <label><b>Room rate</b>*</label>
           <input type="number" class="form-control hike-rt-room-rate" data-block="${num}" name="hike_room_tariff_hike_rate_room_rate[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_room_rate || '') : ''}" required>
+          <span class="help-block" style="color:red"></span>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-2 form-group">
           <label><b>Adult Extra Bed</b></label>
           <input type="number" class="form-control hike-rt-adult-eb" data-block="${num}" name="hike_room_tariff_hike_rate_adult_with_extra_bed[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_adult_with_extra_bed || '') : ''}" required>
+          <span class="help-block" style="color:red"></span>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-2 form-group">
           <label><b>Child Extra Bed</b></label>
           <input type="number" class="form-control hike-rt-child-eb" data-block="${num}" name="hike_room_tariff_hike_rate_child_with_extra_bed[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_child_with_extra_bed || '') : ''}" required>
+          <span class="help-block" style="color:red"></span>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-2 form-group">
           <label><b>Child Sharing</b></label>
           <input type="number" class="form-control hike-rt-child-sharing" data-block="${num}" name="hike_room_tariff_hike_rate_child_sharing_bed[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_child_sharing_bed || '') : ''}" required>
+          <span class="help-block" style="color:red"></span>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-2 form-group">
           <label><b>Single</b></label>
           <input type="number" class="form-control hike-rt-single" data-block="${num}" name="hike_room_tariff_hike_rate_single_occupancy[${num}]"
             value="${rateRow ? (rateRow.hike_room_tariff_hike_rate_single_occupancy || '') : ''}" required>
+          <span class="help-block" style="color:red"></span>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-2 form-group">
           <label><b>Some days</b></label>
           <select class="form-control item" name="hike_room_tariff_hike_rate_some_days_type[${num}]"
             id="hike_some_days_type_${num}" required>
@@ -6046,7 +6127,6 @@ function save_hike_tariff()
   });
 }
 
-$("#hike_form").validate({ debug:false });
 
 ////***For reload the datatable for delete *****///
 

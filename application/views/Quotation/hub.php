@@ -246,39 +246,53 @@
                                         <li class="nav-item">
                                             <a class="nav-link active" data-bs-toggle="tab" href="#lead-details-tab-pane"><i class="la la-home me-2"></i> Lead details</a>
                                         </li>
+                                        <?php if (has_permission('CLIENT_CONFIRMATION')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#clientConfirmationTab" id="tabClientConfirmation">
                                                 <i class="la la-user me-2"></i> Client confirmation
                                             </a>
                                         </li>
+                                        <?php endif; ?>
+                                        <?php if (has_permission('RECEIPT_SCHEDULER')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#receiptSchedulerTab" id="tabReceiptScheduler">
                                                 <i class="la la-calendar me-2"></i> Receipt Scheduler
                                             </a>
                                         </li>
+                                        <?php endif; ?>
+                                        <?php if (has_permission('PROPERTY_RESERVATION')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#propertyReservationTab" id="tabPropertyReservation"><i class="la la-hotel me-2"></i> Property reservation</a>
                                         </li>
+                                        <?php endif; ?>
+                                        <?php if (has_permission('PROPERTY_VOUCHER')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#propertyVoucherTab" id="tabPropertyVoucher">
                                                 <i class="la la-building me-2"></i> Property voucher
                                             </a>
                                         </li>
+                                        <?php endif; ?>
+                                        <?php if (has_permission('TOUR_VOUCHER')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#tourVoucherTab" id="tabTourVoucher">
                                                 <i class="la la-map me-2"></i> Tour voucher
                                             </a>
                                         </li>
+                                        <?php endif; ?>
+                                        <?php if (has_permission('DRIVER_ITINERARY')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#driverItineraryTab" id="tabDriverItinerary">
                                                 <i class="la la-car me-2"></i> Driver itinerary
                                             </a>
                                         </li>
+                                        <?php endif; ?>
+                                        <?php if (has_permission('FINANCIAL_POSTING')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#financialPostingTab" id="tabFinancialPosting">
                                                 <i class="la la-file-invoice-dollar me-2"></i> Financial posting
                                             </a>
                                         </li>
+                                        <?php endif; ?>
                                         <!-- <li class="nav-item">
                                             <a class="nav-link" data-bs-toggle="tab" href="#message"><i class="la la-envelope me-2"></i> Finiancial overview</a>
                                         </li>
