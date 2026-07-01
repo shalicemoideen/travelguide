@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 defined('BASEPATH') OR exit('No direct script access allowed');
 class Leads extends MY_Controller {
 	public $table = 'leads';
@@ -77,7 +77,7 @@ class Leads extends MY_Controller {
 //           "name": "Travel company"
 //         }
 //       ],
-//       "name": "Royalè India",
+//       "name": "RoyalÃ¨ India",
 //       "id": "333063373223872",
 //       "tasks": [
 //         "ADVERTISE",
@@ -797,6 +797,10 @@ public function ajax_guest_accommodation_details($lead_id)
 			if (!empty($data->leads_package_category_id_fk)) {
 				$cat = $this->db->select('package_category_name')->where('package_category_id', $data->leads_package_category_id_fk)->get('package_category')->row();
 				$data->package_category_name = $cat ? $cat->package_category_name : '';
+			}
+			if (!empty($data->package_id_fk)) {
+				$pkg = $this->db->select('packages_title')->where('packages_id', $data->package_id_fk)->get('packages')->row();
+				$data->packages_title = $pkg ? $pkg->packages_title : '';
 			}
 		}
 
@@ -2561,7 +2565,7 @@ private function send_meta_lead_whatsapp($leadData, $mapped, $page_id, $form_id,
     // ---------- TRANSACTION ----------
     $this->db->trans_begin();
 
-    // ✅ update leads status to 1
+    // âœ… update leads status to 1
     // $this->db->where('leads_id', $lead_id)
     //     ->update('leads', array('leads_accomodation_status' => 1));
 
@@ -2581,7 +2585,7 @@ if ($old_master_id > 0) {
     }
 }
 
-    // ✅ soft delete OLD active records
+    // âœ… soft delete OLD active records
     if ($old_master_id > 0) {
 
         // get old detail ids
@@ -2603,7 +2607,7 @@ if ($old_master_id > 0) {
             ->update('guset_count', array('guset_count_status' => 0));
     }
 
-    // ✅ INSERT NEW MASTER (always)
+    // âœ… INSERT NEW MASTER (always)
     $this->db->insert('guset_count', array(
         'guset_count_lead_id_fk' => $lead_id,
         'guset_count_package_id_fk' => $package_id,
@@ -2621,7 +2625,7 @@ if ($old_master_id > 0) {
 				'leads_accomodation_status' => 1
 	));
 	$newDetailIdsArray = array();
-    // ✅ INSERT NEW DETAILS + BREAKUP
+    // âœ… INSERT NEW DETAILS + BREAKUP
     for ($i=0; $i<count($pax_plan); $i++) {
 
         $this->db->insert('guset_count_details', array(
@@ -2950,14 +2954,14 @@ private function _normalize_breakup($age, $count, $planIndex)
 		$meal_plans     = $this->Leads_model->fetch_meal_plan();
 		$pax_plans      = $this->Leads_model->fetch_guset_count_details($lead_id);
 
-		// ✅ fetch existing accommodation plan rows for this lead
+		// âœ… fetch existing accommodation plan rows for this lead
 		$existing = $this->db->select('*')
 			->from('accommodation_plan')
 			->where('lead_id_fk', (int)$lead_id)
 			->get()
 			->result_array();
 
-		// ✅ map existing by day_id_fk for easy lookup in JS
+		// âœ… map existing by day_id_fk for easy lookup in JS
 		$existingMap = array();
 		foreach ($existing as $row) {
 			$existingMap[(int)$row['day_id_fk']] = $row;
@@ -2970,7 +2974,7 @@ private function _normalize_breakup($age, $count, $planIndex)
 			'meal_plans'   => $meal_plans,
 			'pax_plans'    => $pax_plans,
 
-			// ✅ new:
+			// âœ… new:
 			'existing'     => $existingMap
 		));
 	}
@@ -3095,7 +3099,7 @@ private function get_accommodation_date_by_index($start_date, $index)
     $meal_plan   = is_array($meal_plan) ? $meal_plan : array();
     $pax_plan    = is_array($pax_plan) ? $pax_plan : array();
 
-    // ✅ fetch lead dates
+    // âœ… fetch lead dates
     $lead = $this->db->select('start_date, end_date, package_id_fk')
         ->from('leads')
         ->where('leads_id', $lead_id)
@@ -3108,14 +3112,14 @@ private function get_accommodation_date_by_index($start_date, $index)
         return;
     }
 
-    // ✅ fallback package id from lead if not posted
+    // âœ… fallback package id from lead if not posted
     if ($package_id <= 0 && !empty($lead['package_id_fk'])) {
         $package_id = (int)$lead['package_id_fk'];
     }
 
     $dateMap = $this->build_date_map($lead['start_date'], $lead['end_date']);
 
-    // ✅ property day map: day_no => packages_properties_days_id
+    // âœ… property day map: day_no => packages_properties_days_id
     // (Day 1 => id, Day 2 => id ...)
     $propertyDayMap = $this->Leads_model->get_property_days_map_by_package($package_id);
 // print_r($propertyDayMap);die;
@@ -3197,7 +3201,7 @@ private function get_accommodation_date_by_index($start_date, $index)
         return;
     }
 
-    // ✅ Recommended: clear old rows first to avoid duplicates
+    // âœ… Recommended: clear old rows first to avoid duplicates
     // $this->db->where('lead_id_fk', $lead_id)->delete('accommodation_plan');
 
 	$this->db->where('lead_id_fk', $lead_id);
@@ -3207,7 +3211,7 @@ private function get_accommodation_date_by_index($start_date, $index)
 		));
     $this->Leads_model->insert_accommodation_plan_batch($insertData);
 
-	// ✅ Update leads_accomodation_status to 2
+	// âœ… Update leads_accomodation_status to 2
 	$this->db->where('leads_id', $lead_id);
 	$this->db->update('leads', array(
 		'leads_accomodation_status' => 2

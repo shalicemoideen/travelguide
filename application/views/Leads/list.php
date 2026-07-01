@@ -1902,6 +1902,21 @@ a.leads-number-link:hover {
                             <input type="hidden" name="leads_id" id="leads_id_hidden">
                             <input type="hidden" name="packages_id_fk" id="packages_id_hidden">
 
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-form-label"><b>Lead</b></label>
+                                        <div id="lead_name_display" class="form-control-static" style="padding-top:7px; font-weight:600; min-height:34px;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-form-label"><b>Template</b></label>
+                                        <div id="template_name_display" class="form-control-static" style="padding-top:7px; font-weight:600; min-height:34px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class=" form-group">
@@ -2211,8 +2226,8 @@ a.leads-number-link:hover {
                                                     </select>
           </td>
           <td>
-            <select class="form-select form-select-sm specialReqSelect"
-                    name="quotation_special_requirements_id_fk[]"></select>
+            <input type="text" class="form-control form-control-sm specialReqName"
+                   name="quotation_special_requirements_name[]" placeholder="Enter Requirement">
           </td>
           <td>
             <input type="number" class="form-control form-control-sm specialReqCost"
@@ -2319,7 +2334,7 @@ a.leads-number-link:hover {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger light" onclick="Quotationmodalclose()" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="btnSave" onclick="save_quote()" >Save</button>
+                        <button type="button" class="btn btn-primary" id="btnSave" onclick="saveQuotation()" >Save</button>
                     </div>
                 </div>
             </div>

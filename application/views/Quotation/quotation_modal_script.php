@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////**************** Quotation ***************////////////////////////////
+﻿///////////////////////////////////////////////////**************** Quotation ***************////////////////////////////
 
 $('#quotation_date').datepicker({
     format: 'dd-mm-yyyy',
@@ -8,29 +8,28 @@ $('#quotation_date').datepicker({
 
 function resetQuotationModalForm() {
 
-    // reset native form
-    // var form = document.getElementById('form5');
-    // if (form) {
-    //     form.reset();
-    // }
+    var form = document.getElementById('form');
+    if (form) { form.reset(); }
+    var form5 = document.getElementById('form5');
+    if (form5) { form5.reset(); }
 
-    // hidden ids
-    // $('#id').val('');
-    // $('#leads_id_hidden').val('');
-    // $('#packages_id_hidden').val('');
+    $('#id').val('');
+    $('#leads_id_hidden').val('');
+    $('#packages_id_hidden').val('');
 
-    // // if visible dropdowns exist
-    // if ($('#leads_id').length) {
-    //     $('#leads_id').val('').trigger('change');
-    // }
-    // if ($('#packages_id_fk').length) {
-    //     $('#packages_id_fk').val('').trigger('change');
-    // }
+    if ($('#leads_id').length) {
+        $('#leads_id').prop('disabled', false).data('filter-mode', 'add_quotation').empty()
+            .append('<option value="">Please Select lead</option>')
+            .val('').trigger('change.select2');
+    }
 
-    // clear select2 fields inside modal
-    // $('#QuotationModal').find('select').each(function () {
-    //     $(this).val('').trigger('change');
-    // });
+    $('#template_name_display').text('');
+    $('#lead_name_display').text('');
+    $('#packages_id_fk').val('');
+
+    $('#QuotationModal').find('select').each(function () {
+        $(this).val('').trigger('change');
+    });
 
     // reset option blocks
     if ($('#optionsContainer').length) {
@@ -66,7 +65,6 @@ function resetQuotationModalForm() {
         var $firstSp = $spTbody.find('tr:eq(0)');
         $firstSp.find('input').val('');
         $firstSp.find('select').each(function () {
-            // $(this).html('<option value="">Select</option>').val('').trigger('change');
             $(this).html('<option value="">Select</option>').val('').trigger('change.select2');
         });
         $firstSp.find('.removeSpecialReqBtn').prop('disabled', false);
@@ -103,7 +101,8 @@ $('#QuotationModal').on('hidden.bs.modal', function () {
 });
 
 function open_quotation(leadId) {
-resetQuotationModalForm();
+  save_method = 'add';
+  resetQuotationModalForm();
   // Reset the form (optional)
   var form = document.getElementById('form5');
   if (form) form.reset();
@@ -139,13 +138,24 @@ $('#quotation_date').val(formattedDate);
       }
 
 
-      // ✅ set hidden ids
+      var leadDisplay = res && res.leads_number
+          ? res.leads_number + ' - ' + res.guest_name
+          : (res.guest_name || leadId);
+
+      // âœ… set hidden ids and display names
       $('#leads_id_hidden').val(leadId);
       $('#packages_id_hidden').val(packageId);
 
-      loadInclusionAndRequirementDropdownData();   // ✅ now will work (after you fixed IDs inside it)
-      // (optional) show lead info in modal header
-      // $('#leadNameText').text(res.leads_name || res.leads_number || leadId);
+      // also set form inputs that ajax_add expects
+      if ($('#leads_id').length) {
+          $('#leads_id').empty().append(new Option(leadDisplay, leadId, true, true)).val(leadId).trigger('change.select2');
+      }
+      $('#packages_id_fk').val(packageId);
+
+      $('#lead_name_display').text(leadDisplay);
+      $('#template_name_display').text(res.packages_title || '');
+
+      loadInclusionAndRequirementDropdownData();   // âœ… now will work (after you fixed IDs inside it)
 
       // Hide dropdown row in this Leads-page modal version
       $('#leadPackageRow').addClass('d-none');
@@ -156,9 +166,10 @@ $('#quotation_date').val(formattedDate);
       // Enable save
       $('#btnSave').prop('disabled', false);
 
-      // ✅ prepare: when user clicks "Add New Option", load package options based on hidden package id
+      // âœ… prepare: when user clicks "Add New Option", load package options based on hidden package id
       // (we attach once)
       bindAddOptionBtnOnce();
+      toggleAddOptionBtn();
 
     },
     error: function() {
@@ -167,6 +178,11 @@ $('#quotation_date').val(formattedDate);
   });
 }
 
+
+function toggleAddOptionBtn() {
+    var packageId = $('#packages_id_fk').val() || $('#packages_id_hidden').val();
+    $('#addOptionBtn').prop('disabled', !packageId);
+}
 
 var __addOptionBound = false;
 
@@ -179,7 +195,7 @@ function bindAddOptionBtnOnce() {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('✅ Add Option clicked');
+    console.log('âœ… Add Option clicked');
 
     var packageId = $('#packages_id_hidden').val();
     console.log('packageId:', packageId);
@@ -590,8 +606,8 @@ $('.is-invalid').removeClass('is-invalid');
     if (!$('#departuring_destination').val())
         return showError('Departuring destination is required', $('#departuring_destination')[0]), false;
 
-     if (!$('#leads_id_hidden').val())
-        return showError('Please select Lead', $('#leads_id_hidden')[0]), false;
+     if (!$('#leads_id_hidden').val() && !$('#leads_id').val())
+        return showError('Please select Lead', ($('#leads_id')[0] || $('#leads_id_hidden')[0])), false;
 
     if (!$('#packages_id_hidden').val())
         return showError('Please select Template', $('#packages_id_hidden')[0]), false;
@@ -939,21 +955,23 @@ if (!valid) return false;
     return valid;
 }
 
-function save_quote() {
+function saveQuotation() {
 
-    // ✅ VALIDATE FIRST
+    // âœ… VALIDATE FIRST
     if (!validateQuotationForm()) {
         return;
     }
 
-    let url = "<?php echo base_url();?>index.php/Quotation/ajax_add/";
+    let url = save_method === 'add'
+        ? "<?php echo base_url();?>index.php/Quotation/ajax_add/"
+        : "<?php echo base_url();?>index.php/Quotation/ajax_update/";
 
     $('#btnSave').text('saving...').attr('disabled', true);
 
     // ensure latest totals
     recalcAllOptionsBeforeSave();
 
-    const form = document.getElementById('form5');
+    const form = document.getElementById('form5') || document.getElementById('form');
     const data = new FormData(form);
 
     // JSON payload
@@ -969,18 +987,17 @@ function save_quote() {
         success: function (res) {
 
             if (res.status) {
-                // resetQuotationModalForm();
-                $('#QuotationModal').modal('hide');
-                // reload_table();
-            //     swal("Quotation details added successfully", "", "success")
-
-            //  window.location.href = "<?php echo base_url('index.php/Quotation'); ?>";
-            swal("Quotation details added successfully", "", "success").then((result) => {
-    if (result.isConfirmed || result.value) {
-        window.location.href = "<?php echo base_url('index.php/Quotation'); ?>";
-    }
-});
-
+                if (save_method === 'update' && typeof reload_table === 'function') {
+                    reload_table();
+                    resetQuotationModalForm();
+                    $('#QuotationModal').modal('hide');
+                } else {
+                    swal("Quotation details added successfully", "", "success").then((result) => {
+                        if (result.isConfirmed || result.value) {
+                            window.location.href = "<?php echo base_url('index.php/Quotation'); ?>";
+                        }
+                    });
+                }
             } else {
                 alert('Validation failed on server');
             }
@@ -1106,7 +1123,7 @@ $(document).ready(function () {
                 loadInclusionAndRequirementDropdownData();
             }
 
-            // ✅ NEW: load package option for default row
+            // âœ… NEW: load package option for default row
             setTimeout(function () {
                 loadDefaultInclusionPackageOptions();
             }, 50);
@@ -1371,11 +1388,14 @@ function hasValidOptionSelected() {
 
 /* ================= LOAD DROPDOWNS (call on package/lead change) ================= */
 
-function loadInclusionAndRequirementDropdownData() {
+function loadInclusionAndRequirementDropdownData(callback) {
     var leadId = $('#leads_id_hidden').val() || $('#leads_id').val() || '';
     var packageId = $('#packages_id_hidden').val() || $('#packages_id_fk').val() || '';
 
-    if (!leadId || !packageId) return;
+    if (!leadId || !packageId) {
+        if (typeof callback === 'function') callback();
+        return;
+    }
 
     var urlDays =
         `<?php echo base_url(); ?>index.php/Quotation/ajax_get_accommodation_day_options?lead_id=${encodeURIComponent(leadId)}&package_id=${encodeURIComponent(packageId)}`;
@@ -1409,28 +1429,104 @@ function loadInclusionAndRequirementDropdownData() {
         if (typeof recalcSpecialReqTotal === 'function') {
             recalcSpecialReqTotal();
         }
+
+        if (typeof callback === 'function') callback();
     })
     .catch(function (err) {
         console.error(err);
+        if (typeof callback === 'function') callback();
     });
 }
 // Call it when lead/package changes:
 
-// // ✅ if you still also use visible package dropdown somewhere else
+// // âœ… if you still also use visible package dropdown somewhere else
+
+////***For open modal of quotation adding form  *****///
+
+function clearQuotationOnPackageChange() {
+
+    // â— clear option blocks
+    // $('#optionsContainer').empty();
+    $('.optionBlock').remove();
+
+    if (typeof optionCount !== 'undefined') {
+        optionCount = 0;
+    }
+
+    // â— uncheck checkboxes
+    $('#quotation_property_inclusion_type').prop('checked', false);
+    $('#quotation_special_requirement_type').prop('checked', false);
+
+    // â— hide boxes
+    $('#inclusionBox').hide();
+    $('#specialReqBox').hide();
+
+    // ===== PROPERTY INCLUSION RESET =====
+    const $incTbody = $('#inclusionTable tbody');
+
+    if ($incTbody.length) {
+        $incTbody.find('tr:gt(0)').remove();
+
+        const $first = $incTbody.find('tr:eq(0)');
+        $first.find('input').val('');
+        $first.find('select').val('').trigger('change');
+
+        // reset dropdown options if needed
+        $first.find('.inclusionPropertySelect').html('<option value="">Select Property</option>');
+        $first.find('.inclusionNameSelect').html('<option value="">Select Inclusion</option>');
+
+        $first.find('.removeInclusionBtn').prop('disabled', false);
+    }
+
+    // ===== SPECIAL REQUIREMENT RESET =====
+    const $spTbody = $('#specialReqTable tbody');
+
+    if ($spTbody.length) {
+        $spTbody.find('tr:gt(0)').remove();
+
+        const $first = $spTbody.find('tr:eq(0)');
+        $first.find('input').val('');
+        $first.find('select').val('').trigger('change');
+
+        $first.find('.removeSpecialReqBtn').prop('disabled', false);
+    }
+
+    // â— reset totals
+    $('#totalInclusionAmountText').text('0.00');
+    $('#totalInclusionAmountInput').val('0');
+
+    $('#totalSpecialReqAmountText').text('0.00');
+    $('#totalSpecialReqAmountInput').val('0');
+
+    // â— clear cached data
+    if (typeof __dayOptions !== 'undefined') __dayOptions = [];
+    if (typeof __specialReqOptions !== 'undefined') __specialReqOptions = [];
+    if (typeof __dayPropertyMap !== 'undefined') __dayPropertyMap = {};
+    if (typeof __propertyInclusionMap !== 'undefined') __propertyInclusionMap = {};
+
+    // âœ… reset scroll position
+    $('#QuotationModal .modal-body').scrollTop(0);
+
+    // âœ… fix bootstrap scroll recalculation
+    setTimeout(function () {
+        $('#QuotationModal').modal('handleUpdate');
+    }, 100);
+}
+
 $(document).on('change', '#packages_id_fk, #leads_id', function () {
     loadInclusionAndRequirementDropdownData();
     clearQuotationOnPackageChange();
-      // ✅ fix bootstrap scroll recalculation
+      // âœ… fix bootstrap scroll recalculation
     setTimeout(function () {
         $('#QuotationModal').modal('handleUpdate');
     }, 100);
 });
 
-// ✅ Select2-safe trigger
+// âœ… Select2-safe trigger
 $(document).on('select2:select', '#packages_id_fk, #leads_id', function () {
     loadInclusionAndRequirementDropdownData();
     clearQuotationOnPackageChange();
-      // ✅ fix bootstrap scroll recalculation
+      // âœ… fix bootstrap scroll recalculation
     setTimeout(function () {
         $('#QuotationModal').modal('handleUpdate');
     }, 100);
@@ -1842,7 +1938,7 @@ function money(n) {
   return num(n).toFixed(2);
 }
 
-/* ✅ Recalculate inclusion total */
+/* âœ… Recalculate inclusion total */
 function recalcInclusionTotal() {
   let total = 0;
   document.querySelectorAll('#inclusionTable tbody [name="inclusion_amount[]"]').forEach(inp => {
@@ -1857,7 +1953,7 @@ function recalcInclusionTotal() {
   return total;
 }
 
-/* ✅ Recalculate special requirements total */
+/* âœ… Recalculate special requirements total */
 function recalcSpecialReqTotal() {
   let total = 0;
   document.querySelectorAll('#specialReqTable tbody [name="special_requirements_cost[]"]').forEach(inp => {
@@ -1872,7 +1968,7 @@ function recalcSpecialReqTotal() {
   return total;
 }
 
-/* ✅ Recalculate both (use after add/remove/load) */
+/* âœ… Recalculate both (use after add/remove/load) */
 function recalcAllInclusionSpecialTotals() {
   recalcInclusionTotal();
   recalcSpecialReqTotal();
@@ -1946,13 +2042,13 @@ document.getElementById('addOptionBtn')?.addEventListener('click', function (e) 
 
     reIndexOptions();
 // clearQuotationOnPackageChange();
-      // ✅ fix bootstrap scroll recalculation
+      // âœ… fix bootstrap scroll recalculation
     setTimeout(function () {
         $('#QuotationModal').modal('handleUpdate');
     }, 100);
 });
 
-function fetchVehicles(dropdown) {
+function fetchVehicles(dropdown, callback) {
     if (!dropdown) return;
 
     dropdown.innerHTML = '<option value="">Loading...</option>';
@@ -1961,28 +2057,30 @@ function fetchVehicles(dropdown) {
         .then(res => res.json())
         .then(res => {
             dropdown.innerHTML = '<option value="">Select Vehicle</option>';
-            if (!res.status || !res.data) return;
-
-            res.data.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.vehicle_id;
-                opt.textContent = item.vehicle_name + ' (' + item.vehicle_number_seat + ')';
-                dropdown.appendChild(opt);
-            });
+            if (res.status && res.data) {
+                res.data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.vehicle_id;
+                    opt.textContent = item.vehicle_name + ' (' + item.vehicle_number_seat + ')';
+                    dropdown.appendChild(opt);
+                });
+            }
+            if (typeof callback === 'function') callback();
         })
         .catch(() => {
             dropdown.innerHTML = '<option value="">Failed to load vehicle</option>';
+            if (typeof callback === 'function') callback();
         });
 }
 
 /* ================= LOAD ITINERARY ON OPTION SELECT ================= */
 
-// ✅ store old value BEFORE dropdown opens
+// âœ… store old value BEFORE dropdown opens
 $(document).on('select2:opening', '.propertyDropdown', function () {
     $(this).data('old-value', $(this).val() || '');
 });
 
-// ✅ validate on change (duplicate check disabled)
+// âœ… validate on change (duplicate check disabled)
 $(document).on('change', '.propertyDropdown', function () {
     // Allow duplicate template option selection
 });
@@ -2142,11 +2240,13 @@ function loadItinerary(optionBlock, commonId) {
     const container = optionBlock.querySelector('.itineraryContainer');
     if (!container) return;
 
-    // ✅ Your select id is leads_id (from your HTML)
-    const leadId = document.getElementById('leads_id_hidden')?.value || '';
+    // âœ… Your select id is leads_id (from your HTML)
+    const leadId = document.getElementById('leads_id_hidden')?.value
+        || document.getElementById('leads_id')?.value
+        || '';
     const packageId = document.getElementById('packages_id_hidden')?.value || '';
 
-    // ✅ Debug (check in browser console)
+    // âœ… Debug (check in browser console)
     console.log('loadItinerary params =>', { leadId, packageId, commonId });
 
     if (!commonId || !leadId || !packageId) {
@@ -2171,7 +2271,7 @@ function loadItinerary(optionBlock, commonId) {
 
     fetch(url)
         .then(async (r) => {
-            // ✅ read as text first to avoid JSON.parse crash
+            // âœ… read as text first to avoid JSON.parse crash
             const text = await r.text();
             console.log('API raw response:', text);
 
@@ -2332,7 +2432,7 @@ function loadItinerary(optionBlock, commonId) {
   <div class="col-md-3">
     <label class="form-label fw-semibold">Total Cost</label>
     <div class="fw-bold text-primary fs-5">
-      ₹ <span class="optionTotalCostText">0.00</span>
+      â‚¹ <span class="optionTotalCostText">0.00</span>
     </div>
     <input type="hidden" class="optionTotalCostInput" name="option_total_cost[]">
   </div>
@@ -2375,7 +2475,7 @@ function loadItinerary(optionBlock, commonId) {
   <div class="col-md-3 text-end">
     <label class="form-label fw-semibold">Total Quote Rate</label>
     <div class="fw-bold text-primary fs-4">
-      ₹ <span class="optionQuoteTotalText">0.00</span>
+      â‚¹ <span class="optionQuoteTotalText">0.00</span>
     </div>
     <input type="hidden" class="optionQuoteTotalInput" name="option_quote_total[]">
   </div>
@@ -2547,7 +2647,7 @@ document.addEventListener('click', function (e) {
 
             dropdown.dataset.loaded = '1';
 
-            // ✅ init select2
+            // âœ… init select2
             initModalSelect2(dropdown, 'Select Property');
         });
 });
@@ -2656,7 +2756,7 @@ document.addEventListener('change', function (e) {
         return;
     }
 
-    // ✅ continue adding property if not duplicate
+    // âœ… continue adding property if not duplicate
 });
 
 
@@ -2718,7 +2818,7 @@ $(document).on('change', '.roomSelect', function () {
 
     let duplicate = false;
 
-    // ✅ check all room rows in same property except current row
+    // âœ… check all room rows in same property except current row
     $(propertyBlock).find('tbody tr').each(function () {
         if (this === row) return;
 
@@ -2751,16 +2851,16 @@ $(document).on('change', '.roomSelect', function () {
     const selectedOption = select.options[select.selectedIndex];
     const packageRoomId = selectedOption ? (selectedOption.getAttribute('data-package-room-id') || 0) : 0;
 
-    const leadId = $('#leads_id_hidden').val() || '';
+    const leadId = $('#leads_id_hidden').val() || $('#leads_id').val() || '';
     const propertyId = propertyBlock?.dataset.propertyId || '';
     const propertyDayId = dayRow?.querySelector('[name="packages_properties_days_id_fk[]"]')?.value || '';
     const stayDestId = dayRow?.querySelector('[name="quotation_properties_days_destination_id_fk[]"]')?.value || '';
 
-    // ✅ save row datasets
+    // âœ… save row datasets
     row.dataset.roomId = roomId;
     row.dataset.packagesRoomId = packageRoomId;
 
-    // ✅ save hidden inputs
+    // âœ… save hidden inputs
     row.querySelector('.roomInput').value = roomId;
     row.querySelector('.pkgRoomInput').value = packageRoomId;
 
@@ -2770,7 +2870,7 @@ $(document).on('change', '.roomSelect', function () {
 // alert("stayDestId"+stayDestId);
 // alert("roomId"+roomId);
 
-    // ✅ set edit button datasets
+    // âœ… set edit button datasets
     const editBtn = row.querySelector('.editRoomBtn');
     if (editBtn) {
         editBtn.dataset.leadId = leadId;
@@ -2850,7 +2950,7 @@ $(document).on('change', '.roomSelect', function () {
 //     const stayDestId = dayRow?.querySelector('[name="quotation_properties_days_destination_id_fk[]"]')?.value || '';
 //     const leadId = $('#selected_lead_id').val() || '';
 
-//     // ✅ validate existing rows:
+//     // âœ… validate existing rows:
 //     // if any room row exists but room not selected, stop add new row
 //     const roomRows = tbody.querySelectorAll('tr');
 //     for (let i = 0; i < roomRows.length; i++) {
@@ -2880,7 +2980,7 @@ $(document).on('change', '.roomSelect', function () {
 //             const newRow = tbody.lastElementChild;
 //             const roomSelect = newRow.querySelector('.roomSelect');
 
-//             // ✅ init select2
+//             // âœ… init select2
 //             initModalSelect2(roomSelect, 'Select Room');
 //         });
 // });
@@ -2900,12 +3000,12 @@ $(document).on('change', '.roomSelect', function () {
 
 //     const existingRows = tbody.querySelectorAll('tr');
 
-//     // ✅ first click alert when no rooms yet
+//     // âœ… first click alert when no rooms yet
 //     if (existingRows.length === 0) {
 //         alert('No rooms added under this property. Please select a room.');
 //     }
 
-//     // ✅ if any existing row is still not selected, stop new row
+//     // âœ… if any existing row is still not selected, stop new row
 //     for (let i = 0; i < existingRows.length; i++) {
 //         const row = existingRows[i];
 //         const roomSelect = row.querySelector('.roomSelect');
@@ -2938,7 +3038,7 @@ $(document).on('change', '.roomSelect', function () {
 //         });
 // });
 
-const roomCache = {}; // ✅ cache rooms per property
+const roomCache = {}; // âœ… cache rooms per property
 
 document.addEventListener('click', async function (e) {
     const btn = e.target.closest('.addRoomBtn');
@@ -2955,7 +3055,7 @@ document.addEventListener('click', async function (e) {
 
     const existingRows = tbody.querySelectorAll('tr');
 
-    // ✅ Validate existing rows first
+    // âœ… Validate existing rows first
     for (let row of existingRows) {
         const roomSelect = row.querySelector('.roomSelect');
         const roomId = row.dataset.roomId || (roomSelect ? $(roomSelect).val() : '');
@@ -2973,7 +3073,7 @@ document.addEventListener('click', async function (e) {
     let rooms = [];
 
     try {
-        // ✅ use cache
+        // âœ… use cache
         if (roomCache[propertyId]) {
             rooms = roomCache[propertyId];
         } else {
@@ -2986,16 +3086,16 @@ document.addEventListener('click', async function (e) {
             }
 
             rooms = data.data;
-            roomCache[propertyId] = rooms; // ✅ cache
+            roomCache[propertyId] = rooms; // âœ… cache
         }
 
-        // ✅ FINAL CHECK (only here alert)
+        // âœ… FINAL CHECK (only here alert)
         if (!rooms.length) {
             alert('No rooms available under this property.');
             return;
         }
 
-        // ✅ insert row
+        // âœ… insert row
         tbody.insertAdjacentHTML(
             'beforeend',
             getRoomRowTemplate(propertyId, rooms, leadId, propertyDayId, stayDestId)
@@ -3061,7 +3161,7 @@ function buildQuotationPayload() {
             quotation_options_vehicle_display:
                 optionBlock.querySelector('[name="quotation_options_vehicle_display[]"]')?.checked ? 1 : 0,
             
-            // ✅ NEW: save exactly what UI calculated
+            // âœ… NEW: save exactly what UI calculated
             quotation_options_total_cost:
                 optionBlock.querySelector('.optionTotalCostInput')?.value || '0',
 
@@ -3122,7 +3222,7 @@ function buildQuotationPayload() {
             //             property.rooms.push({
             //                 packages_properties_rooms_id_fk: roomRow.dataset.packagesRoomId || 0,
             //                 quotation_properties_rooms_id_fk: roomRow.dataset.roomId,
-            //                  // ✅ NEW FIELD (will go to DB later)
+            //                  // âœ… NEW FIELD (will go to DB later)
             //   total_room_cost: totalRoomCost
             //             });
 
@@ -3204,7 +3304,7 @@ function buildQuotationPayload() {
 
       payload.inclusions.push({
             package_option_id_fk: packageOptionId,
-            quotation_options_id_fk: $(this).closest('.optionBlock').data('option-id') || '', // ✅ ADD THIS
+            quotation_options_id_fk: $(this).closest('.optionBlock').data('option-id') || '', // âœ… ADD THIS
             dayKey: dayKey,
             property_id_fk: propertyId,
             property_inclusions_id_fk: propertyInclusionId,
@@ -3329,7 +3429,7 @@ function computeAppliedCountsFromAges(room, enquiryPlan, childAges) {
 
   let hasUnderRestrictedChild = false;
 
-  // If you didn’t store ages, fall back to enquiryPlan.children
+  // If you didnâ€™t store ages, fall back to enquiryPlan.children
   const ageRows = Array.isArray(childAges) && childAges.length
     ? childAges
     : (toInt(enquiryPlan.children, 0) ? [{ age: null, count: toInt(enquiryPlan.children, 0) }] : []);
@@ -3524,7 +3624,7 @@ function autoAllocate(policy, applied) {
       out.notes.surplus.eb = Math.max(0, ebCap - needExtra);
     }
 
-    // Special: if db=0 and adults hosted only by EB => mark EB “excess”
+    // Special: if db=0 and adults hosted only by EB => mark EB â€œexcessâ€
     if (db === 0 && needExtra > 0) {
       out.notes.excess.eb = needExtra;
     }
@@ -3541,7 +3641,7 @@ function autoAllocate(policy, applied) {
   }
 
   // ======= Child/Baby allocation into SB (per room)
-  // Your later scenarios use SB for baby/child “sharing bed”.
+  // Your later scenarios use SB for baby/child â€œsharing bedâ€.
   // We allocate sharing beds across rooms calculated above.
   const roomsCount = Math.max(1, out.plan.rooms_units || 0);
   const sbCapTotal = roomsCount * sb;
@@ -3728,7 +3828,7 @@ function checkRoomPricingWarnings()
 
     if (!tariffFound) {
         messages.push(
-            'Rates for all bed units were not found in the tariff. Auto rooming amounts may show as zero — enter per-unit rates manually in the rooming table.'
+            'Rates for all bed units were not found in the tariff. Auto rooming amounts may show as zero â€” enter per-unit rates manually in the rooming table.'
         );
     }
 
@@ -3792,25 +3892,25 @@ clearRoomPricingWarnings();
 
         //         let d = res.data;
 
-        //         // ✅ SET HIDDEN ID
+        //         // âœ… SET HIDDEN ID
         //         $('#modal_quotation_room_tariff_details_id')
         //             .val(d.quotation_room_tariff_details_id);
 
-        //         // ✅ AUTO SECTION
+        //         // âœ… AUTO SECTION
         //         $('[name="room_unit_auto_count"]').val(d.room_unit_auto_count);
         //         $('[name="room_unit_auto_rate"]').val(d.room_unit_auto_rate);
 
-        //         // ✅ MANUAL SECTION
+        //         // âœ… MANUAL SECTION
         //         $('[name="room_unit_manual_count"]').val(d.room_unit_manual_count);
         //         $('[name="room_unit_manual_rate"]').val(d.room_unit_manual_rate);
 
-        //         // 👉 repeat for all fields (same mapping)
+        //         // ðŸ‘‰ repeat for all fields (same mapping)
 
-        //         // ✅ TRIGGER TOTAL CALCULATION
+        //         // âœ… TRIGGER TOTAL CALCULATION
         //         calculateRoomTariffTotals();
 
         //     } else {
-        //         // no data → reset modal
+        //         // no data â†’ reset modal
         //         $('#modal_quotation_room_tariff_details_id').val('');
         //         resetRoomTariffModal();
         //     }
@@ -3998,12 +4098,12 @@ document.getElementById('modal_quotation_properties_rooms_id_fk').value = qpRoom
     // Room policy age line (Baby/Child range)
     setTextSafeIn(modalEl, '[data-role="room-policy-ages"]', 'Baby - | Child -');
 
-    // ✅ In Enquiry reset (Adult + Child only)
+    // âœ… In Enquiry reset (Adult + Child only)
     setTextSafeIn(modalEl, '[data-role="enquiry-adult"]', '0');
     setTextSafeIn(modalEl, '[data-role="enquiry-child"]', '0');
     setTextSafeIn(modalEl, '[data-role="enquiry-meal"]', '-');
 
-    // ✅ Applied reset (Adult + Child + Baby + meal)
+    // âœ… Applied reset (Adult + Child + Baby + meal)
     setTextSafeIn(modalEl, '[data-role="applied-adult"]', '0');
     setTextSafeIn(modalEl, '[data-role="applied-child"]', '0');
     setTextSafeIn(modalEl, '[data-role="applied-baby"]', '0');
@@ -4011,11 +4111,11 @@ document.getElementById('modal_quotation_properties_rooms_id_fk').value = qpRoom
     setHtmlSafeIn(modalEl, '#mealMismatchIconWrap', '');
     setHtmlSafeIn(modalEl, '#appliedMealWarningWrap', '');
 
-    // ✅ reset pax-wise bed utilization spans
+    // âœ… reset pax-wise bed utilization spans
     var spans = modalEl.querySelectorAll('[data-role^="adult-"],[data-role^="child-"],[data-role^="baby-"]');
     for (var i = 0; i < spans.length; i++) spans[i].textContent = '0';
 
-    // ✅ hidden fields
+    // âœ… hidden fields
     var modalLead = document.getElementById('modal_lead_id');
     var modalProp = document.getElementById('modal_property_id');
     var modalRoom = document.getElementById('modal_room_category_id');
@@ -4024,7 +4124,7 @@ document.getElementById('modal_quotation_properties_rooms_id_fk').value = qpRoom
     if (modalProp) modalProp.value = propertyId;
     if (modalRoom) modalRoom.value = roomCategoryId;
 
-    // ✅ open modal first
+    // âœ… open modal first
     // bootstrap.Modal.getOrCreateInstance(modalEl).show();
 //     $('#roompricingandguestallocationModal').modal({
 //   backdrop: 'static',
@@ -4264,7 +4364,7 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
 
 //       applyTariffRatesToModal(tariffRes);
 
-//       // ✅ ensure DOM updated before calculation
+//       // âœ… ensure DOM updated before calculation
 //       setTimeout(() => {
 //           syncAutoToManualCountsAndRates();   // important
 //           refreshAllAmountsAndTotals();       // MAIN FIX
@@ -4394,7 +4494,7 @@ function handleSingleAdultSGL(policy) {
     const children = Number(policy.children || 0);
     const baby = Number(policy.baby || 0);
 
-    // ✅ Only 1 adult and no dependents
+    // âœ… Only 1 adult and no dependents
     if (adults === 1 && children === 0 && baby === 0) {
         return {
             isHandled: true,
@@ -4417,7 +4517,7 @@ function handleSingleAdultSGL(policy) {
 
 function allocateRooms(applied, policy) {
 
-    // 🔹 Step 0: Check SGL condition
+    // ðŸ”¹ Step 0: Check SGL condition
     const sglCheck = handleSingleAdultSGL(policy);
 
     if (sglCheck.isHandled) {
@@ -4439,13 +4539,13 @@ function allocateRooms(applied, policy) {
     }
 
     // -------------------------------
-    // 🏨 STEP 1: INITIAL ROOM ESTIMATE
+    // ðŸ¨ STEP 1: INITIAL ROOM ESTIMATE
     // -------------------------------
     const totalGuests = baseAdults + baseChildren + baseBaby;
     let rooms = Math.ceil(totalGuests / effectiveCapacity) || 1;
 
     // -------------------------------
-    // 🔁 STEP 2: ALLOCATION LOOP
+    // ðŸ” STEP 2: ALLOCATION LOOP
     // -------------------------------
     while (true) {
 
@@ -4459,7 +4559,7 @@ function allocateRooms(applied, policy) {
         let totalSB = rooms * roomSB;
 
         // -------------------------------
-        // 👶 1. BABY → SB
+        // ðŸ‘¶ 1. BABY â†’ SB
         // -------------------------------
         let babySB = Math.min(baby, totalSB);
         baby -= babySB;
@@ -4467,7 +4567,7 @@ function allocateRooms(applied, policy) {
         let remainingSB = totalSB - babySB;
 
         // -------------------------------
-        // 👨 2. ADULT → DB
+        // ðŸ‘¨ 2. ADULT â†’ DB
         // -------------------------------
         let adultDB = Math.min(adults, totalDB);
         adults -= adultDB;
@@ -4475,7 +4575,7 @@ function allocateRooms(applied, policy) {
         let remainingDB = totalDB - adultDB;
 
         // -------------------------------
-        // 🧒 3. CHILD → remaining DB (use free DB slots before SB/EB)
+        // ðŸ§’ 3. CHILD â†’ remaining DB (use free DB slots before SB/EB)
         // -------------------------------
         let childDB = Math.min(children, remainingDB);
         children -= childDB;
@@ -4483,7 +4583,7 @@ function allocateRooms(applied, policy) {
         remainingDB -= childDB;
 
         // -------------------------------
-        // 🧒 4. CHILD → SB (only if DB is full)
+        // ðŸ§’ 4. CHILD â†’ SB (only if DB is full)
         // -------------------------------
         let childSB = Math.min(children, remainingSB);
         children -= childSB;
@@ -4491,7 +4591,7 @@ function allocateRooms(applied, policy) {
         remainingSB -= childSB;
 
         // -------------------------------
-        // 👶 5. BABY → EB
+        // ðŸ‘¶ 5. BABY â†’ EB
         // -------------------------------
         let babyEB = Math.min(baby, totalEB);
         baby -= babyEB;
@@ -4499,7 +4599,7 @@ function allocateRooms(applied, policy) {
         let remainingEB = totalEB - babyEB;
 
         // -------------------------------
-        // 👨 6. ADULT → EB
+        // ðŸ‘¨ 6. ADULT â†’ EB
         // -------------------------------
         let adultEB = Math.min(adults, remainingEB);
         adults -= adultEB;
@@ -4507,7 +4607,7 @@ function allocateRooms(applied, policy) {
         remainingEB -= adultEB;
 
         // -------------------------------
-        // 🧒 7. CHILD → EB
+        // ðŸ§’ 7. CHILD â†’ EB
         // -------------------------------
         let childEB = Math.min(children, remainingEB);
         children -= childEB;
@@ -4515,7 +4615,7 @@ function allocateRooms(applied, policy) {
         remainingEB -= childEB;
 
         // -------------------------------
-        // ✅ CHECK: ALL ALLOCATED?
+        // âœ… CHECK: ALL ALLOCATED?
         // -------------------------------
         if (adults === 0 && children === 0 && baby === 0) {
             return {
@@ -4550,7 +4650,7 @@ function allocateRooms(applied, policy) {
         }
 
         // -------------------------------
-        // ❗ NOT ENOUGH → INCREASE ROOMS
+        // â— NOT ENOUGH â†’ INCREASE ROOMS
         // -------------------------------
         rooms++;
     }
@@ -4577,7 +4677,7 @@ function applyAutoAllocationToModal(result) {
     setValSafe('#roompricingandguestallocationModal [name="auto_supplment_cost_count"]', 0); // later
 
     // ---------------------------
-    // ✅ MANUAL DEFAULTS = SAME AS AUTO
+    // âœ… MANUAL DEFAULTS = SAME AS AUTO
     // ---------------------------
     setValSafe('#roompricingandguestallocationModal [name="manual_count"]', result.totalRooms ?? 0);
     setValSafe('#roompricingandguestallocationModal [name="manual_extra_bed_adult_count"]', result.adult?.eb ?? 0);
@@ -4650,33 +4750,33 @@ function applyTariffRatesToModal(tariffRes) {
         });
     }
 
-    // ✅ Rooms | Units RATE (Auto + Manual)
+    // âœ… Rooms | Units RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_room_member_rate"]', rates.room_rate || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_rate"]', rates.room_rate || 0);
 
-    // ✅ Extra Bed Adult RATE (Auto + Manual)
+    // âœ… Extra Bed Adult RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_extra_bed_adult_rate"]', rates.adult_eb_rate || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_extra_bed_adult_rate"]', rates.adult_eb_rate || 0);
 
-    // ✅ Extra Bed Child RATE (Auto + Manual)
+    // âœ… Extra Bed Child RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_extra_bed_child_rate"]', rates.child_eb_rate || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_extra_bed_child_rate"]', rates.child_eb_rate || 0);
 
-    // ✅ Child Sharing Bed RATE (Auto + Manual)
+    // âœ… Child Sharing Bed RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_child_sharing_bed_rate"]', rates.child_sb_rate || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_child_sharing_bed_rate"]', rates.child_sb_rate || 0);
 
-    // ✅ Single Occupancy RATE (Auto + Manual)
+    // âœ… Single Occupancy RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_single_occupancy_rate"]', rates.sgl_rate || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_single_occupancy_rate"]', rates.sgl_rate || 0);
 
-    // ✅ Supplement Cost COUNT = NA (Auto + Manual)
+    // âœ… Supplement Cost COUNT = NA (Auto + Manual)
     const supCountAuto = document.querySelector('#roompricingandguestallocationModal [name="auto_supplment_cost_count"]');
     const supCountMan  = document.querySelector('#roompricingandguestallocationModal [name="manual_supplment_cost_count"]');
     if (supCountAuto) { supCountAuto.value = 'NA'; supCountAuto.setAttribute('readonly','readonly'); }
     if (supCountMan)  { supCountMan.value  = 'NA'; supCountMan.setAttribute('readonly','readonly'); }
 
-    // ✅ Supplement Cost RATE (Auto + Manual)
+    // âœ… Supplement Cost RATE (Auto + Manual)
     setInputSafe('#roompricingandguestallocationModal [name="auto_supplment_cost"]', d.supplement_amount || 0);
     setInputSafe('#roompricingandguestallocationModal [name="manual_supplment_cost"]', d.supplement_amount || 0);
 }
@@ -4836,7 +4936,7 @@ if (roomModalEl) {
 
 document.getElementById('btnSave1')?.addEventListener('click', function () {
 
-     // ✅ NEW VALIDATION
+     // âœ… NEW VALIDATION
     if (!validateManualRoomingPlan()) {
         return;
     }
@@ -5434,8 +5534,8 @@ function validateManualRoomingPlan() {
             'Room count is inadequate.\n\n' +
             'You entered: ' + manualRooms + ' room(s)\n' +
             'Minimum required: ' + minRooms + ' room(s)\n\n' +
-            'Room policy — DB: ' + policyDb + ' | EB: ' + policyEb + ' | SB: ' + policySb + '\n' +
-            'Guest requirement — Adults: ' + appAdults + ' | Children: ' + appChildren + ' | Baby: ' + appBaby
+            'Room policy â€” DB: ' + policyDb + ' | EB: ' + policyEb + ' | SB: ' + policySb + '\n' +
+            'Guest requirement â€” Adults: ' + appAdults + ' | Children: ' + appChildren + ' | Baby: ' + appBaby
         );
         if (manualCountEl) {
             manualCountEl.focus();
@@ -5463,7 +5563,7 @@ function validateManualRoomingPlan() {
         if (totalCap < totalGuests) {
             alert(
                 'Bed capacity is insufficient for all guests.\n\n' +
-                'Capacity: ' + manualRooms + ' rooms × DB(' + policyDb + ') + EB(' + (mEbAdult + mEbChild) + ') + SB(' + mSbChild + ') = ' + totalCap + '\n' +
+                'Capacity: ' + manualRooms + ' rooms Ã— DB(' + policyDb + ') + EB(' + (mEbAdult + mEbChild) + ') + SB(' + mSbChild + ') = ' + totalCap + '\n' +
                 'Guests: Adults(' + appAdults + ') + Children(' + appChildren + ') + Baby(' + appBaby + ') = ' + totalGuests + '\n\n' +
                 'Please increase room count, Extra Beds, or Child Sharing Beds.'
             );
@@ -5474,7 +5574,7 @@ function validateManualRoomingPlan() {
             alert(
                 'Total Extra Bed count exceeds room capacity.\n\n' +
                 'EB Adult: ' + mEbAdult + ' + EB Child: ' + mEbChild + ' = ' + (mEbAdult + mEbChild) + '\n' +
-                'Max EB capacity: ' + req.maxEB + ' (' + manualRooms + ' rooms × EB:' + policyEb + ')'
+                'Max EB capacity: ' + req.maxEB + ' (' + manualRooms + ' rooms Ã— EB:' + policyEb + ')'
             );
             return false;
         }
@@ -5483,7 +5583,7 @@ function validateManualRoomingPlan() {
             alert(
                 'Child Sharing Bed count exceeds room capacity.\n\n' +
                 'Entered: ' + mSbChild + '\n' +
-                'Max SB capacity: ' + req.maxSB + ' (' + manualRooms + ' rooms × SB:' + policySb + ')'
+                'Max SB capacity: ' + req.maxSB + ' (' + manualRooms + ' rooms Ã— SB:' + policySb + ')'
             );
             return false;
         }
@@ -5508,7 +5608,7 @@ function validateManualRoomingPlan() {
         let count = parseFloat(countEl.value) || 0;
         let rate  = parseFloat(rateEl.value) || 0;
 
-        // ❌ Empty validation
+        // âŒ Empty validation
         if (countEl.value === '') {
             showError(countEl, `${f.label} count is required`);
             return false;
@@ -5519,14 +5619,14 @@ function validateManualRoomingPlan() {
             return false;
         }
 
-        // ❌ Logic validation
+        // âŒ Logic validation
         if (count > 0 && rate <= 0) {
             showError(rateEl, `${f.label} rate must be greater than 0`);
             return false;
         }
     }
 
-    // ❌ Supplement cost validation
+    // âŒ Supplement cost validation
     var modalEl2 = document.getElementById('roompricingandguestallocationModal');
     var tariffData2 = null;
     if (modalEl2 && modalEl2.dataset.tariffData) {
@@ -5546,3 +5646,967 @@ function validateManualRoomingPlan() {
     return isValid;
 }
 
+////////////////////// Quotation Edit /////////////////////////
+
+
+function edit_quotation(id)
+{
+    save_method = 'update';
+    window.isQuotationEditLoading = true;
+
+    var editForm = document.getElementById('form') || document.getElementById('form5');
+    if (editForm) editForm.reset();
+    $('.form-group').removeClass('input-warning-o');
+    $('.help-block').empty();
+
+    $('.optionBlockContainer').empty();
+    $('#inclusionTable tbody tr:gt(0)').remove();
+    $('#specialReqTable tbody tr:gt(0)').remove();
+
+    $('#quotation_property_inclusion_type').prop('checked', false);
+    $('#quotation_special_requirement_type').prop('checked', false);
+    $('#inclusionBox').hide();
+    $('#specialReqBox').hide();
+
+    
+
+    optionCount = 0;
+
+    $.ajax({
+        url: "<?php echo base_url();?>index.php/Quotation/ajax_edit/" + id,
+        type: "GET",
+        dataType: "JSON",
+        success: function(res)
+        {
+            if (!res.status) {
+                window.isQuotationEditLoading = false;
+                alert(res.message || 'Failed to load quotation');
+                return;
+            }
+
+            const q = res.quotation || {};
+
+            $('[name="id"]').val(q.quotation_id || '');
+            $('[name="quotation_date"]').val(q.quotation_date || '');
+            $('[name="arriving_destination"]').val(q.arriving_destination || '');
+            $('[name="departuring_destination"]').val(q.departuring_destination || '');
+            $('[name="quotation_remarks"]').val(q.quotation_remarks || '');
+
+            const leads_id = q.leads_id_fk || '';
+
+            // Ã¢Å“â€¦ support both possible column names
+            const package_id = q.packages_id_fk || q.package_id_fk || q.pacakage_id_fk || '';
+
+            if (q.leads_id_fk) {
+            var leadText = q.leads_number
+                ? q.leads_number + ' - ' + q.guest_name
+                : q.guest_name;
+
+            var leadOption = new Option(leadText, q.leads_id_fk, true, true);
+            $('#leads_id').data('filter-mode', 'edit').empty().append(leadOption).trigger('change.select2');
+            $('#leads_id').prop('disabled', true);
+            $('#leads_id_hidden').val(q.leads_id_fk);
+        }
+
+            // $('#leads_id').val(leads_id).trigger('change.select2');
+            // $('#leads_id_hidden').val(leads_id);
+            // Lead disable
+// $('[name="leads_id"]').prop('disabled', true).trigger('change.select2');
+// $('#leads_id_hidden').val(leads_id);
+
+            $('#packages_id_hidden').val(package_id);
+            $('#packages_id_fk').val(package_id);
+            $('#template_name_display').text(q.packages_title || '');
+
+            if (!leads_id || !package_id) {
+                window.isQuotationEditLoading = false;
+                alert('Lead or Template missing');
+                return;
+            }
+
+            $('#QuotationModal').modal('show');
+            $('#QuotationModal .modal-title').text('Edit Quotation Details');
+            $('#btnSave').text('Update');
+
+            rebuildQuotationOptionBlocks(res.options || [], package_id, function () {
+
+                loadInclusionAndRequirementDropdownData(function () {
+
+                    if ((res.property_inclusions || []).length > 0) {
+                        $('#quotation_property_inclusion_type').prop('checked', true);
+                        $('#inclusionBox').show();
+
+                        refillSavedPropertyInclusions(res.property_inclusions || []);
+                    }
+
+                    if ((res.special_requirements || []).length > 0) {
+                        $('#quotation_special_requirement_type').prop('checked', true);
+                        $('#specialReqBox').show();
+
+                        refillSavedSpecialRequirements(res.special_requirements || []);
+                    }
+
+                    setTimeout(function () {
+                        window.isQuotationEditLoading = false;
+                    }, 500);
+                });
+            });
+
+            setTimeout(function () {
+                window.isQuotationEditLoading = false;
+                $('#addOptionBtn').prop('disabled', false).removeClass('disabled');
+            }, 500);
+        },
+        error: function ()
+        {
+            window.isQuotationEditLoading = false;
+            alert('Error getting data from ajax');
+        }
+    });
+}
+
+/* Template is auto-determined by lead; #packages_id_fk is now hidden */
+
+function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callback) {
+    if (!$select || !$select.length) return;
+
+    $.ajax({
+        url: "<?php echo base_url('index.php/Leads/ajax_get_package_property_categories'); ?>",
+        type: "GET",
+        dataType: "JSON",
+        data: { package_id: packageId },
+        success: function(res) {
+
+            var rows = (res && res.status && res.data) ? res.data : [];
+            var html = '<option value="">Select Template Option</option>';
+
+            for (var i = 0; i < rows.length; i++) {
+                html += '<option value="' + rows[i].packages_properties_common_id + '">' +
+                            rows[i].packages_properties_common_category_name +
+                        '</option>';
+            }
+
+            $select.html(html);
+
+            if (selectedValue) {
+                $select.val(String(selectedValue));
+            }
+
+            if ($.fn.select2) {
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+
+                $select.select2({
+                    width: '100%',
+                    placeholder: 'Select Template Option',
+                    allowClear: true,
+                    dropdownParent: $('#QuotationModal')
+                });
+            }
+
+            $select.trigger('change.select2');
+
+            if (typeof callback === 'function') {
+                callback();
+            }
+        },
+        error: function() {
+            $select.html('<option value="">Failed to load options</option>');
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }
+    });
+}
+
+function rebuildQuotationOptionBlocks(options, packageId, doneCallback)
+{
+    // const $wrap = $('.optionBlockContainer');
+    const $wrap = $('#optionsContainer').length ? $('#optionsContainer') : $('.optionBlockContainer');
+    $wrap.empty();
+    optionCount = 0;
+
+    if (!options || !options.length) {
+        if (typeof doneCallback === 'function') doneCallback();
+        return;
+    }
+
+    let completed = 0;
+
+    options.forEach(function(opt) {
+
+        optionCount++;
+        $wrap.append(getOptionTemplate(optionCount));
+
+        const $block = $wrap.children('.optionBlock').last();
+
+        $block.attr('data-option-id', opt.quotation_options_id || '');
+        $block.find('[name="quotation_options_title[]"]').val(opt.quotation_options_title || '');
+        $block.find('[name="quotation_options_cab_amount[]"]').val(opt.quotation_options_cab_amount || '');
+        // $block.find('[name="quotation_options_design_type[]"]').val(opt.quotation_options_design_type || '').trigger('change');
+        // $block.find('[name="quotation_options_vehicle_id_fk[]"]').val(opt.quotation_options_vehicle_id_fk || '').trigger('change');
+
+        // Select Design
+        const $design = $block.find('[name="quotation_options_design_type[]"]');
+
+        if ($.fn.select2 && !$design.hasClass('select2-hidden-accessible')) {
+            $design.select2({
+                width: '100%',
+                placeholder: 'Select Design',
+                allowClear: true,
+                dropdownParent: $('#QuotationModal')
+            });
+        }
+
+        $design.val(String(opt.quotation_options_design_type || '')).trigger('change.select2');
+
+
+        // Select Vehicle
+        const $vehicle = $block.find('[name="quotation_options_vehicle_id_fk[]"]');
+
+        if ($.fn.select2 && !$vehicle.hasClass('select2-hidden-accessible')) {
+            $vehicle.select2({
+                width: '100%',
+                placeholder: 'Select Vehicle',
+                allowClear: true,
+                dropdownParent: $('#QuotationModal')
+            });
+        }
+
+        fetchVehicles($vehicle[0], function () {
+            $vehicle.val(String(opt.quotation_options_vehicle_id_fk || '')).trigger('change.select2');
+        });
+
+        $block.find('[name="quotation_options_room_category_display[]"]').prop(
+            'checked',
+            parseInt(opt.quotation_options_room_category_display || 0) === 1
+        );
+
+        $block.find('[name="quotation_options_meal_plan_display[]"]').prop(
+            'checked',
+            parseInt(opt.quotation_options_meal_plan_display || 0) === 1
+        );
+
+        $block.find('[name="quotation_options_vehicle_display[]"]')
+    .prop('checked', parseInt(opt.quotation_options_vehicle_display || 0) === 1);
+
+        // load package option dropdown, then render saved itinerary
+        loadPackageOptionsIntoDropdown(
+            $block.find('.propertyDropdown'),
+            packageId,
+            opt.packages_properties_common_id_fk,
+            function () {
+                buildSavedOptionItinerary($block, opt);
+
+                completed++;
+                if (completed === options.length) {
+                    if (typeof doneCallback === 'function') doneCallback();
+                }
+            }
+        );
+    });
+}
+
+function formatItineraryDayDate(dateStr)
+{
+    if (!dateStr || dateStr === '0000-00-00') return '';
+
+    var parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+
+    var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return days[d.getDay()] + ', ' + parts[2] + ' ' + months[d.getMonth()] + ' ' + parts[0];
+}
+
+function buildSavedOptionItinerary($block, optionData)
+{
+    const container = $block.find('.itineraryContainer');
+    if (!container.length) return;
+
+    let html = `
+        <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Day | Date</th>
+                    <th>Stay Destination</th>
+                    <th>Properties & Rooms</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    (optionData.days || []).forEach(function(day) {
+
+        let propertiesHTML = '';
+
+        (day.properties || []).forEach(function(property) {
+
+            let roomsHTML = '';
+
+            (property.rooms || []).forEach(function(room) {
+                const finalRate = parseFloat(room.manual_total_rate || room.auto_total_rate || room.total_room_cost || 0).toFixed(2);
+
+                roomsHTML += `
+                    <tr data-room-id="${room.quotation_properties_rooms_id_fk || ''}"
+                        data-packages-room-id="${room.packages_properties_rooms_id_fk || 0}"
+                        data-day-id="${day.packages_properties_days_id_fk || 0}">
+                        <td class="roomName">
+                            ${room.properties_room_category_name || ''}
+                            <input type="hidden" name="packages_properties_rooms_id_fk[]" value="${room.packages_properties_rooms_id_fk || 0}">
+                            <input type="hidden" name="quotation_properties_rooms_id_fk[]" value="${room.quotation_properties_rooms_id_fk || 0}">
+                            <input type="hidden" name="quotation_room_tariff_details_id[]" class="quotationRoomTariffDetailsIdInput" value="${room.quotation_room_tariff_details_id || ''}">
+                        </td>
+                        <td>
+                            <span class="autoCalcRateText">${finalRate}</span>
+                            <input type="hidden" name="total_room_cost[][]" class="autoCalcRateInput" value="${finalRate}">
+                        </td>
+                        <td class="text-center">
+                            <button type="button"
+                                class="btn btn-sm btn-warning me-1 editRoomBtn"
+                                data-lead-id="${$('#leads_id_hidden').val() || $('#leads_id').val() || ''}"
+                                data-property-day-id="${day.packages_properties_days_id_fk || ''}"
+                                data-stay-destination-id="${day.quotation_properties_days_destination_id_fk || ''}"
+                                data-property-id="${property.properties_id_fk || ''}"
+                                data-room-category-id="${room.quotation_properties_rooms_id_fk || ''}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-sm btn-danger removeRoomBtn">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            propertiesHTML += `
+                <div class="propertyBlock mt-3"
+                     data-property-id="${property.properties_id_fk || ''}"
+                     data-packages-property-id="${property.packages_properties_id_fk || 0}">
+                    <h6 class="fw-bold text-primary propertyTitle">
+                        Property: ${property.properties_name || ''}
+                    </h6>
+
+                    <input type="hidden" name="packages_properties_id_fk[]" value="${property.packages_properties_id_fk || 0}">
+                    <input type="hidden" name="properties_id_fk[]" value="${property.properties_id_fk || 0}">
+
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Room Name</th>
+                                <th>Calculated Rate</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>${roomsHTML}</tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-center">
+                                    <button type="button" class="btn btn-sm btn-success addRoomBtn">
+                                        <i class="bi bi-plus-circle"></i> Add New Room
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+        });
+
+        html += `
+            
+
+            <tr class="itineraryDayRow"
+                data-accommodation-date="${day.accommodation_date || ''}">
+                <td>
+                    <strong>${day.quotation_properties_days_day || ''}</strong>
+
+                    ${
+                        day.accommodation_date
+                        ? `<div >${formatItineraryDayDate(day.accommodation_date)}</div>`
+                        : ''
+                    }
+                    
+                    <input type="hidden" name="packages_itinerary_days_id_fk[]" value="${day.packages_itinerary_days_id_fk || 0}">
+                           
+
+                    <input type="hidden" name="packages_properties_days_id_fk[]" value="${day.packages_properties_days_id_fk || 0}">
+                    <input type="hidden" name="quotation_properties_days_day[]" value="${day.quotation_properties_days_day || ''}">
+                     <input type="hidden" name="accommodation_plan_id_fk[]" value="${day.accommodation_plan_id_fk || 0}">
+                </td>
+
+                <td>
+                    ${day.state_name || day.destination_name || ''}
+                    <input type="hidden" name="quotation_properties_days_destination_id_fk[]" value="${day.quotation_properties_days_destination_id_fk || 0}">
+                </td>
+
+                <td>
+                    <div class="propertiesContainer">${propertiesHTML}</div>
+
+                    <div class="propertySelector d-none mt-2 border rounded p-2 bg-light">
+                        <div class="d-flex gap-2 align-items-start">
+                            <div class="flex-grow-1">
+                                <select class="form-select form-select-sm propertySelectDropdown">
+                                    <option value="">Select Property</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger removePropertySelectorBtn" title="Remove">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-2">
+                        <button type="button" class="btn btn-sm btn-primary addPropertyBtn">
+                            <i class="bi bi-plus-square"></i> Add Property
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>
+    <div class="option-total-box border rounded p-3 mt-4 bg-light">
+
+    <div class="row g-3 align-items-end">
+
+        <!-- Total Cost -->
+        <div class="col-md-3">
+        <label class="form-label fw-semibold">Total Cost</label>
+        <div class="fw-bold text-primary fs-5">
+            Ã¢â€šÂ¹ <span class="optionTotalCostText">
+            ${parseFloat(optionData.quotation_options_total_cost || 0).toFixed(2)}
+            </span>
+        </div>
+        <input type="hidden"
+                class="optionTotalCostInput"
+                name="option_total_cost[]"
+                value="${parseFloat(optionData.quotation_options_total_cost || 0).toFixed(2)}">
+        </div>
+
+        <!-- Amount Type -->
+        <div class="col-md-3">
+        <label class="form-label fw-semibold">Amount Type</label>
+        <div class="d-flex gap-2">
+
+            <select class="form-select form-select-sm optionAmountType" style="width:55%;">
+            <option value="net" ${optionData.quotation_options_amount_type === 'net' ? 'selected' : ''}>Net Amount</option>
+            <option value="adult" ${optionData.quotation_options_amount_type === 'adult' ? 'selected' : ''}>Per Adult</option>
+            <option value="person" ${optionData.quotation_options_amount_type === 'person' ? 'selected' : ''}>Per Person</option>
+            <option value="couple" ${optionData.quotation_options_amount_type === 'couple' ? 'selected' : ''}>Per Couple</option>
+            </select>
+
+            <input type="number"
+                class="form-control form-control-sm optionPerAmount ${optionData.quotation_options_amount_type !== 'net' ? '' : 'd-none'}"
+                style="width:45%;"
+                placeholder="Amount"
+                value="${optionData.quotation_options_per_amount || ''}">
+
+        </div>
+        </div>
+
+        <!-- Margin -->
+        <div class="col-md-3">
+        <label class="form-label fw-semibold">Margin</label>
+        <div class="d-flex gap-2">
+
+            <select class="form-select form-select-sm optionMarginType" style="width:45%;">
+            <option value="amount" ${optionData.quotation_options_margin_type === 'amount' ? 'selected' : ''}>Amount</option>
+            <option value="percent" ${optionData.quotation_options_margin_type === 'percent' ? 'selected' : ''}>%</option>
+            </select>
+
+            <input type="number"
+                class="form-control form-control-sm optionMarginValue"
+                style="width:55%;"
+                placeholder="Margin"
+                value="${optionData.quotation_options_margin_value || 0}">
+
+        </div>
+        </div>
+
+        <!-- Total Quote -->
+        <div class="col-md-3 text-end">
+        <label class="form-label fw-semibold">Total Quote Rate</label>
+        <div class="fw-bold text-primary fs-4">
+            Ã¢â€šÂ¹ <span class="optionQuoteTotalText">
+            ${parseFloat(optionData.quotation_options_total_quote_rate || 0).toFixed(2)}
+            </span>
+        </div>
+        <input type="hidden"
+                class="optionQuoteTotalInput"
+                name="option_quote_total[]"
+                value="${parseFloat(optionData.quotation_options_total_quote_rate || 0).toFixed(2)}">
+        </div>
+
+    </div>
+    </div>`;
+
+    container.html(html);
+}
+
+function refillSavedPropertyInclusions(rows)
+{
+    if (!rows || !rows.length) return;
+
+    $('#quotation_property_inclusion_type').prop('checked', true);
+    $('#inclusionBox').show();
+
+    const $tbody = $('#inclusionTable tbody');
+    $tbody.find('tr:gt(0)').remove();
+
+    rows.forEach(function(row, idx) {
+
+        if (idx > 0) {
+            const tbody = document.querySelector('#inclusionTable tbody');
+            tbody.insertAdjacentHTML('beforeend', createInclusionRow());
+        }
+
+        const $tr = $tbody.find('tr').eq(idx);
+
+        const packageOptionId = String(row.package_option_id_fk || '');
+        const dayKey = [
+            row.packages_properties_days_id_fk || '',
+            row.stay_destination_id_fk || '',
+            row.accommodation_date || ''
+        ].join('|');
+
+        const propertyId  = String(row.inclusion_property_id_fk || row.properties_id_fk || row.property_id_fk || '');
+        const inclusionId = String(row.property_inclusions_id_fk || row.inclusion_name_id_fk || '');
+
+        // package option
+        fillInclusionPackageOptionSelect($tr.find('.inclusionPackageOptionSelect')[0]);
+        setSelectValueSafe($tr.find('.inclusionPackageOptionSelect'), packageOptionId, 'Selected Template Option');
+
+        // Ã¢Å“â€¦ same as special requirement day dropdown
+        fillDaySelect($tr.find('.inclusionDaySelect')[0]);
+        setSelectValueSafe($tr.find('.inclusionDaySelect'), dayKey, buildSavedDayLabel(row));
+
+        // load property based on selected day + package option
+        // loadInclusionPropertiesForRow($tr, function () {
+
+        //     setSelectValueSafe(
+        //         $tr.find('.inclusionPropertySelect'),
+        //         propertyId,
+        //         row.property_name || row.properties_name || 'Selected Property'
+        //     );
+
+        //     loadInclusionNamesForRow($tr, function () {
+
+        //         setSelectValueSafe(
+        //             $tr.find('.inclusionNameSelect'),
+        //             inclusionId,
+        //             row.inclusion_name || row.property_inclusions_name || 'Selected Inclusion'
+        //         );
+
+        //         $tr.find('.inclusionAmountInput').val(row.inclusion_amount || '');
+        //         recalcInclusionTotal();
+        //     });
+        // });
+        // 1. set package option
+$tr.find('.inclusionPackageOptionSelect')
+   .val(row.package_option_id_fk || '')
+   .trigger('change.select2');
+
+// 2. load days
+loadInclusionDaysForRow($tr, row.package_option_id_fk, dayKey, function () {
+
+    // 3. select saved day
+    $tr.find('.inclusionDaySelect')
+       .val(dayKey)
+       .trigger('change.select2');
+
+    // 4. load properties
+    // loadInclusionPropertiesForRow($tr, function () {
+
+    //     var propSel = $tr.find('.inclusionPropertySelect')[0];
+
+    //     $(propSel)
+    //         .val(row.inclusion_property_id_fk || '')
+    //         .trigger('change.select2');
+
+    //     enableSelect2(propSel, 'Select Property');
+
+    //     // 5. load inclusions
+    //     loadInclusionNamesForRow($tr, function () {
+
+    //         var incSel = $tr.find('.inclusionNameSelect')[0];
+
+    //         $(incSel)
+    //             .val(row.property_inclusions_id_fk || '')
+    //             .trigger('change.select2');
+
+    //         enableSelect2(incSel, 'Select Inclusion');
+
+    //         $tr.find('.inclusionAmountInput').val(row.inclusion_amount || '');
+
+    //         recalcInclusionTotal();
+    //     });
+    // });
+    loadInclusionPropertiesForRow($tr, function () {
+
+    var propSel = $tr.find('.inclusionPropertySelect')[0];
+
+    var savedPropertyId = String(row.inclusion_property_id_fk || row.properties_id_fk || row.property_id_fk || '');
+
+    setSelectValueSafe(
+        $(propSel),
+        savedPropertyId,
+        row.property_name || row.properties_name || 'Selected Property'
+    );
+
+    // loadInclusionNamesForRow($tr, function () {
+
+    //     var incSel = $tr.find('.inclusionNameSelect')[0];
+
+    //     var savedInclusionId = String(row.property_inclusions_id_fk || row.inclusion_name_id_fk || '');
+
+    //     setSelectValueSafe(
+    //         $(incSel),
+    //         savedInclusionId,
+    //         row.inclusion_name || row.property_inclusions_name || 'Selected Inclusion'
+    //     );
+
+    //     enableSelect2(incSel, 'Select Inclusion');
+
+    //     $tr.find('.inclusionAmountInput').val(row.inclusion_amount || '');
+
+    //     recalcInclusionTotal();
+    // });
+
+    loadInclusionNamesForRow($tr, function () {
+
+        var incSel = $tr.find('.inclusionNameSelect')[0];
+
+        var savedInclusionId = String(
+            row.property_inclusions_id_fk ||
+            row.inclusion_name_id_fk ||
+            ''
+        );
+
+        // Ã¢Å“â€¦ if saved inclusion exists but not in loaded dropdown, add it
+        if (savedInclusionId && $(incSel).find('option[value="' + savedInclusionId + '"]').length === 0) {
+            $(incSel).append(
+                '<option value="' + savedInclusionId + '">' +
+                (row.inclusion_name || row.property_inclusions_name || 'Selected Inclusion') +
+                '</option>'
+            );
+        }
+
+        // Ã¢Å“â€¦ select from all loaded inclusions
+        $(incSel)
+            .val(savedInclusionId)
+            .prop('disabled', false)
+            .trigger('change.select2');
+
+        $tr.find('.inclusionAmountInput').val(row.inclusion_amount || '');
+
+        recalcInclusionTotal();
+    });
+});
+});
+    });
+
+    // enable remove button on first row after refilling saved data
+    $tbody.find('tr:first .removeInclusionBtn').prop('disabled', false);
+}
+
+function buildSavedDayLabel(row) {
+    return 'Day ' + (row.quotation_properties_days_day || row.packages_properties_days_day || '') +
+           ' | ' + formatDateDMY(row.accommodation_date || '') +
+           ' | ' + (row.state_name || row.destination_name || '');
+}
+
+function setSelectValueSafe($select, value, text) {
+    value = String(value || '');
+
+    if (!$select.length || !value) return;
+
+    if ($select.find('option[value="' + value + '"]').length === 0) {
+        $select.append('<option value="' + value + '">' + (text || value) + '</option>');
+    }
+
+    $select.val(value).trigger('change.select2');
+}
+
+function buildSavedDayLabelByKey(dayId, destinationId, accDate)
+{
+    var label = 'Saved Day';
+
+    $('.optionBlock .itineraryDayRow').each(function () {
+        var rowDayId = $(this).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+        var rowDestId = $(this).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+        var rowDate = $(this).attr('data-accommodation-date') || '';
+
+        if (String(rowDayId) === String(dayId)) {
+            var dayText = $(this).find('td:eq(0) strong').text().trim();
+            var destinationText = $(this).find('td:eq(1)').clone().children().remove().end().text().trim();
+
+            var dateText = rowDate ? formatItineraryDayDate(rowDate) : (accDate ? formatItineraryDayDate(accDate) : '');
+
+            label = dayText;
+
+            if (dateText) {
+                label += ' | ' + dateText;
+            }
+
+            if (destinationText) {
+                label += ' | ' + destinationText;
+            }
+
+            return false;
+        }
+    });
+
+    return label;
+}
+
+function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
+{
+    var daySel = $tr.find('.inclusionDaySelect')[0];
+    var html = '<option value="">Select Day | Date | Destination</option>';
+
+    $('.optionBlock').each(function () {
+        var selectedOptionId = $(this).find('.propertyDropdown').val() || '';
+
+        if (String(selectedOptionId) === String(packageOptionId)) {
+
+            $(this).find('.itineraryDayRow').each(function () {
+
+                var dayText = $(this).find('td:eq(0) strong').text().trim();
+                var destinationText = $(this).find('td:eq(1)').clone().children().remove().end().text().trim();
+
+                var packagesPropertiesDaysId =
+                    $(this).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+
+                var destinationId =
+                    $(this).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+
+                var accommodationDate =
+                    $(this).attr('data-accommodation-date') || '';
+
+                if (packagesPropertiesDaysId) {
+                    var dayKey = packagesPropertiesDaysId + '|' + destinationId + '|' + accommodationDate;
+                    // html += '<option value="' + dayKey + '">' + dayText + ' | ' + destinationText + '</option>';
+
+                    var dateText = accommodationDate ? formatItineraryDayDate(accommodationDate) : '';
+
+                    var label = dayText;
+                    if (dateText) label += ' | ' + dateText;
+                    if (destinationText) label += ' | ' + destinationText;
+
+                    html += '<option value="' + dayKey + '">' + label + '</option>';
+                }
+            });
+        }
+    });
+
+    $(daySel).html(html);
+    initSelect2(daySel, 'Select Day | Date | Destination');
+
+    // if (savedDayKey && $(daySel).find('option[value="' + savedDayKey + '"]').length === 0) {
+    //     $(daySel).append('<option value="' + savedDayKey + '">Saved Day</option>');
+    // }
+
+    if (savedDayKey && $(daySel).find('option[value="' + savedDayKey + '"]').length === 0) {
+
+        var savedParts = savedDayKey.split('|');
+
+        var savedDayId = savedParts[0] || '';
+        var savedDestinationId = savedParts[1] || '';
+        var savedDate = savedParts[2] || '';
+
+        var savedLabel = buildSavedDayLabelByKey(savedDayId, savedDestinationId, savedDate);
+
+        $(daySel).append(
+            '<option value="' + savedDayKey + '">' + savedLabel + '</option>'
+        );
+    }
+
+    if (typeof callback === 'function') callback();
+}
+function loadInclusionPropertiesForRow($tr, callback)
+{
+    var dayKey = $tr.find('.inclusionDaySelect').val() || '';
+    var leadId = $('#leads_id_hidden').val() || $('#leads_id').val() || '';
+    var packageId = $('#packages_id_hidden').val() || $('#packages_id_fk').val() || '';
+    var packageOptionId = $tr.find('.inclusionPackageOptionSelect').val() || '';
+
+    var propSel = $tr.find('.inclusionPropertySelect')[0];
+    var incSel  = $tr.find('.inclusionNameSelect')[0];
+
+    // disable while loading
+    setSelect2Loading(propSel, 'Loading Property...');
+    setSelect2Empty(incSel, 'Select Inclusion');
+
+    if (!dayKey || !leadId || !packageId || !packageOptionId) {
+        setSelect2Empty(propSel, 'Select Property');
+
+        if (typeof callback === 'function') callback();
+        return;
+    }
+
+    fetch(
+        `<?php echo base_url(); ?>index.php/Quotation/ajax_get_daywise_properties_for_inclusion?lead_id=${encodeURIComponent(leadId)}&package_id=${encodeURIComponent(packageId)}&day_key=${encodeURIComponent(dayKey)}&packages_properties_common_id_fk=${encodeURIComponent(packageOptionId)}`
+    )
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+        var html = '<option value="">Select Property</option>';
+
+        if (res && res.status && Array.isArray(res.data) && res.data.length > 0) {
+            res.data.forEach(function (p) {
+                html += '<option value="' + p.property_id + '">' + p.property_name + '</option>';
+            });
+
+            // enable after data loaded
+            setSelect2Ready(propSel, html, 'Select Property');
+        } else {
+            setSelect2Empty(propSel, 'No Property Found');
+        }
+
+        if (typeof callback === 'function') callback();
+
+        refreshQuotationModalScroll(true);
+    })
+    .catch(function (err) {
+        console.error(err);
+
+        setSelect2Empty(propSel, 'Failed to load Property');
+
+        if (typeof callback === 'function') callback();
+
+        refreshQuotationModalScroll(true);
+    });
+}
+
+// function loadInclusionNamesForRow($tr, callback)
+// {
+//     var propertyId = $tr.find('.inclusionPropertySelect').val() || '';
+//     var incSel = $tr.find('.inclusionNameSelect')[0];
+
+//     clearInclusionSelect(incSel);
+
+//     if (!propertyId) {
+//         if (typeof callback === 'function') callback();
+//         return;
+//     }
+
+//     fetch(
+//         `<?php echo base_url(); ?>index.php/Quotation/ajax_get_property_inclusions?property_id=${encodeURIComponent(propertyId)}`
+//     )
+//     .then(function (r) { return r.json(); })
+//     .then(function (res) {
+//         var html = '<option value="">Select Inclusion</option>';
+
+//         if (res && res.status && Array.isArray(res.data)) {
+//             res.data.forEach(function (p) {
+//                 html += '<option value="' + p.property_inclusions_id + '" data-amount="' + (p.property_inclusions_amount || 0) + '">' +
+//                     p.property_inclusions_name +
+//                 '</option>';
+//             });
+//         }
+
+//         $(incSel).html(html);
+//         initSelect2(incSel, 'Select Inclusion');
+
+//         if (typeof callback === 'function') callback();
+//     })
+//     .catch(function (err) {
+//         console.error(err);
+//         if (typeof callback === 'function') callback();
+//     });
+// }
+
+function loadInclusionNamesForRow($tr, callback)
+{
+    var propertyId = $tr.find('.inclusionPropertySelect').val() || '';
+    var incSel = $tr.find('.inclusionNameSelect')[0];
+
+    // Ã°Å¸â€â€™ disable + show loading
+    setSelect2Loading(incSel, 'Loading Inclusion...');
+
+    if (!propertyId) {
+        setSelect2Empty(incSel, 'Select Inclusion');
+
+        if (typeof callback === 'function') callback();
+        return;
+    }
+
+    fetch(
+        `<?php echo base_url(); ?>index.php/Quotation/ajax_get_property_inclusions_by_property?property_id=${encodeURIComponent(propertyId)}`
+    )
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+
+        var html = '<option value="">Select Inclusion</option>';
+
+        if (res && res.status && Array.isArray(res.data) && res.data.length > 0) {
+
+            res.data.forEach(function (p) {
+                html += '<option value="' + p.property_inclusions_id + '" data-amount="' + (p.property_inclusions_amount || 0) + '">' +
+                            p.property_inclusions_name +
+                        '</option>';
+            });
+
+            // Ã¢Å“â€¦ enable after load
+            setSelect2Ready(incSel, html, 'Select Inclusion');
+
+        } else {
+            setSelect2Empty(incSel, 'No Inclusion Found');
+        }
+
+        if (typeof callback === 'function') callback();
+
+        refreshQuotationModalScroll(true);
+    })
+    .catch(function (err) {
+        console.error(err);
+
+        setSelect2Empty(incSel, 'Failed to load Inclusion');
+
+        if (typeof callback === 'function') callback();
+
+        refreshQuotationModalScroll(true);
+    });
+}
+
+function refillSavedSpecialRequirements(rows)
+{
+    if (!rows || !rows.length) return;
+
+    $('#quotation_special_requirement_type').prop('checked', true).trigger('change');
+
+    const $tbody = $('#specialReqTable tbody');
+    $tbody.find('tr:gt(0)').remove();
+
+    rows.forEach(function(row, idx) {
+
+        if (idx > 0) {
+            $('#addSpecialReqBtn').trigger('click');
+        }
+
+        const $tr = $tbody.find('tr').eq(idx);
+
+        const dayKey = [
+            row.packages_properties_days_id_fk || '',
+            row.stay_destination_id_fk || '',
+            row.accommodation_date || ''
+        ].join('|');
+
+        $tr.find('.specialReqDaySelect').val(dayKey).trigger('change');
+        $tr.find('.specialReqName').val(row.quotation_special_requirements_name || '');
+        $tr.find('.specialReqCost').val(row.quotation_special_requirements_cost || '');
+    });
+
+    // enable remove button on first row after refilling saved data
+    $tbody.find('tr:first .removeSpecialReqBtn').prop('disabled', false);
+
+    recalcSpecialReqTotal();
+}

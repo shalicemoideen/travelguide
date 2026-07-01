@@ -969,7 +969,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger light" onclick="Quotationmodalclose()" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="btnSave" onclick="save()" >Save</button>
+                        <button type="button" class="btn btn-primary" id="btnSave" onclick="saveQuotation()" >Save</button>
                     </div>
                 </div>
             </div>
