@@ -1215,6 +1215,105 @@ public function get_child_age_breakup($guest_count_id)
 		$this->db->update($this->table, $data);
 		return $this->db->affected_rows();
 	}
+
+	public function getLeadsReport($param)
+	{
+		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
+		$guest_name = isset($param['guest_name']) ? $param['guest_name'] : '';
+		$lead_status= isset($param['lead_status'])? $param['lead_status']: '';
+		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
+		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+
+		$currentuserid   = $this->session->userdata('user_id');
+		$currentusertype = $this->session->userdata('user_type');
+
+		if ($currentusertype == 'S') {
+			$this->db->where('l.staff_id_fk', $currentuserid);
+		} elseif ($staff_id) {
+			$this->db->where('l.staff_id_fk', $staff_id);
+		}
+
+		if ($guest_name) {
+			$this->db->like('l.guest_name', $guest_name);
+		}
+		if ($lead_status) {
+			$this->db->where('l.lead_current_status', $lead_status);
+		}
+		if ($start_date) {
+			$this->db->where('l.lead_register_date>=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where('l.lead_register_date<=', $end_date);
+		}
+
+		if ($param['length'] == -1) {
+			// no limit
+		} elseif ($param['start'] != 'false' && $param['length'] != 'false') {
+			$this->db->limit($param['length'], $param['start']);
+		}
+
+		$this->db->select("l.leads_id, l.leads_number, ud.admin_name as staff_name, l.guest_name,
+			c.name as destination,
+			DATE_FORMAT(l.start_date, '%d-%m-%Y') as travel_date, l.duration, l.lead_current_status,
+			DATE_FORMAT(l.lead_register_date, '%d-%m-%Y') as lead_created_date,
+			COALESCE((SELECT SUM(gcd.adults) FROM guset_count_details gcd
+				JOIN guset_count gc ON gc.guset_count_id = gcd.guset_count_id_fk
+				WHERE gc.guset_count_lead_id_fk = l.leads_id AND gc.guset_count_status = 1
+				AND gcd.guset_count_details_status = 1), 0) as total_adults,
+			COALESCE((SELECT SUM(gcd.children) FROM guset_count_details gcd
+				JOIN guset_count gc ON gc.guset_count_id = gcd.guset_count_id_fk
+				WHERE gc.guset_count_lead_id_fk = l.leads_id AND gc.guset_count_status = 1
+				AND gcd.guset_count_details_status = 1), 0) as total_children", FALSE);
+		$this->db->from('leads l');
+		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
+		$this->db->join('country c', 'c.id = l.country_id_fk', 'left');
+		$this->db->where('l.leads_status', 1);
+		$this->db->order_by('l.leads_id', 'DESC');
+
+		$query = $this->db->get();
+		$data['data']            = $query->result();
+		$data['recordsTotal']    = $this->getLeadsReportCount($param);
+		$data['recordsFiltered'] = $this->getLeadsReportCount($param);
+		return $data;
+	}
+
+	public function getLeadsReportCount($param = NULL)
+	{
+		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
+		$guest_name = isset($param['guest_name']) ? $param['guest_name'] : '';
+		$lead_status= isset($param['lead_status'])? $param['lead_status']: '';
+		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
+		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+
+		$currentuserid   = $this->session->userdata('user_id');
+		$currentusertype = $this->session->userdata('user_type');
+
+		if ($currentusertype == 'S') {
+			$this->db->where('l.staff_id_fk', $currentuserid);
+		} elseif ($staff_id) {
+			$this->db->where('l.staff_id_fk', $staff_id);
+		}
+
+		if ($guest_name) {
+			$this->db->like('l.guest_name', $guest_name);
+		}
+		if ($lead_status) {
+			$this->db->where('l.lead_current_status', $lead_status);
+		}
+		if ($start_date) {
+			$this->db->where('l.lead_register_date>=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where('l.lead_register_date<=', $end_date);
+		}
+
+		$this->db->select('l.leads_id', FALSE);
+		$this->db->from('leads l');
+		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
+		$this->db->where('l.leads_status', 1);
+		$query = $this->db->get();
+		return $query->num_rows();
+	}
 }
 
 ?>

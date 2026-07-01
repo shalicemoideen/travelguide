@@ -3593,6 +3593,45 @@ private function get_accommodation_date_by_index($start_date, $index)
 		$this->db->order_by('package_category_id', 'ASC');
 		echo json_encode(['results' => $this->db->get()->result()]);
 	}
+
+	public function lead_report()
+	{
+		$template['staff']            = $this->Leads_model->fetch_staff_details();
+		$template['current_user_type'] = $this->currentusertype;
+		$template['current_user_id']   = $this->currentuserid;
+		$template['body']   = 'Leads/lead_report';
+		$template['script'] = 'Leads/lead_report_script';
+		$this->load->view('template', $template);
+	}
+
+	public function ajax_lead_report()
+	{
+		$param['draw']        = isset($_REQUEST['draw'])                  ? $_REQUEST['draw']                  : '';
+		$param['length']      = isset($_REQUEST['length'])                ? $_REQUEST['length']                : '10';
+		$param['start']       = isset($_REQUEST['start'])                 ? $_REQUEST['start']                 : '0';
+		$param['order']       = isset($_REQUEST['order'][0]['column'])    ? $_REQUEST['order'][0]['column']    : '';
+		$param['dir']         = isset($_REQUEST['order'][0]['dir'])       ? $_REQUEST['order'][0]['dir']       : '';
+		$param['searchValue'] = isset($_REQUEST['search']['value'])       ? $_REQUEST['search']['value']       : '';
+
+		$param['guest_name']  = isset($_REQUEST['guest_name'])  ? $_REQUEST['guest_name']  : '';
+		$param['staff_id']    = isset($_REQUEST['staff_id'])    ? $_REQUEST['staff_id']    : '';
+		$param['lead_status'] = isset($_REQUEST['lead_status']) ? $_REQUEST['lead_status'] : '';
+
+		$start_date = isset($_REQUEST['start_date']) ? $_REQUEST['start_date'] : '';
+		$end_date   = isset($_REQUEST['end_date'])   ? $_REQUEST['end_date']   : '';
+
+		if ($start_date) {
+			$start_date = str_replace('/', '-', $start_date);
+			$param['start_date'] = date('Y-m-d', strtotime($start_date));
+		}
+		if ($end_date) {
+			$end_date = str_replace('/', '-', $end_date);
+			$param['end_date'] = date('Y-m-d', strtotime($end_date));
+		}
+
+		$data = $this->Leads_model->getLeadsReport($param);
+		echo json_encode($data);
+	}
 }
 
 ?>

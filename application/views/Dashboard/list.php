@@ -23,7 +23,7 @@
 								<div class="d-flex align-items-center justify-content-between">
 									<div>
 										<h2 class="mb-1 font-w600" id="total_leads_count" style="color:#fff;font-size:2rem;">
-											<a href="<?php echo base_url();?>index.php/Leads" style="color:#fff;">
+											<a id="total-leads-link" href="<?php echo base_url();?>index.php/Leads/lead_report?period=today" style="color:#fff;">
 												<?php foreach ($allleads as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
 											</a>
 										</h2>
