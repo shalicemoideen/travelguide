@@ -495,7 +495,7 @@ button:hover{background:#172554;}
   <!-- BRIEF PAGE -->
   <div class="pdf-page brief-page" id="briefPage">
     <div class="brief-logo">
-      <img src="<?= base_url('assets/images/Royale-logo-new.png'); ?>" alt="Logo">
+      <img src="<?= base_url('assets/images/Royale-logo-new1.png'); ?>" alt="Logo">
     </div>
 
     <div class="brief-header">
@@ -528,7 +528,7 @@ button:hover{background:#172554;}
 
 <script>
 const ITINERARY_ID = <?= (int)$itineraries_id ?>;
-const COMPANY_LOGO = "<?= base_url('assets/images/Royale-logo-new.png'); ?>";
+const COMPANY_LOGO = "<?= base_url('assets/images/Royale-logo-new1.png'); ?>";
 const COVER_BASE = "<?= base_url('uploads/itinerary_cover/'); ?>";
 
 let itinerary = [];
