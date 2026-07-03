@@ -5213,6 +5213,12 @@ a.leads-number-link:hover {
 
 #roompricingandguestallocationModal .form-control-sm::placeholder{font-size:10px;}
 
+/* Hide room tariff modal during automatic batch calculation */
+
+#roompricingandguestallocationModal.modal-auto-calc-hidden{opacity:0 !important;pointer-events:none !important;}
+
+#roompricingandguestallocationModal.modal-auto-calc-hidden .modal-dialog{transform:translateY(-100vh) !important;}
+
 </style>
 
 <div class="modal fade" id="roompricingandguestallocationModal" tabindex="-1" aria-hidden="true"

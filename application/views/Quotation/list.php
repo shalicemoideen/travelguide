@@ -2528,6 +2528,12 @@
 
 #roompricingandguestallocationModal .modal-footer{background:#eef0ff;border-top:1px solid #c5cae9;}
 
+/* Hide room tariff modal during automatic batch calculation */
+
+#roompricingandguestallocationModal.modal-auto-calc-hidden{opacity:0 !important;pointer-events:none !important;}
+
+#roompricingandguestallocationModal.modal-auto-calc-hidden .modal-dialog{transform:translateY(-100vh) !important;}
+
 </style>
 
 

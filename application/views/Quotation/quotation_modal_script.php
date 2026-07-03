@@ -5198,6 +5198,34 @@ function getOptionTemplate(index) {
 
 
 
+        <div class="row mb-3">
+
+            <div class="col-md-12">
+
+                <div class="form-check">
+
+                    <input class="form-check-input auto-calc-all-properties"
+
+                           type="checkbox"
+
+                           value="1">
+
+                    <label class="form-check-label fw-bold text-primary">
+
+                        Calculate room tariff for all properties
+
+                    </label>
+
+                </div>
+
+                <small class="auto-calc-status text-muted" style="display:none;"></small>
+
+            </div>
+
+        </div>
+
+
+
         <div class="itineraryContainer"></div>
 
     </div>
@@ -7770,6 +7798,15 @@ $(document).on('input change', '#roompricingandguestallocationModal input', func
 
 $(document).on('click', '.editRoomBtn', function () {
 
+    if (window.__autoCalcActive) {
+
+        // Let the main modal flow handle auto-calculation
+
+        return;
+
+    }
+
+
 clearRoomPricingWarnings();
 
     window.__lastRoomEditBtn = this;
@@ -8798,9 +8835,13 @@ fetch(urlTariff)
 
                     fillSavedManualSection(savedRes.data);
 
+                    maybeAutoSaveRoomTariff();
+
                 } else {
 
                     refreshAllAmountsAndTotals();
+
+                    maybeAutoSaveRoomTariff();
 
                 }
 
@@ -8812,17 +8853,31 @@ fetch(urlTariff)
 
                 refreshAllAmountsAndTotals();
 
+                maybeAutoSaveRoomTariff();
+
             });
 
       } else {
 
           refreshAllAmountsAndTotals();
 
+          maybeAutoSaveRoomTariff();
+
       }
 
   })
 
-  .catch(err => console.error('Tariff API error', err));
+  .catch(err => {
+
+      console.error('Tariff API error', err);
+
+      if (window.__autoCalcActive) {
+
+          cancelAutoCalc('Tariff load failed. Auto calculation stopped.');
+
+      }
+
+  });
 
 
 
@@ -9906,6 +9961,12 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
 
     if (!validateManualRoomingPlan()) {
 
+        if (window.__autoCalcActive) {
+
+            cancelAutoCalc('Validation failed for a room. Auto calculation stopped.');
+
+        }
+
         return;
 
     }
@@ -9922,7 +9983,17 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
 
         console.log({ dayId, roomRow });
 
-        return alert('Missing Day ID or Room Row ID');
+        if (window.__autoCalcActive) {
+
+            cancelAutoCalc('Missing Day ID or Room Row ID. Auto calculation stopped.');
+
+        } else {
+
+            alert('Missing Day ID or Room Row ID');
+
+        }
+
+        return;
 
     }
 
@@ -10176,13 +10247,31 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
 
     $('#roompricingandguestallocationModal').modal('hide');
 
+
+
+    if (window.__autoCalcActive) {
+
+        setTimeout(processNextAutoCalcRoom, 300);
+
+    }
+
 })
 
     .catch(err => {
 
         console.error(err);
 
-        alert('Server error');
+
+
+        if (window.__autoCalcActive) {
+
+            cancelAutoCalc('Save failed. Auto calculation stopped.');
+
+        } else {
+
+            alert('Server error');
+
+        }
 
     });
 
@@ -13259,4 +13348,319 @@ function refillSavedSpecialRequirements(rows)
     recalcSpecialReqTotal();
 
 }
+
+
+
+/* ================= AUTO-CALCULATE ALL PROPERTIES IN AN OPTION ================= */
+
+
+
+// Inject CSS to hide the room tariff modal during batch auto-calculation
+
+(function () {
+
+    if (document.getElementById('auto-calc-modal-style')) return;
+
+    var style = document.createElement('style');
+
+    style.id = 'auto-calc-modal-style';
+
+    style.textContent =
+
+        '#roompricingandguestallocationModal.modal-auto-calc-hidden{' +
+
+        'opacity:0!important;' +
+
+        'pointer-events:none!important}' +
+
+        '#roompricingandguestallocationModal.modal-auto-calc-hidden .modal-dialog{' +
+
+        'transform:translateY(-100vh)!important}';
+
+    document.head.appendChild(style);
+
+})();
+
+
+
+$(document).on('change', '.auto-calc-all-properties', function () {
+
+    const $checkbox = $(this);
+
+    const $optionBlock = $checkbox.closest('.optionBlock');
+
+    const $status = $optionBlock.find('.auto-calc-status');
+
+
+
+    if (!$checkbox.is(':checked')) {
+
+        $status.hide().text('');
+
+        return;
+
+    }
+
+
+
+    // Collect all edit buttons in this option
+
+    const $buttons = $optionBlock.find('.editRoomBtn');
+
+
+
+    if (!$buttons.length) {
+
+        alert('No properties with rooms to calculate tariff for.');
+
+        $checkbox.prop('checked', false);
+
+        return;
+
+    }
+
+
+
+    if (!confirm('This will calculate and save room tariffs for ' + $buttons.length + ' room(s). Continue?')) {
+
+        $checkbox.prop('checked', false);
+
+        return;
+
+    }
+
+
+
+    window.__autoCalcQueue = Array.from($buttons);
+
+    window.__autoCalcOptionBlock = $optionBlock[0];
+
+    window.__autoCalcTotal = $buttons.length;
+
+    window.__autoCalcCurrent = 0;
+
+    window.__autoCalcActive = true;
+
+
+
+    $status.show().text('Calculating 0 / ' + window.__autoCalcTotal + ' ...');
+
+    $checkbox.prop('disabled', true);
+
+
+
+    processNextAutoCalcRoom();
+
+});
+
+
+
+function updateAutoCalcStatus(message, isError) {
+
+    const $status = $(window.__autoCalcOptionBlock).find('.auto-calc-status');
+
+    if (!$status.length) return;
+
+    $status.show().text(message);
+
+    if (isError) {
+
+        $status.removeClass('text-muted text-success').addClass('text-danger');
+
+    } else if (message && message.indexOf('Completed') !== -1) {
+
+        $status.removeClass('text-muted text-danger').addClass('text-success');
+
+    } else {
+
+        $status.removeClass('text-danger text-success').addClass('text-muted');
+
+    }
+
+}
+
+
+
+function processNextAutoCalcRoom() {
+
+    if (!window.__autoCalcActive || !window.__autoCalcQueue || window.__autoCalcQueue.length === 0) {
+
+        finishAutoCalc();
+
+        return;
+
+    }
+
+
+
+    const btn = window.__autoCalcQueue.shift();
+
+    window.__autoCalcCurrent++;
+
+    window.__lastRoomEditBtn = btn;
+
+
+
+    updateAutoCalcStatus('Calculating ' + window.__autoCalcCurrent + ' / ' + window.__autoCalcTotal + ' ...');
+
+
+
+    // Keep the modal hidden while processing automatically
+
+    $('#roompricingandguestallocationModal').addClass('modal-auto-calc-hidden');
+
+
+
+    // Trigger the edit button click (loads the modal and data)
+
+    btn.click();
+
+}
+
+
+
+function finishAutoCalc() {
+
+    const optionBlock = window.__autoCalcOptionBlock;
+
+    const total = window.__autoCalcTotal || 0;
+
+
+
+    $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
+
+
+
+    if (optionBlock) {
+
+        const $cb = $(optionBlock).find('.auto-calc-all-properties');
+
+        $cb.prop('disabled', false).prop('checked', false);
+
+    }
+
+
+
+    updateAutoCalcStatus('Completed ' + total + ' room(s).', false);
+
+
+
+    if (optionBlock) {
+
+        setTimeout(function () {
+
+            $(optionBlock).find('.auto-calc-status').fadeOut();
+
+        }, 4000);
+
+    }
+
+
+
+    window.__autoCalcQueue = [];
+
+    window.__autoCalcOptionBlock = null;
+
+    window.__autoCalcActive = false;
+
+    window.__autoCalcTotal = 0;
+
+    window.__autoCalcCurrent = 0;
+
+}
+
+
+
+function cancelAutoCalc(message) {
+
+    const optionBlock = window.__autoCalcOptionBlock;
+
+
+
+    $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
+
+
+
+    if (optionBlock) {
+
+        const $cb = $(optionBlock).find('.auto-calc-all-properties');
+
+        $cb.prop('disabled', false).prop('checked', false);
+
+    }
+
+
+
+    updateAutoCalcStatus(message || 'Auto calculation stopped.', true);
+
+
+
+    window.__autoCalcQueue = [];
+
+    window.__autoCalcOptionBlock = null;
+
+    window.__autoCalcActive = false;
+
+}
+
+
+
+function maybeAutoSaveRoomTariff() {
+
+    if (!window.__autoCalcActive) return;
+
+
+
+    // Use a short delay so the DOM is fully updated
+
+    setTimeout(function () {
+
+        if (!window.__autoCalcActive) return;
+
+
+
+        const saveBtn = document.getElementById('btnSave1');
+
+        if (saveBtn) {
+
+            saveBtn.click();
+
+        } else {
+
+            cancelAutoCalc('Save button not found. Auto calculation stopped.');
+
+        }
+
+    }, 150);
+
+}
+
+
+
+// Cancel auto-calculation if user manually closes the room tariff modal
+
+$(document).on('click', '#roompricingandguestallocationModal .btn-close', function () {
+
+    if (window.__autoCalcActive) {
+
+        cancelAutoCalc('Modal closed manually. Auto calculation stopped.');
+
+    }
+
+});
+
+
+
+// Hide the dark backdrop while the modal is being processed automatically
+
+$('#roompricingandguestallocationModal').on('shown.bs.modal', function () {
+
+    if (window.__autoCalcActive) {
+
+        $('.modal-backdrop').last().css('display', 'none');
+
+    }
+
+});
+
 
