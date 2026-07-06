@@ -372,7 +372,7 @@ var table;
             { "data": "itinerary_category_name", "orderable": false },
             { "data": "itineraries_duration_nights", "orderable": false },
             { "data": "itineraries_description", "orderable": false },
-            { "data": "itineraries_created_by_user_name", "orderable": false },
+            { "data": "admin_name", "orderable": false },
             { "data": "itineraries_id", "orderable": false },
             
             

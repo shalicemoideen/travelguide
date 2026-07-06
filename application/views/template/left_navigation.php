@@ -271,6 +271,9 @@
 							<span class="nav-text">Templates</span>
 						</a>
 						<ul aria-expanded="false">
+							<?php if (has_permission('TEMPLATE_MASTER_VIEW')): ?>
+							<li class="<?php if($this->uri->segment(1)=="Template_master"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Template_master">Template Master</a></li>
+							<?php endif; ?>
 							<li class="<?php if($this->uri->segment(1)=="Packages"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Packages">My templates</a></li>
 							<li class="<?php if($this->uri->segment(1)=="Package_category"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Package_category">Templates category</a></li>
 						</ul>

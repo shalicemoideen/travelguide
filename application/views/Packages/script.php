@@ -2031,7 +2031,10 @@ $(document).on('change', '.change_destination', function () {
     $row.find('.destination-post').val(origId);
     $row.find('.stay-destination-text').text(origName);
 
-    if (typeof resetPropertiesBlock === 'function') resetPropertiesBlock();
+    var dayId = $row.find('input[name="itineraries_days_id_fk[]"]').val() || '';
+    if (dayId && typeof updatePropertySectionsForDay === 'function') {
+      updatePropertySectionsForDay(dayId, origId, origName);
+    }
     return;
   }
 
@@ -4223,6 +4226,74 @@ function refreshPropertyDestinationNames() {
     loadRooms(selectedId, $rooms);
   });
 
+  window.updatePropertySectionsForDay = function(dayId, newDestId, newDestName) {
+    if (!dayId) { console.log('updatePropertySectionsForDay: no dayId'); return; }
+
+    var $propertySections = $('#property .property-section');
+    console.log('updatePropertySectionsForDay: found', $propertySections.length, 'property sections for dayId=', dayId, 'newDestId=', newDestId, 'newDestName=', newDestName);
+    if (!$propertySections.length) return;
+
+    $propertySections.each(function(idx) {
+      var $section = $(this);
+      var sectionId = $section.data('section');
+      var $dayRow = $section.find('tr.day-row[data-day-id="' + dayId + '"]');
+      console.log('  section #' + (idx+1) + ' (sectionId=' + sectionId + '): dayRow found=', $dayRow.length);
+      if (!$dayRow.length) return;
+
+      // Update destination name and ID
+      var $destNameEl = $dayRow.find('.property-destination-name');
+      console.log('  -> updating dest name from "' + $destNameEl.text() + '" to "' + (newDestName || newDestId || '') + '"');
+      $destNameEl.text(newDestName || newDestId || '').attr('data-dest-id', newDestId || '');
+
+      $dayRow.find('input[name^="property_destination_id"]')
+        .val(newDestId || '');
+
+      // Update assignments div data-dest-id
+      $dayRow.find('.assignments').attr('data-dest-id', newDestId || '');
+
+      var $assignments = $dayRow.find('.assignment-row');
+      console.log('  -> clearing', $assignments.length, 'assignment rows');
+
+      // Clear all property and room dropdowns in this day row
+      $assignments.each(function() {
+        var $a = $(this);
+        var $propSelect = $a.find('.property-select');
+        var $roomsSelect = $a.find('.rooms-select');
+
+        // Destroy existing select2
+        if ($propSelect.hasClass('select2-hidden-accessible')) {
+          $propSelect.select2('destroy');
+        }
+        if ($roomsSelect.hasClass('select2-hidden-accessible')) {
+          $roomsSelect.select2('destroy');
+        }
+
+        // Clear values
+        $propSelect.val('').empty().append('<option value="">Please Select Properties</option>');
+        $roomsSelect.val('').empty().prop('disabled', true);
+
+        // Reinitialize property dropdown with new destination
+        if (newDestId) {
+          loadPropertiesAsync(newDestId, $propSelect);
+        } else {
+          $propSelect.select2({
+            width: '100%',
+            placeholder: 'Please Select Properties',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal')
+          });
+        }
+
+        // Reinitialize rooms dropdown disabled
+        $roomsSelect.select2({
+          width: '100%',
+          placeholder: 'Please Select Rooms'
+        });
+        $roomsSelect.html('<option value="">Please Select Property First</option>').prop('disabled', true);
+      });
+    });
+  };
+
 });
 
 // $(document).on('change', '.property-select', function () {
@@ -4349,7 +4420,7 @@ $(document).on('change', '.change_destination', function () {
 
   if (isPropertiesActiveOrDirty()) {
 
-    const ok = confirm('Changing destination will clear the Property details block. Continue?');
+    const ok = confirm('Changing destination will update properties for this day. Continue?');
 
     if (!ok) {
       skipDestinationChange = true;
@@ -4363,7 +4434,16 @@ $(document).on('change', '.change_destination', function () {
       return;
     }
 
-    resetPropertiesBlock();
+    var dayId = $sel.closest('tr').find('input[name="itineraries_days_id_fk[]"]').val() || '';
+    var destName = $sel.find('option:selected').text();
+    console.log('Handler2: confirmed destination change, dayId=', dayId, 'now=', now, 'destName=', destName);
+    if (dayId && typeof updatePropertySectionsForDay === 'function') {
+      updatePropertySectionsForDay(dayId, now, destName);
+    } else {
+      console.log('Handler2: NOT calling updatePropertySectionsForDay (dayId=' + dayId + ', function exists=' + (typeof updatePropertySectionsForDay === 'function') + ')');
+    }
+  } else {
+    console.log('Handler2: isPropertiesActiveOrDirty returned false');
   }
 });
 ////***For properties blocks when change destination or change itinerary *****///

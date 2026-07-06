@@ -53,6 +53,7 @@ class Itinerary_model extends CI_Model{
 		$this->db->from('itineraries');
 		$this->db->join('itineraries_days', 'itineraries_days.itineraries_id_fk = itineraries.itineraries_id','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = itineraries.itineraries_category_id_fk','left');
+		$this->db->join('user_details', 'user_details.user_id = itineraries.itineraries_createdby_user_id','left');
 		$this->db->order_by('itineraries_id', 'DESC');
 		$this->db->group_by('itineraries_days.itineraries_id_fk');
         $query = $this->db->get();
@@ -99,6 +100,7 @@ class Itinerary_model extends CI_Model{
 		$this->db->from('itineraries');
 		$this->db->join('itineraries_days', 'itineraries_days.itineraries_id_fk = itineraries.itineraries_id','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = itineraries.itineraries_category_id_fk','left');
+		$this->db->join('user_details', 'user_details.user_id = itineraries.itineraries_createdby_user_id','left');
 		$this->db->where("itineraries_status",1);
 		$this->db->order_by('itineraries_id', 'DESC');
 		$this->db->group_by('itineraries_days.itineraries_id_fk');

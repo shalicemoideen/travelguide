@@ -34,14 +34,14 @@ CREATE TABLE IF NOT EXISTS `template_master` (
 CREATE TABLE IF NOT EXISTS `template_master_destination` (
   `template_master_destination_id` INT(11) NOT NULL AUTO_INCREMENT,
   `template_master_id_fk` INT(11) NOT NULL,
-  `district_id_fk` INT(11) NOT NULL COMMENT 'FK to district master',
+  `state_id_fk` INT(11) NOT NULL COMMENT 'FK to state master',
   `template_master_destination_status` INT(11) NOT NULL DEFAULT 1,
   `template_master_destination_created_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`template_master_destination_id`),
   KEY `idx_tmd_template_master_id` (`template_master_id_fk`),
-  KEY `idx_tmd_district_id` (`district_id_fk`),
+  KEY `idx_tmd_state_id` (`state_id_fk`),
   CONSTRAINT `fk_tmd_template_master` FOREIGN KEY (`template_master_id_fk`) REFERENCES `template_master` (`template_master_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_tmd_district` FOREIGN KEY (`district_id_fk`) REFERENCES `district` (`district_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT `fk_tmd_state` FOREIGN KEY (`state_id_fk`) REFERENCES `state` (`state_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
 
 -- =========================================================
