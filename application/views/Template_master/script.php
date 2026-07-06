@@ -168,8 +168,148 @@ function reload_table()
     }
 }
 
+function validateTemplateMaster() {
+    var valid = true;
+    var firstErrorEl = null;
+
+    // Clear all previous errors
+    $('.help-block').text('');
+    $('.form-group').removeClass('input-warning-o');
+    $('.destination-block .flex-grow-1').removeClass('input-warning-o');
+    $('.destination-block').removeClass('input-warning-o');
+    $('#destinations_container > .dest-error').remove();
+
+    // Category Name
+    if ($('#template_master_category_name').val().trim() == '') {
+        $('#template_master_category_name').next('.help-block').text('Category name is required');
+        $('#template_master_category_name').closest('.form-group').addClass('input-warning-o');
+        if (!firstErrorEl) firstErrorEl = $('#template_master_category_name');
+        valid = false;
+    }
+
+    // Design Type
+    if ($('#template_master_design_type').val() == '') {
+        $('#template_master_design_type').next('.help-block').text('Design type is required');
+        $('#template_master_design_type').closest('.form-group').addClass('input-warning-o');
+        if (!firstErrorEl) firstErrorEl = $('#template_master_design_type');
+        valid = false;
+    }
+
+    // Destinations
+    var $destBlocks = $('#destinations_container .destination-block');
+    if ($destBlocks.length == 0) {
+        $('#destinations_container').prepend('<div class="dest-error mb-1"><span class="help-block" style="color:red">At least one destination is required</span></div>');
+        valid = false;
+    }
+
+    // Check for duplicate destinations across all blocks
+    var destVals = [];
+    $destBlocks.each(function() {
+        destVals.push($(this).find('.destination-select').val());
+    });
+    $destBlocks.each(function() {
+        var $destSelect = $(this).find('.destination-select');
+        var val = $destSelect.val();
+        if (val) {
+            var count = 0;
+            for (var i = 0; i < destVals.length; i++) {
+                if (destVals[i] == val) count++;
+            }
+            if (count > 1) {
+                $destSelect.parent().find('.help-block').text('This destination is already selected');
+                $destSelect.closest('.form-group').addClass('input-warning-o');
+                if (!firstErrorEl) firstErrorEl = $destSelect;
+                valid = false;
+            }
+        }
+    });
+
+    $destBlocks.each(function() {
+        var $block = $(this);
+        var destNum = $block.find('.dest-number').text();
+
+        // Destination (state) select
+        var $destSelect = $block.find('.destination-select');
+        if (!$destSelect.val()) {
+            $destSelect.parent().find('.help-block').text('Please select a destination');
+            $destSelect.closest('.form-group').addClass('input-warning-o');
+            if (!firstErrorEl) firstErrorEl = $destSelect;
+            valid = false;
+            return false; // break each
+        }
+
+        // Property & Room assignments
+        var $assignments = $block.find('.assignment-row');
+        if ($assignments.length == 0) {
+            $block.append('<div class="assign-error mt-1"><span class="help-block" style="color:red">At least one property & room is required</span></div>');
+            if (!firstErrorEl) firstErrorEl = $block;
+            valid = false;
+            return false;
+        }
+
+        // Check for duplicate properties within same destination
+        var propVals = [];
+        $assignments.each(function() {
+            propVals.push($(this).find('.property-select').val());
+        });
+        $assignments.each(function() {
+            var $prop = $(this).find('.property-select');
+            var pval = $prop.val();
+            if (pval) {
+                var count = 0;
+                for (var i = 0; i < propVals.length; i++) {
+                    if (propVals[i] == pval) count++;
+                }
+                if (count > 1) {
+                    $prop.parent().find('.help-block').text('This property is already selected in this destination');
+                    $prop.closest('.flex-grow-1').addClass('input-warning-o');
+                    if (!firstErrorEl) firstErrorEl = $prop;
+                    valid = false;
+                }
+            }
+        });
+
+        $assignments.each(function() {
+            var $row = $(this);
+            var $prop = $row.find('.property-select');
+            var $room = $row.find('.room-select');
+
+            if (!$prop.val()) {
+                $prop.parent().find('.help-block').text('Please select a property');
+                $prop.closest('.flex-grow-1').addClass('input-warning-o');
+                if (!firstErrorEl) firstErrorEl = $prop;
+                valid = false;
+                return false;
+            }
+
+            var roomVal = $room.val();
+            if (!roomVal || (Array.isArray(roomVal) && roomVal.length == 0)) {
+                $room.parent().find('.help-block').text('Please select at least one room');
+                $room.closest('.flex-grow-1').addClass('input-warning-o');
+                if (!firstErrorEl) firstErrorEl = $room;
+                valid = false;
+                return false;
+            }
+        });
+    });
+
+    if (!valid && firstErrorEl && firstErrorEl.length) {
+        var $modalBody = $('#TemplateMasterModal').find('.modal-body');
+        var scrollTo = firstErrorEl.position().top + $modalBody.scrollTop() - 100;
+        $modalBody.animate({ scrollTop: scrollTo }, 300);
+    }
+
+    return valid;
+}
+
 function save()
 {
+    if (!validateTemplateMaster()) {
+        $('#btnSave').text('Save');
+        $('#btnSave').attr('disabled', false);
+        return false;
+    }
+
     var url;
     if(save_method == 'add') {
         $("#id").val('');
@@ -290,16 +430,65 @@ function delete_template_master_action()
     });
 }
 
+var _skipDupCheck = false;
+
+function checkDuplicateDestinations($changed) {
+    $changed.parent().find('.help-block').text('');
+    $changed.closest('.form-group').removeClass('input-warning-o');
+    var val = $changed.val();
+    if (!val || val == '') return;
+    var dup = false;
+    $('#destinations_container .destination-block').each(function() {
+        var $sel = $(this).find('.destination-select');
+        if ($sel[0] !== $changed[0] && $sel.val() == val) {
+            dup = true;
+        }
+    });
+    if (dup) {
+        $changed.parent().find('.help-block').text('This destination is already selected');
+        $changed.closest('.form-group').addClass('input-warning-o');
+        _skipDupCheck = true;
+        $changed.val('').trigger('change');
+        _skipDupCheck = false;
+    }
+}
+
+function checkDuplicateProperties($block, $changed) {
+    $changed.parent().find('.help-block').text('');
+    $changed.closest('.flex-grow-1').removeClass('input-warning-o');
+    var val = $changed.val();
+    if (!val || val == '') return;
+    var dup = false;
+    $block.find('.assignment-row').each(function() {
+        var $prop = $(this).find('.property-select');
+        if ($prop[0] !== $changed[0] && $prop.val() == val) {
+            dup = true;
+        }
+    });
+    if (dup) {
+        $changed.parent().find('.help-block').text('This property is already selected in this destination');
+        $changed.closest('.flex-grow-1').addClass('input-warning-o');
+        _skipDupCheck = true;
+        $changed.val('').trigger('change');
+        _skipDupCheck = false;
+    }
+}
+
 function addDestination() {
+    $('#destinations_container > .dest-error').remove();
     var idx = destCounter++;
     var html = $('#destination_template').html();
     html = html.replace(/__DEST_IDX__/g, idx);
     $('#destinations_container').append(html);
 
     var $block = $('#destinations_container').children().last();
-    initStateSelect($block.find('.state-select'));
+    initDestinationSelect($block.find('.destination-select'));
 
-    $block.find('.state-select').on('change', function() {
+    $block.find('.destination-select').on('change', function() {
+        if (_skipDupCheck) return;
+        $(this).parent().find('.help-block').text('');
+        $(this).closest('.form-group').removeClass('input-warning-o');
+        checkDuplicateDestinations($(this));
         var stateId = $(this).val();
         $block.find('.property-select').each(function() {
             var $prop = $(this);
@@ -311,7 +500,7 @@ function addDestination() {
             if ($room.hasClass('select2-hidden-accessible')) {
                 $room.select2('destroy');
             }
-            $room.empty().prop('disabled', true);
+            $room.empty();
             $room.select2({
                 width: '100%',
                 placeholder: 'Select Property First',
@@ -322,7 +511,7 @@ function addDestination() {
             } else {
                 $prop.select2({
                     width: '100%',
-                    placeholder: 'Select State First',
+                    placeholder: 'Select Destination First',
                     dropdownParent: $('#TemplateMasterModal')
                 });
             }
@@ -333,20 +522,25 @@ function addDestination() {
 }
 
 function addDestinationFromData(dest) {
+    $('#destinations_container > .dest-error').remove();
     var idx = destCounter++;
     var html = $('#destination_template').html();
     html = html.replace(/__DEST_IDX__/g, idx);
     $('#destinations_container').append(html);
 
     var $block = $('#destinations_container').children().last();
-    initStateSelect($block.find('.state-select'));
+    initDestinationSelect($block.find('.destination-select'));
 
     if (dest.state_id) {
-        var $state = $block.find('.state-select');
+        var $state = $block.find('.destination-select');
         $state.append(new Option(dest.state_name || dest.state_id, dest.state_id, true, true)).trigger('change');
     }
 
-    $block.find('.state-select').on('change', function() {
+    $block.find('.destination-select').on('change', function() {
+        if (_skipDupCheck) return;
+        $(this).parent().find('.help-block').text('');
+        $(this).closest('.form-group').removeClass('input-warning-o');
+        checkDuplicateDestinations($(this));
         var stateId = $(this).val();
         $block.find('.property-select').each(function() {
             var $prop = $(this);
@@ -358,7 +552,7 @@ function addDestinationFromData(dest) {
             if ($room.hasClass('select2-hidden-accessible')) {
                 $room.select2('destroy');
             }
-            $room.empty().prop('disabled', true);
+            $room.empty();
             $room.select2({
                 width: '100%',
                 placeholder: 'Select Property First',
@@ -369,7 +563,7 @@ function addDestinationFromData(dest) {
             } else {
                 $prop.select2({
                     width: '100%',
-                    placeholder: 'Select State First',
+                    placeholder: 'Select Destination First',
                     dropdownParent: $('#TemplateMasterModal')
                 });
             }
@@ -398,8 +592,9 @@ function renumberDestinations() {
 
 function addAssignment(btn) {
     var $destBlock = $(btn).closest('.destination-block');
+    $destBlock.find('.assign-error').remove();
     var destIdx = $destBlock.data('dest-idx');
-    var stateId = $destBlock.find('.state-select').val();
+    var stateId = $destBlock.find('.destination-select').val();
     var propIdx = Date.now();
 
     var html = $('#assignment_template').html();
@@ -415,7 +610,7 @@ function addAssignment(btn) {
     } else {
         $propSelect.select2({
             width: '100%',
-            placeholder: 'Select State First',
+            placeholder: 'Select Destination First',
             dropdownParent: $('#TemplateMasterModal')
         });
     }
@@ -427,11 +622,17 @@ function addAssignment(btn) {
     });
 
     $propSelect.on('change', function() {
+        if (_skipDupCheck) return;
+        $(this).parent().find('.help-block').text('');
+        $(this).closest('.flex-grow-1').removeClass('input-warning-o');
+        $roomSelect.parent().find('.help-block').text('');
+        $roomSelect.closest('.flex-grow-1').removeClass('input-warning-o');
+        checkDuplicateProperties($destBlock, $(this));
         var propId = $(this).val();
         if ($roomSelect.hasClass('select2-hidden-accessible')) {
             $roomSelect.select2('destroy');
         }
-        $roomSelect.empty();
+        $roomSelect.empty().prop('disabled', false);
         if (propId) {
             initRoomSelect($roomSelect, propId);
         } else {
@@ -445,8 +646,9 @@ function addAssignment(btn) {
 }
 
 function addAssignmentFromData($destBlock, propData, roomList) {
+    $destBlock.find('.assign-error').remove();
     var destIdx = $destBlock.data('dest-idx');
-    var stateId = $destBlock.find('.state-select').val();
+    var stateId = $destBlock.find('.destination-select').val();
     var propIdx = Date.now();
 
     var html = $('#assignment_template').html();
@@ -463,7 +665,7 @@ function addAssignmentFromData($destBlock, propData, roomList) {
     } else {
         $propSelect.select2({
             width: '100%',
-            placeholder: 'Select State First',
+            placeholder: 'Select Destination First',
             dropdownParent: $('#TemplateMasterModal')
         });
     }
@@ -488,11 +690,17 @@ function addAssignmentFromData($destBlock, propData, roomList) {
     }
 
     $propSelect.on('change', function() {
+        if (_skipDupCheck) return;
+        $(this).parent().find('.help-block').text('');
+        $(this).closest('.flex-grow-1').removeClass('input-warning-o');
+        $roomSelect.parent().find('.help-block').text('');
+        $roomSelect.closest('.flex-grow-1').removeClass('input-warning-o');
+        checkDuplicateProperties($destBlock, $(this));
         var propId = $(this).val();
         if ($roomSelect.hasClass('select2-hidden-accessible')) {
             $roomSelect.select2('destroy');
         }
-        $roomSelect.empty();
+        $roomSelect.empty().prop('disabled', false);
         if (propId) {
             initRoomSelect($roomSelect, propId);
         } else {
@@ -509,10 +717,10 @@ function removeAssignment(btn) {
     $(btn).closest('.assignment-row').remove();
 }
 
-function initStateSelect($select) {
+function initDestinationSelect($select) {
     $select.select2({
         width: '100%',
-        placeholder: 'Select State',
+        placeholder: 'Select Destination',
         allowClear: true,
         dropdownParent: $('#TemplateMasterModal'),
         ajax: {
@@ -550,6 +758,21 @@ function initPropertySelect($select, stateId) {
         }
     });
 }
+
+$(document).on('input', '#template_master_category_name', function() {
+    $(this).next('.help-block').text('');
+    $(this).closest('.form-group').removeClass('input-warning-o');
+});
+
+$(document).on('change', '#template_master_design_type', function() {
+    $(this).next('.help-block').text('');
+    $(this).closest('.form-group').removeClass('input-warning-o');
+});
+
+$(document).on('change', '.room-select', function() {
+    $(this).parent().find('.help-block').text('');
+    $(this).closest('.flex-grow-1').removeClass('input-warning-o');
+});
 
 function initRoomSelect($select, propertyId) {
     $select.select2({
