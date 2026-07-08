@@ -2,9 +2,9 @@
     #TemplateMasterModal .modal-lg {
         max-width: 95%;
     }
-    #TemplateMasterModal .modal-body {
+    /* #TemplateMasterModal .modal-body {
         padding: 0.75rem 1rem;
-    }
+    } */
     #TemplateMasterModal .form-control,
     #TemplateMasterModal .form-select,
     #TemplateMasterModal select.form-control {
@@ -65,6 +65,22 @@
     #TemplateMasterModal .assignment-row {
         margin-bottom: 0.4rem !important;
         padding-bottom: 0.4rem !important;
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 0.5rem;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        #TemplateMasterModal .assignment-row {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 0.5rem;
+        }
+        #TemplateMasterModal .assignment-row .flex-grow-1 {
+            min-width: 160px;
+            flex-shrink: 0;
+        }
     }
     #TemplateMasterModal .btn-sm {
         font-size: 11px;
@@ -230,13 +246,13 @@
 
         <div id="assignment_template" style="display:none;">
             <div class="assignment-row d-flex gap-2 align-items-start mb-1 border-bottom pb-1" data-prop-idx="__PROP_IDX__">
-                <div class="flex-grow-1" style="min-width:160px;">
+                <div class="flex-grow-1">
                     <select class="form-control property-select" name="destination[__DEST_IDX__][property][__PROP_IDX__][property_id]" required style="width:100%">
                         <option value="">Select Property</option>
                     </select>
                     <span class="help-block" style="color:red"></span>
                 </div>
-                <div class="flex-grow-1" style="min-width:160px;">
+                <div class="flex-grow-1">
                     <select class="form-control room-select" name="destination[__DEST_IDX__][property][__PROP_IDX__][rooms][]" multiple required style="width:100%">
                     </select>
                     <span class="help-block" style="color:red"></span>

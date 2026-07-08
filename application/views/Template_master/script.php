@@ -774,6 +774,15 @@ $(document).on('change', '.room-select', function() {
     $(this).closest('.flex-grow-1').removeClass('input-warning-o');
 });
 
+$(document).on('select2:open', '#TemplateMasterModal select', function() {
+    setTimeout(function() {
+        var $search = $('.select2-container--open .select2-search__field');
+        if ($search.length) {
+            $search[0].focus();
+        }
+    }, 0);
+});
+
 function initRoomSelect($select, propertyId) {
     $select.select2({
         width: '100%',

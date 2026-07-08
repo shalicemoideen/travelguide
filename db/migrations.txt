@@ -235,6 +235,8 @@ ALTER TABLE `account_details` ADD `up_id` VARCHAR(255) NOT NULL AFTER `branch_na
 
 ALTER TABLE `quotation_special_requirements` ADD `quotation_special_requirements_name` VARCHAR(255) NOT NULL AFTER `quotation_special_requirements_id_fk`;
 
+ALTER TABLE `packages_properties_common` ADD `packages_properties_common_template_master_id_fk` INT NULL DEFAULT NULL AFTER `packages_properties_common_design_type`;
+
 INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
 ('TEMPLATE_MASTER_CREATE', 'CREATE', 'TEMPLATES', 'TEMPLATE_MASTER', 'TEMPLATES menu', 1, 1, NULL, NOW(), NOW()),
 ('TEMPLATE_MASTER_UPDATE', 'UPDATE', 'TEMPLATES', 'TEMPLATE_MASTER', 'TEMPLATES menu', 1, 1, NULL, NOW(), NOW()),

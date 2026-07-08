@@ -85,6 +85,64 @@ class Packages extends MY_Controller {
 		echo json_encode(['results' => $results]);
 	}
 
+	public function ajax_filter_template_masters()
+	{
+		$q = $this->input->get('q');
+		$this->load->model('Template_master_model');
+		$this->db->select('template_master_id as id, template_master_category_name as text');
+		$this->db->from('template_master');
+		$this->db->where('template_master_status', 1);
+		if ($q) {
+			$this->db->like('template_master_category_name', $q);
+		}
+		$this->db->order_by('template_master_category_name', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result_array();
+		echo json_encode(['results' => $results]);
+	}
+
+	public function ajax_get_template_master_data($id)
+	{
+		$this->load->model('Template_master_model');
+		$master = $this->Template_master_model->get_by_id($id);
+		if (!$master) {
+			echo json_encode(['status' => false, 'message' => 'Template master not found']);
+			return;
+		}
+
+		$destinations = $this->Template_master_model->get_destinations_by_master($id);
+		$master->destinations = [];
+		foreach ($destinations as $dest) {
+			$d = [
+				'template_master_destination_id' => $dest->template_master_destination_id,
+				'state_id' => $dest->state_id_fk,
+				'state_name' => $dest->state_name,
+				'properties' => []
+			];
+			$props = $this->Template_master_model->get_properties_by_destination($dest->template_master_destination_id);
+			foreach ($props as $prop) {
+				$p = [
+					'template_master_destination_property_id' => $prop->template_master_destination_property_id,
+					'property_id' => $prop->properties_id_fk,
+					'property_name' => $prop->properties_name,
+					'rooms' => []
+				];
+				$rooms = $this->Template_master_model->get_rooms_by_property($prop->template_master_destination_property_id);
+				foreach ($rooms as $room) {
+					$p['rooms'][] = [
+						'template_master_destination_property_room_id' => $room->template_master_destination_property_room_id,
+						'properties_room_category_id' => $room->properties_room_category_id_fk,
+						'properties_room_category_name' => $room->properties_room_category_name
+					];
+				}
+				$d['properties'][] = $p;
+			}
+			$master->destinations[] = $d;
+		}
+
+		echo json_encode(['status' => true, 'data' => $master]);
+	}
+
 	public function ajax_filter_itinerary_categories()
 	{
 		$q = $this->input->get('q');
@@ -2295,9 +2353,12 @@ $refMaps['itinerary']['main'] = $packages_itinerary_id;
 
         $category_names      = (array)$this->input->post('property_category_name');
         $design_types        = (array)$this->input->post('packages_properties_common_design_type');
+        $template_masters    = (array)$this->input->post('packages_properties_common_template_master_id_fk');
         $destinations_by_sec = (array)$this->input->post('property_destination_id');
         $properties_by_sec   = (array)$this->input->post('properties_id');
         $rooms_by_sec        = (array)$this->input->post('rooms_id');
+
+        log_message('debug', 'TM POST package_id=' . $package_id . ' catNames=' . json_encode($category_names) . ' template_masters=' . json_encode($template_masters));
 $commonIndex = 0;
 
         foreach ($category_names as $secIndex => $categoryName) {
@@ -2308,6 +2369,10 @@ $commonIndex = 0;
             }
 
             $designType = isset($design_types[$secIndex]) ? trim((string)$design_types[$secIndex]) : '';
+            $templateMasterId = isset($template_masters[$secIndex]) ? (int)$template_masters[$secIndex] : 0;
+            if (!$templateMasterId) $templateMasterId = null;
+
+            log_message('debug', 'TM SAVE section=' . $secIndex . ' catName=' . $categoryName . ' templateMasterId=' . (is_null($templateMasterId) ? 'NULL' : $templateMasterId) . ' raw=' . json_encode(isset($template_masters[$secIndex]) ? $template_masters[$secIndex] : 'notset'));
 
             $common_id = $this->General_model->add_returnID(
                 $this->packages_properties_common,
@@ -2315,6 +2380,7 @@ $commonIndex = 0;
                     'packages_properties_common_packages_id_fk' => $package_id,
                     'packages_properties_common_category_name'  => $categoryName,
                     'packages_properties_common_design_type'    => $designType,
+                    'packages_properties_common_template_master_id_fk' => $templateMasterId,
                     'packages_properties_common_status'         => 1
                 )
             );
@@ -2601,6 +2667,7 @@ foreach ($properties_by_sec[$secIndex][$itinDayId] as $rowKey => $propertyId) {
 		PROPERTIES (FULL TREE)
 		========================= */
 		$properties = $this->db
+			->select('packages_properties_common_id, packages_properties_common_packages_id_fk, packages_properties_common_category_name, packages_properties_common_design_type, packages_properties_common_template_master_id_fk, packages_properties_common_status')
 			->where('packages_properties_common_packages_id_fk', $id)
 			->get('packages_properties_common')
 			->result_array();

@@ -949,7 +949,8 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
 		$sections = $this->db->select('
 				packages_properties_common_id,
 				packages_properties_common_category_name,
-				packages_properties_common_design_type
+				packages_properties_common_design_type,
+				packages_properties_common_template_master_id_fk
 			')
 			->from('packages_properties_common')
 			->where('packages_properties_common_packages_id_fk', $package_id)
@@ -1029,6 +1030,7 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
 			$out[] = array(
 				'packages_properties_common_category_name' => $sec['packages_properties_common_category_name'],
 				'packages_properties_common_design_type'   => $sec['packages_properties_common_design_type'],
+				'packages_properties_common_template_master_id_fk' => $sec['packages_properties_common_template_master_id_fk'],
 				'days'                                     => $daysOut
 			);
 		}

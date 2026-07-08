@@ -1274,6 +1274,22 @@ function moveToFirstValidationError() {
   let $field = $firstValidationError;
   let $target = $field;
 
+  // Expand any collapsed Bootstrap 5 accordion that contains this field
+  const $accordionCollapse = $field.closest('.accordion-collapse');
+  if ($accordionCollapse.length && !$accordionCollapse.hasClass('show')) {
+    try {
+      const collapseEl = $accordionCollapse[0];
+      const bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
+      if (bsCollapse) {
+        bsCollapse.show();
+      } else {
+        new bootstrap.Collapse(collapseEl, { toggle: false }).show();
+      }
+    } catch (e) {
+      $accordionCollapse.addClass('show');
+    }
+  }
+
   // Select2 visible container
   if ($field.hasClass('select2-hidden-accessible')) {
     const $s2 = $field.next('.select2');
@@ -1284,23 +1300,15 @@ function moveToFirstValidationError() {
   }
 
   // CKEditor visible container
-  // if ($field.hasClass('day-editor')) {
-  //   const $ck = $field.closest('td').find('.ck-editor');
-  //   if ($ck.length) {
-  //     $target = $ck;
-  //     $ck.css('border', '2px solid #dc3545');
-  //   }
-  // }
-
   if ($field.hasClass('day-editor')) {
-  const $ck = $field.closest('td').find('.ck-editor');
-  if ($ck.length) {
-    $target = $ck;
-    $ck.css('border', '2px solid #dc3545');
-  } else {
-    $target = $field.closest('tr');
+    const $ck = $field.closest('td').find('.ck-editor');
+    if ($ck.length) {
+      $target = $ck;
+      $ck.css('border', '2px solid #dc3545');
+    } else {
+      $target = $field.closest('tr');
+    }
   }
-}
 
   // fallback to closest visible section if target is hidden/invalid
   if (!$target.length || !$target.is(':visible') || !$target.offset()) {
@@ -1809,6 +1817,14 @@ function save() {
   var form = document.getElementById('form');
   var data = new FormData(form);
 
+  // Debug: log template master hidden inputs before submit
+  $('#property .property-section').each(function() {
+    var sid = $(this).data('section');
+    var tmVal = $(this).find('.template-master-id-hidden').val();
+    var tmSel = $(this).find('.template-master-select').val();
+    console.log('PRE-SUBMIT section #' + sid + ' hidden=' + tmVal + ' select=' + tmSel);
+  });
+
   $.ajax({
     url: url,
     type: "POST",
@@ -2000,6 +2016,8 @@ function resetPackageModal() {
   window.isPropertyEditBuild = false;
   window.isPropertyPrefill = false;
   window.pendingPropertyOpen = false;
+  window._suppressPropertySelectChange = false;
+  window._suppressTemplateMasterChange = false;
 
   // validation clear
   $modal.find('.is-invalid, .has-error').removeClass('is-invalid has-error');
@@ -2104,6 +2122,8 @@ $(document).on('change', '.day-image-input', function () {
 });
 
 $('#packages_itinerary_id_fk').on('change', function () {
+
+  console.log('itinerary change handler fired: isEditLoading=', window.isEditLoading, 'val=', $(this).val());
 
   if (window.isEditLoading) return;  // ✅ ADD THIS LINE
   
@@ -2306,9 +2326,22 @@ $('#packages_itinerary_id_fk').on('change', function () {
       // ✅ INIT CKEDITOR for each row
       initEditorsForDays();
 
-      if (window.pendingPropertyOpen && typeof window.openPropertyUI === 'function') {
+      if (window.pendingPropertyOpen && typeof window.openPropertyUI === 'function' && !$('#property .property-section').length) {
         window.pendingPropertyOpen = false;
         window.openPropertyUI();
+      } else if ($('#property .property-section').length) {
+        window.pendingPropertyOpen = false;
+        console.log('Itinerary loaded: rebuilding property sections. Found', $('#property .property-section').length, 'sections');
+        // Rebuild day rows in existing property sections to match new itinerary
+        $('#property .property-section').each(function() {
+          try {
+            rebuildPropertySectionDays($(this));
+          } catch (e) {
+            console.error('rebuildPropertySectionDays error:', e);
+          }
+        });
+      } else {
+        console.log('Itinerary loaded: no property sections to rebuild');
       }
     }
   });
@@ -3496,6 +3529,154 @@ function getDaysFromItinerary() {
     addMore10();
   };
 
+  window.rebuildPropertySectionDays = function($section) {
+    var sectionId = $section.data('section');
+    var master = $section.data('template-master-data');
+    var $tbody = $section.find('.property-days-body');
+    var newDays = getDaysFromItinerary();
+
+    console.log('rebuildPropertySectionDays: sectionId=', sectionId, 'newDays=', newDays.length, 'master=', master ? 'yes' : 'no');
+
+    if (!newDays.length) {
+      console.log('rebuildPropertySectionDays: no itinerary days, clearing tbody');
+      $tbody.find('.property-select, .rooms-select').each(function() {
+        if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
+      });
+      $tbody.empty();
+      return;
+    }
+
+    // Mark all existing rows; unmark those we keep
+    $tbody.find('tr.day-row').attr('data-keep', '0');
+
+    var $lastProcessedRow = null;
+
+    $.each(newDays, function(idx, d) {
+      var dayKey = String(d.dayId);
+      var destId = String(d.destId || '');
+      var destName = d.destName || '';
+
+      if (window.destinationMap && destId && window.destinationMap[destId]) {
+        destName = window.destinationMap[destId];
+      }
+      if (!destName || destName === destId) {
+        destName = destId;
+      }
+
+      var isTB = d.isTB;
+      var requiredStatus = String(d.requiredStatus || '0');
+
+      // Try to find an existing row with same dayId AND same destination
+      var $existing = $tbody.find('tr.day-row[data-day-id="' + dayKey + '"]').filter(function() {
+        var existingDestId = String($(this).find('input[name^="property_destination_id"]').val() || '');
+        return existingDestId === destId;
+      }).first();
+
+      if ($existing.length) {
+        // Keep this row — just refresh display name / visibility
+        $existing.attr('data-keep', '1');
+        $existing.find('.property-destination-name').text(destName).attr('data-dest-id', destId);
+        $existing.find('input[name^="property_destination_id"]').val(destId);
+        $existing.attr('data-is-tb', isTB ? 1 : 0);
+        $existing.attr('data-required-status', d.requiredStatus);
+        var tbRowHidden = (isTB && requiredStatus !== '1');
+        $existing.toggle(!tbRowHidden);
+        $lastProcessedRow = $existing;
+        console.log('rebuildPropertySectionDays: keeping day', dayKey, 'dest', destId);
+        return; // continue to next newDay
+      }
+
+      // Need to build a new row for this day
+      console.log('rebuildPropertySectionDays: building day', dayKey, 'dest', destId);
+
+      var tbBadge = isTB ? ' <span class="badge bg-warning text-dark ms-2">Travel Back</span>' : '';
+      var tbRowHidden = (isTB && requiredStatus !== '1');
+
+      var $dayRow = $(`
+        <tr class="day-row"
+            data-day-id="${dayKey}"
+            data-is-tb="${isTB ? 1 : 0}"
+            data-required-status="${d.requiredStatus}"
+            data-keep="1"
+            ${tbRowHidden ? 'style="display:none;"' : ''}>
+          <td>${escapeHtml(d.dayText)}${tbBadge}</td>
+          <td>
+            <span class="property-destination-name" data-dest-id="${escapeHtml(destId)}">${escapeHtml(destName)}</span>
+            <input type="hidden"
+                  name="property_destination_id[${sectionId}][${dayKey}]"
+                  value="${escapeHtml(destId)}">
+          </td>
+          <td colspan="3">
+            <div class="assignments" data-dest-id="${escapeHtml(destId)}"></div>
+          </td>
+        </tr>
+      `);
+
+      if ($lastProcessedRow && $lastProcessedRow.length) {
+        $lastProcessedRow.after($dayRow);
+      } else {
+        $tbody.prepend($dayRow);
+      }
+      $lastProcessedRow = $dayRow;
+
+      // Load property/room rows from template master
+      var matchedDest = null;
+      if (master && master.destinations && master.destinations.length && destId) {
+        for (var i = 0; i < master.destinations.length; i++) {
+          if (String(master.destinations[i].state_id) === destId) {
+            matchedDest = master.destinations[i];
+            break;
+          }
+        }
+      }
+
+      if (matchedDest && matchedDest.properties && matchedDest.properties.length) {
+        $.each(matchedDest.properties, function(pIdx, prop) {
+          var isFirst = (pIdx === 0);
+          addAssignmentRow($dayRow, sectionId, dayKey, destId, isFirst, isTB, {
+            skipLoad: true,
+            requiredStatus: requiredStatus
+          });
+
+          var $lastRow = $dayRow.find('.assignment-row').last();
+          var $propSel = $lastRow.find('.property-select');
+          var $roomsSel = $lastRow.find('.rooms-select');
+
+          window._suppressPropertySelectChange = true;
+          try {
+            setPropertyAndRoomsFromSaved(
+              destId,
+              $propSel,
+              $roomsSel,
+              String(prop.property_id),
+              prop.property_name,
+              $.map(prop.rooms || [], function(r) {
+                return { id: String(r.properties_room_category_id), text: r.properties_room_category_name };
+              })
+            );
+          } finally {
+            window._suppressPropertySelectChange = false;
+          }
+        });
+      } else {
+        addAssignmentRow($dayRow, sectionId, dayKey, destId, true, isTB, {
+          skipLoad: false,
+          requiredStatus: requiredStatus
+        });
+      }
+    });
+
+    // Remove rows that are not kept (old days no longer in itinerary or days with changed destinations)
+    $tbody.find('tr.day-row[data-keep="0"]').each(function() {
+      var dayKey = $(this).data('day-id');
+      console.log('rebuildPropertySectionDays: removing old/changed day row', dayKey);
+      $(this).find('.property-select, .rooms-select').each(function() {
+        if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
+      });
+      $(this).remove();
+    });
+  }
+
   $chk.off('change.propertymain').on('change.propertymain', function () {
 
     if (!$(this).is(':checked')) {
@@ -3836,10 +4017,23 @@ function $roomsSelectHasValue($select, val) {
             <div class="property-section border rounded p-3 mb-0" data-section="${sectionId}">
               <div class="d-flex align-items-end justify-content-between mb-2 gap-3 flex-wrap">
                 <div style="width:260px;">
+                  <label><b>Template Master</b></label>
+                  <select class="form-control template-master-select"
+                          data-section-id="${sectionId}"
+                          style="width:100%;">
+                    <option value="">Select Template</option>
+                  </select>
+                  <input type="hidden"
+                        name="packages_properties_common_template_master_id_fk[${sectionId}]"
+                        class="template-master-id-hidden"
+                        value="">
+                </div>
+
+                <div style="width:260px;">
                   <label><b>Category Name</b></label>
                   <input type="text"
                         name="property_category_name[${sectionId}]"
-                        class="form-control"
+                        class="form-control property-category-name"
                         placeholder="Enter category name"
                         required>
                 </div>
@@ -3953,6 +4147,21 @@ function $roomsSelectHasValue($select, val) {
     $('#property').append($section);
     $section.find('.design-type-select').select2({ width: '100%' });
 
+    $section.find('.template-master-select').select2({
+      width: '100%',
+      placeholder: 'Select Template Master',
+      allowClear: true,
+      dropdownParent: $('#PackagesModal'),
+      ajax: {
+        url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_template_masters',
+        dataType: 'json',
+        delay: 250,
+        data: function(params) { return { q: params.term }; },
+        processResults: function(data) { return data; },
+        cache: true
+      }
+    });
+
     // Auto-expand newly added property section
     const collapseEl = $section.find('.accordion-collapse')[0];
     if (collapseEl) {
@@ -4027,6 +4236,8 @@ function $roomsSelectHasValue($select, val) {
 
 window.buildSavedPropertyUI = function(propertyData) {
 
+  console.log('buildSavedPropertyUI received propertyData:', JSON.parse(JSON.stringify(propertyData)));
+
   if (!propertyData || !propertyData.length) return;
 
   window.isPropertyPrefill = true;
@@ -4057,6 +4268,32 @@ window.buildSavedPropertyUI = function(propertyData) {
 
     const $design = $section.find('select[name^="packages_properties_common_design_type"]');
     $design.val(sec.packages_properties_common_design_type || '').trigger('change.select2');
+
+    const templateMasterId = sec.packages_properties_common_template_master_id_fk || '';
+    console.log('buildSavedPropertyUI: section #' + sectionId + ' templateMasterId=' + templateMasterId);
+    $section.find('.template-master-id-hidden').val(templateMasterId);
+
+    if (templateMasterId) {
+      const $tmSelect = $section.find('.template-master-select');
+      console.log('buildSavedPropertyUI: fetching template master data for id=' + templateMasterId);
+      window._suppressTemplateMasterChange = true;
+      $.ajax({
+        url: '<?php echo base_url(); ?>index.php/Packages/ajax_get_template_master_data/' + templateMasterId,
+        type: 'GET',
+        dataType: 'json'
+      }).done(function(res) {
+        console.log('buildSavedPropertyUI: template master AJAX response', res.status, res.data ? 'has data' : 'no data');
+        if (res.status && res.data) {
+          const master = res.data;
+          const option = new Option(master.template_master_category_name || ('Template #' + templateMasterId), templateMasterId, true, true);
+          $tmSelect.append(option).val(templateMasterId).trigger('change');
+          console.log('buildSavedPropertyUI: template master option appended, val=' + $tmSelect.val());
+          $section.data('template-master-data', master);
+        }
+      }).always(function() {
+        window._suppressTemplateMasterChange = false;
+      });
+    }
 
     $.each(sec.days || [], function(_, dayObj) {
 
@@ -4120,20 +4357,26 @@ window.buildSavedPropertyUI = function(propertyData) {
         const $propSel = $assign.find('.property-select');
         const $roomSel = $assign.find('.rooms-select');
 
-        setPropertyAndRoomsFromSaved(
-          destId,
-          $propSel,
-          $roomSel,
-          p.property_id,
-          p.property_name,
-          p.rooms
-        );
+        window._suppressPropertySelectChange = true;
+        try {
+          setPropertyAndRoomsFromSaved(
+            destId,
+            $propSel,
+            $roomSel,
+            p.property_id,
+            p.property_name,
+            p.rooms
+          );
+        } finally {
+          window._suppressPropertySelectChange = false;
+        }
       });
     });
   });
 
   setTimeout(function() {
     window.isPropertyPrefill = false;
+    window.pendingPropertyOpen = false;
   }, 500);
 };
 
@@ -4189,6 +4432,7 @@ function refreshPropertyDestinationNames() {
   $(document).on('change', '.property-select', function () {
 
     if (window.isPropertyPrefill) return;
+    if (window._suppressPropertySelectChange) return;
 
     var selectedId   = $(this).val();
     var $row         = $(this).closest('.assignment-row');
@@ -4254,45 +4498,174 @@ function refreshPropertyDestinationNames() {
       var $assignments = $dayRow.find('.assignment-row');
       console.log('  -> clearing', $assignments.length, 'assignment rows');
 
-      // Clear all property and room dropdowns in this day row
+      // Remove all existing assignment rows and re-add fresh ones
       $assignments.each(function() {
         var $a = $(this);
-        var $propSelect = $a.find('.property-select');
-        var $roomsSelect = $a.find('.rooms-select');
-
-        // Destroy existing select2
-        if ($propSelect.hasClass('select2-hidden-accessible')) {
-          $propSelect.select2('destroy');
-        }
-        if ($roomsSelect.hasClass('select2-hidden-accessible')) {
-          $roomsSelect.select2('destroy');
-        }
-
-        // Clear values
-        $propSelect.val('').empty().append('<option value="">Please Select Properties</option>');
-        $roomsSelect.val('').empty().prop('disabled', true);
-
-        // Reinitialize property dropdown with new destination
-        if (newDestId) {
-          loadPropertiesAsync(newDestId, $propSelect);
-        } else {
-          $propSelect.select2({
-            width: '100%',
-            placeholder: 'Please Select Properties',
-            allowClear: true,
-            dropdownParent: $('#PackagesModal')
-          });
-        }
-
-        // Reinitialize rooms dropdown disabled
-        $roomsSelect.select2({
-          width: '100%',
-          placeholder: 'Please Select Rooms'
+        $a.find('.property-select, .rooms-select').each(function() {
+          if ($(this).hasClass('select2-hidden-accessible')) {
+            $(this).select2('destroy');
+          }
         });
-        $roomsSelect.html('<option value="">Please Select Property First</option>').prop('disabled', true);
+        $a.remove();
       });
+
+      var isTB = ($dayRow.data('is-tb') == 1);
+      var requiredStatus = String($dayRow.data('required-status') || '0');
+
+      // Check if section has template master data
+      var master = $section.data('template-master-data');
+      var matchedDest = null;
+      if (master && master.destinations && master.destinations.length && newDestId) {
+        for (var i = 0; i < master.destinations.length; i++) {
+          if (String(master.destinations[i].state_id) === String(newDestId)) {
+            matchedDest = master.destinations[i];
+            break;
+          }
+        }
+      }
+
+      if (matchedDest && matchedDest.properties && matchedDest.properties.length) {
+        // Add rows from template for each property
+        $.each(matchedDest.properties, function(idx, prop) {
+          var isFirst = (idx === 0);
+          addAssignmentRow($dayRow, sectionId, dayId, newDestId, isFirst, isTB, {
+            skipLoad: true,
+            requiredStatus: requiredStatus
+          });
+
+          var $lastRow = $dayRow.find('.assignment-row').last();
+          var $propSel = $lastRow.find('.property-select');
+          var $roomsSel = $lastRow.find('.rooms-select');
+
+          window._suppressPropertySelectChange = true;
+          try {
+            setPropertyAndRoomsFromSaved(
+              newDestId,
+              $propSel,
+              $roomsSel,
+              String(prop.property_id),
+              prop.property_name,
+              $.map(prop.rooms || [], function(r) {
+                return { id: String(r.properties_room_category_id), text: r.properties_room_category_name };
+              })
+            );
+          } finally {
+            window._suppressPropertySelectChange = false;
+          }
+        });
+      } else {
+        // No template match - add one blank row with + Add button
+        addAssignmentRow($dayRow, sectionId, dayId, newDestId, true, isTB, {
+          skipLoad: false,
+          requiredStatus: requiredStatus
+        });
+      }
     });
   };
+
+  // Template Master select change handler
+  $(document).on('change', '.template-master-select', function() {
+    if (window.isPropertyPrefill) return;
+    if (window._suppressTemplateMasterChange) return;
+
+    var templateId = $(this).val();
+    var $section = $(this).closest('.property-section');
+    var sectionId = $section.data('section');
+
+    $section.find('.template-master-id-hidden').val(templateId || '');
+
+    if (!templateId) {
+      $section.removeData('template-master-data');
+      return;
+    }
+
+    $.ajax({
+      url: '<?php echo base_url(); ?>index.php/Packages/ajax_get_template_master_data/' + templateId,
+      type: 'GET',
+      dataType: 'json'
+    }).done(function(res) {
+      if (!res.status || !res.data) return;
+
+      var master = res.data;
+
+      // Store template data on section for destination change re-match
+      $section.data('template-master-data', master);
+
+      // Set category name
+      $section.find('.property-category-name').val(master.template_master_category_name || '');
+
+      // Set design type
+      var $design = $section.find('.design-type-select');
+      $design.val(master.template_master_design_type || '').trigger('change.select2');
+
+      // Pre-fill each day row
+      $section.find('tr.day-row').each(function() {
+        var $dayRow = $(this);
+        var dayKey = String($dayRow.data('day-id') || '');
+        var destId = String($dayRow.find('input[name^="property_destination_id"]').val() || '');
+        var isTB = ($dayRow.data('is-tb') == 1);
+        var requiredStatus = String($dayRow.data('required-status') || '0');
+
+        // Remove all existing assignment rows
+        $dayRow.find('.assignments .assignment-row').each(function() {
+          var $a = $(this);
+          $a.find('.property-select, .rooms-select').each(function() {
+            if ($(this).hasClass('select2-hidden-accessible')) {
+              $(this).select2('destroy');
+            }
+          });
+          $a.remove();
+        });
+
+        // Find matching template destination
+        var matchedDest = null;
+        if (master.destinations && master.destinations.length) {
+          for (var i = 0; i < master.destinations.length; i++) {
+            if (String(master.destinations[i].state_id) === destId) {
+              matchedDest = master.destinations[i];
+              break;
+            }
+          }
+        }
+
+        if (matchedDest && matchedDest.properties && matchedDest.properties.length) {
+          $.each(matchedDest.properties, function(idx, prop) {
+            var isFirst = (idx === 0);
+            addAssignmentRow($dayRow, sectionId, dayKey, destId, isFirst, isTB, {
+              skipLoad: true,
+              requiredStatus: requiredStatus
+            });
+
+            var $lastRow = $dayRow.find('.assignment-row').last();
+            var $propSel = $lastRow.find('.property-select');
+            var $roomsSel = $lastRow.find('.rooms-select');
+
+            window._suppressPropertySelectChange = true;
+            try {
+              setPropertyAndRoomsFromSaved(
+                destId,
+                $propSel,
+                $roomsSel,
+                String(prop.property_id),
+                prop.property_name,
+                $.map(prop.rooms || [], function(r) {
+                  return { id: String(r.properties_room_category_id), text: r.properties_room_category_name };
+                })
+              );
+            } finally {
+              window._suppressPropertySelectChange = false;
+            }
+          });
+        } else {
+          // No match - add one blank row with + Add button
+          addAssignmentRow($dayRow, sectionId, dayKey, destId, true, isTB, {
+            skipLoad: false,
+            requiredStatus: requiredStatus
+          });
+        }
+      });
+    });
+  });
 
 });
 
@@ -4377,21 +4750,34 @@ $(document).on('change', '#packages_itinerary_id_fk', function () {
 
   if (isPropertiesActiveOrDirty()) {
 
-    const ok = confirm('Changing itinerary will clear the Property details block. Continue?');
-
-    if (!ok) {
-      skipItineraryChange = true;
-      $sel.val(prev);
-
-      if ($sel.hasClass('select2-hidden-accessible')) {
-        $sel.trigger('change.select2');
-      } else {
-        $sel.trigger('change');
+    var hasTemplateMaster = false;
+    $('#property .property-section').each(function() {
+      var master = $(this).data('template-master-data');
+      if (master && master.destinations) {
+        hasTemplateMaster = true;
+        return false;
       }
-      return;
-    }
+    });
 
-    resetPropertiesBlock();
+    console.log('itinerary change: hasTemplateMaster=', hasTemplateMaster);
+
+    if (!hasTemplateMaster) {
+      const ok = confirm('Changing itinerary will clear the Property details block. Continue?');
+
+      if (!ok) {
+        skipItineraryChange = true;
+        $sel.val(prev);
+
+        if ($sel.hasClass('select2-hidden-accessible')) {
+          $sel.trigger('change.select2');
+        } else {
+          $sel.trigger('change');
+        }
+        return;
+      }
+
+      resetPropertiesBlock();
+    }
   }
 });
 
