@@ -105,7 +105,9 @@
 						<div class="d-flex align-items-center justify-content-between">
 							<div>
 								<h2 class="mb-1 font-w600" id="quotations_sent_count" style="color:#fff;font-size:2rem;">
-									<?php foreach ($quotations_sent as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+									<a id="quotations-sent-link" href="<?php echo base_url();?>index.php/Quotation/quotation_report?period=today&status=3" style="color:#fff;">
+										<?php foreach ($quotations_sent as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+									</a>
 								</h2>
 								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Quotations Sent</p>
 							</div>

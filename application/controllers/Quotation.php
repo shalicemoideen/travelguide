@@ -8000,6 +8000,50 @@ public function ajax_delete()
 		$data = $this->Quotation_model->getConvertedTripsReport($param);
 		echo json_encode($data);
 	}
+
+	public function quotation_report()
+	{
+		$template['staff']            = $this->Quotation_model->fetch_staff_users();
+		$template['current_user_type'] = $this->currentusertype;
+		$template['current_user_id']   = $this->currentuserid;
+		$template['body']   = 'Quotation/quotation_report';
+		$template['script'] = 'Quotation/quotation_report_script';
+		$this->load->view('template', $template);
+	}
+
+	public function ajax_quotation_report()
+	{
+		$param['draw']        = isset($_REQUEST['draw'])                  ? $_REQUEST['draw']                  : '';
+		$param['length']      = isset($_REQUEST['length'])                ? $_REQUEST['length']                : '10';
+		$param['start']       = isset($_REQUEST['start'])                 ? $_REQUEST['start']                 : '0';
+		$param['order']       = isset($_REQUEST['order'][0]['column'])    ? $_REQUEST['order'][0]['column']    : '';
+		$param['dir']         = isset($_REQUEST['order'][0]['dir'])       ? $_REQUEST['order'][0]['dir']       : '';
+		$param['searchValue'] = isset($_REQUEST['search']['value'])       ? $_REQUEST['search']['value']       : '';
+
+		$param['guest_name']  = isset($_REQUEST['guest_name'])  ? $_REQUEST['guest_name']  : '';
+		$param['quotation_status'] = isset($_REQUEST['quotation_status']) ? $_REQUEST['quotation_status'] : '';
+
+		if ($this->currentusertype != 'A') {
+			$param['staff_id'] = $this->currentuserid;
+		} else {
+			$param['staff_id'] = isset($_REQUEST['staff_id']) ? $_REQUEST['staff_id'] : '';
+		}
+
+		$start_date = isset($_REQUEST['start_date']) ? $_REQUEST['start_date'] : '';
+		$end_date   = isset($_REQUEST['end_date'])   ? $_REQUEST['end_date']   : '';
+
+		if ($start_date) {
+			$start_date = str_replace('/', '-', $start_date);
+			$param['start_date'] = date('Y-m-d', strtotime($start_date));
+		}
+		if ($end_date) {
+			$end_date = str_replace('/', '-', $end_date);
+			$param['end_date'] = date('Y-m-d', strtotime($end_date));
+		}
+
+		$data = $this->Quotation_model->getQuotationReport($param);
+		echo json_encode($data);
+	}
 }
 
 

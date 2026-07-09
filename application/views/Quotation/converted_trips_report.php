@@ -35,14 +35,7 @@
                                 <div class="col-sm-6 col-md-3">
                                     <div class="card">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Start date" id="start_date" name="start_date">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6 col-md-3">
-                                    <div class="card">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="End date" id="end_date" name="end_date">
+                                            <input type="text" class="form-control" placeholder="Date Range" id="converted_trips_daterange" name="converted_trips_daterange" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -58,14 +51,12 @@
                                 </div>
                                 <div class="col-sm-2 col-md-3">
                                     <div class="card">
-                                        <a href="<?php echo base_url(); ?>index.php/Quotation/converted_trips_report">
-                                            <button type="button" class="btn btn-secondary btn-md" id="reset">
-                                                <span class="btn-label">
-                                                    <i class="icon-refresh"></i>
-                                                </span>
-                                                Refresh
-                                            </button>
-                                        </a>
+                                        <button type="button" class="btn btn-secondary btn-md" id="reset">
+                                            <span class="btn-label">
+                                                <i class="icon-refresh"></i>
+                                            </span>
+                                            Refresh
+                                        </button>
                                     </div>
                                 </div>
                             </div>

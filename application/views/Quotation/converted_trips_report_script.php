@@ -5,16 +5,22 @@ $('#staff_id').select2({
     width: '100%'
 });
 
-$('#start_date').bootstrapMaterialDatePicker({
-    weekStart: 0,
-    time: false,
-    format: 'DD/MM/YYYY'
+$('#converted_trips_daterange').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+        format: 'DD/MM/YYYY',
+        cancelLabel: 'Clear'
+    }
 });
 
-$('#end_date').bootstrapMaterialDatePicker({
-    weekStart: 0,
-    time: false,
-    format: 'DD/MM/YYYY'
+$('#converted_trips_daterange').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(
+        picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+    );
+});
+
+$('#converted_trips_daterange').on('cancel.daterangepicker', function() {
+    $(this).val('');
 });
 
 function getUrlParam(name) {
@@ -55,13 +61,19 @@ $(document).ready(function () {
     var period = getUrlParam('period');
     if (period && period !== '') {
         var dates = getPeriodDates(period);
-        $('#start_date').val(dates.start);
-        $('#end_date').val(dates.end);
+        $('#converted_trips_daterange').val(dates.start + ' - ' + dates.end);
         $('#Create').show();
     }
 });
 
 $('#search').click(function () {
+    $table.ajax.reload();
+});
+
+$('#reset').click(function () {
+    $('#guest_name').val('');
+    $('#staff_id').val(null).trigger('change');
+    $('#converted_trips_daterange').val('');
     $table.ajax.reload();
 });
 
@@ -99,8 +111,15 @@ $(document).ready(function() {
             "data": function (d) {
                 d.guest_name = $("#guest_name").val();
                 d.staff_id = $("#staff_id").val();
-                d.start_date = $("#start_date").val();
-                d.end_date = $("#end_date").val();
+                var reportRange = $("#converted_trips_daterange").val();
+                if (reportRange) {
+                    var reportDates = reportRange.split(' - ');
+                    d.start_date = reportDates[0];
+                    d.end_date   = reportDates[1];
+                } else {
+                    d.start_date = '';
+                    d.end_date   = '';
+                }
             }
         },
         "createdRow": function (row, data, index) {

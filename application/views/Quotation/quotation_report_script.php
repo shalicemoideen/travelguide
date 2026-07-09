@@ -5,12 +5,12 @@ $('#staff_id').select2({
     width: '100%'
 });
 
-$('#lead_status').select2({
+$('#quotation_status').select2({
     minimumResultsForSearch: 0,
     width: '100%'
 });
 
-$('#leads_report_daterange').daterangepicker({
+$('#quotation_report_daterange').daterangepicker({
     autoUpdateInput: false,
     locale: {
         format: 'DD/MM/YYYY',
@@ -18,23 +18,26 @@ $('#leads_report_daterange').daterangepicker({
     }
 });
 
-$('#leads_report_daterange').on('apply.daterangepicker', function(ev, picker) {
+$('#quotation_report_daterange').on('apply.daterangepicker', function(ev, picker) {
     $(this).val(
         picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
     );
 });
 
-$('#leads_report_daterange').on('cancel.daterangepicker', function() {
+$('#quotation_report_daterange').on('cancel.daterangepicker', function() {
     $(this).val('');
 });
 
 var statusLabels = {
-    1: '<span class="badge bg-info text-white">In take</span>',
-    2: '<span class="badge bg-warning text-dark">Qualified</span>',
-    3: '<span class="badge bg-success text-white">Converted to trip</span>',
-    4: '<span class="badge bg-danger text-white">Not Qualified</span>',
-    5: '<span class="badge bg-secondary text-white">Lost</span>'
+    1: '<span class="badge badge-secondary">Generated</span>',
+    2: '<span class="badge badge-light">Draft</span>',
+    3: '<span class="badge badge-info">Sent</span>',
+    4: '<span class="badge badge-danger">Rejected</span>',
+    5: '<span class="badge badge-success">Confirmed</span>',
+    6: '<span class="badge badge-danger">Cancelled</span>'
 };
+
+var autoReload = false;
 
 function getUrlParam(name) {
     var results = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.href);
@@ -71,11 +74,19 @@ $(document).ready(function () {
         $("#Create").toggle();
     });
 
+    var status = getUrlParam('status');
+    if (status && status !== '') {
+        $('#quotation_status').val(status).trigger('change');
+        $('#Create').show();
+        autoReload = true;
+    }
+
     var period = getUrlParam('period');
     if (period && period !== '') {
         var dates = getPeriodDates(period);
-        $('#leads_report_daterange').val(dates.start + ' - ' + dates.end);
+        $('#quotation_report_daterange').val(dates.start + ' - ' + dates.end);
         $('#Create').show();
+        autoReload = true;
     }
 });
 
@@ -86,14 +97,14 @@ $('#search').click(function () {
 $('#reset').click(function () {
     $('#guest_name').val('');
     $('#staff_id').val(null).trigger('change');
-    $('#lead_status').val(null).trigger('change');
-    $('#leads_report_daterange').val('');
+    $('#quotation_status').val(null).trigger('change');
+    $('#quotation_report_daterange').val('');
     $table.ajax.reload();
 });
 
 var $table;
 $(document).ready(function () {
-    $table = $('#LeadReport').DataTable({
+    $table = $('#QuotationReport').DataTable({
         "processing": true,
         "serverSide": true,
         "searching": false,
@@ -114,13 +125,13 @@ $(document).ready(function () {
             }
         ],
         "ajax": {
-            "url": "<?php echo base_url(); ?>index.php/Leads/ajax_lead_report",
+            "url": "<?php echo base_url(); ?>index.php/Quotation/ajax_quotation_report",
             "type": "POST",
             "data": function (d) {
-                d.guest_name  = $("#guest_name").val();
-                d.staff_id    = $("#staff_id").val();
-                d.lead_status = $("#lead_status").val();
-                var reportRange = $("#leads_report_daterange").val();
+                d.guest_name       = $("#guest_name").val();
+                d.staff_id         = $("#staff_id").val();
+                d.quotation_status = $("#quotation_status").val();
+                var reportRange = $("#quotation_report_daterange").val();
                 if (reportRange) {
                     var reportDates = reportRange.split(' - ');
                     d.start_date = reportDates[0];
@@ -146,7 +157,7 @@ $(document).ready(function () {
             guestCell.html(guestHtml);
 
             var statusCell = $('td', row).eq(8);
-            var statusCode = parseInt(data['lead_current_status']);
+            var statusCode = parseInt(data['quotation_current_status']);
             statusCell.html(statusLabels[statusCode] || statusCode);
         },
         "drawCallback": function (settings) {
@@ -158,26 +169,26 @@ $(document).ready(function () {
             var info = api.page.info();
             var total    = info.recordsTotal;
             var filtered = info.recordsDisplay;
-            var label = 'Total Leads: <strong>' + total + '</strong>';
+            var label = 'Total Quotations: <strong>' + total + '</strong>';
             if (filtered !== total) {
                 label += ' &nbsp;|&nbsp; Filtered: <strong>' + filtered + '</strong>';
             }
-            $('#lead-total-count').html(label);
+            $('#quotation-total-count').html(label);
         },
         "columns": [
-            { "data": "leads_id",           "orderable": false },
-            { "data": "leads_number",        "orderable": false },
-            { "data": "staff_name",          "orderable": false },
-            { "data": "guest_name",          "orderable": false },
-            { "data": "destination",         "orderable": false },
-            { "data": "lead_created_date",    "orderable": false },
-            { "data": "travel_date",         "orderable": false },
-            { "data": "duration",            "orderable": false },
-            { "data": "lead_current_status", "orderable": false }
+            { "data": "quotation_id",           "orderable": false },
+            { "data": "quotation_number",        "orderable": false },
+            { "data": "staff_name",              "orderable": false },
+            { "data": "guest_name",              "orderable": false },
+            { "data": "destination",             "orderable": false },
+            { "data": "quotation_date",          "orderable": false },
+            { "data": "travel_date",             "orderable": false },
+            { "data": "duration",                "orderable": false },
+            { "data": "quotation_current_status","orderable": false }
         ]
     });
 
-    if (getUrlParam('period')) {
+    if (autoReload) {
         $table.ajax.reload();
     }
 });

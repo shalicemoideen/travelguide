@@ -959,9 +959,10 @@ $(document).ready(function(){
         $('#converted_trips_count').find('a').text(data.converted);
         $('#checkin_count').text(data.checkin);
         $('#checkout_count').text(data.checkout);
-        $('#quotations_sent_count').text(data.quotations);
+        $('#quotations_sent_count').find('a').text(data.quotations);
         $('#converted-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period);
         $('#total-leads-link').attr('href', "<?php echo base_url(); ?>index.php/Leads/lead_report?period=" + period);
+        $('#quotations-sent-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=3");
       },
       error: function(){
         console.log('Error loading period counts');

@@ -5,7 +5,7 @@
     <div class="container-fluid">
         <button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
 
-        <form id="leadReportFilterForm" method="POST" action="">
+        <form id="quotationReportFilterForm" method="POST" action="">
             <div class="card-header" id="Create" style="display:none">
                 <div class="d-flex align-items-center">
                     <div class="row row-demo-grid hdr-filter-dd-fullwd">
@@ -35,13 +35,14 @@
                         <div class="col-sm-6 col-md-3">
                             <div class="card">
                                 <div class="input-group">
-                                    <select name="lead_status" id="lead_status" class="form-control input-lg">
+                                    <select name="quotation_status" id="quotation_status" class="form-control input-lg">
                                         <option value="">All Statuses</option>
-                                        <option value="1">In take</option>
-                                        <option value="2">Qualified</option>
-                                        <option value="3">Converted to trip</option>
-                                        <option value="4">Not Qualified</option>
-                                        <option value="5">Lost</option>
+                                        <option value="1">Generated</option>
+                                        <option value="2">Draft</option>
+                                        <option value="3">Sent</option>
+                                        <option value="4">Rejected</option>
+                                        <option value="5">Confirmed</option>
+                                        <option value="6">Cancelled</option>
                                     </select>
                                 </div>
                             </div>
@@ -49,7 +50,7 @@
                         <div class="col-sm-6 col-md-3">
                             <div class="card">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Date Range" id="leads_report_daterange" name="leads_report_daterange" readonly>
+                                    <input type="text" class="form-control" placeholder="Date Range" id="quotation_report_daterange" name="quotation_report_daterange" readonly>
                                 </div>
                             </div>
                         </div>
@@ -78,28 +79,28 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title"><b>Lead Report</b></h2>
+                        <h2 class="card-title"><b>Quotation Report</b></h2>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table card-table display mb-4 shadow-hover table-responsive-lg" id="LeadReport">
+                            <table class="table card-table display mb-4 shadow-hover table-responsive-lg" id="QuotationReport">
                                 <thead>
                                     <tr>
                                         <th>Sl.no</th>
-                                        <th>Lead No</th>
+                                        <th>Quotation No</th>
                                         <th>Assigned Staff</th>
                                         <th>Guest Name</th>
                                         <th>Destination</th>
-                                        <th>Created Date</th>
+                                        <th>Quotation Date</th>
                                         <th>Travel Date</th>
                                         <th>Duration</th>
-                                        <th>Lead Status</th>
+                                        <th>Quotation Status</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="9" class="text-right" id="lead-total-count" style="text-align:right; font-size:15px; color:#3d4465; background-color:#f0f4ff; padding:10px 16px; border-top:2px solid #5e72e4;"></th>
+                                        <th colspan="9" class="text-right" id="quotation-total-count" style="text-align:right; font-size:15px; color:#3d4465; background-color:#f0f4ff; padding:10px 16px; border-top:2px solid #5e72e4;"></th>
                                     </tr>
                                 </tfoot>
                             </table>
