@@ -64,6 +64,11 @@ $(document).ready(function () {
         $('#converted_trips_daterange').val(dates.start + ' - ' + dates.end);
         $('#Create').show();
     }
+
+    var dateType = getUrlParam('date_type');
+    if (dateType && dateType !== '') {
+        $('#converted_trips_date_type').val(dateType);
+    }
 });
 
 $('#search').click(function () {
@@ -111,6 +116,7 @@ $(document).ready(function() {
             "data": function (d) {
                 d.guest_name = $("#guest_name").val();
                 d.staff_id = $("#staff_id").val();
+                d.date_type = $("#converted_trips_date_type").val();
                 var reportRange = $("#converted_trips_daterange").val();
                 if (reportRange) {
                     var reportDates = reportRange.split(' - ');
@@ -169,7 +175,7 @@ $(document).ready(function() {
         ]
     });
 
-    if (getUrlParam('period')) {
+    if (getUrlParam('period') || getUrlParam('date_type')) {
         $table.ajax.reload();
     }
 });

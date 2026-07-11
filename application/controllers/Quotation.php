@@ -7997,6 +7997,8 @@ public function ajax_delete()
 			$param['end_date'] = date('Y-m-d', strtotime($travels_end_date));
 		}
 
+		$param['date_type'] = (isset($_REQUEST['date_type'])) ? $_REQUEST['date_type'] : 'arrival';
+
 		$data = $this->Quotation_model->getConvertedTripsReport($param);
 		echo json_encode($data);
 	}

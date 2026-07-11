@@ -5125,6 +5125,8 @@ public function insert_room_tariff_details($data)
 		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
 		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
 		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+		$date_type  = isset($param['date_type'])  ? $param['date_type']  : 'arrival';
+		$date_col   = ($date_type === 'departure') ? 'l.end_date' : 'l.start_date';
 
 		if ($guest_name) {
 			$this->db->like('l.guest_name', $guest_name);
@@ -5133,10 +5135,10 @@ public function insert_room_tariff_details($data)
 			$this->db->where('l.staff_id_fk', $staff_id);
 		}
 		if ($start_date) {
-			$this->db->where('l.start_date >=', $start_date);
+			$this->db->where($date_col . ' >=', $start_date);
 		}
 		if ($end_date) {
-			$this->db->where('l.start_date <=', $end_date);
+			$this->db->where($date_col . ' <=', $end_date);
 		}
 
 		$this->db->where('l.leads_status', 1);
@@ -5232,6 +5234,8 @@ public function insert_room_tariff_details($data)
 		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
 		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
 		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+		$date_type  = isset($param['date_type'])  ? $param['date_type']  : 'arrival';
+		$date_col   = ($date_type === 'departure') ? 'end_date' : 'start_date';
 
 		if ($guest_name) {
 			$this->db->like('guest_name', $guest_name);
@@ -5240,10 +5244,10 @@ public function insert_room_tariff_details($data)
 			$this->db->where('staff_id_fk', $staff_id);
 		}
 		if ($start_date) {
-			$this->db->where('start_date >=', $start_date);
+			$this->db->where($date_col . ' >=', $start_date);
 		}
 		if ($end_date) {
-			$this->db->where('start_date <=', $end_date);
+			$this->db->where($date_col . ' <=', $end_date);
 		}
 
 		$this->db->where('leads_status', 1);
