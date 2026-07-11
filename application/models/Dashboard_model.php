@@ -222,11 +222,9 @@ class Dashboard_model extends CI_Model{
         $range = $this->_getPeriodRange($period);
         $currentuserid   = $this->session->userdata('user_id');
         $currentusertype = $this->session->userdata('user_type');
-        $this->db->select('COALESCE(SUM(gcd.adults + gcd.children), 0) as total_count');
+        $this->db->select('COUNT(q.quotation_id) as total_count');
         $this->db->from('quotation q');
         $this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'inner');
-        $this->db->join('guset_count gc', 'gc.guset_count_lead_id_fk = l.leads_id', 'inner');
-        $this->db->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id', 'inner');
         $this->db->where('q.quotation_current_status', 5);
         $this->db->where('q.quotation_status', 1);
         if($currentusertype == 'S'){
@@ -236,7 +234,6 @@ class Dashboard_model extends CI_Model{
             $this->db->where('l.start_date >=', $range['start']);
         }
         $this->db->where('l.start_date <=', $range['end']);
-        $this->db->where('gc.guset_count_status', 1);
         $query = $this->db->get();
         return $query->result();
     }
@@ -245,21 +242,18 @@ class Dashboard_model extends CI_Model{
         $range = $this->_getPeriodRange($period);
         $currentuserid   = $this->session->userdata('user_id');
         $currentusertype = $this->session->userdata('user_type');
-        $this->db->select('COALESCE(SUM(gcd.adults + gcd.children), 0) as total_count');
+        $this->db->select('COUNT(q.quotation_id) as total_count');
         $this->db->from('quotation q');
         $this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'inner');
-        $this->db->join('guset_count gc', 'gc.guset_count_lead_id_fk = l.leads_id', 'inner');
-        $this->db->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id', 'inner');
         $this->db->where('q.quotation_current_status', 5);
         $this->db->where('q.quotation_status', 1);
         if($currentusertype == 'S'){
             $this->db->where('l.staff_id_fk', $currentuserid);
         }
         if($range['start']){
-            $this->db->where('l.end_date >=', $range['start']);
+            $this->db->where('l.start_date >=', $range['start']);
         }
-        $this->db->where('l.end_date <=', $range['end']);
-        $this->db->where('gc.guset_count_status', 1);
+        $this->db->where('l.start_date <=', $range['end']);
         $query = $this->db->get();
         return $query->result();
     }

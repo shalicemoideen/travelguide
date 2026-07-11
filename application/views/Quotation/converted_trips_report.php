@@ -6,6 +6,7 @@
                 <button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
 
                 <form id="convertedTripsFilterForm" method="POST" action="">
+                    <input type="hidden" id="converted_trips_date_type" name="converted_trips_date_type" value="arrival">
                     <div class="card-header" id="Create" style="display:none">
                         <div class="d-flex align-items-center">
                             <div class="row row-demo-grid hdr-filter-dd-fullwd">

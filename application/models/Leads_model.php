@@ -1253,7 +1253,10 @@ public function get_child_age_breakup($guest_count_id)
 		}
 
 		$this->db->select("l.leads_id, l.leads_number, ud.admin_name as staff_name, l.guest_name,
-			c.name as destination,
+			(SELECT GROUP_CONCAT(DISTINCT s.state_name ORDER BY ap.accommodation_date ASC SEPARATOR ', ')
+			 FROM accommodation_plan ap
+			 LEFT JOIN state s ON s.state_id = ap.stay_destination_id_fk
+			 WHERE ap.lead_id_fk = l.leads_id AND ap.accommodation_plan_status = 1) AS destination,
 			DATE_FORMAT(l.start_date, '%d-%m-%Y') as travel_date, l.duration, l.lead_current_status,
 			DATE_FORMAT(l.lead_register_date, '%d-%m-%Y') as lead_created_date,
 			COALESCE((SELECT SUM(gcd.adults) FROM guset_count_details gcd
@@ -1266,7 +1269,6 @@ public function get_child_age_breakup($guest_count_id)
 				AND gcd.guset_count_details_status = 1), 0) as total_children", FALSE);
 		$this->db->from('leads l');
 		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
-		$this->db->join('country c', 'c.id = l.country_id_fk', 'left');
 		$this->db->where('l.leads_status', 1);
 		$this->db->order_by('l.leads_id', 'DESC');
 

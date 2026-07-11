@@ -957,12 +957,14 @@ $(document).ready(function(){
       success: function(data){
         $('#total_leads_count').find('a').text(data.allleads);
         $('#converted_trips_count').find('a').text(data.converted);
-        $('#checkin_count').text(data.checkin);
-        $('#checkout_count').text(data.checkout);
+        $('#checkin_count').find('a').text(data.checkin);
+        $('#checkout_count').find('a').text(data.checkout);
         $('#quotations_sent_count').find('a').text(data.quotations);
         $('#converted-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period);
         $('#total-leads-link').attr('href', "<?php echo base_url(); ?>index.php/Leads/lead_report?period=" + period);
         $('#quotations-sent-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=3");
+        $('#arrival-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&date_type=arrival");
+        $('#departure-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&date_type=departure");
       },
       error: function(){
         console.log('Error loading period counts');

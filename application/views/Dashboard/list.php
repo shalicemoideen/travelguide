@@ -61,11 +61,11 @@
 								<div class="d-flex align-items-center justify-content-between">
 									<div>
 										<h2 class="mb-1 font-w600" id="checkin_count" style="color:#fff;font-size:2rem;">
-											<a href="<?php echo base_url();?>index.php/Staff_attendance" style="color:#fff;">
+											<a id="arrival-trips-link" href="<?php echo base_url();?>index.php/Quotation/converted_trips_report?period=today&date_type=arrival" style="color:#fff;">
 												<?php foreach ($checkin as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
 											</a>
 										</h2>
-										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Check-In</p>
+										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Arrival trips</p>
 									</div>
 									<div style="opacity:0.35;">
 										<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M10 17v-3H3v-4h7V7l5 5-5 5zm9 2H12v-2h7V5h-7V3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"/></svg>
@@ -80,11 +80,11 @@
 								<div class="d-flex align-items-center justify-content-between">
 									<div>
 										<h2 class="mb-1 font-w600" id="checkout_count" style="color:#fff;font-size:2rem;">
-											<a href="<?php echo base_url();?>index.php/Staff_attendance" style="color:#fff;">
+											<a id="departure-trips-link" href="<?php echo base_url();?>index.php/Quotation/converted_trips_report?period=today&date_type=departure" style="color:#fff;">
 												<?php foreach ($checkout as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
 											</a>
 										</h2>
-										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Check-Out</p>
+										<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Departure trips</p>
 									</div>
 									<div style="opacity:0.35;">
 										<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M14 7v3h7v4h-7v3l-5-5 5-5zM5 5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7v-2H5V5z"/></svg>
