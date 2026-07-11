@@ -205,10 +205,12 @@
                             <div class="card border-0 mb-2">
                                 <div class="card-header d-flex justify-content-between align-items-center py-1" style="background: linear-gradient(135deg, #5b73e8 0%, #7c8fe0 100%); border:none; border-radius:4px;">
                                     <h6 class="mb-0 text-white" style="font-size:13px;"><i class="la la-map-marker me-1"></i> Destinations</h6>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="addDestination()">+ Add Destination</button>
                                 </div>
                                 <div class="card-body p-2" id="destinations_container">
                                     <!-- Dynamic destination blocks -->
+                                </div>
+                                <div class="card-body p-2 pt-0 text-end">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="addDestination()">+ Add Destination</button>
                                 </div>
                             </div>
                         </form>

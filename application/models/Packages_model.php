@@ -58,6 +58,7 @@ class Packages_model extends CI_Model{
 		$this->db->join('package_category', 'package_category.package_category_id = packages.packages_category_id_fk','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = packages.packages_itinerary_category_id_fk','left');
 		$this->db->join('itineraries', 'itineraries.itineraries_id = packages.packages_itinerary_id_fk','left');
+		$this->db->join('user_details', 'user_details.user_id = packages.packages_createdby_user_id','left');
 		$this->db->order_by('packages_id', 'DESC');
 		// $this->db->group_by('room_tariff_hike_rate.room_tariff_hike_id_fk');
 
@@ -109,6 +110,7 @@ class Packages_model extends CI_Model{
 		$this->db->join('package_category', 'package_category.package_category_id = packages.packages_category_id_fk','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = packages.packages_itinerary_category_id_fk','left');
 		$this->db->join('itineraries', 'itineraries.itineraries_id = packages.packages_itinerary_id_fk','left');
+		$this->db->join('user_details', 'user_details.user_id = packages.packages_createdby_user_id','left');
 		$this->db->where("packages_status",1);
 		$this->db->order_by('packages_id', 'DESC');
 		// $this->db->group_by('room_tariff_hike_rate.room_tariff_hike_id_fk');
@@ -721,10 +723,12 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
 			->select('
 				properties_room_category_id,
 				properties_room_category_name,
+				room_category_show_order
 			')
 			->from('properties_room_category')
 			->where('properties_id_fk', $properties_id_fk)
 			->where('properties_room_category_status', 1)
+			->order_by('room_category_show_order', 'ASC')
 			->order_by('properties_room_category_id', 'ASC')
 			->get()
 			->result_array();

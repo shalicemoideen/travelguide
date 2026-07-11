@@ -2590,9 +2590,10 @@ foreach ($properties_by_sec[$secIndex][$itinDayId] as $rowKey => $propertyId) {
 		ITINERARY DAYS
 		========================= */
 		$itinerary_days = $this->db
-			->select('pid.*')
+			->select('pid.*, s.state_name')
 			->from('packages_itinerary_days pid')
 			->join('packages_itinerary pi', 'pi.packages_itinerary_id = pid.packages_itinerary_id_fk')
+			->join('state s', 's.state_id = pid.packages_itineraries_days_destination_id_fk', 'left')
 			->where('pi.packages_id_fk', $id)
 			->get()
 			->result_array();

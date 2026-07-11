@@ -158,11 +158,12 @@ class Template_master_model extends CI_Model{
 
 	public function get_rooms_by_property($property_id)
 	{
-		$this->db->select('tmdpr.*, pr.properties_room_category_name');
+		$this->db->select('tmdpr.*, pr.properties_room_category_name, pr.room_category_show_order');
 		$this->db->from('template_master_destination_property_room tmdpr');
 		$this->db->join('properties_room_category pr', 'pr.properties_room_category_id = tmdpr.properties_room_category_id_fk', 'left');
 		$this->db->where('tmdpr.template_master_destination_property_id_fk', $property_id);
 		$this->db->where('tmdpr.template_master_destination_property_room_status', 1);
+		$this->db->order_by('pr.room_category_show_order', 'ASC');
 		$this->db->order_by('tmdpr.template_master_destination_property_room_id', 'ASC');
 		$query = $this->db->get();
 		return $query->result();

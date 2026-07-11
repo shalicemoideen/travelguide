@@ -40,7 +40,10 @@ $(document).ready(function() {
 
             let actionHtml = '<div class="d-flex">';
             if (hasPermission('TEMPLATE_MASTER_UPDATE')) {
-                actionHtml += '<a href="javascript:void(0)" onclick="edit_template_master('+data['template_master_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
+                actionHtml += '<a href="javascript:void(0)" title="Edit" onclick="edit_template_master('+data['template_master_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
+            }
+            if (hasPermission('TEMPLATE_MASTER_DUPLICATE')) {
+                actionHtml += '<a href="javascript:void(0)" title="Duplicate" onclick="duplicate_template_master('+data['template_master_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-file-alt"></i></a>';
             }
             if (hasPermission('TEMPLATE_MASTER_DELETE')) {
                 actionHtml += '<a href="javascript:void(0)" onclick="return delete_template_master('+data['template_master_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
@@ -129,6 +132,44 @@ function edit_template_master(id)
             $('#TemplateMasterModal').modal('show');
             $('.modal-title').text('Edit Template Master');
             $('#btnSave').text('Update');
+        },
+        error: function (jqXHR, textStatus, errorThrown)
+        {
+            alert('Error getting data from ajax');
+        }
+    });
+}
+
+function duplicate_template_master(id)
+{
+    save_method = 'add';
+    $('#form')[0].reset();
+    $('.form-group').removeClass('input-warning-o');
+    $('.help-block').empty();
+    $('#destinations_container').empty();
+    destCounter = 0;
+    $('#id').val('');
+
+    $.ajax({
+        url : "<?php echo base_url();?>index.php/Template_master/ajax_edit/" + id,
+        type: "GET",
+        dataType: "JSON",
+        success: function(data)
+        {
+            var dupName = (data.template_master_category_name || '') + ' - Copy';
+            $('[name="id"]').val('');
+            $('[name="template_master_category_name"]').val(dupName).trigger('input');
+            $('[name="template_master_design_type"]').val(data.template_master_design_type);
+
+            if (data.destinations && data.destinations.length) {
+                data.destinations.forEach(function(dest) {
+                    addDestinationFromData(dest);
+                });
+            }
+
+            $('#TemplateMasterModal').modal('show');
+            $('.modal-title').text('Duplicate Template Master');
+            $('#btnSave').text('Save');
         },
         error: function (jqXHR, textStatus, errorThrown)
         {

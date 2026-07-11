@@ -91,7 +91,8 @@ class Template_master extends MY_Controller {
 		if ($search) {
 			$this->db->like('properties_room_category_name', $search);
 		}
-		$this->db->order_by('properties_room_category_name', 'ASC');
+		$this->db->order_by('room_category_show_order', 'ASC');
+		$this->db->order_by('properties_room_category_id', 'ASC');
 		$query = $this->db->get();
 		echo json_encode(['results' => $query->result()]);
 	}

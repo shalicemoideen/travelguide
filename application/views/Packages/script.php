@@ -17,14 +17,17 @@ function initCommonSelect2(scope) {
 
         // find nearest opened modal if this select is inside modal
         let $modal = $select.closest('.modal');
+        let $modalContent = $modal.find('.modal-content');
 
         let options = {
             width: '100%',
             minimumResultsForSearch: 0
         };
 
-        // only set dropdownParent when inside modal
-        if ($modal.length) {
+        // only set dropdownParent when inside modal (prefer .modal-content to stay within focus trap)
+        if ($modalContent.length) {
+            options.dropdownParent = $modalContent;
+        } else if ($modal.length) {
             options.dropdownParent = $modal;
         }
 
@@ -57,7 +60,7 @@ $('#PackagesModal').on('shown.bs.modal', function () {
             width: '100%',
             placeholder: 'Please Select Template Category',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
                 url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_package_categories',
                 dataType: 'json',
@@ -74,7 +77,7 @@ $('#PackagesModal').on('shown.bs.modal', function () {
             width: '100%',
             placeholder: 'Please Select Itinerary Category',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
                 url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_itinerary_categories',
                 dataType: 'json',
@@ -91,7 +94,7 @@ $('#PackagesModal').on('shown.bs.modal', function () {
             width: '100%',
             placeholder: 'Please Search by title',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
                 url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_inclusion_exclusion',
                 dataType: 'json',
@@ -108,7 +111,7 @@ $('#PackagesModal').on('shown.bs.modal', function () {
             width: '100%',
             placeholder: 'Please Search by title',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
                 url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_payment_policies',
                 dataType: 'json',
@@ -125,7 +128,7 @@ $('#PackagesModal').on('shown.bs.modal', function () {
             width: '100%',
             placeholder: 'Please Search by title',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
                 url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_terms_conditions',
                 dataType: 'json',
@@ -142,7 +145,7 @@ $('#PackagesModal').on('shown.bs.modal', function () {
             width: '100%',
             placeholder: 'Please Search by title',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
                 url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_cancellation_policies',
                 dataType: 'json',
@@ -406,7 +409,7 @@ var table;
             { "data": "packages_duration_in_nights", "orderable": false },
             { "data": "itinerary_category_name", "orderable": false },
             { "data": "itineraries_name", "orderable": false },
-            { "data": "packages_createdby_user_name", "orderable": false },                      
+            { "data": "admin_name", "orderable": false },                      
             { "data": "packages_id", "orderable": false }
             
             
@@ -523,13 +526,20 @@ window.destroyDayEditors = function () {
     } catch (e) {}
   });
   window.dayEditors = {};
+  $('.day-editor').removeData('ck-editor-instance');
 };
 
+window.initEditorsToken = window.initEditorsToken || 0;
+
 window.initEditorsForDays = function () {
+  console.log('initEditorsForDays called');
   window.destroyDayEditors();
+  const token = ++window.initEditorsToken;
 
   // ✅ wait 1 tick so DOM rows are fully inserted
   setTimeout(function () {
+    if (token !== window.initEditorsToken) return;
+
     $('.day-editor').each(function () {
       const textarea = this;
       const rowNum = $(this).closest('tr').data('row-num');
@@ -540,8 +550,15 @@ window.initEditorsForDays = function () {
         return;
       }
 
+      // Skip if this textarea already has a live editor
+      if ($(textarea).data('ck-editor-instance')) {
+        console.log('  skipping row', rowNum, 'already has editor');
+        return;
+      }
+
       ClassicEditor.create(textarea).then(editor => {
         window.dayEditors[rowNum] = editor;
+        $(textarea).data('ck-editor-instance', editor);
       }).catch(err => console.error(err));
     });
   }, 0);
@@ -676,6 +693,35 @@ $(document).on('change', '.tb-required-checkbox', function () {
   });
 });
 
+function stampOriginalDestinations() {
+  $('#itinerary tr').each(function () {
+    const $tr  = $(this);
+    const $aid = $tr.find('.active-destination-id');
+    if ($aid.length && !$aid.data('original-id')) {
+      $aid.data('original-id',   $aid.val());
+      $aid.data('original-name', $tr.find('.active-destination-name').val() || '');
+    }
+  });
+}
+
+function resolveDestinationNamesFromMap(map) {
+  $('#itinerary tr').each(function () {
+    const $tr = $(this);
+    const id = String($tr.find('.active-destination-id').val() || '');
+    if (!id) return;
+
+    const currentName = $tr.find('.active-destination-name').val() || '';
+    const name = map[id] || currentName || id;
+
+    $tr.find('.stay-destination-text').text(name);
+    $tr.find('.active-destination-name').val(name);
+
+    $tr.find('.active-destination-id')
+      .data('original-id', id)
+      .data('original-name', name);
+  });
+}
+
 function buildItineraryRowsFromSaved(itineraryDays) {
 
   const tbody = $('#itinerary');
@@ -763,9 +809,9 @@ function buildItineraryRowsFromSaved(itineraryDays) {
         </td>
 
         <td class="stay-destination-cell">
-  <span class="stay-destination-text">${item.state_name || ''}</span>
+  <span class="stay-destination-text">${destName}</span>
   <input type="hidden" class="active-destination-id" value="${item.packages_itineraries_days_destination_id_fk || ''}">
-  <input type="hidden" class="active-destination-name" value="${item.state_name || ''}">
+  <input type="hidden" class="active-destination-name" value="${destName}">
 </td>
 
         <td>
@@ -830,7 +876,7 @@ function buildItineraryRowsFromSaved(itineraryDays) {
         width: '100%',
         placeholder: 'Please Select Destination',
         allowClear: true,
-        dropdownParent: $('#PackagesModal'),
+        dropdownParent: $('#PackagesModal .modal-content'),
         ajax: {
           url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_destinations',
           dataType: 'json',
@@ -849,7 +895,7 @@ function buildItineraryRowsFromSaved(itineraryDays) {
         width: '100%',
         placeholder: 'Please Select Itinerary',
         allowClear: true,
-        dropdownParent: $('#PackagesModal'),
+        dropdownParent: $('#PackagesModal .modal-content'),
         ajax: {
           url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
           dataType: 'json',
@@ -862,7 +908,7 @@ function buildItineraryRowsFromSaved(itineraryDays) {
     }
   });
 
-  $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal') });
+  $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
 
   // ✅ Init CKEditor
   if (typeof initEditorsForDays === 'function') initEditorsForDays();
@@ -989,8 +1035,6 @@ function edit_package(id, mode) {
       window.isEditLoading = true;
 
       // load itinerary dropdown values first
-    
-      
       loadItinerariesByCategoryDuration(function(ok){
 
   $('#packages_itinerary_id_fk').val(String(p.packages_itinerary_id_fk));
@@ -1032,22 +1076,19 @@ function edit_package(id, mode) {
 
   if (res.itinerary_days && res.itinerary_days.length) {
     buildItineraryRowsFromSaved(res.itinerary_days);
+    if (typeof initEditorsForDays === 'function') initEditorsForDays();
   }
 
-  if (p.packages_property_checked_type === 'Y') {
-    window.isPropertyEditBuild = true;
-    $('#packages_property_type').prop('checked', true);
+  loadDestinationMap(function(map) {
+    resolveDestinationNamesFromMap(map);
 
-    // setTimeout(function(){
-    //   buildSavedPropertyUI(res.property_data || []);
-    //   window.isPropertyEditBuild = false;
-    // }, 300);
-
-    setTimeout(function(){
+    if (p.packages_property_checked_type === 'Y') {
+      window.isPropertyEditBuild = true;
+      $('#packages_property_type').prop('checked', true);
       buildSavedPropertyUI(res.property_data || []);
       window.isPropertyEditBuild = false;
-    }, 600);
-  }
+    }
+  });
 
   window.isEditLoading = false;
 
@@ -1287,6 +1328,10 @@ function moveToFirstValidationError() {
       }
     } catch (e) {
       $accordionCollapse.addClass('show');
+      const $btn = $accordionCollapse.closest('.accordion-item').find('.accordion-button');
+      if ($btn.length) {
+        $btn.removeClass('collapsed').attr('aria-expanded', 'true');
+      }
     }
   }
 
@@ -1324,12 +1369,10 @@ function moveToFirstValidationError() {
   }, 400);
 
   setTimeout(function () {
-    if ($field.hasClass('select2-hidden-accessible') && $field.is(':visible')) {
-      try { $field.select2('open'); } catch (e) {}
-    } else if (!$field.hasClass('day-editor') && $field.is(':visible')) {
+    if (!$field.hasClass('day-editor') && $field.is(':visible')) {
       $field.focus();
     }
-  }, 450);
+  }, 600);
 }
 
 function validatePackageForm() {
@@ -1427,6 +1470,13 @@ if (isEmpty($itinerary.val())) {
   $('#itinerary tr').each(function () {
   const $tr = $(this);
   const rowNum = $tr.data('row-num') || '';
+
+  const $title = $tr.find('input[name="packages_itineraries_days_title[]"]');
+  if ($title.length && isEmpty($title.val())) {
+    ok = false;
+    markInvalidAndRemember($title, 'Day ' + rowNum + ' title is required');
+  }
+
   const $desc = $tr.find('textarea.day-editor');
 
   if (!$desc.length) return;
@@ -1896,7 +1946,7 @@ $(document).ready(function () {
   const $cat       = $('#packages_itinerary_category_id_fk');
   const $itinerary = $('#packages_itinerary_id_fk');
 
-  if ($itinerary.length) $itinerary.select2({ width: '100%' });
+  if ($itinerary.length) $itinerary.select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
 
   // $cat.on('change', function () {
   //   window.loadItinerariesByCategoryDuration();
@@ -2035,14 +2085,25 @@ function resetPackageModal() {
 
 $(document).on('change', '.change_destination', function () {
 
-  const $row = $(this).closest('tr');
-  const newDestId   = $(this).val();
-  const newDestName = $(this).find('option:selected').text();
+  const $sel = $(this);
+  if ($sel.data('skip-destination-update')) {
+    $sel.removeData('skip-destination-update');
+    return;
+  }
+
+  const $row = $sel.closest('tr');
+  const newDestId   = $sel.val();
+  const selData     = $sel.select2('data');
+  const newDestName = (selData[0] && selData[0].text) ? selData[0].text : '';
 
   if (!newDestId) {
     // Cleared — restore original stay destination and clear property block (no confirmation needed)
     const origId   = $row.find('.active-destination-id').data('original-id')   || '';
-    const origName = $row.find('.active-destination-id').data('original-name')  || '';
+    let origName = $row.find('.active-destination-name').data('original-name')  || '';
+    if (!origName && origId && window.destinationMap && window.destinationMap[origId]) {
+      origName = window.destinationMap[origId];
+    }
+    if (!origName) origName = origId;
 
     $row.find('.active-destination-id').val(origId);
     $row.find('.active-destination-name').val(origName);
@@ -2069,6 +2130,19 @@ $(document).on('change', '.change_destination', function () {
 ////***For loading itiniraries in dropdown under duration nights and load days based on itineray and display details in tooltip *****///
 
 $(document).ready(function () {
+
+  // Fix Bootstrap 5 modal focus trapping so Select2 search fields can receive focus
+  try {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal && bootstrap.Modal.prototype._enforceFocus) {
+      var originalEnforceFocus = bootstrap.Modal.prototype._enforceFocus;
+      bootstrap.Modal.prototype._enforceFocus = function() {
+        // If any Select2 dropdown is currently open, skip enforcing focus so the search field stays focused
+        if (!document.querySelector('.select2-container--open')) {
+          originalEnforceFocus.call(this);
+        }
+      };
+    }
+  } catch (e) {}
 
     /* ==========================================================
        1. Package itinerary change → Load table rows
@@ -2143,6 +2217,8 @@ $('#packages_itinerary_id_fk').on('change', function () {
     dataType: 'json',
     success: function (res) {
 
+      if (window.isEditLoading) return;
+
       destroyDayEditors();
       tbody.empty();
 
@@ -2213,10 +2289,10 @@ $('#packages_itinerary_id_fk').on('change', function () {
               ${requiredStatusHtml}
             </td>
 
-            <td>
-              ${item.state_name}
-              <input type="hidden" class="active-destination-id" value="${item.itineraries_days_destination_id_fk}">
-              <input type="hidden" class="active-destination-name" value="${item.state_name}">
+            <td class="stay-destination-cell">
+              <span class="stay-destination-text">${item.state_name || ''}</span>
+              <input type="hidden" class="active-destination-id" data-original-id="${item.itineraries_days_destination_id_fk || ''}" value="${item.itineraries_days_destination_id_fk || ''}">
+              <input type="hidden" class="active-destination-name" data-original-name="${item.state_name || ''}" value="${item.state_name || ''}">
             </td>
 
             <td>
@@ -2278,7 +2354,7 @@ $('#packages_itinerary_id_fk').on('change', function () {
             width: '100%',
             placeholder: 'Please Select Destination',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
               url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_destinations',
               dataType: 'json',
@@ -2298,7 +2374,7 @@ $('#packages_itinerary_id_fk').on('change', function () {
             width: '100%',
             placeholder: 'Please Select Itinerary',
             allowClear: true,
-            dropdownParent: $('#PackagesModal'),
+            dropdownParent: $('#PackagesModal .modal-content'),
             ajax: {
               url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
               dataType: 'json',
@@ -2311,17 +2387,10 @@ $('#packages_itinerary_id_fk').on('change', function () {
         }
       });
 
-      $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal') });
+      $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
 
       // Stamp original destination values so the clear handler can restore them
-      $('#itinerary tr').each(function () {
-        const $tr  = $(this);
-        const $aid = $tr.find('.active-destination-id');
-        if ($aid.length && !$aid.data('original-id')) {
-          $aid.data('original-id',   $aid.val());
-          $aid.data('original-name', $tr.find('.active-destination-name').val() || '');
-        }
-      });
+      stampOriginalDestinations();
 
       // ✅ INIT CKEDITOR for each row
       initEditorsForDays();
@@ -2428,7 +2497,7 @@ $('#packages_itinerary_id_fk').on('change', function () {
         width: '100%',
         placeholder: 'Please Select Days',
         allowClear: true,
-        dropdownAutoWidth: true,
+        dropdownParent: $('#PackagesModal .modal-content'),
         templateResult: function (data) {
 
             if (!data.id) return data.text;
@@ -3353,8 +3422,8 @@ $(document).ready(function () {
     const $chk = $('#packages_notes_checked_type');
     const $box = $('#add_notes');
 
-    // Hide/show the whole Notes card column
-    const $cardCol = $('#myDiv10');
+    // Hide/show the whole Notes card column (fallback to #add_notes if #myDiv10 missing)
+    const $cardCol = $('#myDiv10').length ? $('#myDiv10') : $box.closest('.col-xl-10, .col-lg-10, .card').first();
 
     // The add button block (we keep it, and insert rows before it)
     const $btnBlock = $box.find('.mb-3.col-md-6').first();
@@ -3373,6 +3442,7 @@ $(document).ready(function () {
 
         if ($(this).is(':checked')) {
             $cardCol.slideDown();
+            if ($btnBlock.length) $btnBlock.show();
             clearNoteRows();
         } else {
             $cardCol.slideUp();
@@ -3598,7 +3668,7 @@ function getDaysFromItinerary() {
             data-is-tb="${isTB ? 1 : 0}"
             data-required-status="${d.requiredStatus}"
             data-keep="1"
-            ${tbRowHidden ? 'style="display:none;"' : ''}>
+            style="${tbRowHidden ? 'display:none; ' : ''}border-bottom: 2px solid #adb5bd;">
           <td>${escapeHtml(d.dayText)}${tbBadge}</td>
           <td>
             <span class="property-destination-name" data-dest-id="${escapeHtml(destId)}">${escapeHtml(destName)}</span>
@@ -3730,7 +3800,7 @@ function getDaysFromItinerary() {
     width: '100%',
     placeholder: 'Please Select Properties',
     allowClear: true,
-    dropdownParent: $('#PackagesModal'),
+    dropdownParent: $('#PackagesModal .modal-content'),
     ajax: {
       url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_properties',
       dataType: 'json',
@@ -3777,7 +3847,8 @@ function loadRooms(propertyId, $roomsSelect) {
     $roomsSelect.prop('disabled', false);
     $roomsSelect.select2({
       width:'100%',
-      placeholder:'Please Select Rooms'
+      placeholder:'Please Select Rooms',
+      dropdownParent: $('#PackagesModal .modal-content')
     });
 
     dfd.resolve(res || []);
@@ -3785,7 +3856,8 @@ function loadRooms(propertyId, $roomsSelect) {
     $roomsSelect.prop('disabled', false);
     $roomsSelect.select2({
       width:'100%',
-      placeholder:'Please Select Rooms'
+      placeholder:'Please Select Rooms',
+      dropdownParent: $('#PackagesModal .modal-content')
     });
     dfd.resolve([]);
   });
@@ -3808,7 +3880,7 @@ function loadPropertiesAsync(destId, $select) {
     width: '100%',
     placeholder: 'Please Select Properties',
     allowClear: true,
-    dropdownParent: $('#PackagesModal'),
+    dropdownParent: $('#PackagesModal .modal-content'),
     ajax: {
       url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_properties',
       dataType: 'json',
@@ -3835,12 +3907,33 @@ function loadRoomsAsync(propertyId, $roomsSelect) {
 
   $roomsSelect.prop('disabled', true).empty();
 
+  if (window._roomsCache && window._roomsCache[propertyId]) {
+    var cached = window._roomsCache[propertyId];
+    $.each(cached, function(i, r) {
+      $roomsSelect.append(
+        '<option value="' + String(r.properties_room_category_id) + '" data-roomid="' + String(r.room_id || '') + '">' +
+        r.properties_room_category_name +
+        '</option>'
+      );
+    });
+    $roomsSelect.prop('disabled', false);
+    $roomsSelect.select2({
+      width: '100%',
+      placeholder: 'Please Select Rooms',
+      dropdownParent: $('#PackagesModal .modal-content')
+    });
+    dfd.resolve(cached);
+    return dfd.promise();
+  }
+
   $.ajax({
     url: '<?php echo base_url(); ?>index.php/Packages/get_rooms_by_property',
     type: 'POST',
     dataType: 'json',
     data: { property_id: propertyId },
     success: function(res) {
+      window._roomsCache = window._roomsCache || {};
+      window._roomsCache[propertyId] = res || [];
       $roomsSelect.empty();
 
       $.each(res || [], function(i, r) {
@@ -3854,14 +3947,15 @@ function loadRoomsAsync(propertyId, $roomsSelect) {
       $roomsSelect.prop('disabled', false);
       $roomsSelect.select2({
         width: '100%',
-        placeholder: 'Please Select Rooms'
+        placeholder: 'Please Select Rooms',
+        dropdownParent: $('#PackagesModal .modal-content')
       });
 
       dfd.resolve(res || []);
     },
     error: function() {
       $roomsSelect.prop('disabled', false);
-      $roomsSelect.select2({ width: '100%' });
+      $roomsSelect.select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
       dfd.resolve([]);
     }
   });
@@ -3970,26 +4064,14 @@ function setPropertyAndRoomsFromSaved(destId, $propSel, $roomsSel, savedProperty
   }
   $propSel.trigger('change.select2');
 
-  // inject rooms directly from the pre-loaded data — no AJAX needed
-  if (!savedRooms || !savedRooms.length) return;
+  var savedRoomIds = (savedRooms || []).map(function(r) { return String(r.id); });
 
-  if ($roomsSel.hasClass('select2-hidden-accessible')) {
-    $roomsSel.select2('destroy');
-  }
-
-  $roomsSel.empty();
-  var roomIds = [];
-  $.each(savedRooms, function(_, r) {
-    $roomsSel.append(new Option(r.text, r.id, false, false));
-    roomIds.push(String(r.id));
+  // Load all rooms for this property via AJAX, then pre-select saved ones
+  loadRoomsAsync(savedPropertyId, $roomsSel).then(function() {
+    if (savedRoomIds.length) {
+      $roomsSel.val(savedRoomIds).trigger('change.select2');
+    }
   });
-
-  $roomsSel.prop('disabled', false).select2({
-    width: '100%',
-    placeholder: 'Please Select Rooms'
-  });
-
-  $roomsSel.val(roomIds).trigger('change.select2');
 }
 
 function $roomsSelectHasValue($select, val) {
@@ -4002,8 +4084,12 @@ function $roomsSelectHasValue($select, val) {
 
     const days = getDaysFromItinerary();
 
-    sectionCount++;
-    const sectionId = sectionCount;
+    var maxId = 0;
+    $('#property .property-section').each(function() {
+      var id = parseInt($(this).attr('data-section')) || 0;
+      if (id > maxId) maxId = id;
+    });
+    const sectionId = maxId + 1;
 
     const $section = $(`
       <div class="accordion-item">
@@ -4101,7 +4187,7 @@ function $roomsSelectHasValue($select, val) {
             data-day-id="${dayKey}"
             data-is-tb="${d.isTB ? 1 : 0}"
             data-required-status="${d.requiredStatus}"
-            ${tbRowHidden ? 'style="display:none;"' : ''}>
+            style="${tbRowHidden ? 'display:none; ' : ''}border-bottom: 2px solid #adb5bd;">
           <td>${escapeHtml(d.dayText)}${tbBadge}</td>
           <td>
            
@@ -4151,7 +4237,7 @@ function $roomsSelectHasValue($select, val) {
       width: '100%',
       placeholder: 'Select Template Master',
       allowClear: true,
-      dropdownParent: $('#PackagesModal'),
+      dropdownParent: $('#PackagesModal .modal-content'),
       ajax: {
         url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_template_masters',
         dataType: 'json',
@@ -4418,6 +4504,33 @@ function refreshPropertyDestinationNames() {
     $row.remove();
   });
 
+  function renumberPropertySections() {
+    $('#property .accordion-item').each(function(index) {
+      var newId = index + 1;
+      var $item = $(this);
+      var oldId = $item.find('.property-section').data('section');
+      if (oldId == newId) return;
+
+      $item.find('.accordion-header').attr('id', 'headingProperty' + newId);
+      $item.find('.accordion-button')
+        .attr('data-bs-target', '#collapseProperty' + newId)
+        .attr('aria-controls', 'collapseProperty' + newId);
+      $item.find('.property-title-count').text('#' + newId);
+      $item.find('.accordion-collapse')
+        .attr('id', 'collapseProperty' + newId)
+        .attr('aria-labelledby', 'headingProperty' + newId);
+      $item.find('.property-section').attr('data-section', newId);
+
+      $item.find('[name]').each(function() {
+        var $el = $(this);
+        var name = $el.attr('name');
+        if (name && name.indexOf('[' + oldId + ']') !== -1) {
+          $el.attr('name', name.replace(new RegExp('\\[' + oldId + '\\]', 'g'), '[' + newId + ']'));
+        }
+      });
+    });
+  }
+
   $(document).on('click', '.remove-section', function () {
     const $accordionItem = $(this).closest('.accordion-item');
     $accordionItem.find('.property-section select').each(function(){
@@ -4426,6 +4539,7 @@ function refreshPropertyDestinationNames() {
       }
     });
     $accordionItem.remove();
+    renumberPropertySections();
   });
 
 
@@ -4486,8 +4600,9 @@ function refreshPropertyDestinationNames() {
 
       // Update destination name and ID
       var $destNameEl = $dayRow.find('.property-destination-name');
-      console.log('  -> updating dest name from "' + $destNameEl.text() + '" to "' + (newDestName || newDestId || '') + '"');
-      $destNameEl.text(newDestName || newDestId || '').attr('data-dest-id', newDestId || '');
+      var resolvedName = newDestName || (window.destinationMap && window.destinationMap[newDestId]) || newDestId || '';
+      console.log('  -> updating dest name from "' + $destNameEl.text() + '" to "' + resolvedName + '"');
+      $destNameEl.text(resolvedName).attr('data-dest-id', newDestId || '');
 
       $dayRow.find('input[name^="property_destination_id"]')
         .val(newDestId || '');
@@ -4715,11 +4830,17 @@ function isPropertiesActiveOrDirty() {
 
 function bindPrevValueTracker(selector) {
   $(document).on('focus', selector, function () {
-    $(this).data('prev', $(this).val());
+    const $el = $(this);
+    $el.data('prev', $el.val());
+    const $row = $el.closest('tr');
+    $el.data('prev-name', $row.find('.active-destination-name').val() || $row.find('.stay-destination-text').text() || '');
   });
 
   $(document).on('select2:opening', selector, function () {
-    $(this).data('prev', $(this).val());
+    const $el = $(this);
+    $el.data('prev', $el.val());
+    const $row = $el.closest('tr');
+    $el.data('prev-name', $row.find('.active-destination-name').val() || $row.find('.stay-destination-text').text() || '');
   });
 }
 
@@ -4810,18 +4931,38 @@ $(document).on('change', '.change_destination', function () {
 
     if (!ok) {
       skipDestinationChange = true;
+      let prevName = $sel.data('prev-name') || '';
+      if (!prevName && prev && window.destinationMap && window.destinationMap[prev]) {
+        prevName = window.destinationMap[prev];
+      }
+      if (!prevName) prevName = prev;
+      const $row = $sel.closest('tr');
+
       $sel.val(prev);
 
+      // Revert displayed destination column and hidden fields immediately
+      $row.find('.active-destination-id').val(prev);
+      $row.find('.active-destination-name').val(prevName);
+      $row.find('.destination-post').val(prev);
+      $row.find('.stay-destination-text').text(prevName);
+
+      $sel.data('skip-destination-update', true);
       if ($sel.hasClass('select2-hidden-accessible')) {
         $sel.trigger('change.select2');
       } else {
         $sel.trigger('change');
       }
+
+      // Ensure flags are reset if the re-triggered event didn't consume them,
+      // so the next real destination change shows the confirmation again.
+      skipDestinationChange = false;
+      $sel.removeData('skip-destination-update');
       return;
     }
 
     var dayId = $sel.closest('tr').find('input[name="itineraries_days_id_fk[]"]').val() || '';
-    var destName = $sel.find('option:selected').text();
+    var selData = $sel.select2('data');
+    var destName = (selData[0] && selData[0].text) ? selData[0].text : '';
     console.log('Handler2: confirmed destination change, dayId=', dayId, 'now=', now, 'destName=', destName);
     if (dayId && typeof updatePropertySectionsForDay === 'function') {
       updatePropertySectionsForDay(dayId, now, destName);
