@@ -34,7 +34,8 @@ var statusLabels = {
     3: '<span class="badge badge-info">Sent</span>',
     4: '<span class="badge badge-danger">Rejected</span>',
     5: '<span class="badge badge-success">Confirmed</span>',
-    6: '<span class="badge badge-danger">Cancelled</span>'
+    6: '<span class="badge badge-danger">Cancelled</span>',
+    7: '<span class="badge badge-primary">Ready to Trip</span>'
 };
 
 var autoReload = false;

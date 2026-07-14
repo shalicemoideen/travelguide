@@ -852,7 +852,9 @@
                                                       <option value="2">Draft</option>
                                                       <option value="3">Sent</option>
                                                       <option value="4">Rejected</option>
-                                                      <option value="5">Accepted</option>
+                                                      <option value="5">Confirmed</option>
+                                                      <option value="6">Cancelled</option>
+                                                      <option value="7">Ready to Trip</option>
 
                                                       
                                               </select>

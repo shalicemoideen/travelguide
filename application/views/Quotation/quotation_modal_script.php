@@ -13383,6 +13383,114 @@ function refillSavedSpecialRequirements(rows)
 
 
 
+// Full-page loading overlay for auto-calculation
+
+(function () {
+
+    if (document.getElementById('auto-calc-loading-style')) return;
+
+    var style = document.createElement('style');
+
+    style.id = 'auto-calc-loading-style';
+
+    style.textContent =
+
+        'body.auto-calc-loading{overflow:hidden}' +
+
+        '#auto-calc-loading-overlay{' +
+
+        'position:fixed;top:0;left:0;width:100%;height:100%;' +
+
+        'background:rgba(0,0,0,0.65);z-index:99999;' +
+
+        'display:none;flex-direction:column;' +
+
+        'align-items:center;justify-content:center;' +
+
+        'color:#fff;font-family:sans-serif;pointer-events:all}' +
+
+        '#auto-calc-loading-overlay .auto-calc-spinner{' +
+
+        'width:50px;height:50px;border:5px solid rgba(255,255,255,0.3);' +
+
+        'border-top-color:#fff;border-radius:50%;' +
+
+        'animation:auto-calc-spin 1s linear infinite;margin-bottom:15px}' +
+
+        '@keyframes auto-calc-spin{to{transform:rotate(360deg)}}' +
+
+        '#auto-calc-loading-overlay .auto-calc-count{' +
+
+        'font-size:1.5rem;font-weight:bold;margin-bottom:5px}' +
+
+        '#auto-calc-loading-overlay .auto-calc-please-wait{' +
+
+        'font-size:1rem;opacity:0.8}';
+
+    document.head.appendChild(style);
+
+})();
+
+
+
+function showAutoCalcLoading(current, total) {
+
+    var overlay = document.getElementById('auto-calc-loading-overlay');
+
+    if (!overlay) {
+
+        overlay = document.createElement('div');
+
+        overlay.id = 'auto-calc-loading-overlay';
+
+        overlay.innerHTML =
+
+            '<div class="auto-calc-spinner"></div>' +
+
+            '<div class="auto-calc-count">Calculating ' + current + ' / ' + total + '</div>' +
+
+            '<div class="auto-calc-please-wait">Please wait...</div>';
+
+        document.body.appendChild(overlay);
+
+    }
+
+    document.body.classList.add('auto-calc-loading');
+
+    overlay.querySelector('.auto-calc-count').textContent = 'Calculating ' + current + ' / ' + total;
+
+    overlay.style.display = 'flex';
+
+}
+
+
+
+function updateAutoCalcLoading(current, total) {
+
+    var overlay = document.getElementById('auto-calc-loading-overlay');
+
+    if (overlay) {
+
+        overlay.querySelector('.auto-calc-count').textContent = 'Calculating ' + current + ' / ' + total;
+
+    }
+
+}
+
+
+
+function hideAutoCalcLoading() {
+
+    document.body.classList.remove('auto-calc-loading');
+
+    var overlay = document.getElementById('auto-calc-loading-overlay');
+
+    if (overlay) overlay.style.display = 'none';
+
+}
+
+
+
 $(document).on('change', '.auto-calc-all-properties', function () {
 
     const $checkbox = $(this);
@@ -13443,6 +13551,8 @@ $(document).on('change', '.auto-calc-all-properties', function () {
 
 
 
+    showAutoCalcLoading(0, window.__autoCalcTotal);
+
     $status.show().text('Calculating 0 / ' + window.__autoCalcTotal + ' ...');
 
     $checkbox.prop('disabled', true);
@@ -13501,6 +13611,8 @@ function processNextAutoCalcRoom() {
 
 
 
+    updateAutoCalcLoading(window.__autoCalcCurrent, window.__autoCalcTotal);
+
     updateAutoCalcStatus('Calculating ' + window.__autoCalcCurrent + ' / ' + window.__autoCalcTotal + ' ...');
 
 
@@ -13520,6 +13632,8 @@ function processNextAutoCalcRoom() {
 
 
 function finishAutoCalc() {
+
+    hideAutoCalcLoading();
 
     const optionBlock = window.__autoCalcOptionBlock;
 
@@ -13572,6 +13686,8 @@ function finishAutoCalc() {
 
 
 function cancelAutoCalc(message) {
+
+    hideAutoCalcLoading();
 
     const optionBlock = window.__autoCalcOptionBlock;
 

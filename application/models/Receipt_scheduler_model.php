@@ -213,6 +213,16 @@ class Receipt_scheduler_model extends CI_Model {
             ->result();
     }
 
+    public function get_payment_by_id($payment_id)
+    {
+        return $this->db
+            ->from($this->table_payments)
+            ->where('payment_id', $payment_id)
+            ->where('payment_status', 1)
+            ->get()
+            ->row();
+    }
+
     public function get_total_paid_amount($receipt_scheduler_id)
     {
         $row = $this->db
@@ -278,11 +288,13 @@ class Receipt_scheduler_model extends CI_Model {
             ->select('
                 q.quotation_id,
                 qo.quotation_options_id,
-                qo.quotation_options_total_quote_rate
+                qo.quotation_options_total_quote_rate,
+                l.start_date
             ')
             ->from('quotation_confirmation qc')
             ->join('quotation q', 'q.quotation_id = qc.quotation_id_fk', 'left')
             ->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
             ->where('q.quotation_id', (int)$quotation_id)
             ->where('qc.property_confirmation_status', 1)
             ->limit(1)
@@ -290,7 +302,7 @@ class Receipt_scheduler_model extends CI_Model {
             ->row_array();
 
         if (empty($main)) {
-            return 0;
+            return array('total_amount' => 0, 'travel_start_date' => '');
         }
 
         $base_amount = !empty($main['quotation_options_total_quote_rate'])
@@ -320,7 +332,10 @@ class Receipt_scheduler_model extends CI_Model {
             ? (float)$special_row->quotation_special_requirements_cost
             : 0;
 
-        return $base_amount + $inclusion_amount + $special_amount;
+        return array(
+            'total_amount' => $base_amount + $inclusion_amount + $special_amount,
+            'travel_start_date' => !empty($main['start_date']) ? $main['start_date'] : ''
+        );
     }
 
     public function check_scheduler_exists($quotation_id)

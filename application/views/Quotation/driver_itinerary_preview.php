@@ -130,6 +130,26 @@ body {
     font-weight: 800;
 }
 
+.day-description {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+}
+
+.map-link {
+    display: inline-block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #1a73e8;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.map-link:hover {
+    text-decoration: underline;
+}
+
 @media print {
     .topbar {
         display: none;
@@ -208,6 +228,16 @@ body {
                         | <?= htmlspecialchars($contact); ?>
                     <?php endif; ?>
                 </div>
+                <?php if (!empty($d['properties_google_map_location'])): ?>
+                <div>
+                    <a class="map-link" href="<?= htmlspecialchars($d['properties_google_map_location']); ?>" target="_blank"><?= htmlspecialchars($d['properties_google_map_location']); ?></a>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($d['quotation_itineraries_days_description'])): ?>
+                <div class="day-description">
+                    <?= $d['quotation_itineraries_days_description']; ?>
+                </div>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
 
@@ -286,6 +316,20 @@ function exportToWord() {
         font-size: 16px;
         color: #ff0066;
         font-weight: 800;
+    }
+    .day-description {
+        margin-top: 6px;
+        font-size: 14px;
+        color: #333;
+        line-height: 1.6;
+    }
+    .map-link {
+        display: inline-block;
+        margin-top: 5px;
+        font-size: 13px;
+        color: #1a73e8;
+        font-weight: 600;
+        text-decoration: none;
     }
     </style>`;
 

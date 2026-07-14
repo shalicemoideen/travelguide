@@ -53,6 +53,14 @@ class Property_reservation extends MY_Controller {
         echo json_encode(array('status' => !empty($data), 'data' => $data));
     }
 
+    public function ajax_get_accommodation_dates()
+    {
+        $quotation_id  = (int)$this->input->post('quotation_id');
+        $properties_id = (int)$this->input->post('properties_id');
+        $dates = $this->Property_reservation_model->get_accommodation_dates($quotation_id, $properties_id);
+        echo json_encode(array('status' => true, 'dates' => $dates));
+    }
+
     // =========================================================
     // AJAX: load (and seed if missing) a reservation
     // =========================================================
@@ -171,8 +179,12 @@ class Property_reservation extends MY_Controller {
         ));
 
         // ---- Payment scheduler ----
-        $payment_type = $this->input->post('payment_type') ?: $this->input->post('hub_payment_type'); // FULL | EMI
-        $total_amount = (float)$this->input->post('total_amount');
+        $payment_type     = $this->input->post('payment_type') ?: $this->input->post('hub_payment_type'); // FULL | EMI
+        $total_amount     = (float)$this->input->post('total_amount');
+        $discount_amount  = (float)$this->input->post('discount_amount');
+        $discounted_total = (float)$this->input->post('discounted_total');
+        if ($discounted_total <= 0) $discounted_total = $total_amount - $discount_amount;
+        if ($discounted_total < 0)  $discounted_total = 0;
         $max_emi      = $this->input->post('max_emi_count');
         $split_type   = $this->input->post('split_type');
         $remarks      = $this->input->post('payment_remarks');
@@ -185,6 +197,8 @@ class Property_reservation extends MY_Controller {
                 'quotation_id_fk'            => $reservation->quotation_id_fk,
                 'payment_type'               => $payment_type,
                 'total_amount'               => $total_amount,
+                'discount_amount'            => $discount_amount,
+                'discounted_total'           => $discounted_total,
                 'max_emi_count'              => $payment_type == 'EMI' ? (int)$max_emi : null,
                 'split_type'                 => $payment_type == 'EMI' ? $split_type : null,
                 'property_payment_scheduler_remarks' => $remarks,
@@ -201,7 +215,7 @@ class Property_reservation extends MY_Controller {
                 $scheduler_id = $this->Property_reservation_model->save_payment($payment_data);
             }
 
-            $this->_build_installments($scheduler_id, $payment_type, $total_amount, $split_type);
+            $this->_build_installments($scheduler_id, $payment_type, $discounted_total, $split_type);
         }
 
         echo json_encode(array('error' => false, 'message' => 'Reservation confirmation saved successfully'));
@@ -335,6 +349,93 @@ class Property_reservation extends MY_Controller {
         $quotation_id = (int)$this->input->post('quotation_id');
         $summary = $this->Property_reservation_model->get_status_summary($quotation_id);
         echo json_encode(array('status' => true, 'data' => $summary));
+    }
+
+    // =========================================================
+    // PAYMENT RECORDING (like Receipt Scheduler)
+    // =========================================================
+
+    public function ajax_get_payment_summary()
+    {
+        $scheduler_id = (int)$this->input->post('scheduler_id');
+        $summary = $this->Property_reservation_model->get_payment_summary_by_scheduler($scheduler_id);
+        if (!$summary) {
+            echo json_encode(array('error' => true, 'message' => 'Not found'));
+            return;
+        }
+        echo json_encode(array('error' => false, 'data' => $summary));
+    }
+
+    public function ajax_record_payment()
+    {
+        $installment_id  = (int)$this->input->post('installment_id');
+        $scheduler_id    = (int)$this->input->post('scheduler_id');
+        $payment_amount  = (float)$this->input->post('payment_amount');
+        $payment_date    = $this->_date($this->input->post('payment_date'));
+        $payment_method  = $this->input->post('payment_method');
+        $payment_ref     = $this->input->post('payment_reference');
+        $payment_remarks = $this->input->post('payment_remarks');
+
+        $installment = $this->Property_reservation_model->get_installment_by_id($installment_id);
+        if (!$installment) {
+            echo json_encode(array('error' => true, 'message' => 'Installment not found'));
+            return;
+        }
+
+        $payment_id = $this->Property_reservation_model->save_payment_txn(array(
+            'installment_id_fk'                  => $installment_id,
+            'property_payment_scheduler_id_fk'   => $scheduler_id,
+            'payment_amount'                     => $payment_amount,
+            'payment_date'                       => $payment_date ?: date('Y-m-d'),
+            'payment_method'                     => $payment_method,
+            'payment_reference'                  => $payment_ref,
+            'payment_remarks'                    => $payment_remarks,
+            'payment_paid_by_userid'             => $this->currentuserid,
+            'payment_paid_by_username'           => $this->currentusername,
+            'payment_status'                     => 1,
+        ));
+
+        if ($payment_id) {
+            $new_paid = (float)$installment->paid_amount + $payment_amount;
+            $new_status = $new_paid >= (float)$installment->calculated_amount ? 'PAID' : 'PARTIAL';
+            $this->Property_reservation_model->update_installment($installment_id, array(
+                'paid_amount'        => $new_paid,
+                'paid_date'          => $payment_date ?: date('Y-m-d'),
+                'payment_status'     => $new_status,
+                'payment_reference'  => $payment_ref,
+                'payment_method'     => $payment_method,
+            ));
+            echo json_encode(array('error' => false, 'message' => 'Payment recorded successfully'));
+        } else {
+            echo json_encode(array('error' => true, 'message' => 'Failed to record payment'));
+        }
+    }
+
+    public function ajax_get_installment_payments()
+    {
+        $installment_id = (int)$this->input->post('installment_id');
+        $payments = $this->Property_reservation_model->get_payments_by_installment_id($installment_id);
+        echo json_encode(array('error' => false, 'payments' => $payments));
+    }
+
+    public function print_receipt($payment_id = null)
+    {
+        if (!$payment_id) {
+            $payment_id = $this->input->get('payment_id');
+        }
+        $payment = $this->Property_reservation_model->get_payment_by_id($payment_id);
+        if (!$payment) {
+            show_404();
+            return;
+        }
+        $installment = $this->Property_reservation_model->get_installment_by_id($payment->installment_id_fk);
+        $scheduler   = $this->Property_reservation_model->get_scheduler_with_details($payment->property_payment_scheduler_id_fk);
+        $data = array(
+            'payment'     => $payment,
+            'installment' => $installment,
+            'scheduler'   => $scheduler,
+        );
+        $this->load->view('Property_reservation/receipt', $data);
     }
 
     // =========================================================

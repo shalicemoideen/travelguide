@@ -172,6 +172,12 @@
                                                         <div class="text-muted">Total Amount</div>
                                                         <div class="h4 mb-0">INR <span id="payment_total_display">0</span></div>
                                                         <input type="hidden" name="total_amount" id="total_amount" value="0">
+                                                        <div class="mt-2 d-flex align-items-center justify-content-end gap-2">
+                                                            <label class="form-label mb-0 text-muted">Discount</label>
+                                                            <input type="number" min="0" step="0.01" class="form-control form-control-sm" id="discount_amount" name="discount_amount" value="0" style="width:120px;" oninput="pr_applyDiscount()">
+                                                            <input type="hidden" id="discounted_total" name="discounted_total" value="0">
+                                                        </div>
+                                                        <div class="mt-1 text-success fw-bold" id="discounted_total_display" style="display:none;">Net Payable: INR <span id="discounted_total_val">0</span></div>
                                                     </div>
                                                 </div>
 
@@ -180,7 +186,8 @@
                                                     <div class="row g-3">
                                                         <div class="col-md-4">
                                                             <label class="form-label">Payment Cut-off Date</label>
-                                                            <input type="date" class="form-control" name="cutoff_date" id="cutoff_date">
+                                                            <input type="text" class="form-control" id="cutoff_date_display" placeholder="dd/mm/yyyy" autocomplete="off">
+                                                            <input type="hidden" name="cutoff_date" id="cutoff_date">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -223,8 +230,9 @@
                                             </div>
                                         </div>
 
-                                        <div class="text-center mt-3">
+                                        <div class="text-center mt-3 d-flex gap-2 justify-content-center">
                                             <button type="button" class="btn btn-primary" onclick="saveConfirmation()">Submit</button>
+                                            <button type="button" class="btn btn-info" id="btn_view_payments" style="display:none!important;" onclick="prViewPaymentSummary()"><i class="fas fa-eye"></i> View Payments</button>
                                         </div>
                                     </form>
                                 </div>
@@ -285,6 +293,149 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Summary Modal -->
+<div class="modal fade" id="prPaymentSummaryModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Summary</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center py-2">
+                                <small>Paid</small>
+                                <h5 class="mb-0" id="pr_view_paid">₹0.00</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning">
+                            <div class="card-body text-center py-2">
+                                <small>Pending</small>
+                                <h5 class="mb-0" id="pr_view_pending">₹0.00</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center py-2">
+                                <small>Overdue</small>
+                                <h5 class="mb-0" id="pr_view_overdue">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Paid</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pr_installments_body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal fade" id="prRecordPaymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prPaymentForm">
+                    <input type="hidden" name="installment_id" id="pr_pay_installment_id">
+                    <input type="hidden" name="scheduler_id" id="pr_pay_scheduler_id">
+                    <div class="mb-3">
+                        <label class="form-label">Due Amount</label>
+                        <input type="text" class="form-control" id="pr_pay_due_amount" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Amount <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" class="form-control" name="payment_amount" id="pr_pay_amount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" name="payment_date" id="pr_pay_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select class="form-control" name="payment_method" id="pr_pay_method">
+                            <option value="">Select Method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reference Number</label>
+                        <input type="text" class="form-control" name="payment_reference" id="pr_pay_ref" placeholder="Transaction/Receipt No.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Remarks</label>
+                        <textarea class="form-control" name="payment_remarks" id="pr_pay_remarks" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="prSavePayment()">Record Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipts Modal -->
+<div class="modal fade" id="prReceiptsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Receipts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Reference</th>
+                                <th>Received By</th>
+                                <th width="90">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pr_receipts_body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

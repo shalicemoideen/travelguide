@@ -28,6 +28,7 @@ foreach ($properties as $r) {
         $grouped[$key] = array(
             'property_id'      => $pid,
             'property_name'    => $r['properties_name'],
+            'property_logo'    => isset($r['properties_hotel_logo']) ? $r['properties_hotel_logo'] : '',
             'destination'      => $r['state_name'],
             'checkin'          => $r['accommodation_date'],
             'checkout'         => date('Y-m-d', strtotime($r['accommodation_date'].' +1 day')),
@@ -121,7 +122,6 @@ body {
 .logo-text img {
     max-width:80px;
     height:auto;
-    border-radius:50%;
 }
 
 .company-name,
@@ -277,6 +277,9 @@ body {
         </div>
 
         <div class="property-box">
+            <?php if (!empty($g['property_logo'])): ?>
+            <div class="logo-text"><img src="<?php echo base_url(); ?>uploads/Property-doc/logo/<?= htmlspecialchars($g['property_logo']); ?>" alt="<?= htmlspecialchars($g['property_name']); ?>"></div>
+            <?php endif; ?>
             <div class="property-info">
                 <div class="property-name"><?= htmlspecialchars($g['property_name']); ?></div>
                 <div class="small-text">

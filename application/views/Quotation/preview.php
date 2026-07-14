@@ -1553,8 +1553,10 @@ $ICON_EMAIL_GOLD = '
 </svg>';
 $ICON_WEB_GOLD = $ICON_WEB;
 
-function q_preview_amount($value){
-    return number_format((float)$value, 0);
+if (!function_exists('q_preview_amount')) {
+    function q_preview_amount($value){
+        return number_format((float)$value, 0);
+    }
 }
 ?>
 
@@ -1785,7 +1787,8 @@ $children = isset($guest['children']) ? (int)$guest['children'] : 0;
     <div class="exclusive-summary-right"></div>
 
   </div>
-<?php function q_option_display_amount_premium($option)
+<?php if (!function_exists('q_option_display_amount_premium')) {
+function q_option_display_amount_premium($option)
 {
     $type = !empty($option->quotation_options_amount_type)
         ? $option->quotation_options_amount_type
@@ -1805,6 +1808,7 @@ $children = isset($guest['children']) ? (int)$guest['children'] : 0;
 
     return ' ' . q_preview_amount($option->preview_total_amount) . ' /- NET';
 }
+} // end function_exists q_option_display_amount_premium
 ?>
   <!-- PRICE -->
   <div class="exclusive-summary-price">
@@ -2046,7 +2050,8 @@ $children   = isset($guest_total['children']) ? (int)$guest_total['children'] : 
                   </div>
                 </div>
               </div>
-<?php function q_option_display_amount_standard($option)
+<?php if (!function_exists('q_option_display_amount_standard')) {
+function q_option_display_amount_standard($option)
 {
     $type = !empty($option->quotation_options_amount_type)
         ? $option->quotation_options_amount_type
@@ -2066,6 +2071,7 @@ $children   = isset($guest_total['children']) ? (int)$guest_total['children'] : 
 
     return ' ' . q_preview_amount($option->preview_total_amount) . ' /- NET';
 }
+} // end function_exists q_option_display_amount_standard
 ?>
               <div class="standard-right-summary">
                 <div class="standard-cost-title">TOTAL PACKAGE COST</div>

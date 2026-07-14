@@ -17,8 +17,18 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(response) {
                     $('#total_amount').val(response.total_amount);
+                    window.__schedulerTravelStartDate = response.travel_start_date || '';
+                    $('#cutoff_date').val(window.__schedulerTravelStartDate);
+                    updateCutoffDateDisplay();
+                    if ($('#payment_type').val() == 'EMI') {
+                        generateEmiRows();
+                    }
                 }
             });
+        } else {
+            window.__schedulerTravelStartDate = '';
+            $('#cutoff_date').val('');
+            updateCutoffDateDisplay();
         }
     });
 
@@ -111,6 +121,7 @@ function add_scheduler() {
     $('#fullPaymentSection').hide();
     $('#emiSection').hide();
     $('#emiTableBody').html('');
+    updateCutoffDateDisplay();
     $('.modal-title').text('Create Payment Schedule');
     $('#schedulerModal').modal('show');
 }
@@ -152,17 +163,26 @@ function generateEmiRows() {
         html += '<td class="text-center"><strong>EMI ' + i + '</strong></td>';
         html += '<td>';
         if (splitType == 'PERCENTAGE') {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + defaultValue + '" onchange="calculateEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + defaultValue + '">';
         } else {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + defaultValue + '" onchange="calculateEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + defaultValue + '">';
         }
         html += '</td>';
-        html += '<td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" required></td>';
+        html += '<td>';
+        html += '<input type="text" class="form-control form-control-sm emi-due-date" placeholder="dd/mm/yyyy" required>';
+        html += '<input type="hidden" name="emi_due_date[]" class="emi-due-date-hidden">';
+        html += '</td>';
         html += '<td class="calculated-amount text-end">₹' + (splitType == 'PERCENTAGE' ? ((totalAmount * parseFloat(defaultValue)) / 100).toFixed(2) : defaultValue) + '</td>';
         html += '</tr>';
     }
 
     $('#emiTableBody').html(html);
+    if (window.__schedulerTravelStartDate) {
+        var formattedDate = formatDateSlashDMY(window.__schedulerTravelStartDate);
+        $('#emiTableBody .emi-due-date-hidden').val(window.__schedulerTravelStartDate);
+        $('#emiTableBody .emi-due-date').val(formattedDate);
+    }
+    initEmiDatepickers();
     calculateEmiTotal();
 }
 
@@ -197,6 +217,31 @@ function calculateEmiTotal() {
     } else {
         $('#emiCalculatedTotal').removeClass('text-danger');
     }
+}
+
+function redistributeEmiAmounts($changedInput) {
+    var splitType = $('#split_type').val();
+    var total;
+    var $inputs;
+
+    if (splitType == 'PERCENTAGE') {
+        total = 100;
+        $inputs = $('.emi-percentage');
+    } else {
+        total = parseFloat($('#total_amount').val()) || 0;
+        $inputs = $('.emi-amount');
+    }
+
+    var changedVal = parseFloat($changedInput.val()) || 0;
+    var remaining = total - changedVal;
+    var $others = $inputs.not($changedInput);
+
+    if ($others.length > 0) {
+        var each = (remaining / $others.length).toFixed(2);
+        $others.val(each);
+    }
+
+    calculateEmiTotal();
 }
 
 function save() {
@@ -250,6 +295,7 @@ function editScheduler(id) {
             if (scheduler.payment_type == 'FULL') {
                 if (installments.length > 0) {
                     $('#cutoff_date').val(installments[0].due_date);
+                    updateCutoffDateDisplay();
                 }
             } else {
                 $('#max_emi_count').val(scheduler.max_emi_count);
@@ -263,16 +309,20 @@ function editScheduler(id) {
                     html += '<td class="text-center"><strong>EMI ' + inst.installment_number + '</strong></td>';
                     html += '<td>';
                     if (scheduler.split_type == 'PERCENTAGE') {
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '" onchange="calculateEmiTotal()">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
                     } else {
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '" onchange="calculateEmiTotal()">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
                     }
                     html += '</td>';
-                    html += '<td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" value="' + inst.due_date + '" required></td>';
+                    html += '<td>';
+                    html += '<input type="text" class="form-control form-control-sm emi-due-date" placeholder="dd/mm/yyyy" value="' + formatDateSlashDMY(inst.due_date) + '" required>';
+                    html += '<input type="hidden" name="emi_due_date[]" class="emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
+                    html += '</td>';
                     html += '<td class="calculated-amount text-end">₹' + parseFloat(inst.calculated_amount).toFixed(2) + '</td>';
                     html += '</tr>';
                 }
                 $('#emiTableBody').html(html);
+                initEmiDatepickers();
                 calculateEmiTotal();
             }
 
@@ -324,7 +374,10 @@ function viewScheduler(id) {
                 html += '<td>';
                 if (inst.payment_status != 'PAID') {
                     var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
-                    html += '<button class="btn btn-success btn-xs" onclick="recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                    html += '<button class="btn btn-success btn-xs me-1" onclick="recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                }
+                if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
+                    html += '<button class="btn btn-info btn-xs" onclick="viewReceipts(' + inst.installment_id + ')" title="Receipts"><i class="fas fa-receipt"></i> Receipt</button>';
                 }
                 html += '</td>';
                 html += '</tr>';
@@ -367,6 +420,40 @@ function savePayment() {
     });
 }
 
+function viewReceipts(installmentId) {
+    $.ajax({
+        url: base_url + 'receipt_scheduler/get_installment_payments',
+        type: 'POST',
+        data: { installment_id: installmentId },
+        dataType: 'json',
+        success: function(payments) {
+            var html = '';
+            if (payments && payments.length > 0) {
+                for (var i = 0; i < payments.length; i++) {
+                    var p = payments[i];
+                    html += '<tr>';
+                    html += '<td>' + formatDate(p.payment_date) + '</td>';
+                    html += '<td>₹' + parseFloat(p.payment_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                    html += '<td>' + (p.payment_method || '-') + '</td>';
+                    html += '<td>' + (p.payment_reference || '-') + '</td>';
+                    html += '<td>' + (p.payment_received_by_username || '-') + '</td>';
+                    html += '<td><button class="btn btn-primary btn-xs" onclick="printReceipt(' + p.payment_id + ')"><i class="fas fa-print"></i> Print</button></td>';
+                    html += '</tr>';
+                }
+            } else {
+                html += '<tr><td colspan="6" class="text-center text-muted">No payments found</td></tr>';
+            }
+            $('#receiptsTableBody').html(html);
+            $('#receiptsModal').modal('show');
+        }
+    });
+}
+
+function printReceipt(paymentId) {
+    var url = base_url + 'receipt_scheduler/print_receipt/' + paymentId;
+    window.open(url, '_blank', 'width=800,height=700');
+}
+
 function deleteScheduler(id) {
     $('#delete_scheduler_id').val(id);
     $('#deleteModal').modal('show');
@@ -404,5 +491,52 @@ $('#total_amount').on('change', function() {
     if ($('#payment_type').val() == 'EMI') {
         generateEmiRows();
     }
+});
+
+$(document).on('change input', '.emi-amount', function() {
+    redistributeEmiAmounts($(this));
+});
+
+$(document).on('change input', '.emi-percentage', function() {
+    redistributeEmiAmounts($(this));
+});
+
+function updateCutoffDateDisplay() {
+    var dateVal = $('#cutoff_date').val();
+    $('#cutoff_date_display').text(formatDateSlashDMY(dateVal));
+}
+
+function formatDateSlashDMY(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function parseDateSlashDMY(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split('/');
+    if (parts.length !== 3) return dateStr;
+    return parts[2] + '-' + parts[1] + '-' + parts[0];
+}
+
+function initEmiDatepickers() {
+    $('#emiTableBody .emi-due-date').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    }).off('changeDate.emi').on('changeDate.emi', function() {
+        var val = $(this).val();
+        $(this).closest('tr').find('.emi-due-date-hidden').val(parseDateSlashDMY(val));
+    });
+}
+
+$('#cutoff_date').on('change', function() {
+    updateCutoffDateDisplay();
+});
+
+$(document).on('change', '#emiTableBody .emi-due-date', function() {
+    var val = $(this).val();
+    $(this).closest('tr').find('.emi-due-date-hidden').val(parseDateSlashDMY(val));
 });
 </script>

@@ -1,8 +1,21 @@
 <script type="text/javascript">
 var base_url = '<?php echo base_url(); ?>';
 var currentProperties = [];   // cached property list (with derived dates) for selected booking+option
+var pr_current_quotation_id = 0;
+var pr_current_properties_id = 0;
+var pr_checkin_date = '';
+var pr_current_scheduler_id = 0;
 
 $(document).ready(function() {
+
+    $('#cutoff_date_display').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    }).on('changeDate', function() {
+        var p = $(this).val().split('/');
+        $('#cutoff_date').val(p.length === 3 ? p[2] + '-' + p[1] + '-' + p[0] : '');
+    });
 
     // Preselect booking when opened from the Quote Hub
     var preselect = $('#preselect_quotation').val();
@@ -68,6 +81,8 @@ $(document).ready(function() {
 
         var prop = currentProperties[idx];
         var quotation_id = $('#booking_select').val();
+        pr_current_quotation_id  = quotation_id;
+        pr_current_properties_id = prop.properties_id;
 
         $.ajax({
             url: base_url + 'property_reservation/ajax_get_reservation',
@@ -96,6 +111,7 @@ function resetPanel() {
 function renderReservation(res) {
     var r = res.reservation;
     $('#property_reservation_id').val(r.property_reservation_id);
+    pr_checkin_date = r.check_in_date || '';
 
     $('#info_property').text(r.properties_name || '-');
     $('#info_guest').text(r.guest_name || '-');
@@ -126,7 +142,14 @@ function renderReservation(res) {
     var total = res.total_amount || 0;
     $('#total_amount').val(total);
     $('#payment_total_display').text(parseFloat(total).toLocaleString('en-IN'));
+    pr_current_scheduler_id = 0;
+    $('#btn_view_payments').hide();
+    $('#discount_amount').val(0);
+    $('#discounted_total').val(total);
+    $('#discounted_total_display').hide();
     $('input[name="payment_type"]').prop('checked', false);
+    $('#cutoff_date').val('');
+    $('#cutoff_date_display').val('');
     $('#fullSection').hide();
     $('#emiSection').hide();
     $('#emiTableBody').html('');
@@ -135,11 +158,26 @@ function renderReservation(res) {
         var p = res.payment;
         $('#total_amount').val(p.total_amount);
         $('#payment_total_display').text(parseFloat(p.total_amount).toLocaleString('en-IN'));
+        pr_current_scheduler_id = parseInt(p.property_payment_scheduler_id) || 0;
+        $('#btn_view_payments').css('display', pr_current_scheduler_id > 0 ? 'inline-block' : 'none');
+        var savedDiscount = parseFloat(p.discount_amount) || 0;
+        $('#discount_amount').val(savedDiscount);
+        var net = parseFloat(p.discounted_total) || (parseFloat(p.total_amount) - savedDiscount);
+        $('#discounted_total').val(net);
+        if (savedDiscount > 0) {
+            $('#discounted_total_val').text(net.toLocaleString('en-IN'));
+            $('#discounted_total_display').show();
+        }
         if (p.payment_type === 'FULL') {
             $('#pt_full').prop('checked', true);
             togglePaymentType();
             if (res.installments && res.installments.length > 0) {
-                $('#cutoff_date').val(res.installments[0].due_date);
+                var cd = res.installments[0].due_date || '';
+                $('#cutoff_date').val(cd);
+                $('#cutoff_date_display').val(pr_formatDateDMY(cd));
+            } else if (pr_checkin_date) {
+                $('#cutoff_date').val(pr_checkin_date);
+                $('#cutoff_date_display').val(pr_formatDateDMY(pr_checkin_date));
             }
         } else if (p.payment_type === 'EMI') {
             $('#pt_emi').prop('checked', true);
@@ -176,6 +214,10 @@ function togglePaymentType() {
     if (type === 'FULL') {
         $('#fullSection').show();
         $('#emiSection').hide();
+        if (pr_checkin_date && !$('#cutoff_date').val()) {
+            $('#cutoff_date').val(pr_checkin_date);
+            $('#cutoff_date_display').val(pr_formatDateDMY(pr_checkin_date));
+        }
     } else if (type === 'EMI') {
         $('#fullSection').hide();
         $('#emiSection').show();
@@ -186,29 +228,95 @@ function togglePaymentType() {
     }
 }
 
-function generateEmiRows() {
-    var count = parseInt($('#max_emi_count').val()) || 3;
+function pr_formatDateDMY(d) {
+    if (!d) return '';
+    var p = d.split('-');
+    if (p.length !== 3) return d;
+    return p[2] + '/' + p[1] + '/' + p[0];
+}
+
+function pr_parseDateDMY(d) {
+    if (!d) return '';
+    var p = d.split('/');
+    if (p.length !== 3) return d;
+    return p[2] + '-' + p[1] + '-' + p[0];
+}
+
+function pr_addDays(ymd, days) {
+    var dt = new Date(ymd);
+    dt.setDate(dt.getDate() + days);
+    var mm = String(dt.getMonth() + 1).padStart(2, '0');
+    var dd = String(dt.getDate()).padStart(2, '0');
+    return dt.getFullYear() + '-' + mm + '-' + dd;
+}
+
+function pr_initEmiDatepickers() {
+    $('#emiTableBody .pr-emi-due-date').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    }).off('changeDate.premi').on('changeDate.premi', function() {
+        $(this).closest('tr').find('.pr-emi-due-date-hidden').val(pr_parseDateDMY($(this).val()));
+    });
+}
+
+function pr_getNetTotal() {
     var total = parseFloat($('#total_amount').val()) || 0;
+    var discount = parseFloat($('#discount_amount').val()) || 0;
+    return Math.max(0, total - discount);
+}
+
+function pr_applyDiscount() {
+    var total = parseFloat($('#total_amount').val()) || 0;
+    var discount = parseFloat($('#discount_amount').val()) || 0;
+    if (discount < 0) { discount = 0; $('#discount_amount').val(0); }
+    if (discount > total) { discount = total; $('#discount_amount').val(total); }
+    var net = total - discount;
+    $('#discounted_total').val(net);
+    if (discount > 0) {
+        $('#discounted_total_val').text(net.toLocaleString('en-IN'));
+        $('#discounted_total_display').show();
+    } else {
+        $('#discounted_total_display').hide();
+    }
+    var type = $('input[name="payment_type"]:checked').val();
+    if (type === 'EMI') generateEmiRows();
+}
+
+function generateEmiRows() {
+    pr_buildEmiRows(pr_checkin_date ? [pr_checkin_date] : []);
+}
+
+function pr_buildEmiRows(accDates) {
+    var count = parseInt($('#max_emi_count').val()) || 3;
+    var total = pr_getNetTotal();
     var split = $('#split_type').val();
     $('#emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
+
+    var checkInDate = (accDates && accDates.length > 0) ? accDates[0] : '';
 
     var html = '';
     for (var i = 1; i <= count; i++) {
         var def = split === 'PERCENTAGE' ? (100 / count).toFixed(2) : (total / count).toFixed(2);
+        var dueDateYMD = checkInDate;
         html += '<tr>';
         html += '<td class="text-center">' + i + '</td>';
         html += '<td>';
         if (split === 'PERCENTAGE') {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + def + '" onchange="calcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + def + '">';
         } else {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + def + '" onchange="calcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + def + '">';
         }
         html += '</td>';
-        html += '<td><input type="date" class="form-control form-control-sm" name="emi_due_date[]"></td>';
+        html += '<td>';
+        html += '<input type="text" class="form-control form-control-sm pr-emi-due-date" placeholder="dd/mm/yyyy" value="' + pr_formatDateDMY(dueDateYMD) + '" required>';
+        html += '<input type="hidden" name="emi_due_date[]" class="pr-emi-due-date-hidden" value="' + dueDateYMD + '">';
+        html += '</td>';
         html += '<td class="emi-calc text-end">0.00</td>';
         html += '</tr>';
     }
     $('#emiTableBody').html(html);
+    pr_initEmiDatepickers();
     calcEmiTotal();
 }
 
@@ -222,21 +330,25 @@ function renderEmiFromData(installments, split) {
         html += '<td class="text-center">' + inst.installment_number + '</td>';
         html += '<td>';
         if (split === 'PERCENTAGE') {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '" onchange="calcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
         } else {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '" onchange="calcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
         }
         html += '</td>';
-        html += '<td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" value="' + (inst.due_date || '') + '"></td>';
+        html += '<td>';
+        html += '<input type="text" class="form-control form-control-sm pr-emi-due-date" placeholder="dd/mm/yyyy" value="' + pr_formatDateDMY(inst.due_date || '') + '" required>';
+        html += '<input type="hidden" name="emi_due_date[]" class="pr-emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
+        html += '</td>';
         html += '<td class="emi-calc text-end">' + parseFloat(inst.calculated_amount).toFixed(2) + '</td>';
         html += '</tr>';
     }
     $('#emiTableBody').html(html);
+    pr_initEmiDatepickers();
     calcEmiTotal();
 }
 
 function calcEmiTotal() {
-    var total = parseFloat($('#total_amount').val()) || 0;
+    var total = pr_getNetTotal();
     var split = $('#split_type').val();
     var sum = 0;
     if (split === 'PERCENTAGE') {
@@ -260,6 +372,30 @@ function calcEmiTotal() {
         $('#emiCalcTotal').removeClass('text-danger');
     }
 }
+
+function redistributeEmiAmounts($changed) {
+    var split = $('#split_type').val();
+    var total = split === 'PERCENTAGE' ? 100 : pr_getNetTotal();
+    var $inputs = split === 'PERCENTAGE' ? $('.emi-percentage') : $('.emi-amount');
+    var changedVal = parseFloat($changed.val()) || 0;
+    var $others = $inputs.not($changed);
+    if ($others.length > 0) {
+        $others.val(((total - changedVal) / $others.length).toFixed(2));
+    }
+    calcEmiTotal();
+}
+
+$(document).on('change input', '#emiTableBody .emi-amount', function() {
+    redistributeEmiAmounts($(this));
+});
+
+$(document).on('change input', '#emiTableBody .emi-percentage', function() {
+    redistributeEmiAmounts($(this));
+});
+
+$(document).on('change', '#emiTableBody .pr-emi-due-date', function() {
+    $(this).closest('tr').find('.pr-emi-due-date-hidden').val(pr_parseDateDMY($(this).val()));
+});
 
 function saveConfirmation() {
     var type = $('input[name="payment_type"]:checked').val();
@@ -345,5 +481,109 @@ function formatDateTime(d) {
 
 function escapeHtml(s) {
     return $('<div>').text(s || '').html();
+}
+
+// -------- Payment Recording --------
+function prViewPaymentSummary() {
+    if (!pr_current_scheduler_id) { alert('No payment schedule found. Save confirmation first.'); return; }
+    $.ajax({
+        url: base_url + 'index.php/property_reservation/ajax_get_payment_summary',
+        type: 'POST',
+        data: { scheduler_id: pr_current_scheduler_id },
+        dataType: 'json',
+        success: function(res) {
+            if (res.error) { alert(res.message); return; }
+            var d = res.data;
+            $('#pr_view_paid').text('₹' + parseFloat(d.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+            $('#pr_view_pending').text('₹' + parseFloat(d.pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+            $('#pr_view_overdue').text(d.overdue_count);
+            var html = '';
+            var insts = d.installments;
+            for (var i = 0; i < insts.length; i++) {
+                var inst = insts[i];
+                var sc = inst.payment_status === 'PAID' ? 'bg-success' : (inst.payment_status === 'PARTIAL' ? 'bg-warning' : (inst.payment_status === 'OVERDUE' ? 'bg-danger' : 'bg-secondary'));
+                var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
+                html += '<tr>';
+                html += '<td>' + inst.installment_number + '</td>';
+                html += '<td>' + formatDate(inst.due_date) + '</td>';
+                html += '<td>₹' + parseFloat(inst.calculated_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                html += '<td>₹' + parseFloat(inst.paid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                html += '<td><span class="badge ' + sc + '">' + inst.payment_status + '</span></td>';
+                html += '<td>';
+                if (inst.payment_status !== 'PAID') {
+                    html += '<button class="btn btn-success btn-xs me-1" onclick="prRecordPayment(' + inst.installment_id + ',' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                }
+                if (inst.payment_status === 'PAID' || inst.payment_status === 'PARTIAL') {
+                    html += '<button class="btn btn-info btn-xs" onclick="prViewReceipts(' + inst.installment_id + ')"><i class="fas fa-receipt"></i> Receipts</button>';
+                }
+                html += '</td></tr>';
+            }
+            if (!html) html = '<tr><td colspan="6" class="text-center text-muted">No installments found</td></tr>';
+            $('#pr_installments_body').html(html);
+            $('#prPaymentSummaryModal').modal('show');
+        }
+    });
+}
+
+function prRecordPayment(installmentId, dueAmount) {
+    $('#pr_pay_installment_id').val(installmentId);
+    $('#pr_pay_scheduler_id').val(pr_current_scheduler_id);
+    $('#pr_pay_due_amount').val('₹' + parseFloat(dueAmount).toFixed(2));
+    $('#pr_pay_amount').val(parseFloat(dueAmount).toFixed(2));
+    $('#pr_pay_date').val(new Date().toISOString().split('T')[0]);
+    $('#pr_pay_method').val('');
+    $('#pr_pay_ref').val('');
+    $('#pr_pay_remarks').val('');
+    $('#prRecordPaymentModal').modal('show');
+}
+
+function prSavePayment() {
+    var formData = $('#prPaymentForm').serialize();
+    $.ajax({
+        url: base_url + 'index.php/property_reservation/ajax_record_payment',
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function(res) {
+            if (res.error) { alert(res.message); return; }
+            $('#prRecordPaymentModal').modal('hide');
+            prViewPaymentSummary();
+            alert(res.message);
+        }
+    });
+}
+
+function prViewReceipts(installmentId) {
+    $.ajax({
+        url: base_url + 'index.php/property_reservation/ajax_get_installment_payments',
+        type: 'POST',
+        data: { installment_id: installmentId },
+        dataType: 'json',
+        success: function(res) {
+            var payments = res.payments || [];
+            var html = '';
+            if (payments.length > 0) {
+                for (var i = 0; i < payments.length; i++) {
+                    var p = payments[i];
+                    html += '<tr>';
+                    html += '<td>' + formatDate(p.payment_date) + '</td>';
+                    html += '<td>₹' + parseFloat(p.payment_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                    html += '<td>' + (p.payment_method || '-') + '</td>';
+                    html += '<td>' + (p.payment_reference || '-') + '</td>';
+                    html += '<td>' + (p.payment_paid_by_username || '-') + '</td>';
+                    html += '<td><button class="btn btn-primary btn-xs" onclick="prPrintReceipt(' + p.payment_id + ')"><i class="fas fa-print"></i> Print</button></td>';
+                    html += '</tr>';
+                }
+            } else {
+                html = '<tr><td colspan="6" class="text-center text-muted">No payments recorded</td></tr>';
+            }
+            $('#pr_receipts_body').html(html);
+            $('#prReceiptsModal').modal('show');
+        }
+    });
+}
+
+function prPrintReceipt(paymentId) {
+    window.open(base_url + 'index.php/property_reservation/print_receipt/' + paymentId, '_blank', 'width=800,height=700');
 }
 </script>

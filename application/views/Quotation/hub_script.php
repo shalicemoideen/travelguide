@@ -68,6 +68,8 @@ function loadQuotationHubSummary(quotation_id)
 
             var data = res.data;
 
+            window._hubSummaryData = data;
+
 
 
             $('#hubQuotationNumber').text(data.quotation_number || '-');
@@ -103,6 +105,8 @@ function loadQuotationHubSummary(quotation_id)
             else if (data.quotation_current_status == 5) statusHtml = '<span class="badge badge-success">Confirmed</span>';
 
             else if (data.quotation_current_status == 6) statusHtml = '<span class="badge badge-danger">Cancelled</span>';
+
+            else if (data.quotation_current_status == 7) statusHtml = '<span class="badge badge-primary">Ready to Trip</span>';
 
 
 
@@ -169,13 +173,23 @@ function updateQuotationHubActions(status) {
 
     }
 
-    // Status 5=Accepted: Show confirmed status
+    // Status 5=Confirmed: Show confirmed badge + Driver Allocation button
 
     else if (status == 5) {
 
         var confirmedOption = $('#hubStatusOptionText').text();
         var optionLabel = confirmedOption ? ' <span style="background:#fff;color:#155724;padding:2px 8px;border-radius:12px;margin-left:6px;font-size:14px;">' + confirmedOption + '</span>' : '';
-        buttonsHtml = '<span class="badge badge-success p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check me-1"></i> Quotation Confirmed' + optionLabel + '</span>';
+        buttonsHtml = '<span class="badge badge-success p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check me-1"></i> Quotation Confirmed' + optionLabel + '</span> ';
+        buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-car me-1"></i> Driver Allocation</button>';
+
+    }
+
+    // Status 7=Ready to Trip
+
+    else if (status == 7) {
+
+        buttonsHtml = '<span class="badge badge-primary p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-car me-1"></i> Ready to Trip</span> ';
+        buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Driver Allocation</button>';
 
     }
 
@@ -191,7 +205,7 @@ function updateQuotationHubActions(status) {
 
     // Enabled only for status 1 (Generated) and 5 (Confirmed)
 
-    var group1Enabled = (status == 1 || status == 5);
+    var group1Enabled = (status == 1 || status == 5 || status == 7);
 
     toggleTab('tabClientConfirmation', group1Enabled,
 
@@ -217,9 +231,9 @@ function updateQuotationHubActions(status) {
 
     // Enabled only for status 5 (Confirmed)
 
-    var group2Enabled = (status == 5);
+    var group2Enabled = (status == 5 || status == 7);
 
-    var group2Tooltip = status == 5 ? '' : 'Quotation must be confirmed first';
+    var group2Tooltip = (status == 5 || status == 7) ? '' : 'Quotation must be confirmed first';
 
     toggleTab('tabPropertyVoucher', group2Enabled, group2Tooltip);
 
@@ -297,6 +311,84 @@ function toggleTab(tabId, enabled, tooltipMessage) {
 function showGenerateModal() {
 
     $('#generateQuotationModal').modal('show');
+
+}
+
+
+
+function showDriverAllocationModal() {
+
+    var quotation_id = $('#quotation_id').val();
+
+    // Load transporters into select2 dropdown
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_transporters",
+        type: "POST",
+        dataType: "json",
+        success: function(res) {
+            var $sel = $('#da_transporter_id');
+            $sel.empty().append('<option value="">-- Select Transporter --</option>');
+            if (res.status && res.data) {
+                $.each(res.data, function(i, t) {
+                    $sel.append('<option value="' + t.transporter_id + '">' + t.transporter_name + '</option>');
+                });
+            }
+            if ($.fn.select2) {
+                $sel.select2({ dropdownParent: $('#driverAllocationModal'), placeholder: '-- Select Transporter --', allowClear: true, width: '100%' });
+            }
+        }
+    });
+
+    // Pre-fill existing values from summary data
+    var data = window._hubSummaryData || {};
+    $('#da_transporter_id').val(data.quotation_transporter_id_fk || '').trigger('change');
+    $('#da_driver_name').val(data.quotation_driver_name || '');
+    $('#da_driver_mobile').val(data.quotation_driver_mobile || '');
+    $('#da_cab_number').val(data.quotation_cab_number || '');
+
+    $('#driverAllocationModal').modal('show');
+
+}
+
+
+
+function submitDriverAllocation() {
+
+    var quotation_id = $('#quotation_id').val();
+
+    if (!quotation_id) {
+        alert('Quotation ID missing.');
+        return;
+    }
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_driver_allocation",
+        type: "POST",
+        dataType: "json",
+        data: {
+            quotation_id:   quotation_id,
+            transporter_id: $('#da_transporter_id').val(),
+            driver_name:    $('#da_driver_name').val(),
+            driver_mobile:  $('#da_driver_mobile').val(),
+            cab_number:     $('#da_cab_number').val()
+        },
+        success: function(res) {
+            $('#driverAllocationModal').modal('hide');
+            if (res.status) {
+                loadQuotationHubSummary(quotation_id);
+                var n = new notify({ title: '', style: 'success', message: 'Driver allocated successfully! Status set to Ready to Trip.', icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            } else {
+                var n = new notify({ title: '', style: 'error', message: res.message || 'Failed to allocate driver.', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 5000);
+            }
+        },
+        error: function() {
+            $('#driverAllocationModal').modal('hide');
+            var n = new notify({ title: '', style: 'error', message: 'Server error occurred.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 5000);
+        }
+    });
 
 }
 
@@ -2014,6 +2106,12 @@ var hub_save_method = 'add';
 
 var hub_currentSchedulerId = null;
 
+var hub_res_current_quotation_id = 0;
+
+var hub_res_current_properties_id = 0;
+
+var hub_res_checkin_date = '';
+
 
 
 // Initialize table when tab is clicked
@@ -2350,6 +2448,8 @@ function hub_add_scheduler() {
 
     $('#hub_schedulerForm')[0].reset();
 
+    hub_setCutoffDate('');
+
     $('#hub_receipt_scheduler_id').val('');
 
     $('#hub_quotation_id_fk').val(quotation_id);
@@ -2381,6 +2481,16 @@ function hub_add_scheduler() {
             $('#hub_total_amount').val(response.total_amount);
 
             $('#hub_quotation_display').val($('#hubQuotationNumber').text() + ' - ' + $('#hubGuestName').text());
+
+            window.__hubSchedulerTravelStartDate = response.travel_start_date || '';
+
+            hub_setCutoffDate(window.__hubSchedulerTravelStartDate);
+
+            if ($('#hub_payment_type').val() == 'EMI') {
+
+                hub_generateEmiRows();
+
+            }
 
         }
 
@@ -2436,6 +2546,14 @@ function hub_toggleSplitType() {
 
 
 
+function hub_addDays(ymd, days) {
+    var dt = new Date(ymd);
+    dt.setDate(dt.getDate() + days);
+    var mm = String(dt.getMonth() + 1).padStart(2, '0');
+    var dd = String(dt.getDate()).padStart(2, '0');
+    return dt.getFullYear() + '-' + mm + '-' + dd;
+}
+
 function hub_generateEmiRows() {
 
     var count = parseInt($('#hub_max_emi_count').val()) || 3;
@@ -2454,21 +2572,45 @@ function hub_generateEmiRows() {
 
         if (splitType == 'PERCENTAGE') {
 
-            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + defaultValue + '" onchange="hub_calculateEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + defaultValue + '">';
 
         } else {
 
-            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + defaultValue + '" onchange="hub_calculateEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + defaultValue + '">';
 
         }
 
-        html += '</td><td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" required></td>';
+        html += '</td><td>';
+
+        html += '<input type="text" class="form-control form-control-sm hub-emi-due-date" placeholder="dd/mm/yyyy" required>';
+
+        html += '<input type="hidden" name="emi_due_date[]" class="hub-emi-due-date-hidden">';
+
+        html += '</td>';
 
         html += '<td class="hub-calculated-amount text-end">₹' + (splitType == 'PERCENTAGE' ? ((totalAmount * parseFloat(defaultValue)) / 100).toFixed(2) : defaultValue) + '</td></tr>';
 
     }
 
     $('#hub_emiTableBody').html(html);
+
+    var baseDate = window.__hubSchedulerTravelStartDate || null;
+
+    var today = new Date();
+
+    var todayYMD = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+    $('#hub_emiTableBody .hub-emi-due-date').each(function(idx) {
+
+        var ymd = baseDate ? baseDate : hub_addDays(todayYMD, 30 * (idx + 1));
+
+        $(this).val(hub_formatDateDMY(ymd));
+
+        $(this).closest('tr').find('.hub-emi-due-date-hidden').val(ymd);
+
+    });
+
+    hub_initEmiDatepickers();
 
     hub_calculateEmiTotal();
 
@@ -2531,6 +2673,46 @@ function hub_calculateEmiTotal() {
         $('#hub_emiCalculatedTotal').removeClass('text-danger');
 
     }
+
+}
+
+function hub_redistributeEmiAmounts($changedInput) {
+
+    var splitType = $('#hub_split_type').val();
+
+    var total;
+
+    var $inputs;
+
+    if (splitType == 'PERCENTAGE') {
+
+        total = 100;
+
+        $inputs = $('#hub_emiTableBody .hub-emi-percentage');
+
+    } else {
+
+        total = parseFloat($('#hub_total_amount').val()) || 0;
+
+        $inputs = $('#hub_emiTableBody .hub-emi-amount');
+
+    }
+
+    var changedVal = parseFloat($changedInput.val()) || 0;
+
+    var remaining = total - changedVal;
+
+    var $others = $inputs.not($changedInput);
+
+    if ($others.length > 0) {
+
+        var each = (remaining / $others.length).toFixed(2);
+
+        $others.val(each);
+
+    }
+
+    hub_calculateEmiTotal();
 
 }
 
@@ -2618,7 +2800,7 @@ function hub_editScheduler(id) {
 
             if (scheduler.payment_type == 'FULL') {
 
-                if (installments.length > 0) $('#hub_cutoff_date').val(installments[0].due_date);
+                if (installments.length > 0) hub_setCutoffDate(installments[0].due_date);
 
             } else {
 
@@ -2638,21 +2820,29 @@ function hub_editScheduler(id) {
 
                     if (scheduler.split_type == 'PERCENTAGE') {
 
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '" onchange="hub_calculateEmiTotal()">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
 
                     } else {
 
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '" onchange="hub_calculateEmiTotal()">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
 
                     }
 
-                    html += '</td><td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" value="' + inst.due_date + '" required></td>';
+                    html += '</td><td>';
+
+                    html += '<input type="text" class="form-control form-control-sm hub-emi-due-date" placeholder="dd/mm/yyyy" value="' + hub_formatDateDMY(inst.due_date) + '" required>';
+
+                    html += '<input type="hidden" name="emi_due_date[]" class="hub-emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
+
+                    html += '</td>';
 
                     html += '<td class="hub-calculated-amount text-end">₹' + parseFloat(inst.calculated_amount).toFixed(2) + '</td></tr>';
 
                 }
 
                 $('#hub_emiTableBody').html(html);
+
+                hub_initEmiDatepickers();
 
                 hub_calculateEmiTotal();
 
@@ -2722,7 +2912,13 @@ function hub_viewScheduler(id) {
 
                     var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
 
-                    html += '<button class="btn btn-success btn-xs" onclick="hub_recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                    html += '<button class="btn btn-success btn-xs me-1" onclick="hub_recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+
+                }
+
+                if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
+
+                    html += '<button class="btn btn-info btn-xs" onclick="hub_viewReceipts(' + inst.installment_id + ')" title="Receipts"><i class="fas fa-receipt"></i> Receipt</button>';
 
                 }
 
@@ -2800,6 +2996,74 @@ function hub_savePayment() {
 
 
 
+function hub_viewReceipts(installmentId) {
+
+    $.ajax({
+
+        url: "<?php echo base_url(); ?>index.php/Receipt_scheduler/get_installment_payments",
+
+        type: 'POST',
+
+        data: { installment_id: installmentId },
+
+        dataType: 'json',
+
+        success: function(payments) {
+
+            var html = '';
+
+            if (payments && payments.length > 0) {
+
+                for (var i = 0; i < payments.length; i++) {
+
+                    var p = payments[i];
+
+                    html += '<tr>';
+
+                    html += '<td>' + hub_formatDate(p.payment_date) + '</td>';
+
+                    html += '<td>₹' + parseFloat(p.payment_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+
+                    html += '<td>' + (p.payment_method || '-') + '</td>';
+
+                    html += '<td>' + (p.payment_reference || '-') + '</td>';
+
+                    html += '<td>' + (p.payment_received_by_username || '-') + '</td>';
+
+                    html += '<td><button class="btn btn-primary btn-xs" onclick="hub_printReceipt(' + p.payment_id + ')"><i class="fas fa-print"></i> Print</button></td>';
+
+                    html += '</tr>';
+
+                }
+
+            } else {
+
+                html += '<tr><td colspan="6" class="text-center text-muted">No payments found</td></tr>';
+
+            }
+
+            $('#hub_receiptsTableBody').html(html);
+
+            $('#hub_receiptsModal').modal('show');
+
+        }
+
+    });
+
+}
+
+
+
+function hub_printReceipt(paymentId) {
+
+    var url = "<?php echo base_url(); ?>index.php/Receipt_scheduler/print_receipt/" + paymentId;
+
+    window.open(url, '_blank', 'width=800,height=700');
+
+}
+
+
+
 function hub_deleteScheduler(id) {
 
     $('#hub_delete_scheduler_id').val(id);
@@ -2862,6 +3126,108 @@ $('#hub_total_amount').on('change', function() {
 
 });
 
+$(document).on('change input', '#hub_emiTableBody .hub-emi-amount', function() {
+
+    hub_redistributeEmiAmounts($(this));
+
+});
+
+$(document).on('change input', '#hub_emiTableBody .hub-emi-percentage', function() {
+
+    hub_redistributeEmiAmounts($(this));
+
+});
+
+function hub_formatDateDMY(dateStr) {
+
+    if (!dateStr) return '';
+
+    var parts = dateStr.split('-');
+
+    if (parts.length !== 3) return dateStr;
+
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+
+}
+
+function hub_parseDateDMY(dateStr) {
+
+    if (!dateStr) return '';
+
+    var parts = dateStr.split('/');
+
+    if (parts.length !== 3) return dateStr;
+
+    return parts[2] + '-' + parts[1] + '-' + parts[0];
+
+}
+
+function hub_setCutoffDate(ymdDate) {
+
+    $('#hub_cutoff_date_hidden').val(ymdDate);
+
+    $('#hub_cutoff_date').val(hub_formatDateDMY(ymdDate));
+
+    $('#hub_cutoff_date_display').text(hub_formatDateDMY(ymdDate));
+
+}
+
+$('#hub_cutoff_date').datepicker({
+
+    format: 'dd/mm/yyyy',
+
+    autoclose: true,
+
+    todayHighlight: true
+
+}).on('changeDate', function() {
+
+    var val = $(this).val();
+
+    $('#hub_cutoff_date_hidden').val(hub_parseDateDMY(val));
+
+    $('#hub_cutoff_date_display').text(val);
+
+});
+
+$('#hub_cutoff_date').on('change', function() {
+
+    var val = $(this).val();
+
+    $('#hub_cutoff_date_hidden').val(hub_parseDateDMY(val));
+
+    $('#hub_cutoff_date_display').text(val);
+
+});
+
+function hub_initEmiDatepickers() {
+
+    $('#hub_emiTableBody .hub-emi-due-date').datepicker({
+
+        format: 'dd/mm/yyyy',
+
+        autoclose: true,
+
+        todayHighlight: true
+
+    }).off('changeDate.hubemi').on('changeDate.hubemi', function() {
+
+        var val = $(this).val();
+
+        $(this).closest('tr').find('.hub-emi-due-date-hidden').val(hub_parseDateDMY(val));
+
+    });
+
+}
+
+$(document).on('change', '#hub_emiTableBody .hub-emi-due-date', function() {
+
+    var val = $(this).val();
+
+    $(this).closest('tr').find('.hub-emi-due-date-hidden').val(hub_parseDateDMY(val));
+
+});
+
 $(document).on('click', '#copyPropertyReservationBtn', function () {
     var quotation_id = $('#quotation_id').val();
 
@@ -2885,6 +3251,8 @@ $(document).on('click', '.hubResUpdateBtn', function () {
     var checkOut       = $(this).data('check-out');
     var nights         = $(this).data('nights');
     var quotation_id   = $('#quotation_id').val();
+    hub_res_current_quotation_id  = quotation_id;
+    hub_res_current_properties_id = propertiesId;
 
     $('#hubResModalLoader').show();
     $('#hubResModalContent').hide();
@@ -2928,6 +3296,7 @@ function hubRenderReservation(res) {
     var checkIn   = $('#hubReservationModal').data('hub-check-in')  || r.check_in_date  || '';
     var checkOut  = $('#hubReservationModal').data('hub-check-out') || r.check_out_date || '';
     var nights    = $('#hubReservationModal').data('hub-nights')    || r.duration_nights || 1;
+    hub_res_checkin_date = checkIn;
     $('#hub_info_property').text(propName);
     $('#hub_info_guest').text(r.guest_name || '-');
     $('#hub_info_booking').text(r.booking_number || '-');
@@ -2953,7 +3322,14 @@ function hubRenderReservation(res) {
     var total = res.total_amount || 0;
     $('#hub_res_total_amount').val(total);
     $('#hub_payment_total_display').text(parseFloat(total).toLocaleString('en-IN'));
+    hub_res_current_scheduler_id = 0;
+    $('#hub_btn_view_payments').hide();
+    $('#hub_discount_amount').val(0);
+    $('#hub_discounted_total').val(total);
+    $('#hub_discounted_total_display').hide();
     $('input[name="hub_payment_type"]').prop('checked', false);
+    $('#hub_res_cutoff_date').val('');
+    $('#hub_res_cutoff_date_display').val('');
     $('#hub_res_fullSection').hide();
     $('#hub_res_emiSection').hide();
     $('#hub_res_emiTableBody').html('');
@@ -2962,11 +3338,26 @@ function hubRenderReservation(res) {
         var p = res.payment;
         $('#hub_res_total_amount').val(p.total_amount);
         $('#hub_payment_total_display').text(parseFloat(p.total_amount).toLocaleString('en-IN'));
+        hub_res_current_scheduler_id = parseInt(p.property_payment_scheduler_id) || 0;
+        $('#hub_btn_view_payments').css('display', hub_res_current_scheduler_id > 0 ? 'inline-block' : 'none');
+        var hubSavedDiscount = parseFloat(p.discount_amount) || 0;
+        $('#hub_discount_amount').val(hubSavedDiscount);
+        var hubNet = parseFloat(p.discounted_total) || (parseFloat(p.total_amount) - hubSavedDiscount);
+        $('#hub_discounted_total').val(hubNet);
+        if (hubSavedDiscount > 0) {
+            $('#hub_discounted_total_val').text(hubNet.toLocaleString('en-IN'));
+            $('#hub_discounted_total_display').show();
+        }
         if (p.payment_type === 'FULL') {
             $('#hub_pt_full').prop('checked', true);
             hubTogglePaymentType();
             if (res.installments && res.installments.length > 0) {
-                $('#hub_cutoff_date').val(res.installments[0].due_date);
+                var hcd = res.installments[0].due_date || '';
+                $('#hub_res_cutoff_date').val(hcd);
+                $('#hub_res_cutoff_date_display').val(hub_formatDateDMY(hcd));
+            } else if (hub_res_checkin_date) {
+                $('#hub_res_cutoff_date').val(hub_res_checkin_date);
+                $('#hub_res_cutoff_date_display').val(hub_formatDateDMY(hub_res_checkin_date));
             }
         } else if (p.payment_type === 'EMI') {
             $('#hub_pt_emi').prop('checked', true);
@@ -2994,6 +3385,11 @@ function hubTogglePaymentType() {
     if (type === 'FULL') {
         $('#hub_res_fullSection').show();
         $('#hub_res_emiSection').hide();
+        if (hub_res_checkin_date && !$('#hub_res_cutoff_date').val()) {
+            $('#hub_res_cutoff_date').val(hub_res_checkin_date);
+            $('#hub_res_cutoff_date_display').val(hub_formatDateDMY(hub_res_checkin_date));
+        }
+        hub_res_initCutoffDatepicker();
     } else if (type === 'EMI') {
         $('#hub_res_fullSection').hide();
         $('#hub_res_emiSection').show();
@@ -3004,23 +3400,95 @@ function hubTogglePaymentType() {
     }
 }
 
-function hubGenerateEmiRows() {
-    var count = parseInt($('#hub_res_max_emi_count').val()) || 3;
+function hub_res_initCutoffDatepicker() {
+    if ($('#hub_res_cutoff_date_display').data('datepicker')) return;
+    $('#hub_res_cutoff_date_display').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    }).on('changeDate', function() {
+        $('#hub_res_cutoff_date').val(hub_parseDateDMY($(this).val()));
+    });
+}
+
+function hub_res_initEmiDatepickers() {
+    $('#hub_res_emiTableBody .hub-res-emi-due-date').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    }).off('changeDate.hubresemi').on('changeDate.hubresemi', function() {
+        $(this).closest('tr').find('.hub-res-emi-due-date-hidden').val(hub_parseDateDMY($(this).val()));
+    });
+}
+
+function hubRedistributeEmi($changed) {
+    var split = $('#hub_split_type_res').val();
+    var total, $inputs;
+    if (split === 'PERCENTAGE') {
+        total = 100;
+        $inputs = $('#hub_res_emiTableBody .hub-emi-percentage');
+    } else {
+        total = hub_getNetTotal();
+        $inputs = $('#hub_res_emiTableBody .hub-emi-amount');
+    }
+    var changedVal = parseFloat($changed.val()) || 0;
+    var $others = $inputs.not($changed);
+    if ($others.length > 0) {
+        $others.val(((total - changedVal) / $others.length).toFixed(2));
+    }
+    hubCalcEmiTotal();
+}
+
+function hub_getNetTotal() {
     var total = parseFloat($('#hub_res_total_amount').val()) || 0;
+    var discount = parseFloat($('#hub_discount_amount').val()) || 0;
+    return Math.max(0, total - discount);
+}
+
+function hub_applyDiscount() {
+    var total = parseFloat($('#hub_res_total_amount').val()) || 0;
+    var discount = parseFloat($('#hub_discount_amount').val()) || 0;
+    if (discount < 0) { discount = 0; $('#hub_discount_amount').val(0); }
+    if (discount > total) { discount = total; $('#hub_discount_amount').val(total); }
+    var net = total - discount;
+    $('#hub_discounted_total').val(net);
+    if (discount > 0) {
+        $('#hub_discounted_total_val').text(net.toLocaleString('en-IN'));
+        $('#hub_discounted_total_display').show();
+    } else {
+        $('#hub_discounted_total_display').hide();
+    }
+    var type = $('input[name="hub_payment_type"]:checked').val();
+    if (type === 'EMI') hubGenerateEmiRows();
+}
+
+function hubGenerateEmiRows() {
+    hub_buildResEmiRows(hub_res_checkin_date ? [hub_res_checkin_date] : []);
+}
+
+function hub_buildResEmiRows(accDates) {
+    var count = parseInt($('#hub_res_max_emi_count').val()) || 3;
+    var total = hub_getNetTotal();
     var split = $('#hub_split_type_res').val();
     $('#hub_res_emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
+    var checkInDate = (accDates && accDates.length > 0) ? accDates[0] : '';
     var html = '';
     for (var i = 1; i <= count; i++) {
         var def = split === 'PERCENTAGE' ? (100 / count).toFixed(2) : (total / count).toFixed(2);
+        var dueDateYMD = checkInDate;
         html += '<tr><td class="text-center">' + i + '</td><td>';
         if (split === 'PERCENTAGE') {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + def + '" onchange="hubCalcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + def + '">';
         } else {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + def + '" onchange="hubCalcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + def + '">';
         }
-        html += '</td><td><input type="date" class="form-control form-control-sm" name="emi_due_date[]"></td><td class="hub-emi-calc text-end">0.00</td></tr>';
+        html += '</td><td>';
+        html += '<input type="text" class="form-control form-control-sm hub-res-emi-due-date" placeholder="dd/mm/yyyy" value="' + hub_formatDateDMY(dueDateYMD) + '" required>';
+        html += '<input type="hidden" name="emi_due_date[]" class="hub-res-emi-due-date-hidden" value="' + dueDateYMD + '">';
+        html += '</td><td class="hub-emi-calc text-end">0.00</td></tr>';
     }
     $('#hub_res_emiTableBody').html(html);
+    hub_res_initEmiDatepickers();
     hubCalcEmiTotal();
 }
 
@@ -3032,20 +3500,24 @@ function hubRenderEmiFromData(installments, split) {
         var inst = installments[i];
         html += '<tr><td class="text-center">' + inst.installment_number + '</td><td>';
         if (split === 'PERCENTAGE') {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '" onchange="hubCalcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
         } else {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '" onchange="hubCalcEmiTotal()">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
         }
-        html += '</td><td><input type="date" class="form-control form-control-sm" name="emi_due_date[]" value="' + (inst.due_date || '') + '"></td>';
+        html += '</td><td>';
+        html += '<input type="text" class="form-control form-control-sm hub-res-emi-due-date" placeholder="dd/mm/yyyy" value="' + hub_formatDateDMY(inst.due_date || '') + '" required>';
+        html += '<input type="hidden" name="emi_due_date[]" class="hub-res-emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
+        html += '</td>';
         html += '<td class="hub-emi-calc text-end">' + parseFloat(inst.calculated_amount || 0).toFixed(2) + '</td></tr>';
     }
     $('#hub_res_emiTableBody').html(html);
+    hub_res_initEmiDatepickers();
     hubCalcEmiTotal();
 }
 
 function hubCalcEmiTotal() {
-    var total = parseFloat($('#hub_res_total_amount').val()) || 0;
     var split = $('#hub_split_type_res').val();
+    var total = hub_getNetTotal();
     var sum = 0;
     if (split === 'PERCENTAGE') {
         $('#hub_res_emiTableBody .hub-emi-percentage').each(function() {
@@ -3068,6 +3540,18 @@ function hubCalcEmiTotal() {
         $('#hub_res_emiCalcTotal').removeClass('text-danger');
     }
 }
+
+$(document).on('change input', '#hub_res_emiTableBody .hub-emi-amount', function() {
+    hubRedistributeEmi($(this));
+});
+
+$(document).on('change input', '#hub_res_emiTableBody .hub-emi-percentage', function() {
+    hubRedistributeEmi($(this));
+});
+
+$(document).on('change', '#hub_res_emiTableBody .hub-res-emi-due-date', function() {
+    $(this).closest('tr').find('.hub-res-emi-due-date-hidden').val(hub_parseDateDMY($(this).val()));
+});
 
 function hubSaveBlocking() {
     hubPostForm('property_reservation/save_blocking', '#hub_blockingForm', function() {
@@ -3513,6 +3997,119 @@ function fpSubmit() {
             n.show(); setTimeout(function(){ n.hide(); }, 5000);
         }
     });
+}
+
+// -------- Hub Property Reservation Payment Recording --------
+var hub_res_current_scheduler_id = 0;
+
+function hubPrViewPaymentSummary() {
+    if (!hub_res_current_scheduler_id) { alert('No payment schedule found. Save confirmation first.'); return; }
+    $.ajax({
+        url: '<?php echo base_url(); ?>index.php/property_reservation/ajax_get_payment_summary',
+        type: 'POST',
+        data: { scheduler_id: hub_res_current_scheduler_id },
+        dataType: 'json',
+        success: function(res) {
+            if (res.error) { alert(res.message); return; }
+            var d = res.data;
+            $('#hub_pr_view_paid').text('₹' + parseFloat(d.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+            $('#hub_pr_view_pending').text('₹' + parseFloat(d.pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+            $('#hub_pr_view_overdue').text(d.overdue_count);
+            var html = '';
+            var insts = d.installments;
+            for (var i = 0; i < insts.length; i++) {
+                var inst = insts[i];
+                var sc = inst.payment_status === 'PAID' ? 'bg-success' : (inst.payment_status === 'PARTIAL' ? 'bg-warning' : (inst.payment_status === 'OVERDUE' ? 'bg-danger' : 'bg-secondary'));
+                var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
+                html += '<tr>';
+                html += '<td>' + inst.installment_number + '</td>';
+                html += '<td>' + hub_formatDate(inst.due_date) + '</td>';
+                html += '<td>₹' + parseFloat(inst.calculated_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                html += '<td>₹' + parseFloat(inst.paid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                html += '<td><span class="badge ' + sc + '">' + inst.payment_status + '</span></td>';
+                html += '<td>';
+                if (inst.payment_status !== 'PAID') {
+                    html += '<button class="btn btn-success btn-xs me-1" onclick="hubPrRecordPayment(' + inst.installment_id + ',' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                }
+                if (inst.payment_status === 'PAID' || inst.payment_status === 'PARTIAL') {
+                    html += '<button class="btn btn-info btn-xs" onclick="hubPrViewReceipts(' + inst.installment_id + ')"><i class="fas fa-receipt"></i> Receipts</button>';
+                }
+                html += '</td></tr>';
+            }
+            if (!html) html = '<tr><td colspan="6" class="text-center text-muted">No installments found</td></tr>';
+            $('#hub_pr_installments_body').html(html);
+            $('#hubPrPaymentSummaryModal').modal('show');
+        }
+    });
+}
+
+function hubPrRecordPayment(installmentId, dueAmount) {
+    $('#hub_pr_pay_installment_id').val(installmentId);
+    $('#hub_pr_pay_scheduler_id').val(hub_res_current_scheduler_id);
+    $('#hub_pr_pay_due_amount').val('₹' + parseFloat(dueAmount).toFixed(2));
+    $('#hub_pr_pay_amount').val(parseFloat(dueAmount).toFixed(2));
+    $('#hub_pr_pay_date').val(new Date().toISOString().split('T')[0]);
+    $('#hub_pr_pay_method').val('');
+    $('#hub_pr_pay_ref').val('');
+    $('#hub_pr_pay_remarks').val('');
+    $('#hubPrRecordPaymentModal').modal('show');
+}
+
+function hubPrSavePayment() {
+    var formData = $('#hubPrPaymentForm').serialize();
+    $.ajax({
+        url: '<?php echo base_url(); ?>index.php/property_reservation/ajax_record_payment',
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function(res) {
+            if (res.error) { alert(res.message); return; }
+            $('#hubPrRecordPaymentModal').modal('hide');
+            hubPrViewPaymentSummary();
+            alert(res.message);
+        }
+    });
+}
+
+function hubPrViewReceipts(installmentId) {
+    $.ajax({
+        url: '<?php echo base_url(); ?>index.php/property_reservation/ajax_get_installment_payments',
+        type: 'POST',
+        data: { installment_id: installmentId },
+        dataType: 'json',
+        success: function(res) {
+            var payments = res.payments || [];
+            var html = '';
+            if (payments.length > 0) {
+                for (var i = 0; i < payments.length; i++) {
+                    var p = payments[i];
+                    html += '<tr>';
+                    html += '<td>' + hub_formatDate(p.payment_date) + '</td>';
+                    html += '<td>₹' + parseFloat(p.payment_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
+                    html += '<td>' + (p.payment_method || '-') + '</td>';
+                    html += '<td>' + (p.payment_reference || '-') + '</td>';
+                    html += '<td>' + (p.payment_paid_by_username || '-') + '</td>';
+                    html += '<td><button class="btn btn-primary btn-xs" onclick="hubPrPrintReceipt(' + p.payment_id + ')"><i class="fas fa-print"></i> Print</button></td>';
+                    html += '</tr>';
+                }
+            } else {
+                html = '<tr><td colspan="6" class="text-center text-muted">No payments recorded</td></tr>';
+            }
+            $('#hub_pr_receipts_body').html(html);
+            $('#hubPrReceiptsModal').modal('show');
+        }
+    });
+}
+
+function hubPrPrintReceipt(paymentId) {
+    window.open('<?php echo base_url(); ?>index.php/property_reservation/print_receipt/' + paymentId, '_blank', 'width=800,height=700');
+}
+
+function hub_formatDate(dateStr) {
+    if (!dateStr || dateStr === '0000-00-00') return '-';
+    var parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return parts[2] + '-' + parts[1] + '-' + parts[0];
 }
 
 function fpReset() {

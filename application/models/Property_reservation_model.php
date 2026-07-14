@@ -237,6 +237,82 @@ class Property_reservation_model extends CI_Model {
         return $this->db->insert_id();
     }
 
+    public function get_payment_by_id($payment_id)
+    {
+        return $this->db
+            ->from($this->table_payments)
+            ->where('payment_id', (int)$payment_id)
+            ->where('payment_status', 1)
+            ->get()
+            ->row();
+    }
+
+    public function get_payments_by_installment_id($installment_id)
+    {
+        return $this->db
+            ->from($this->table_payments)
+            ->where('installment_id_fk', (int)$installment_id)
+            ->where('payment_status', 1)
+            ->order_by('payment_date', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    public function get_total_paid_by_scheduler($scheduler_id)
+    {
+        $row = $this->db
+            ->select_sum('payment_amount')
+            ->from($this->table_payments)
+            ->where('property_payment_scheduler_id_fk', (int)$scheduler_id)
+            ->where('payment_status', 1)
+            ->get()
+            ->row();
+        return $row && $row->payment_amount ? (float)$row->payment_amount : 0;
+    }
+
+    public function get_scheduler_with_details($scheduler_id)
+    {
+        return $this->db
+            ->select('pps.*, q.quotation_number, l.guest_name, l.leads_number')
+            ->from('property_payment_scheduler pps')
+            ->join('quotation q', 'q.quotation_id = pps.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->where('pps.property_payment_scheduler_id', (int)$scheduler_id)
+            ->where('pps.property_payment_scheduler_status', 1)
+            ->get()
+            ->row();
+    }
+
+    public function get_payment_summary_by_scheduler($scheduler_id)
+    {
+        $payment = $this->get_payment_by_reservation(null);
+        $payment = $this->db
+            ->from($this->table_payment)
+            ->where('property_payment_scheduler_id', (int)$scheduler_id)
+            ->where('property_payment_scheduler_status', 1)
+            ->get()->row();
+        if (!$payment) return null;
+
+        $installments = $this->get_installments($scheduler_id);
+        $total_paid   = $this->get_total_paid_by_scheduler($scheduler_id);
+        $net_total    = $payment->discounted_total > 0 ? $payment->discounted_total : $payment->total_amount;
+        $pending      = $net_total - $total_paid;
+
+        $overdue_count = 0;
+        foreach ($installments as $inst) {
+            if ($inst->payment_status === 'OVERDUE') $overdue_count++;
+        }
+
+        return array(
+            'payment'      => $payment,
+            'installments' => $installments,
+            'net_total'    => $net_total,
+            'total_paid'   => $total_paid,
+            'pending'      => max(0, $pending),
+            'overdue_count'=> $overdue_count,
+        );
+    }
+
     public function get_quotation_total_amount($quotation_id)
     {
         $option = $this->db
@@ -250,6 +326,31 @@ class Property_reservation_model extends CI_Model {
             ->row();
 
         return $option ? (float)$option->quotation_options_total_quote_rate : 0;
+    }
+
+    public function get_accommodation_dates($quotation_id, $properties_id)
+    {
+        $rows = $this->db
+            ->select('ap.accommodation_date')
+            ->from('quotation_properties_days qpd')
+            ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'inner')
+            ->join('quotation_properties qp', 'qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id', 'inner')
+            ->where('qpd.quotation_id_fk', (int)$quotation_id)
+            ->where('qp.properties_id_fk', (int)$properties_id)
+            ->where('qpd.quotation_properties_days_status', 1)
+            ->where('qp.quotation_properties_status', 1)
+            ->where('ap.accommodation_plan_status', 1)
+            ->order_by('ap.accommodation_date', 'ASC')
+            ->get()
+            ->result();
+
+        $dates = array();
+        foreach ($rows as $r) {
+            if ($r->accommodation_date && $r->accommodation_date !== '0000-00-00') {
+                $dates[] = $r->accommodation_date;
+            }
+        }
+        return array_values(array_unique($dates));
     }
 
     public function get_property_total_amount($quotation_id, $properties_id)

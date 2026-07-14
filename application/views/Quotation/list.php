@@ -1382,6 +1382,8 @@
 
                                                                    <option value="6">Cancelled</option>
 
+                                                                   <option value="7">Ready to Trip</option>
+
 
 
                                                                     

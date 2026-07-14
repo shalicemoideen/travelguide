@@ -318,20 +318,6 @@ class Quotation extends MY_Controller {
 
 
 
-		// When quotation is confirmed, mark the lead as converted to trip
-		if ($status == 5) {
-			$quotation = $this->db->where('quotation_id', $quotation_id)
-								  ->where('quotation_status', 1)
-								  ->get($this->table)
-								  ->row();
-			if ($quotation && !empty($quotation->leads_id_fk)) {
-				$this->db->where('leads_id', (int)$quotation->leads_id_fk);
-				$this->db->update('leads', array('lead_current_status' => 3));
-			}
-		}
-
-
-
 		if ($this->db->affected_rows() > 0) {
 
 			echo json_encode(array('status' => true, 'message' => 'Status updated successfully'));
@@ -345,6 +331,52 @@ class Quotation extends MY_Controller {
 	}
 
 
+
+	public function ajax_driver_allocation()
+	{
+		$quotation_id      = (int)$this->input->post('quotation_id');
+		$transporter_id    = (int)$this->input->post('transporter_id');
+		$driver_name       = $this->input->post('driver_name');
+		$driver_mobile     = $this->input->post('driver_mobile');
+		$cab_number        = $this->input->post('cab_number');
+
+		if ($quotation_id <= 0) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID missing'));
+			return;
+		}
+
+		$this->db->where('quotation_id', $quotation_id);
+		$this->db->update($this->table, array(
+			'quotation_transporter_id_fk' => $transporter_id > 0 ? $transporter_id : NULL,
+			'quotation_driver_name'       => $driver_name,
+			'quotation_driver_mobile'     => $driver_mobile,
+			'quotation_cab_number'        => $cab_number,
+			'quotation_current_status'    => 7,
+		));
+
+		// Mark lead as converted to trip on driver allocation
+		$quotation = $this->db->where('quotation_id', $quotation_id)
+							  ->where('quotation_status', 1)
+							  ->get($this->table)
+							  ->row();
+		if ($quotation && !empty($quotation->leads_id_fk)) {
+			$this->db->where('leads_id', (int)$quotation->leads_id_fk);
+			$this->db->update('leads', array('lead_current_status' => 3));
+		}
+
+		echo json_encode(array('status' => true, 'message' => 'Driver allocated. Status set to Ready to Trip.'));
+	}
+
+	public function ajax_get_transporters()
+	{
+		$transporters = $this->db
+			->select('transporter_id, transporter_name')
+			->where('transporter_status', 1)
+			->order_by('transporter_name', 'ASC')
+			->get('transporter')
+			->result_array();
+		echo json_encode(array('status' => true, 'data' => $transporters));
+	}
 
 	public function ajax_view_lead_details($id)
 
@@ -1893,13 +1925,19 @@ public function ajax_get_tariff_by_context()
 
 
 
+							$_ppd_id_1 = (int)$packages_properties_days_id_fk[$key];
+							$_pit_id_1 = $this->Quotation_model->get_itinerary_days_id_fk_by_properties_day($_ppd_id_1);
+							$_qit_id_1 = $_pit_id_1 > 0 ? $this->Quotation_model->get_quotation_itinerary_day_id_by_package_day($insert, $_pit_id_1) : 0;
+
 							$data_properties_days_add = array(
 
 								'quotation_id_fk' => $insert,
 
 								'quotation_options_id_fk' => $quotation_options_id,
 
-								'packages_properties_days_id_fk' => $packages_properties_days_id_fk[$key],
+								'packages_properties_days_id_fk' => $_ppd_id_1,
+
+								'quotation_itinerary_days_id_fk' => $_qit_id_1,
 
 								'quotation_properties_days_day' => $quotation_properties_days_day[$key],
 
@@ -2216,6 +2254,8 @@ public function ajax_get_tariff_by_context()
 						'quotation_options_id_fk' => $option_id,
 
 						'packages_properties_days_id_fk' => $day['packages_properties_days_id_fk'],
+
+						'quotation_itinerary_days_id_fk' => isset($day['quotation_itinerary_days_id_fk']) ? (int)$day['quotation_itinerary_days_id_fk'] : $this->Quotation_model->get_quotation_itinerary_day_id_by_package_day($quotation_id, $this->Quotation_model->get_itinerary_days_id_fk_by_properties_day((int)$day['packages_properties_days_id_fk'])),
 
 						'quotation_properties_days_day' => $day['day'],
 
@@ -2873,6 +2913,8 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 								'quotation_options_id_fk' => $option_id,
 
 								'packages_properties_days_id_fk' => $day['packages_properties_days_id_fk'],
+
+								'quotation_itinerary_days_id_fk' => isset($day['quotation_itinerary_days_id_fk']) ? (int)$day['quotation_itinerary_days_id_fk'] : $this->Quotation_model->get_quotation_itinerary_day_id_by_package_day($quotation_id, $this->Quotation_model->get_itinerary_days_id_fk_by_properties_day((int)$day['packages_properties_days_id_fk'])),
 
 								'quotation_properties_days_day' => $day['day'],
 
@@ -3898,6 +3940,8 @@ if (!empty($accommodationPlanIds)) {
                                 'quotation_options_id_fk' => $option_id,
 
                                 'packages_properties_days_id_fk' => isset($day['packages_properties_days_id_fk']) ? $day['packages_properties_days_id_fk'] : 0,
+
+                                'quotation_itinerary_days_id_fk' => $this->Quotation_model->get_quotation_itinerary_day_id_by_package_day($quotation_id, $this->Quotation_model->get_itinerary_days_id_fk_by_properties_day(isset($day['packages_properties_days_id_fk']) ? (int)$day['packages_properties_days_id_fk'] : 0)),
 
                                 'quotation_properties_days_day' => isset($day['day']) ? $day['day'] : '',
 

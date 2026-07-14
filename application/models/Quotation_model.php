@@ -418,7 +418,11 @@ class Quotation_model extends CI_Model{
 
                     l.start_date, l.duration, l.end_date,
 
-                    qo.quotation_options_title as confirmed_option_title')
+                    qo.quotation_options_title as confirmed_option_title,
+
+                    q.quotation_transporter_id_fk, q.quotation_driver_name,
+                    q.quotation_driver_mobile, q.quotation_cab_number,
+                    t.transporter_name')
 
             ->from('quotation q')
 
@@ -427,6 +431,8 @@ class Quotation_model extends CI_Model{
             ->join('quotation_confirmation qc', 'qc.quotation_id_fk = q.quotation_id AND qc.property_confirmation_status = 1', 'left')
 
             ->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left')
+
+            ->join('transporter t', 't.transporter_id = q.quotation_transporter_id_fk', 'left')
 
             ->where('q.quotation_id', (int)$quotation_id)
 
@@ -3451,6 +3457,19 @@ public function get_quotation_itinerary_day_id_by_package_day($quotation_id, $pa
 }
 
 
+
+public function get_itinerary_days_id_fk_by_properties_day($packages_properties_days_id)
+{
+    $row = $this->db
+        ->select('packages_itinerary_days_id_fk')
+        ->from('packages_properties_days')
+        ->where('packages_properties_days_id', (int)$packages_properties_days_id)
+        ->where('packages_properties_days_status', 1)
+        ->get()
+        ->row();
+
+    return $row ? (int)$row->packages_itinerary_days_id_fk : 0;
+}
 
 public function get_packages_properties_day_id_by_itinerary_day($packages_itinerary_days_id_fk)
 
@@ -6741,6 +6760,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
             qp.properties_id_fk,
 
             p.properties_name,
+            p.properties_hotel_logo,
 
             qpr.quotation_properties_rooms_id,
             qpr.quotation_properties_rooms_id_fk,
@@ -6852,12 +6872,15 @@ public function get_quotation_special_requirements_preview($quotation_id)
         $days = $this->db
             ->select('
                 qpd.quotation_properties_days_day,
+                qpd.quotation_itinerary_days_id_fk,
                 ap.accommodation_date,
                 ap.accommodation_day_name,
                 s.state_name,
                 p.properties_name,
                 p.properties_sales_contact_phone_number,
-                p.properties_reservation_contact_phone_number
+                p.properties_reservation_contact_phone_number,
+                p.properties_google_map_location,
+                qid.quotation_itineraries_days_description
             ')
             ->from('quotation_confirmation qc')
             ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
@@ -6865,6 +6888,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
             ->join('state s', 's.state_id = ap.stay_destination_id_fk', 'left')
             ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
             ->join('properties p', 'p.properties_id = qp.properties_id_fk', 'left')
+            ->join('quotation_itinerary_days qid', 'qid.quotation_itinerary_days_id = qpd.quotation_itinerary_days_id_fk', 'left')
             ->where('qc.quotation_id_fk', (int)$quotation_id)
             ->where('qc.property_confirmation_status', 1)
             ->group_by('qpd.quotation_properties_days_id')

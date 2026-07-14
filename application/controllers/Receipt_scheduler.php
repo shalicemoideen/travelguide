@@ -241,8 +241,8 @@ class Receipt_scheduler extends MY_Controller {
     public function get_quotation_amount()
     {
         $quotation_id = $this->input->post('quotation_id');
-        $amount = $this->Receipt_scheduler_model->get_quotation_total_amount($quotation_id);
-        echo json_encode(array('total_amount' => $amount));
+        $result = $this->Receipt_scheduler_model->get_quotation_total_amount($quotation_id);
+        echo json_encode($result);
     }
 
     public function record_payment()
@@ -326,6 +326,37 @@ class Receipt_scheduler extends MY_Controller {
         $scheduler_id = $this->input->post('receipt_scheduler_id');
         $payments = $this->Receipt_scheduler_model->get_payments_by_scheduler_id($scheduler_id);
         echo json_encode($payments);
+    }
+
+    public function get_installment_payments()
+    {
+        $installment_id = $this->input->post('installment_id');
+        $payments = $this->Receipt_scheduler_model->get_payments_by_installment_id($installment_id);
+        echo json_encode($payments);
+    }
+
+    public function print_receipt($payment_id = null)
+    {
+        if (!$payment_id) {
+            $payment_id = $this->input->get('payment_id');
+        }
+
+        $payment = $this->Receipt_scheduler_model->get_payment_by_id($payment_id);
+        if (!$payment) {
+            show_404();
+            return;
+        }
+
+        $installment = $this->Receipt_scheduler_model->get_installment_by_id($payment->installment_id_fk);
+        $scheduler = $this->Receipt_scheduler_model->get_by_id($payment->receipt_scheduler_id_fk);
+
+        $data = array(
+            'payment' => $payment,
+            'installment' => $installment,
+            'scheduler' => $scheduler
+        );
+
+        $this->load->view('Receipt_scheduler/receipt', $data);
     }
 
     public function pending_payments()

@@ -135,7 +135,8 @@
                                         <div class="mb-3">
                                             <label class="form-label">Cutoff Date <span class="text-danger">*</span></label>
                                             <input type="date" class="form-control" name="cutoff_date" id="cutoff_date">
-                                            <small class="text-muted">Payment must be received by this date</small>
+                                            <small id="cutoff_date_display" class="text-primary fw-semibold"></small>
+                                            <small class="text-muted d-block">Payment must be received by this date</small>
                                         </div>
                                     </div>
                                 </div>
@@ -268,6 +269,39 @@
                             </tr>
                         </thead>
                         <tbody id="viewInstallmentsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Receipts Modal -->
+<div class="modal fade" id="receiptsModal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Receipts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Reference</th>
+                                <th>Received By</th>
+                                <th width="100">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptsTableBody">
                         </tbody>
                     </table>
                 </div>

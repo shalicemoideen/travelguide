@@ -111,6 +111,14 @@ body {
     transform:translateY(-2px);
     box-shadow:0 6px 12px rgba(17,153,142,0.4);
 }
+.btn-pdf{
+    background:linear-gradient(135deg, #e52d27 0%, #b31217 100%);
+}
+.btn-pdf:hover{
+    background:linear-gradient(135deg, #cc2723 0%, #9e0f13 100%);
+    transform:translateY(-2px);
+    box-shadow:0 6px 12px rgba(229,45,39,0.4);
+}
 .wrapper {
     width:650px;
     margin:45px auto;
@@ -180,7 +188,11 @@ ul.hotel-inc {
 }
 @media print {
     .topbar { display:none; }
-    .wrapper { margin:0 auto; }
+    .wrapper { margin:0 auto; width:100%; }
+}
+@page {
+    size: A4 portrait;
+    margin: 15mm 12mm;
 }
 </style>
 </head>
@@ -190,6 +202,7 @@ ul.hotel-inc {
     <div class="top-actions">
         <button class="btn-copy" onclick="copyContent()"><i class="la la-copy"></i> Copy Content</button>
         <button class="btn-word" onclick="exportToWord()"><i class="la la-file-word"></i> Export to Word</button>
+        <button class="btn-pdf" onclick="downloadPDF()"><i class="la la-file-pdf"></i> Download PDF</button>
     </div>
 </div>
 
@@ -537,6 +550,27 @@ function exportToWord() {
     link.href = URL.createObjectURL(blob);
     link.download = '<?= preg_replace("/[^A-Za-z0-9\-_]/", "-", tv_get($main, "guest_name", "Guest")); ?>-<?= preg_replace("/[^A-Za-z0-9\-_]/", "-", tv_get($main, "quotation_number", "Quote")); ?>-tour-voucher.doc';
     link.click();
+}
+
+function downloadPDF() {
+    var content = document.getElementById('voucherContent').innerHTML;
+    var filename = '<?= preg_replace("/[^A-Za-z0-9\-_]/", "-", tv_get($main, "guest_name", "Guest")); ?>-<?= preg_replace("/[^A-Za-z0-9\-_]/", "-", tv_get($main, "quotation_number", "Quote")); ?>-tour-voucher.pdf';
+
+    var styles = document.querySelectorAll('style');
+    var styleHtml = '';
+    styles.forEach(function(s) { styleHtml += '<style>' + s.innerHTML + '</style>'; });
+
+    var printWin = window.open('', '_blank', 'width=900,height=700');
+    printWin.document.write(
+        '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + filename + '</title>' +
+        styleHtml +
+        '<style>@page{size:A4 portrait;margin:15mm 12mm;} body{margin:0;} .wrapper{width:100%;margin:0 auto;}</style>' +
+        '</head><body>' +
+        '<div class="wrapper">' + content + '</div>' +
+        '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};}<\/script>' +
+        '</body></html>'
+    );
+    printWin.document.close();
 }
 </script>
 
