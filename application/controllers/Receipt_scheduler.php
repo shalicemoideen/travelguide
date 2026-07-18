@@ -55,7 +55,7 @@ class Receipt_scheduler extends MY_Controller {
         $quotation_id = $this->input->post('quotation_id_fk');
         $payment_type = $this->input->post('payment_type');
         $total_amount = $this->input->post('total_amount');
-        $max_emi_count = $this->input->post('max_emi_count');
+        $max_emi_count = min(24, max(2, (int)$this->input->post('max_emi_count')));
         $split_type = $this->input->post('split_type');
         $remarks = $this->input->post('receipt_scheduler_remarks');
 
@@ -105,7 +105,7 @@ class Receipt_scheduler extends MY_Controller {
                 $emi_due_dates = $this->input->post('emi_due_date');
 
                 if (is_array($emi_due_dates)) {
-                    for ($i = 0; $i < count($emi_due_dates); $i++) {
+                    for ($i = 0; $i < min(24, count($emi_due_dates)); $i++) {
                         $calculated_amount = 0;
                         if ($split_type == 'AMOUNT') {
                             $calculated_amount = isset($emi_amounts[$i]) ? (float)$emi_amounts[$i] : 0;
@@ -145,7 +145,7 @@ class Receipt_scheduler extends MY_Controller {
         $scheduler_id = $this->input->post('receipt_scheduler_id');
         $payment_type = $this->input->post('payment_type');
         $total_amount = $this->input->post('total_amount');
-        $max_emi_count = $this->input->post('max_emi_count');
+        $max_emi_count = min(24, max(2, (int)$this->input->post('max_emi_count')));
         $split_type = $this->input->post('split_type');
         $remarks = $this->input->post('receipt_scheduler_remarks');
 
@@ -181,7 +181,7 @@ class Receipt_scheduler extends MY_Controller {
             $emi_due_dates = $this->input->post('emi_due_date');
 
             if (is_array($emi_due_dates)) {
-                for ($i = 0; $i < count($emi_due_dates); $i++) {
+                for ($i = 0; $i < min(24, count($emi_due_dates)); $i++) {
                     $calculated_amount = 0;
                     if ($split_type == 'AMOUNT') {
                         $calculated_amount = isset($emi_amounts[$i]) ? (float)$emi_amounts[$i] : 0;
@@ -254,10 +254,15 @@ class Receipt_scheduler extends MY_Controller {
 
         $installment_id = $this->input->post('installment_id');
         $payment_amount = $this->input->post('payment_amount');
-        $payment_date = $this->input->post('payment_date');
+        $payment_date = $this->_payment_date($this->input->post('payment_date'));
         $payment_method = $this->input->post('payment_method');
         $payment_reference = $this->input->post('payment_reference');
         $payment_remarks = $this->input->post('payment_remarks');
+
+        if (!$payment_date) {
+            echo json_encode(array('error' => true, 'message' => 'Please enter a valid payment date in dd/mm/yyyy format'));
+            return;
+        }
 
         $installment = $this->Receipt_scheduler_model->get_installment_by_id($installment_id);
         if (!$installment) {
@@ -278,6 +283,12 @@ class Receipt_scheduler extends MY_Controller {
             }
         }
 
+        $upload = $this->_upload_payment_slip();
+        if (!$upload['status']) {
+            echo json_encode(array('error' => true, 'message' => $upload['message']));
+            return;
+        }
+
         // Record payment
         $payment_data = array(
             'installment_id_fk' => $installment_id,
@@ -287,6 +298,7 @@ class Receipt_scheduler extends MY_Controller {
             'payment_method' => $payment_method,
             'payment_reference' => $payment_reference,
             'payment_remarks' => $payment_remarks,
+            'payment_slip' => $upload['filename'],
             'payment_received_by_userid' => $this->currentuserid,
             'payment_received_by_username' => $this->currentusername,
             'payment_status' => 1
@@ -318,6 +330,40 @@ class Receipt_scheduler extends MY_Controller {
         } else {
             echo json_encode(array('error' => true, 'message' => 'Failed to record payment'));
         }
+    }
+
+    private function _upload_payment_slip()
+    {
+        if (empty($_FILES['payment_slip']['name'])) {
+            return array('status' => false, 'message' => 'Payment slip is required');
+        }
+
+        $config = array(
+            'upload_path' => FCPATH . 'uploads/payment_slips/',
+            'allowed_types' => 'jpg|jpeg|png|pdf',
+            'max_size' => 20480,
+            'encrypt_name' => true,
+        );
+
+        if (!is_dir($config['upload_path'])) {
+            @mkdir($config['upload_path'], 0777, true);
+        }
+
+        $this->load->library('upload');
+        $this->upload->initialize($config);
+
+        if (!$this->upload->do_upload('payment_slip')) {
+            return array('status' => false, 'message' => $this->upload->display_errors('', ''));
+        }
+
+        $file = $this->upload->data();
+        return array('status' => true, 'filename' => $file['file_name']);
+    }
+
+    private function _payment_date($value)
+    {
+        $date = DateTime::createFromFormat('!d/m/Y', trim($value));
+        return $date && $date->format('d/m/Y') === trim($value) ? $date->format('Y-m-d') : null;
     }
 
     public function get_payment_summary()

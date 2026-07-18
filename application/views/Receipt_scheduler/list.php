@@ -152,7 +152,7 @@
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <label class="form-label">Maximum EMI Count <span class="text-danger">*</span></label>
-                                        <input type="number" min="2" max="24" class="form-control" name="max_emi_count" id="max_emi_count" value="3" onchange="generateEmiRows()">
+                                        <input type="number" min="2" max="24" class="form-control" name="max_emi_count" id="max_emi_count" value="2" onchange="generateEmiRows()">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Split By <span class="text-danger">*</span></label>
@@ -322,7 +322,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="paymentForm">
+                <form id="paymentForm" enctype="multipart/form-data">
                     <input type="hidden" name="installment_id" id="payment_installment_id">
                     <div class="mb-3">
                         <label class="form-label">Due Amount</label>
@@ -334,7 +334,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Payment Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="payment_date" id="payment_date" required>
+                        <input type="text" class="form-control" name="payment_date" id="payment_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Payment Method</label>
@@ -350,6 +350,11 @@
                     <div class="mb-3">
                         <label class="form-label">Reference Number</label>
                         <input type="text" class="form-control" name="payment_reference" id="payment_reference" placeholder="Transaction/Receipt No.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="payment_slip" id="payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                        <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Remarks</label>

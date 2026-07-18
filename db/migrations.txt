@@ -259,3 +259,6 @@ INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `d
 ('RECEIPT_SCHEDULER_PAY_INITIAL', 'PAY INITIAL', 'RECEIPT_SCHEDULER', 'RECEIPT_SCHEDULER_PAY', 'Permission to record payment for the first/initial installment (Sales Executive)', 1, 1, NULL, NOW(), NOW()),
 ('RECEIPT_SCHEDULER_PAY_OTHER', 'PAY OTHER', 'RECEIPT_SCHEDULER', 'RECEIPT_SCHEDULER_PAY', 'Permission to record payment for subsequent installments (Reservation Team)', 1, 1, NULL, NOW(), NOW()),
 ('QUOTATION_VIEW_CONFIRMED', 'VIEW CONFIRMED', 'QUOTATION', 'QUOTATION_VIEW', 'Allows viewing only confirmed quotations (status Confirmed & Ready to Trip) — Reservation Team', 1, 1, NULL, NOW(), NOW());
+
+ALTER TABLE receipt_scheduler_payments ADD COLUMN IF NOT EXISTS payment_slip VARCHAR(255) NULL AFTER payment_remarks;
+ALTER TABLE property_payment_scheduler_payments ADD COLUMN IF NOT EXISTS payment_slip VARCHAR(255) NULL AFTER payment_remarks;

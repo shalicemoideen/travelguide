@@ -2576,7 +2576,8 @@ function hub_addDays(ymd, days) {
 
 function hub_generateEmiRows() {
 
-    var count = parseInt($('#hub_max_emi_count').val()) || 3;
+    var count = Math.min(24, Math.max(2, parseInt($('#hub_max_emi_count').val()) || 2));
+    $('#hub_max_emi_count').val(count);
 
     var totalAmount = parseFloat($('#hub_total_amount').val()) || 0;
 
@@ -2586,7 +2587,9 @@ function hub_generateEmiRows() {
 
     for (var i = 1; i <= count; i++) {
 
-        var defaultValue = splitType == 'PERCENTAGE' ? (100 / count).toFixed(2) : (totalAmount / count).toFixed(2);
+        var defaultValue = splitType == 'PERCENTAGE'
+            ? (i === 1 ? 30 : 70 / (count - 1)).toFixed(2)
+            : (totalAmount / count).toFixed(2);
 
         html += '<tr><td class="text-center"><strong>EMI ' + i + '</strong></td><td>';
 
@@ -2622,7 +2625,7 @@ function hub_generateEmiRows() {
 
     $('#hub_emiTableBody .hub-emi-due-date').each(function(idx) {
 
-        var ymd = baseDate ? baseDate : hub_addDays(todayYMD, 30 * (idx + 1));
+        var ymd = idx === 0 ? todayYMD : (baseDate || todayYMD);
 
         $(this).val(hub_formatDateDMY(ymd));
 
@@ -2964,6 +2967,11 @@ function hub_viewScheduler(id) {
 
 
 
+function hubPaymentTodayDMY() {
+    var today = new Date();
+    return String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+}
+
 function hub_recordPayment(installmentId, dueAmount) {
 
     $('#hub_payment_installment_id').val(installmentId);
@@ -2972,13 +2980,17 @@ function hub_recordPayment(installmentId, dueAmount) {
 
     $('#hub_payment_amount').val(dueAmount.toFixed(2));
 
-    $('#hub_payment_date').val(new Date().toISOString().split('T')[0]);
+    $('#hub_payment_date').val(hubPaymentTodayDMY());
+    if (!$('#hub_payment_date').data('datepicker')) {
+        $('#hub_payment_date').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true });
+    }
 
     $('#hub_payment_method').val('');
 
     $('#hub_payment_reference').val('');
 
     $('#hub_payment_remarks').val('');
+    $('#hub_payment_slip').val('');
 
     $('#hub_paymentModal').modal('show');
 
@@ -2988,13 +3000,23 @@ function hub_recordPayment(installmentId, dueAmount) {
 
 function hub_savePayment() {
 
-    var formData = $('#hub_paymentForm').serialize();
+    var $date = $('#hub_payment_date');
+    var $slip = $('#hub_payment_slip');
+    var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
+    $date.toggleClass('is-invalid', !dateValid);
+    $slip.toggleClass('is-invalid', !$slip.val());
+    if (!dateValid || !$slip.val()) {
+        alert('Payment date and payment slip are required.');
+        return;
+    }
+
+    var formData = new FormData($('#hub_paymentForm')[0]);
 
     $.ajax({
 
         url: "<?php echo base_url(); ?>index.php/Receipt_scheduler/record_payment",
 
-        type: 'POST', data: formData, dataType: 'json',
+        type: 'POST', data: formData, processData: false, contentType: false, dataType: 'json',
 
         success: function(response) {
 
@@ -3330,19 +3352,23 @@ function hubRenderReservation(res) {
     $('#hub_info_checkout').text(hubFormatDate(checkOut));
     $('#hub_info_duration').text(nights + ' Night(s)');
 
+    var hubToday = new Date();
+    var hubTodayYMD = hubToday.getFullYear() + '-' + String(hubToday.getMonth() + 1).padStart(2, '0') + '-' + String(hubToday.getDate()).padStart(2, '0');
     $('#hub_blocking_cnfm_by').val(r.blocking_cnfm_by || '');
-    $('#hub_blocking_cutoff_date').val(r.blocking_cutoff_date || '');
-    $('#hub_blocking_date').val(r.blocking_date || '');
+    $('#hub_blocking_cutoff_date').val(hub_formatDateDMY(r.blocking_cutoff_date || checkIn || ''));
+    $('#hub_blocking_date').val(hub_formatDateDMY(r.blocking_date || hubTodayYMD));
+    hubInitBlockingDatepickers();
     hubSetPill('#hub_pill_blocking', r.blocking_status, 'BLOCKED');
 
     $('#hub_confirmation_cnfm_by').val(r.confirmation_cnfm_by || '');
     $('#hub_confirmation_cnfm_no').val(r.confirmation_cnfm_no || '');
-    $('#hub_confirmation_cnfm_date').val(r.confirmation_cnfm_date || '');
+    $('#hub_confirmation_cnfm_date').val(hub_formatDateDMY(r.confirmation_cnfm_date || hubTodayYMD));
     hubSetPill('#hub_pill_confirm', r.confirmation_status, 'CONFIRMED');
 
     $('#hub_reconfirmation_cnfm_by').val(r.reconfirmation_cnfm_by || '');
-    $('#hub_reconfirmation_cnfm_no').val(r.reconfirmation_cnfm_no || '');
-    $('#hub_reconfirmation_date').val(r.reconfirmation_date || '');
+    $('#hub_reconfirmation_cnfm_no').val(r.confirmation_cnfm_no || '');
+    $('#hub_reconfirmation_date').val(hub_formatDateDMY(r.reconfirmation_date || hubTodayYMD));
+    hubInitConfirmationDatepickers();
     hubSetPill('#hub_pill_recon', r.reconfirmation_status, 'RECONFIRMED');
 
     var total = res.total_amount || 0;
@@ -3387,7 +3413,7 @@ function hubRenderReservation(res) {
             }
         } else if (p.payment_type === 'EMI') {
             $('#hub_pt_emi').prop('checked', true);
-            $('#hub_res_max_emi_count').val(p.max_emi_count || 3);
+            $('#hub_res_max_emi_count').val(Math.min(24, Math.max(2, parseInt(p.max_emi_count) || 2)));
             $('#hub_split_type_res').val(p.split_type || 'AMOUNT');
             hubTogglePaymentType();
             hubRenderEmiFromData(res.installments, p.split_type);
@@ -3493,15 +3519,20 @@ function hubGenerateEmiRows() {
 }
 
 function hub_buildResEmiRows(accDates) {
-    var count = parseInt($('#hub_res_max_emi_count').val()) || 3;
+    var count = Math.min(24, Math.max(2, parseInt($('#hub_res_max_emi_count').val()) || 2));
+    $('#hub_res_max_emi_count').val(count);
     var total = hub_getNetTotal();
     var split = $('#hub_split_type_res').val();
+    var today = new Date();
+    var todayYMD = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
     $('#hub_res_emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
     var checkInDate = (accDates && accDates.length > 0) ? accDates[0] : '';
     var html = '';
     for (var i = 1; i <= count; i++) {
-        var def = split === 'PERCENTAGE' ? (100 / count).toFixed(2) : (total / count).toFixed(2);
-        var dueDateYMD = checkInDate;
+        var def = split === 'PERCENTAGE'
+            ? (i === 1 ? 30 : 70 / (count - 1)).toFixed(2)
+            : (total / count).toFixed(2);
+        var dueDateYMD = i === 1 ? todayYMD : (checkInDate || todayYMD);
         html += '<tr><td class="text-center">' + i + '</td><td>';
         if (split === 'PERCENTAGE') {
             html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + def + '">';
@@ -3578,6 +3609,28 @@ $(document).on('change input', '#hub_res_emiTableBody .hub-emi-percentage', func
 $(document).on('change', '#hub_res_emiTableBody .hub-res-emi-due-date', function() {
     $(this).closest('tr').find('.hub-res-emi-due-date-hidden').val(hub_parseDateDMY($(this).val()));
 });
+
+function hubInitConfirmationDatepickers() {
+    $('#hub_confirmation_cnfm_date, #hub_reconfirmation_date').each(function() {
+        if ($(this).data('datepicker')) return;
+        $(this).datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
+    });
+}
+
+function hubInitBlockingDatepickers() {
+    $('#hub_blocking_cutoff_date, #hub_blocking_date').each(function() {
+        if ($(this).data('datepicker')) return;
+        $(this).datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
+    });
+}
 
 function hubSaveBlocking() {
     hubPostForm('property_reservation/save_blocking', '#hub_blockingForm', function() {
@@ -4074,19 +4127,35 @@ function hubPrRecordPayment(installmentId, dueAmount) {
     $('#hub_pr_pay_scheduler_id').val(hub_res_current_scheduler_id);
     $('#hub_pr_pay_due_amount').val('₹' + parseFloat(dueAmount).toFixed(2));
     $('#hub_pr_pay_amount').val(parseFloat(dueAmount).toFixed(2));
-    $('#hub_pr_pay_date').val(new Date().toISOString().split('T')[0]);
+    $('#hub_pr_pay_date').val(hubPaymentTodayDMY());
+    if (!$('#hub_pr_pay_date').data('datepicker')) {
+        $('#hub_pr_pay_date').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true });
+    }
     $('#hub_pr_pay_method').val('');
     $('#hub_pr_pay_ref').val('');
     $('#hub_pr_pay_remarks').val('');
+    $('#hub_pr_pay_slip').val('');
     $('#hubPrRecordPaymentModal').modal('show');
 }
 
 function hubPrSavePayment() {
-    var formData = $('#hubPrPaymentForm').serialize();
+    var $date = $('#hub_pr_pay_date');
+    var $slip = $('#hub_pr_pay_slip');
+    var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
+    $date.toggleClass('is-invalid', !dateValid);
+    $slip.toggleClass('is-invalid', !$slip.val());
+    if (!dateValid || !$slip.val()) {
+        alert('Payment date and payment slip are required.');
+        return;
+    }
+
+    var formData = new FormData($('#hubPrPaymentForm')[0]);
     $.ajax({
         url: '<?php echo base_url(); ?>index.php/property_reservation/ajax_record_payment',
         type: 'POST',
         data: formData,
+        processData: false,
+        contentType: false,
         dataType: 'json',
         success: function(res) {
             if (res.error) { alert(res.message); return; }

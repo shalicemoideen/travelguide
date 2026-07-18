@@ -154,13 +154,18 @@ function toggleSplitType() {
 }
 
 function generateEmiRows() {
-    var count = parseInt($('#max_emi_count').val()) || 3;
+    var count = Math.min(24, Math.max(2, parseInt($('#max_emi_count').val()) || 2));
+    $('#max_emi_count').val(count);
     var totalAmount = parseFloat($('#total_amount').val()) || 0;
     var splitType = $('#split_type').val();
     var html = '';
+    var today = new Date();
+    var todayYMD = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
     for (var i = 1; i <= count; i++) {
-        var defaultValue = splitType == 'PERCENTAGE' ? (100 / count).toFixed(2) : (totalAmount / count).toFixed(2);
+        var defaultValue = splitType == 'PERCENTAGE'
+            ? (i === 1 ? 30 : 70 / (count - 1)).toFixed(2)
+            : (totalAmount / count).toFixed(2);
         html += '<tr>';
         html += '<td class="text-center"><strong>EMI ' + i + '</strong></td>';
         html += '<td>';
@@ -172,18 +177,18 @@ function generateEmiRows() {
         html += '</td>';
         html += '<td>';
         html += '<input type="text" class="form-control form-control-sm emi-due-date" placeholder="dd/mm/yyyy" required>';
-        html += '<input type="hidden" name="emi_due_date[]" class="emi-due-date-hidden">';
+        var dueDateYMD = i === 1 ? todayYMD : (window.__schedulerTravelStartDate || todayYMD);
+        html += '<input type="hidden" name="emi_due_date[]" class="emi-due-date-hidden" value="' + dueDateYMD + '">';
         html += '</td>';
         html += '<td class="calculated-amount text-end">₹' + (splitType == 'PERCENTAGE' ? ((totalAmount * parseFloat(defaultValue)) / 100).toFixed(2) : defaultValue) + '</td>';
         html += '</tr>';
     }
 
     $('#emiTableBody').html(html);
-    if (window.__schedulerTravelStartDate) {
-        var formattedDate = formatDateSlashDMY(window.__schedulerTravelStartDate);
-        $('#emiTableBody .emi-due-date-hidden').val(window.__schedulerTravelStartDate);
-        $('#emiTableBody .emi-due-date').val(formattedDate);
-    }
+    $('#emiTableBody .emi-due-date').each(function(index) {
+        var dueDateYMD = index === 0 ? todayYMD : (window.__schedulerTravelStartDate || todayYMD);
+        $(this).val(formatDateSlashDMY(dueDateYMD));
+    });
     initEmiDatepickers();
     calculateEmiTotal();
 }
@@ -300,7 +305,7 @@ function editScheduler(id) {
                     updateCutoffDateDisplay();
                 }
             } else {
-                $('#max_emi_count').val(scheduler.max_emi_count);
+                $('#max_emi_count').val(Math.min(24, Math.max(2, parseInt(scheduler.max_emi_count) || 2)));
                 $('#split_type').val(scheduler.split_type);
                 toggleSplitType();
 
@@ -394,23 +399,44 @@ function viewScheduler(id) {
     });
 }
 
+function paymentTodayDMY() {
+    var today = new Date();
+    return String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+}
+
 function recordPayment(installmentId, dueAmount) {
     $('#payment_installment_id').val(installmentId);
     $('#payment_due_amount').val('₹' + dueAmount.toFixed(2));
     $('#payment_amount').val(dueAmount.toFixed(2));
-    $('#payment_date').val(new Date().toISOString().split('T')[0]);
+    $('#payment_date').val(paymentTodayDMY());
+    if (!$('#payment_date').data('datepicker')) {
+        $('#payment_date').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true });
+    }
     $('#payment_method').val('');
     $('#payment_reference').val('');
     $('#payment_remarks').val('');
+    $('#payment_slip').val('');
     $('#paymentModal').modal('show');
 }
 
 function savePayment() {
-    var formData = $('#paymentForm').serialize();
+    var $date = $('#payment_date');
+    var $slip = $('#payment_slip');
+    var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
+    $date.toggleClass('is-invalid', !dateValid);
+    $slip.toggleClass('is-invalid', !$slip.val());
+    if (!dateValid || !$slip.val()) {
+        alert('Payment date and payment slip are required.');
+        return;
+    }
+
+    var formData = new FormData($('#paymentForm')[0]);
     $.ajax({
         url: base_url + 'receipt_scheduler/record_payment',
         type: 'POST',
         data: formData,
+        processData: false,
+        contentType: false,
         dataType: 'json',
         success: function(response) {
             if (response.error) {

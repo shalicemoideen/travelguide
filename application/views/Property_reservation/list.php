@@ -365,7 +365,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="prPaymentForm">
+                <form id="prPaymentForm" enctype="multipart/form-data">
                     <input type="hidden" name="installment_id" id="pr_pay_installment_id">
                     <input type="hidden" name="scheduler_id" id="pr_pay_scheduler_id">
                     <div class="mb-3">
@@ -378,7 +378,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Payment Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="payment_date" id="pr_pay_date" required>
+                        <input type="text" class="form-control" name="payment_date" id="pr_pay_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Payment Method</label>
@@ -394,6 +394,11 @@
                     <div class="mb-3">
                         <label class="form-label">Reference Number</label>
                         <input type="text" class="form-control" name="payment_reference" id="pr_pay_ref" placeholder="Transaction/Receipt No.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="payment_slip" id="pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                        <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Remarks</label>

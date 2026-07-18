@@ -525,24 +525,45 @@ function prViewPaymentSummary() {
     });
 }
 
+function prPaymentTodayDMY() {
+    var today = new Date();
+    return String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+}
+
 function prRecordPayment(installmentId, dueAmount) {
     $('#pr_pay_installment_id').val(installmentId);
     $('#pr_pay_scheduler_id').val(pr_current_scheduler_id);
     $('#pr_pay_due_amount').val('₹' + parseFloat(dueAmount).toFixed(2));
     $('#pr_pay_amount').val(parseFloat(dueAmount).toFixed(2));
-    $('#pr_pay_date').val(new Date().toISOString().split('T')[0]);
+    $('#pr_pay_date').val(prPaymentTodayDMY());
+    if (!$('#pr_pay_date').data('datepicker')) {
+        $('#pr_pay_date').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true });
+    }
     $('#pr_pay_method').val('');
     $('#pr_pay_ref').val('');
     $('#pr_pay_remarks').val('');
+    $('#pr_pay_slip').val('');
     $('#prRecordPaymentModal').modal('show');
 }
 
 function prSavePayment() {
-    var formData = $('#prPaymentForm').serialize();
+    var $date = $('#pr_pay_date');
+    var $slip = $('#pr_pay_slip');
+    var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
+    $date.toggleClass('is-invalid', !dateValid);
+    $slip.toggleClass('is-invalid', !$slip.val());
+    if (!dateValid || !$slip.val()) {
+        alert('Payment date and payment slip are required.');
+        return;
+    }
+
+    var formData = new FormData($('#prPaymentForm')[0]);
     $.ajax({
         url: base_url + 'index.php/property_reservation/ajax_record_payment',
         type: 'POST',
         data: formData,
+        processData: false,
+        contentType: false,
         dataType: 'json',
         success: function(res) {
             if (res.error) { alert(res.message); return; }

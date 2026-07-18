@@ -637,11 +637,11 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-semibold">Cut-off Date</label>
-                                                        <input type="date" class="form-control" name="blocking_cutoff_date" id="hub_blocking_cutoff_date">
+                                                        <input type="text" class="form-control" name="blocking_cutoff_date" id="hub_blocking_cutoff_date" placeholder="dd/mm/yyyy" autocomplete="off">
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-semibold">Blocked Date</label>
-                                                        <input type="date" class="form-control" name="blocking_date" id="hub_blocking_date">
+                                                        <input type="text" class="form-control" name="blocking_date" id="hub_blocking_date" placeholder="dd/mm/yyyy" autocomplete="off">
                                                     </div>
                                                 </div>
                                                 <div class="mt-3 text-end">
@@ -674,7 +674,7 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-semibold">CNFM Date</label>
-                                                        <input type="date" class="form-control" name="confirmation_cnfm_date" id="hub_confirmation_cnfm_date">
+                                                        <input type="text" class="form-control" name="confirmation_cnfm_date" id="hub_confirmation_cnfm_date" placeholder="dd/mm/yyyy" autocomplete="off">
                                                     </div>
                                                 </div>
                                                 <!-- Payment Scheduler -->
@@ -720,7 +720,7 @@
                                                             <div class="row g-3 mb-3">
                                                                 <div class="col-md-3">
                                                                     <label class="form-label fw-semibold">No. of Installments</label>
-                                                                    <input type="number" min="2" max="24" value="3" class="form-control" id="hub_res_max_emi_count" name="max_emi_count" onchange="hubGenerateEmiRows()">
+                                                                    <input type="number" min="2" max="24" value="2" class="form-control" id="hub_res_max_emi_count" name="max_emi_count" onchange="hubGenerateEmiRows()">
                                                                 </div>
                                                                 <div class="col-md-3">
                                                                     <label class="form-label fw-semibold">Split By</label>
@@ -779,11 +779,11 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-semibold">CNFM No</label>
-                                                        <input type="text" class="form-control" name="reconfirmation_cnfm_no" id="hub_reconfirmation_cnfm_no" placeholder="Confirmation number">
+                                                        <input type="text" class="form-control" name="reconfirmation_cnfm_no" id="hub_reconfirmation_cnfm_no" placeholder="Confirmation number" readonly>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-semibold">RE-CNFM Date</label>
-                                                        <input type="date" class="form-control" name="reconfirmation_date" id="hub_reconfirmation_date">
+                                                        <input type="text" class="form-control" name="reconfirmation_date" id="hub_reconfirmation_date" placeholder="dd/mm/yyyy" autocomplete="off">
                                                     </div>
                                                 </div>
                                                 <div class="mt-3 text-end">
@@ -957,7 +957,7 @@
                                         <div class="row mb-3">
                                             <div class="col-md-4">
                                                 <label class="form-label">Maximum EMI Count <span class="text-danger">*</span></label>
-                                                <input type="number" min="2" max="24" class="form-control" name="max_emi_count" id="hub_max_emi_count" value="3" onchange="hub_generateEmiRows()">
+                                                <input type="number" min="2" max="24" class="form-control" name="max_emi_count" id="hub_max_emi_count" value="2" onchange="hub_generateEmiRows()">
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label">Split By <span class="text-danger">*</span></label>
@@ -1113,7 +1113,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="hub_paymentForm">
+                        <form id="hub_paymentForm" enctype="multipart/form-data">
                             <input type="hidden" name="installment_id" id="hub_payment_installment_id">
                             <div class="mb-3">
                                 <label class="form-label">Due Amount</label>
@@ -1125,7 +1125,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Payment Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" name="payment_date" id="hub_payment_date" required>
+                                <input type="text" class="form-control" name="payment_date" id="hub_payment_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Payment Method</label>
@@ -1141,6 +1141,11 @@
                             <div class="mb-3">
                                 <label class="form-label">Reference Number</label>
                                 <input type="text" class="form-control" name="payment_reference" id="hub_payment_reference" placeholder="Transaction/Receipt No.">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" name="payment_slip" id="hub_payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                                <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Remarks</label>
@@ -1220,18 +1225,19 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="hubPrPaymentForm">
+                        <form id="hubPrPaymentForm" enctype="multipart/form-data">
                             <input type="hidden" name="installment_id" id="hub_pr_pay_installment_id">
                             <input type="hidden" name="scheduler_id" id="hub_pr_pay_scheduler_id">
                             <div class="mb-3"><label class="form-label">Due Amount</label><input type="text" class="form-control" id="hub_pr_pay_due_amount" readonly></div>
                             <div class="mb-3"><label class="form-label">Payment Amount <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="payment_amount" id="hub_pr_pay_amount" required></div>
-                            <div class="mb-3"><label class="form-label">Payment Date <span class="text-danger">*</span></label><input type="date" class="form-control" name="payment_date" id="hub_pr_pay_date" required></div>
+                            <div class="mb-3"><label class="form-label">Payment Date <span class="text-danger">*</span></label><input type="text" class="form-control" name="payment_date" id="hub_pr_pay_date" placeholder="dd/mm/yyyy" autocomplete="off" required></div>
                             <div class="mb-3"><label class="form-label">Payment Method</label>
                                 <select class="form-control" name="payment_method" id="hub_pr_pay_method">
                                     <option value="">Select Method</option><option value="Cash">Cash</option><option value="Card">Card</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Cheque">Cheque</option>
                                 </select>
                             </div>
                             <div class="mb-3"><label class="form-label">Reference Number</label><input type="text" class="form-control" name="payment_reference" id="hub_pr_pay_ref" placeholder="Transaction/Receipt No."></div>
+                            <div class="mb-3"><label class="form-label">Payment Slip <span class="text-danger">*</span></label><input type="file" class="form-control" name="payment_slip" id="hub_pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" required><small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small></div>
                             <div class="mb-3"><label class="form-label">Remarks</label><textarea class="form-control" name="payment_remarks" id="hub_pr_pay_remarks" rows="2"></textarea></div>
                         </form>
                     </div>
