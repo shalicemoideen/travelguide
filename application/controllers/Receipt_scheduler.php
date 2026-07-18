@@ -265,6 +265,19 @@ class Receipt_scheduler extends MY_Controller {
             return;
         }
 
+        // Check role-based permission per installment number
+        if ($installment->installment_number == 1) {
+            if (!has_permission('RECEIPT_SCHEDULER_PAY_INITIAL')) {
+                echo json_encode(array('error' => true, 'message' => 'Permission denied: Only users with initial payment access can process the first installment'));
+                return;
+            }
+        } else {
+            if (!has_permission('RECEIPT_SCHEDULER_PAY_OTHER')) {
+                echo json_encode(array('error' => true, 'message' => 'Permission denied: Only reservation team can process subsequent installment payments'));
+                return;
+            }
+        }
+
         // Record payment
         $payment_data = array(
             'installment_id_fk' => $installment_id,

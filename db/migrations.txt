@@ -254,3 +254,8 @@ ALTER TABLE quotation
 ALTER TABLE property_payment_scheduler_payments ADD COLUMN payment_paid_by_username VARCHAR(255) NULL AFTER payment_paid_by_userid;
 
 ALTER TABLE property_payment_scheduler ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total_amount, ADD COLUMN IF NOT EXISTS discounted_total DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER discount_amount;
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
+('RECEIPT_SCHEDULER_PAY_INITIAL', 'PAY INITIAL', 'RECEIPT_SCHEDULER', 'RECEIPT_SCHEDULER_PAY', 'Permission to record payment for the first/initial installment (Sales Executive)', 1, 1, NULL, NOW(), NOW()),
+('RECEIPT_SCHEDULER_PAY_OTHER', 'PAY OTHER', 'RECEIPT_SCHEDULER', 'RECEIPT_SCHEDULER_PAY', 'Permission to record payment for subsequent installments (Reservation Team)', 1, 1, NULL, NOW(), NOW()),
+('QUOTATION_VIEW_CONFIRMED', 'VIEW CONFIRMED', 'QUOTATION', 'QUOTATION_VIEW', 'Allows viewing only confirmed quotations (status Confirmed & Ready to Trip) — Reservation Team', 1, 1, NULL, NOW(), NOW());

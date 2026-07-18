@@ -334,6 +334,11 @@ class Quotation extends MY_Controller {
 
 	public function ajax_driver_allocation()
 	{
+		if (!has_permission('DRIVER_ITINERARY')) {
+			echo json_encode(array('status' => false, 'message' => 'Permission denied: Driver Itinerary'));
+			return;
+		}
+
 		$quotation_id      = (int)$this->input->post('quotation_id');
 		$transporter_id    = (int)$this->input->post('transporter_id');
 		$driver_name       = $this->input->post('driver_name');
@@ -765,7 +770,7 @@ public function client_confirmation_preview($quotation_id)
 
 		
 
-		if (!has_permission('QUOTATION_VIEW')) {
+		if (!has_permission('QUOTATION_VIEW') && !has_permission('QUOTATION_VIEW_CONFIRMED')) {
 
 	        echo json_encode([
 
@@ -783,7 +788,10 @@ public function client_confirmation_preview($quotation_id)
 
 	    }
 
-		
+		// Reservation team: restrict to confirmed statuses only (5=Confirmed, 7=Ready to Trip)
+		if (!has_permission('QUOTATION_VIEW') && has_permission('QUOTATION_VIEW_CONFIRMED')) {
+			$param['confirmed_only'] = true;
+		}
 
     	$data = $this->Quotation_model->getQuotationTable($param);
 

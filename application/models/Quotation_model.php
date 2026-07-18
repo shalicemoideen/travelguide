@@ -111,6 +111,9 @@ class Quotation_model extends CI_Model{
         }
 
         $this->db->where("quotation_status",1);
+        if (!empty($param['confirmed_only'])) {
+            $this->db->where_in('quotation_current_status', array(5, 7));
+        }
 
 
 

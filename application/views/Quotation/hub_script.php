@@ -1,4 +1,6 @@
 <script>
+var hub_can_pay_initial = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_INITIAL') ? 'true' : 'false'; ?>;
+var hub_can_pay_other = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_OTHER') ? 'true' : 'false'; ?>;
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -180,7 +182,9 @@ function updateQuotationHubActions(status) {
         var confirmedOption = $('#hubStatusOptionText').text();
         var optionLabel = confirmedOption ? ' <span style="background:#fff;color:#155724;padding:2px 8px;border-radius:12px;margin-left:6px;font-size:14px;">' + confirmedOption + '</span>' : '';
         buttonsHtml = '<span class="badge badge-success p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check me-1"></i> Quotation Confirmed' + optionLabel + '</span> ';
-        buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-car me-1"></i> Driver Allocation</button>';
+        if (hasPermission('DRIVER_ITINERARY')) {
+            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-car me-1"></i> Driver Allocation</button>';
+        }
 
     }
 
@@ -189,7 +193,9 @@ function updateQuotationHubActions(status) {
     else if (status == 7) {
 
         buttonsHtml = '<span class="badge badge-primary p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-car me-1"></i> Ready to Trip</span> ';
-        buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Driver Allocation</button>';
+        if (hasPermission('DRIVER_ITINERARY')) {
+            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Driver Allocation</button>';
+        }
 
     }
 
@@ -2926,7 +2932,13 @@ function hub_viewScheduler(id) {
 
                     var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
 
-                    html += '<button class="btn btn-success btn-xs me-1" onclick="hub_recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                    var hubCanPay = (inst.installment_number == 1 && hub_can_pay_initial) || (inst.installment_number > 1 && hub_can_pay_other);
+
+                    if (hubCanPay) {
+
+                        html += '<button class="btn btn-success btn-xs me-1" onclick="hub_recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+
+                    }
 
                 }
 

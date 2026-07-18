@@ -3,6 +3,8 @@ var base_url = '<?php echo base_url(); ?>index.php/';
 var table;
 var save_method;
 var currentSchedulerId = null;
+var rs_can_pay_initial = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_INITIAL') ? 'true' : 'false'; ?>;
+var rs_can_pay_other = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_OTHER') ? 'true' : 'false'; ?>;
 
 $(document).ready(function() {
     loadTable();
@@ -374,7 +376,10 @@ function viewScheduler(id) {
                 html += '<td>';
                 if (inst.payment_status != 'PAID') {
                     var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
-                    html += '<button class="btn btn-success btn-xs me-1" onclick="recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                    var rsCanPay = (inst.installment_number == 1 && rs_can_pay_initial) || (inst.installment_number > 1 && rs_can_pay_other);
+                    if (rsCanPay) {
+                        html += '<button class="btn btn-success btn-xs me-1" onclick="recordPayment(' + inst.installment_id + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
+                    }
                 }
                 if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
                     html += '<button class="btn btn-info btn-xs" onclick="viewReceipts(' + inst.installment_id + ')" title="Receipts"><i class="fas fa-receipt"></i> Receipt</button>';

@@ -282,6 +282,7 @@
 					<?php  
 					if (has_any_permission([
 						'QUOTATION_VIEW',
+						'QUOTATION_VIEW_CONFIRMED',
 						'QUOTATION_CREATE',
 						'QUOTATION_UPDATE',
 						'QUOTATION_DELETE'
