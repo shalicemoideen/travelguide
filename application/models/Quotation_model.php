@@ -978,19 +978,21 @@ class Quotation_model extends CI_Model{
 
             $hotelDays = $this->db
 
-                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, COALESCE(SUM(qpr.total_room_cost), 0) as day_cost', FALSE)
+                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, COALESCE(SUM(qrtd.manual_total_rate), 0) as day_cost', FALSE)
 
-                ->from('quotation_properties_rooms qpr')
+                ->from('quotation_confirmation qc')
 
-                ->join('quotation_properties qp', 'qp.quotation_properties_id = qpr.quotation_properties_id_fk')
+                ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
 
-                ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qp.quotation_properties_days_id_fk')
+                ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_rooms_id = qc.properties_room_id_fk', 'inner')
 
-                ->where('qpd.quotation_options_id_fk', $option_id)
+                ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id', 'left')
+
+                ->where('qc.quotation_id_fk', $quotation_id)
+
+                ->where('qc.property_confirmation_status', 1)
 
                 ->where('qpd.quotation_properties_days_status', 1)
-
-                ->where('qp.quotation_properties_status', 1)
 
                 ->where('qpr.quotation_properties_rooms_status', 1)
 
@@ -7042,6 +7044,6 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		return $query->num_rows();
 	}
 
-}
 
-?>
+
+}

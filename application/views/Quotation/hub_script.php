@@ -319,8 +319,9 @@ function showGenerateModal() {
 function showDriverAllocationModal() {
 
     var quotation_id = $('#quotation_id').val();
+    var summaryData = window._hubSummaryData || {};
 
-    // Load transporters into select2 dropdown
+    // Load transporters into select2 dropdown, then pre-fill saved values
     $.ajax({
         url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_transporters",
         type: "POST",
@@ -336,15 +337,28 @@ function showDriverAllocationModal() {
             if ($.fn.select2) {
                 $sel.select2({ dropdownParent: $('#driverAllocationModal'), placeholder: '-- Select Transporter --', allowClear: true, width: '100%' });
             }
+            // Pre-fill transporter after options are populated
+            var savedTransporter = summaryData.quotation_transporter_id_fk || '';
+            if (savedTransporter) {
+                $sel.val(savedTransporter).trigger('change');
+            }
         }
     });
 
-    // Pre-fill existing values from summary data
-    var data = window._hubSummaryData || {};
-    $('#da_transporter_id').val(data.quotation_transporter_id_fk || '').trigger('change');
-    $('#da_driver_name').val(data.quotation_driver_name || '');
-    $('#da_driver_mobile').val(data.quotation_driver_mobile || '');
-    $('#da_cab_number').val(data.quotation_cab_number || '');
+    // Pre-fill other fields immediately
+    $('#da_driver_name').val(summaryData.quotation_driver_name || '');
+    $('#da_driver_mobile').val(summaryData.quotation_driver_mobile || '');
+    $('#da_cab_number').val(summaryData.quotation_cab_number || '');
+
+    $('#driverAllocationModal').off('shown.bs.modal').on('shown.bs.modal', function() {
+        $('#da_transporter_id').next('.select2').find('.select2-selection').focus();
+    });
+
+    $(document).off('select2:open', '#da_transporter_id').on('select2:open', '#da_transporter_id', function() {
+        setTimeout(function() {
+            document.querySelector('.select2-container--open .select2-search__field').focus();
+        }, 50);
+    });
 
     $('#driverAllocationModal').modal('show');
 
@@ -3834,7 +3848,7 @@ function fpAddHotelDay(label, quoted, actual, desc) {
         '<td><input type="number" class="form-control form-control-sm fp-quoted" name="hotel_quoted[]" value="' + quoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
         '<td><input type="number" class="form-control form-control-sm fp-actual" name="hotel_actual[]" value="' + actual + '" placeholder="0.00" min="0" step="0.01"></td>' +
         '<td><input type="text" class="form-control form-control-sm" name="hotel_descs[]" value="' + escapeHtml(desc) + '" placeholder="Description"></td>' +
-        '<td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger" onclick="fpRemoveRow(this)"><i class="la la-trash"></i></button></td>' +
+        '<td class="text-center"><!-- <button type="button" class="btn btn-sm btn-link text-danger" onclick="fpRemoveRow(this)"><i class="la la-trash"></i></button> --></td>' +
         '</tr>';
 
     var $lastHotel = $('#fpHubTable tbody tr.fp-hotel-day').last();

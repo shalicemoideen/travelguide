@@ -456,7 +456,7 @@
                                                                     <!-- Hotel day header -->
                                                                     <tr id="fpHotelDayHeader">
                                                                         <td colspan="5" class="fp-section-header">
-                                                                            Hotel Costs — <button type="button" class="btn btn-sm btn-info" onclick="fpAddHotelDay()"><i class="la la-plus me-1"></i>Add Day</button>
+                                                                            Hotel Costs <!-- — <button type="button" class="btn btn-sm btn-info" onclick="fpAddHotelDay()"><i class="la la-plus me-1"></i>Add Day</button> -->
                                                                         </td>
                                                                     </tr>
                                                                     <!-- Other expense header -->

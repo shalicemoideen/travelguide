@@ -243,3 +243,14 @@ INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `d
 ('TEMPLATE_MASTER_VIEW',   'VIEW',   'TEMPLATES', 'TEMPLATE_MASTER', 'TEMPLATES menu', 1, 1, NULL, NOW(), NOW()),
 ('TEMPLATE_MASTER_DELETE', 'DELETE', 'TEMPLATES', 'TEMPLATE_MASTER', 'TEMPLATES menu', 1, 1, NULL, NOW(), NOW()),
 ('TEMPLATE_MASTER_DUPLICATE', 'DUPLICATE', 'TEMPLATES', 'TEMPLATE_MASTER', 'TEMPLATES menu', 1, 1, NULL, NOW(), NOW())
+
+
+ALTER TABLE quotation 
+    ADD COLUMN quotation_transporter_id_fk INT(11) NULL DEFAULT NULL AFTER quotation_remarks,
+    ADD COLUMN quotation_driver_name VARCHAR(255) NULL DEFAULT NULL AFTER quotation_transporter_id_fk,
+    ADD COLUMN quotation_driver_mobile VARCHAR(50) NULL DEFAULT NULL AFTER quotation_driver_name,
+    ADD COLUMN quotation_cab_number VARCHAR(100) NULL DEFAULT NULL AFTER quotation_driver_mobile;
+
+ALTER TABLE property_payment_scheduler_payments ADD COLUMN payment_paid_by_username VARCHAR(255) NULL AFTER payment_paid_by_userid;
+
+ALTER TABLE property_payment_scheduler ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total_amount, ADD COLUMN IF NOT EXISTS discounted_total DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER discount_amount;

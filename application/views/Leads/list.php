@@ -4722,7 +4722,7 @@ a.leads-number-link:hover {
 
                                             <tr class="table-light">
 
-                                                <td colspan="4" class="text-end fw-semibold">Total Inclusion Amount</td>
+                                                <td colspan="4" class="text-end fw-semibold" style="color:white">Total Inclusion Amount</td>
 
                                                 <td class="fw-bold">
 
@@ -4950,7 +4950,7 @@ a.leads-number-link:hover {
 
           <tr class="table-light">
 
-            <td colspan="2" class="text-end fw-semibold">Total Special Requirements Amount</td>
+            <td colspan="2" class="text-end fw-semibold" style="color:white">Total Special Requirements Amount</td>
 
             <td class="fw-bold">
 

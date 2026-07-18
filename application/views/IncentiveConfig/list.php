@@ -7,11 +7,11 @@
         <div class="row mb-3">
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><b>Incentive Configuration</b></h4>
-                <?php if ($this->session->userdata('user_type') == 'A'): ?>
+                <?php /* if ($this->session->userdata('user_type') == 'A'): ?>
                 <button type="button" class="btn btn-primary btn-sm" id="btnAddSlab">
                     <i class="fas fa-plus"></i> Add Slab
                 </button>
-                <?php endif; ?>
+                <?php endif; */ ?>
             </div>
         </div>
 
@@ -31,9 +31,9 @@
                                         <th>Incentive Value</th>
                                         <th>Deduction (₹)</th>
                                         <th>Preview Formula</th>
-                                        <?php if ($this->session->userdata('user_type') == 'A'): ?>
+                                        <?php /* if ($this->session->userdata('user_type') == 'A'): ?>
                                         <th>Actions</th>
-                                        <?php endif; ?>
+                                        <?php endif; */ ?>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -65,7 +65,7 @@
                                                 Incentive = (Profit × <?php echo $row->incentive_value; ?>%) − ₹<?php echo number_format($row->deduction, 2); ?>
                                             <?php endif; ?>
                                         </td>
-                                        <?php if ($this->session->userdata('user_type') == 'A'): ?>
+                                        <?php /* if ($this->session->userdata('user_type') == 'A'): ?>
                                         <td>
                                             <button class="btn btn-warning btn-xs btnEdit"
                                                 data-id="<?php echo $row->id; ?>"
@@ -81,7 +81,7 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </td>
-                                        <?php endif; ?>
+                                        <?php endif; */ ?>
                                     </tr>
                                 <?php endforeach; ?>
                                 </tbody>
