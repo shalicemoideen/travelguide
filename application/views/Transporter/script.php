@@ -253,6 +253,8 @@ function Transportermodalclose()
     $('#transporter_address').val('');
     $('#transporter_base_station_id_fk').val('').change();
     $('#vehicle_id_fk').val('0').change();
+    $('#login_username').val('');
+    $('#login_password').val('');
 	$('#category_name_alert').hide();
 	$('.submit').removeAttr('disabled');
 	$('.form-group').removeClass('input-success-o');
@@ -336,7 +338,9 @@ function edit_transporter(id)
             $('[name="transporter_bank_account_name"]').val(data.transporter_bank_account_name);
             $('[name="transporter_bank_account_ifsc_code"]').val(data.transporter_bank_account_ifsc_code);
             $('[name="transporter_bank_account_branch"]').val(data.transporter_bank_account_branch);
-            $('[name="transporter_bank_swift_code"]').val(data.transporter_bank_swift_code);     
+            $('[name="transporter_bank_swift_code"]').val(data.transporter_bank_swift_code);
+            $('[name="login_username"]').val(data.login_username || '');
+            $('[name="login_password"]').val('');
             $('#TransporterModal').modal('show'); // show bootstrap modal when complete loaded
             $('.modal-title').text('Edit transporter Details'); // Set title to Bootstrap modal title
 			$('#btnSave').text('update');

@@ -166,6 +166,15 @@ class Role extends MY_Controller {
         $currentusertype = $this->session->userdata('user_type');
         $currentusername = $this->session->userdata('admin_name');
 
+        $role_id = $this->input->post('role_id_delete');
+        $role = $this->Role_model->get_by_id($role_id);
+
+        $protected_roles = array('SUPER ADMIN', 'TRANSPORTER LOGIN');
+        if ($role && in_array(strtoupper($role->name), $protected_roles)) {
+            echo json_encode(array("status" => FALSE, "message" => "Cannot delete core system role: " . $role->name));
+            return;
+        }
+
         $this->load->helper('date');
         if(function_exists('date_default_timezone_set')) {
             date_default_timezone_set("Asia/Kolkata");
@@ -177,7 +186,7 @@ class Role extends MY_Controller {
 
         $updateData = array('status' => 0);
         
-        $this->Role_model->update(array('id' => $this->input->post('role_id_delete')), $updateData);
+        $this->Role_model->update(array('id' => $role_id), $updateData);
 
         $this->Role_model->delete_permissions_by_role($this->input->post('role_id_delete'));
 

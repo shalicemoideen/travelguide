@@ -69,6 +69,15 @@ body {
     box-shadow: 0 6px 12px rgba(17,153,142,0.4);
 }
 
+.btn-pdf {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+.btn-pdf:hover {
+    background: linear-gradient(135deg, #b02a37 0%, #a01e2c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220,53,69,0.4);
+}
+
 .wrapper {
     width: 960px;
     margin: 22px auto;
@@ -166,6 +175,7 @@ body {
 
 <div class="topbar no-print">
     <div class="actions">
+        <button class="btn-pdf" onclick="exportToPDF()"><i class="la la-file-pdf"></i> Download PDF</button>
         <button class="btn-word" onclick="exportToWord()"><i class="la la-file-word"></i> Export to Word</button>
         <button class="btn-wa" onclick="copyWhatsApp()"><i class="la la-whatsapp"></i> Copy WhatsApp Content</button>
     </div>
@@ -344,6 +354,53 @@ function exportToWord() {
     link.href = URL.createObjectURL(blob);
     link.download = '<?= preg_replace("/[^A-Za-z0-9\-_]/", "-", di_get($main, "guest_name", "Guest")); ?>-driver-itinerary.doc';
     link.click();
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+async function exportToPDF() {
+    var btnPdf = document.querySelector('.btn-pdf');
+    if (btnPdf) { btnPdf.disabled = true; btnPdf.innerHTML = '<i class="la la-spinner la-spin"></i> Generating...'; }
+
+    try {
+        var content = document.getElementById('driverContent');
+        var canvas = await html2canvas(content, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+
+        var imgData = canvas.toDataURL('image/png');
+        var { jsPDF } = window.jspdf;
+
+        var imgWidth = 210;
+        var pageHeight = 297;
+        var imgHeight = (canvas.height * imgWidth) / canvas.width;
+        var heightLeft = imgHeight;
+
+        var pdf = new jsPDF('p', 'mm', 'a4');
+        var position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        var fileName = '<?= preg_replace("/[^A-Za-z0-9\-_]/", "-", di_get($main, "guest_name", "Guest")); ?>-driver-itinerary.pdf';
+        pdf.save(fileName);
+    } catch (err) {
+        console.error('PDF generation failed:', err);
+        alert('Failed to generate PDF. Please try again.');
+    } finally {
+        if (btnPdf) { btnPdf.disabled = false; btnPdf.innerHTML = '<i class="la la-file-pdf"></i> Download PDF'; }
+    }
 }
 </script>
 

@@ -457,5 +457,186 @@ class Property_reservation_model extends CI_Model {
             'reconfirmed' => $reconfirmed,
         );
     }
+
+    // =========================================================
+    // PROPERTY PAYMENTS REPORT (Accountant)
+    // =========================================================
+
+    public function getPropertySchedulerReportTable($param)
+    {
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $property_name_filter    = isset($param['property_name_filter']) ? $param['property_name_filter'] : '';
+        $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+
+        $this->db
+            ->select('pps.property_payment_scheduler_id, pps.payment_type, pps.total_amount, pps.discounted_total,
+                      pps.max_emi_count, pps.property_reservation_id_fk,
+                      (CASE WHEN pps.discounted_total > 0 THEN pps.discounted_total ELSE pps.total_amount END) as net_total,
+                      p.properties_name,
+                      q.quotation_number,
+                      l.guest_name,
+                      COALESCE(SUM(i.paid_amount), 0) as total_paid,
+                      ((CASE WHEN pps.discounted_total > 0 THEN pps.discounted_total ELSE pps.total_amount END) - COALESCE(SUM(i.paid_amount), 0)) as pending_amount')
+            ->from($this->table_payment . ' pps')
+            ->join($this->table . ' pr', 'pr.property_reservation_id = pps.property_reservation_id_fk', 'left')
+            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
+            ->join('quotation q', 'q.quotation_id = pps.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->join($this->table_installments . ' i', 'i.property_payment_scheduler_id_fk = pps.property_payment_scheduler_id AND i.installment_status = 1', 'left')
+            ->where('pps.property_payment_scheduler_status', 1);
+
+        if ($quotation_number_filter) {
+            $this->db->like('q.quotation_number', $quotation_number_filter);
+        }
+        if ($guest_name_filter) {
+            $this->db->like('l.guest_name', $guest_name_filter);
+        }
+        if ($property_name_filter) {
+            $this->db->like('p.properties_name', $property_name_filter);
+        }
+        if ($payment_type_filter) {
+            $this->db->where('pps.payment_type', $payment_type_filter);
+        }
+
+        $this->db->group_by('pps.property_payment_scheduler_id');
+        $this->db->order_by('pps.property_payment_scheduler_id', 'DESC');
+
+        if ($param['length'] != -1 && $param['start'] != 'false' && $param['length'] != 'false') {
+            $this->db->limit($param['length'], $param['start']);
+        }
+
+        $query = $this->db->get();
+
+        $data['data'] = $query->result();
+        $data['recordsTotal'] = $this->getPropertySchedulerReportTotalCount($param);
+        $data['recordsFiltered'] = $this->getPropertySchedulerReportTotalCount($param);
+        return $data;
+    }
+
+    public function getPropertySchedulerReportTotalCount($param = NULL)
+    {
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $property_name_filter    = isset($param['property_name_filter']) ? $param['property_name_filter'] : '';
+        $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+
+        $this->db
+            ->from($this->table_payment . ' pps')
+            ->join($this->table . ' pr', 'pr.property_reservation_id = pps.property_reservation_id_fk', 'left')
+            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
+            ->join('quotation q', 'q.quotation_id = pps.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->where('pps.property_payment_scheduler_status', 1);
+
+        if ($quotation_number_filter) {
+            $this->db->like('q.quotation_number', $quotation_number_filter);
+        }
+        if ($guest_name_filter) {
+            $this->db->like('l.guest_name', $guest_name_filter);
+        }
+        if ($property_name_filter) {
+            $this->db->like('p.properties_name', $property_name_filter);
+        }
+        if ($payment_type_filter) {
+            $this->db->where('pps.payment_type', $payment_type_filter);
+        }
+
+        return $this->db->count_all_results();
+    }
+
+    public function getPropertyPaymentsReportTable($param)
+    {
+        $start_date  = isset($param['start_date']) ? $param['start_date'] : '';
+        $end_date    = isset($param['end_date']) ? $param['end_date'] : '';
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $property_name_filter = isset($param['property_name_filter']) ? $param['property_name_filter'] : '';
+        $payment_type_filter = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $installment_number_filter = isset($param['installment_number_filter']) ? $param['installment_number_filter'] : '';
+        $status_filter = isset($param['status_filter']) ? $param['status_filter'] : '';
+
+        $this->db
+            ->select('i.installment_id, i.installment_number, i.calculated_amount, i.due_date, i.payment_status, i.paid_amount, i.paid_date, i.payment_reference, i.payment_method,
+                      pps.property_payment_scheduler_id, pps.payment_type, pps.total_amount, pps.discounted_total,
+                      pr.property_reservation_id, pr.quotation_id_fk, pr.properties_id_fk,
+                      p.properties_name,
+                      q.quotation_number,
+                      l.guest_name')
+            ->from($this->table_installments . ' i')
+            ->join($this->table_payment . ' pps', 'pps.property_payment_scheduler_id = i.property_payment_scheduler_id_fk', 'left')
+            ->join($this->table . ' pr', 'pr.property_reservation_id = pps.property_reservation_id_fk', 'left')
+            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
+            ->join('quotation q', 'q.quotation_id = pr.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->where('i.installment_status', 1);
+
+        $this->_applyPropertyPaymentsReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $property_name_filter, $payment_type_filter, $installment_number_filter, $status_filter);
+
+        $this->db->order_by('i.due_date', 'DESC');
+
+        if ($param['length'] != -1 && $param['start'] != 'false' && $param['length'] != 'false') {
+            $this->db->limit($param['length'], $param['start']);
+        }
+
+        $query = $this->db->get();
+        $data['data'] = $query->result();
+        $data['recordsTotal'] = $this->getPropertyPaymentsReportTotalCount($param);
+        $data['recordsFiltered'] = $this->getPropertyPaymentsReportTotalCount($param);
+        return $data;
+    }
+
+    public function getPropertyPaymentsReportTotalCount($param = NULL)
+    {
+        $start_date  = isset($param['start_date']) ? $param['start_date'] : '';
+        $end_date    = isset($param['end_date']) ? $param['end_date'] : '';
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $property_name_filter = isset($param['property_name_filter']) ? $param['property_name_filter'] : '';
+        $payment_type_filter = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $installment_number_filter = isset($param['installment_number_filter']) ? $param['installment_number_filter'] : '';
+        $status_filter = isset($param['status_filter']) ? $param['status_filter'] : '';
+
+        $this->db
+            ->from($this->table_installments . ' i')
+            ->join($this->table_payment . ' pps', 'pps.property_payment_scheduler_id = i.property_payment_scheduler_id_fk', 'left')
+            ->join($this->table . ' pr', 'pr.property_reservation_id = pps.property_reservation_id_fk', 'left')
+            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
+            ->join('quotation q', 'q.quotation_id = pr.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->where('i.installment_status', 1);
+
+        $this->_applyPropertyPaymentsReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $property_name_filter, $payment_type_filter, $installment_number_filter, $status_filter);
+
+        return $this->db->get()->num_rows();
+    }
+
+    private function _applyPropertyPaymentsReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $property_name_filter, $payment_type_filter, $installment_number_filter, $status_filter)
+    {
+        if ($start_date) {
+            $this->db->where('i.due_date >=', $start_date);
+        }
+        if ($end_date) {
+            $this->db->where('i.due_date <=', $end_date);
+        }
+        if ($quotation_number_filter) {
+            $this->db->like('q.quotation_number', $quotation_number_filter);
+        }
+        if ($guest_name_filter) {
+            $this->db->like('l.guest_name', $guest_name_filter);
+        }
+        if ($property_name_filter) {
+            $this->db->like('p.properties_name', $property_name_filter);
+        }
+        if ($payment_type_filter) {
+            $this->db->where('pps.payment_type', $payment_type_filter);
+        }
+        if ($installment_number_filter !== '' && $installment_number_filter !== null) {
+            $this->db->where('i.installment_number', (int)$installment_number_filter);
+        }
+        if ($status_filter) {
+            $this->db->where('i.payment_status', $status_filter);
+        }
+    }
 }
 ?>

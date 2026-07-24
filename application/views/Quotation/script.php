@@ -506,6 +506,26 @@ var table;
 
                 $('td', row).eq(8).html(actionHtml);  
             }
+            else if($table.cell(node).data() == '8') {
+              $table.cell(node).data('<span class="badge badge-info">Reservation Completed</span>');
+
+                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+
+                let actionHtml8 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+
+                if (hasPermission('QUOTATION_PREVIEW')) {
+                    actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
+                }
+                if (hasPermission('QUOTATION_HUB')) {
+                    actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+                if (hasPermission('QUOTATION_DELETE')) {
+                    actionHtml8 += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
+                }
+
+                actionHtml8 += '</div></div>';
+                $('td', row).eq(8).html(actionHtml8);
+            }
             else if($table.cell(node).data() == '7') {
               $table.cell(node).data('<span class="badge badge-primary">Ready to Trip</span>');
 
@@ -525,6 +545,26 @@ var table;
 
                 actionHtml7 += '</div></div>';
                 $('td', row).eq(8).html(actionHtml7);
+            }
+            else if($table.cell(node).data() == '9') {
+              $table.cell(node).data('<span class="badge badge-warning">Driver Not Assigned</span>');
+
+                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+
+                let actionHtml9 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+
+                if (hasPermission('QUOTATION_PREVIEW')) {
+                    actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
+                }
+                if (hasPermission('QUOTATION_HUB')) {
+                    actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+                if (hasPermission('QUOTATION_DELETE')) {
+                    actionHtml9 += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
+                }
+
+                actionHtml9 += '</div></div>';
+                $('td', row).eq(8).html(actionHtml9);
             }
             else if($table.cell(node).data() == '6') {
             // else if(data['quotation_current_status'] == 6){

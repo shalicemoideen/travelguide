@@ -35,7 +35,9 @@ var statusLabels = {
     4: '<span class="badge badge-danger">Rejected</span>',
     5: '<span class="badge badge-success">Confirmed</span>',
     6: '<span class="badge badge-danger">Cancelled</span>',
-    7: '<span class="badge badge-primary">Ready to Trip</span>'
+    8: '<span class="badge badge-info">Reservation Completed</span>',
+    7: '<span class="badge badge-primary">Ready to Trip</span>',
+    9: '<span class="badge badge-warning">Driver Not Assigned</span>'
 };
 
 var autoReload = false;

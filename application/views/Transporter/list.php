@@ -254,6 +254,29 @@
                                 </div>                                
                             </div>
 
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="mt-3 mb-2 text-primary"><i class="fas fa-user-lock me-2"></i>Login Credentials</h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-form-label" for="login_username">Login Username <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="login_username" id="login_username" placeholder="Enter login username" required>
+                                        <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-form-label" for="login_password">Password <span class="text-danger">*</span></label>
+                                        <input type="password" class="form-control" name="login_password" id="login_password" placeholder="Enter password" required>
+                                        <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <small class="text-muted">Transporter will use these credentials to log in. Role will be auto-assigned as <strong>TRANSPORTER LOGIN</strong>.</small>
+                                </div>
+                            </div>
+
                         </form>
                     </div>
                     <div class="modal-footer">

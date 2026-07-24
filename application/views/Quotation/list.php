@@ -1270,6 +1270,8 @@
 
 </style>
 
+<?php if (!isset($quotation_modal_only) || !$quotation_modal_only): ?>
+
 <!--**********************************
 
             Content body start
@@ -1380,7 +1382,11 @@
 
                                                                    <option value="5">Confirmed</option>
 
+                                                                   <option value="8">Reservation Completed</option>
+
                                                                    <option value="6">Cancelled</option>
+
+                                                                   <option value="9">Driver Not Assigned</option>
 
                                                                    <option value="7">Ready to Trip</option>
 
@@ -1617,6 +1623,8 @@
             Content body end
 
         ***********************************-->
+
+<?php endif; ?>
 
                                                                     
 
@@ -2384,7 +2392,9 @@
 
 
 
-  <div class="modal fade" id="ChangeStatusModal" tabindex="-1" data-bs-backdrop="static"> 
+<?php if (!isset($quotation_modal_only) || !$quotation_modal_only): ?>
+
+  <div class="modal fade" id="ChangeStatusModal" tabindex="-1" data-bs-backdrop="static">
 
     <div class="modal-dialog"> <div class="modal-content"> 
 
@@ -2429,6 +2439,8 @@
     </div> 
 
   </div>
+
+<?php endif; ?>
 
 <!-- Modal -->
 

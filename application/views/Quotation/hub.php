@@ -230,6 +230,25 @@
 
                 </div>
 
+                <!-- Review Status Card -->
+                <div id="hubReviewCard" class="row g-3 mb-3" style="display:none;">
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm" style="border-radius:10px;">
+                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div>
+                                        <div class="quotation-info-label" style="font-size:12px;color:#6c757d;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Trip Review</div>
+                                        <div id="hubReviewDisplay" style="font-size:15px;font-weight:600;color:#212529;"></div>
+                                    </div>
+                                </div>
+                                <div id="hubReviewAction">
+                                    <!-- Filled by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="card">
@@ -263,27 +282,6 @@
                                         <?php if (has_permission('PROPERTY_RESERVATION')): ?>
                                         <li class="nav-item">
                                             <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#propertyReservationTab" id="tabPropertyReservation"><i class="la la-hotel me-2"></i> Property reservation</a>
-                                        </li>
-                                        <?php endif; ?>
-                                        <?php if (has_permission('PROPERTY_VOUCHER')): ?>
-                                        <li class="nav-item">
-                                            <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#propertyVoucherTab" id="tabPropertyVoucher">
-                                                <i class="la la-building me-2"></i> Property voucher
-                                            </a>
-                                        </li>
-                                        <?php endif; ?>
-                                        <?php if (has_permission('TOUR_VOUCHER')): ?>
-                                        <li class="nav-item">
-                                            <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#tourVoucherTab" id="tabTourVoucher">
-                                                <i class="la la-map me-2"></i> Tour voucher
-                                            </a>
-                                        </li>
-                                        <?php endif; ?>
-                                        <?php if (has_permission('DRIVER_ITINERARY')): ?>
-                                        <li class="nav-item">
-                                            <a class="nav-link disabled-tab" data-bs-toggle="tab" href="#driverItineraryTab" id="tabDriverItinerary">
-                                                <i class="la la-car me-2"></i> Driver itinerary
-                                            </a>
                                         </li>
                                         <?php endif; ?>
                                         <?php if (has_permission('FINANCIAL_POSTING')): ?>
@@ -389,37 +387,6 @@
                                         </div>
 
                                         
-                                        <div class="tab-pane fade" id="propertyVoucherTab">
-                                            <div class="pt-4">
-                                                <h4>Property Voucher</h4>
-                                                <p>Property voucher details will be shown here.</p>
-                                                <button type="button"
-        class="btn btn-primary"
-        id="btnPropertyVoucher">
-    Display Property Voucher
-</button>
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane fade" id="tourVoucherTab">
-                                            <div class="pt-4">
-                                                <h4>Tour Voucher</h4>
-                                                <!-- <p>Tour voucher details will be shown here.</p> -->
-                                                 <div class="pt-4">
-        <button type="button" class="btn btn-primary" id="btnTourVoucher">
-            Display Tour Voucher
-        </button>
-    </div>
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane fade" id="driverItineraryTab">
-                                            <div class="pt-4">
-                                                <h4>Driver Itinerary</h4>
-                                                <!-- <p>Driver itinerary details will be shown here.</p> -->
-                                                 <button type="button" class="btn btn-primary" id="btnDriverItinerary">
-            Display Driver Itinerary
-        </button>
-                                            </div>
-                                        </div>
                                         <div class="tab-pane fade" id="financialPostingTab">
                                             <div class="pt-4">
                                                 <div class="card border-0 shadow-sm">
@@ -854,11 +821,31 @@
                     <div class="modal-body">
                         <p>Are you sure you want to confirm this quotation?</p>
                         <p class="text-muted">This will change the quotation status from <strong>Generated</strong> to <strong>Confirmed</strong>.</p>
-                        <p class="text-success"><i class="la la-check-circle"></i> This will enable all voucher and itinerary tabs.</p>
+                        <p class="text-warning"><i class="la la-info-circle"></i> Voucher and itinerary tabs will be enabled once all property reservations are marked as completed.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-success" id="btnConfirmYes">Yes, Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mark Reservation Completed Modal -->
+        <div class="modal fade" id="markReservationCompletedModal" tabindex="-1" aria-labelledby="markReservationCompletedModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="markReservationCompletedModalLabel">Mark Reservation Completed</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to mark property reservations as completed?</p>
+                        <p class="text-muted">This will change the status to <strong>Reservation Completed</strong> and enable all voucher and itinerary tabs.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="btnMarkReservationCompletedYes">Yes, Mark Completed</button>
                     </div>
                 </div>
             </div>
@@ -1023,27 +1010,35 @@
                             <div class="col-md-3"><strong>Total:</strong> <span id="hub_view_total_amount">-</span></div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-white">Total</h6>
+                                        <h4 class="text-white" id="hub_view_total_card">₹0.00</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="card bg-success text-white">
                                     <div class="card-body text-center">
-                                        <h6>Paid</h6>
-                                        <h4 id="hub_view_paid_amount">₹0.00</h4>
+                                        <h6 class="text-white">Paid</h6>
+                                        <h4 class="text-white" id="hub_view_paid_amount">₹0.00</h4>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card bg-warning">
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
                                     <div class="card-body text-center">
-                                        <h6>Pending</h6>
-                                        <h4 id="hub_view_pending_amount">₹0.00</h4>
+                                        <h6 class="text-white">Pending</h6>
+                                        <h4 class="text-white" id="hub_view_pending_amount">₹0.00</h4>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="card bg-danger text-white">
                                     <div class="card-body text-center">
-                                        <h6>Overdue</h6>
-                                        <h4 id="hub_view_overdue_count">0</h4>
+                                        <h6 class="text-white">Overdue</h6>
+                                        <h4 class="text-white" id="hub_view_overdue_count">0</h4>
                                     </div>
                                 </div>
                             </div>
@@ -1072,12 +1067,12 @@
             </div>
         </div>
 
-        <!-- Payment Receipts Modal -->
+        <!-- Payment History Modal -->
         <div class="modal fade" id="hub_receiptsModal" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Payment Receipts</h5>
+                        <h5 class="modal-title">Payment History</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -1090,7 +1085,8 @@
                                         <th>Method</th>
                                         <th>Reference</th>
                                         <th>Received By</th>
-                                        <th width="100">Action</th>
+                                        <th>Approved by Accounts</th>
+                                        <th width="120">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="hub_receiptsTableBody"></tbody>
@@ -1115,41 +1111,43 @@
                     <div class="modal-body">
                         <form id="hub_paymentForm" enctype="multipart/form-data">
                             <input type="hidden" name="installment_id" id="hub_payment_installment_id">
-                            <div class="mb-3">
-                                <label class="form-label">Due Amount</label>
-                                <input type="text" class="form-control" id="hub_payment_due_amount" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Payment Amount <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" class="form-control" name="payment_amount" id="hub_payment_amount" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Payment Date <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="payment_date" id="hub_payment_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Payment Method</label>
-                                <select class="form-control" name="payment_method" id="hub_payment_method">
-                                    <option value="">Select Method</option>
-                                    <option value="Cash">Cash</option>
-                                    <option value="Card">Card</option>
-                                    <option value="UPI">UPI</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cheque">Cheque</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Reference Number</label>
-                                <input type="text" class="form-control" name="payment_reference" id="hub_payment_reference" placeholder="Transaction/Receipt No.">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control" name="payment_slip" id="hub_payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
-                                <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Remarks</label>
-                                <textarea class="form-control" name="payment_remarks" id="hub_payment_remarks" rows="2"></textarea>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Due Amount</label>
+                                    <input type="text" class="form-control" id="hub_payment_due_amount" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Amount <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" name="payment_amount" id="hub_payment_amount" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="payment_date" id="hub_payment_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Method</label>
+                                    <select class="form-control" name="payment_method" id="hub_payment_method">
+                                        <option value="">Select Method</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Card">Card</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Reference Number</label>
+                                    <input type="text" class="form-control" name="payment_reference" id="hub_payment_reference" placeholder="Transaction/Receipt No.">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="payment_slip" id="hub_payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Remarks</label>
+                                    <textarea class="form-control" name="payment_remarks" id="hub_payment_remarks" rows="2"></textarea>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -1187,21 +1185,51 @@
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Payment Summary</h5>
+                        <h5 class="modal-title">Property Payment Schedule Details</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <div class="card bg-success text-white"><div class="card-body text-center py-2"><small>Paid</small><h5 class="mb-0" id="hub_pr_view_paid">₹0.00</h5></div></div>
+                            <div class="col-md-3"><strong>Quotation:</strong> <span id="hub_pr_view_quotation">-</span></div>
+                            <div class="col-md-3"><strong>Guest:</strong> <span id="hub_pr_view_guest">-</span></div>
+                            <div class="col-md-3"><strong>Property:</strong> <span id="hub_pr_view_property">-</span></div>
+                            <div class="col-md-3"><strong>Type:</strong> <span id="hub_pr_view_type">-</span></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-white">Total</h6>
+                                        <h4 class="text-white" id="hub_pr_view_total">₹0.00</h4>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card bg-warning"><div class="card-body text-center py-2"><small>Pending</small><h5 class="mb-0" id="hub_pr_view_pending">₹0.00</h5></div></div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-white">Paid</h6>
+                                        <h4 class="text-white" id="hub_pr_view_paid">₹0.00</h4>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card bg-danger text-white"><div class="card-body text-center py-2"><small>Overdue</small><h5 class="mb-0" id="hub_pr_view_overdue">0</h5></div></div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-white">Pending</h6>
+                                        <h4 class="text-white" id="hub_pr_view_pending">₹0.00</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-white">Overdue</h6>
+                                        <h4 class="text-white" id="hub_pr_view_overdue">0</h4>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <h6>Installments</h6>
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm">
                                 <thead class="table-light"><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead>
@@ -1228,17 +1256,44 @@
                         <form id="hubPrPaymentForm" enctype="multipart/form-data">
                             <input type="hidden" name="installment_id" id="hub_pr_pay_installment_id">
                             <input type="hidden" name="scheduler_id" id="hub_pr_pay_scheduler_id">
-                            <div class="mb-3"><label class="form-label">Due Amount</label><input type="text" class="form-control" id="hub_pr_pay_due_amount" readonly></div>
-                            <div class="mb-3"><label class="form-label">Payment Amount <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="payment_amount" id="hub_pr_pay_amount" required></div>
-                            <div class="mb-3"><label class="form-label">Payment Date <span class="text-danger">*</span></label><input type="text" class="form-control" name="payment_date" id="hub_pr_pay_date" placeholder="dd/mm/yyyy" autocomplete="off" required></div>
-                            <div class="mb-3"><label class="form-label">Payment Method</label>
-                                <select class="form-control" name="payment_method" id="hub_pr_pay_method">
-                                    <option value="">Select Method</option><option value="Cash">Cash</option><option value="Card">Card</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Cheque">Cheque</option>
-                                </select>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Due Amount</label>
+                                    <input type="text" class="form-control" id="hub_pr_pay_due_amount" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Amount <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" name="payment_amount" id="hub_pr_pay_amount" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="payment_date" id="hub_pr_pay_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Method</label>
+                                    <select class="form-control" name="payment_method" id="hub_pr_pay_method">
+                                        <option value="">Select Method</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Card">Card</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Reference Number</label>
+                                    <input type="text" class="form-control" name="payment_reference" id="hub_pr_pay_ref" placeholder="Transaction/Receipt No.">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="payment_slip" id="hub_pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Remarks</label>
+                                    <textarea class="form-control" name="payment_remarks" id="hub_pr_pay_remarks" rows="2"></textarea>
+                                </div>
                             </div>
-                            <div class="mb-3"><label class="form-label">Reference Number</label><input type="text" class="form-control" name="payment_reference" id="hub_pr_pay_ref" placeholder="Transaction/Receipt No."></div>
-                            <div class="mb-3"><label class="form-label">Payment Slip <span class="text-danger">*</span></label><input type="file" class="form-control" name="payment_slip" id="hub_pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" required><small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small></div>
-                            <div class="mb-3"><label class="form-label">Remarks</label><textarea class="form-control" name="payment_remarks" id="hub_pr_pay_remarks" rows="2"></textarea></div>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -1249,18 +1304,18 @@
             </div>
         </div>
 
-        <!-- Hub Property Reservation Receipts Modal -->
+        <!-- Hub Property Reservation Payment History Modal -->
         <div class="modal fade" id="hubPrReceiptsModal" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Payment Receipts</h5>
+                        <h5 class="modal-title">Payment History</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm">
-                                <thead class="table-light"><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Received By</th><th width="90">Action</th></tr></thead>
+                                <thead class="table-light"><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Paid By</th><th>Slip</th></tr></thead>
                                 <tbody id="hub_pr_receipts_body"></tbody>
                             </table>
                         </div>
@@ -1270,45 +1325,77 @@
             </div>
         </div>
 
-        <!-- Driver Allocation Modal -->
+        <!-- Transporter Allocation Modal -->
         <div class="modal fade" id="driverAllocationModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="la la-car me-2"></i> Driver Allocation</h5>
+                        <h5 class="modal-title"><i class="la la-car me-2"></i> Transporter Allocation</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <form id="driverAllocationForm">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Transporter</label>
-                                <select class="form-control" id="da_transporter_id" name="transporter_id">
+                                <select class="form-control" id="da_transporter_id" name="transporter_id" required>
                                     <option value="">-- Select Transporter --</option>
                                 </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Driver Name</label>
-                                <input type="text" class="form-control" id="da_driver_name" name="driver_name" placeholder="Enter driver name">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Mobile Number</label>
-                                <input type="text" class="form-control" id="da_driver_mobile" name="driver_mobile" placeholder="Enter mobile number">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Cab Number</label>
-                                <input type="text" class="form-control" id="da_cab_number" name="cab_number" placeholder="Enter cab / vehicle number">
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-success" onclick="submitDriverAllocation()">
-                            <i class="la la-check me-1"></i> Allocate &amp; Set Ready to Trip
+                            <i class="la la-check me-1"></i> Allocate &amp; Set Driver Not Assigned
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Review Update Modal -->
+        <div class="modal fade" id="hubReviewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="la la-star me-2"></i> Update Trip Review</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="review_quotation_id" value="">
+                        <div class="mb-3 text-center">
+                            <label class="form-label fw-bold mb-2">Rating</label>
+                            <div id="reviewStarContainer" style="font-size:32px;cursor:pointer;user-select:none;">
+                                <i class="la la-star review-star" data-val="1" style="color:#ccc;"></i>
+                                <i class="la la-star review-star" data-val="2" style="color:#ccc;"></i>
+                                <i class="la la-star review-star" data-val="3" style="color:#ccc;"></i>
+                                <i class="la la-star review-star" data-val="4" style="color:#ccc;"></i>
+                                <i class="la la-star review-star" data-val="5" style="color:#ccc;"></i>
+                            </div>
+                            <input type="hidden" id="review_rating_input" value="0">
+                            <small id="reviewRatingText" class="text-muted mt-1 d-block">Select a rating</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Comment (optional)</label>
+                            <textarea class="form-control" id="review_comment_input" rows="3" placeholder="Add a review comment..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitReview()">
+                            <i class="la la-check me-1"></i> Submit Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Include quotation modals (QuotationModal, roompricingandguestallocationModal, etc.) from list.php -->
+        <?php
+            $quotation_modal_only = true;
+            $users = isset($users) ? $users : array();
+            include(APPPATH . 'views/Quotation/list.php');
+        ?>
 
         <!--**********************************
             Content body end

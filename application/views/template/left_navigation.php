@@ -206,6 +206,32 @@
 					</li>
 					<?php endif; ?>
 					
+					<?php if (has_any_permission([
+							'ITINERARY_VIEW',
+							'ITINERARY_CREATE',
+							'ITINERARY_UPDATE',
+							'ITINERARY_DELETE',
+							'CATEGORY_VIEW',
+							'CATEGORY_CREATE',
+							'CATEGORY_UPDATE',
+							'CATEGORY_DELETE',
+							'INCLUSION_AND_EXCLUSION_VIEW',
+							'INCLUSION_AND_EXCLUSION_CREATE',
+							'INCLUSION_AND_EXCLUSION_UPDATE',
+							'INCLUSION_AND_EXCLUSION_DELETE',
+							'PAYMENT_POLICY_VIEW',
+							'PAYMENT_POLICY_CREATE',
+							'PAYMENT_POLICY_UPDATE',
+							'PAYMENT_POLICY_DELETE',
+							'TERMS_AND_CONDITIONS_VIEW',
+							'TERMS_AND_CONDITIONS_CREATE',
+							'TERMS_AND_CONDITIONS_UPDATE',
+							'TERMS_AND_CONDITIONS_DELETE',
+							'CANCELLATION_AND_POLICY_VIEW',
+							'CANCELLATION_AND_POLICY_CREATE',
+							'CANCELLATION_AND_POLICY_UPDATE',
+							'CANCELLATION_AND_POLICY_DELETE'
+						])): ?>
 					<li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
 						<!-- <i class="flaticon-038-gauge"></i> -->
 						<i class="bi bi-layout-split"></i>
@@ -256,9 +282,10 @@
 							])):?>
 							<li class="<?php if($this->uri->segment(1)=="Cancellation_policies"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Cancellation_policies">Cancellation and policy</a></li>
 							<?php endif; ?>
-							<li class="<?php if($this->uri->segment(1)=="Special_requirments"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Special_requirments">Special requirments</a></li>
+							<!-- <li class="<?php if($this->uri->segment(1)=="Special_requirments"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Special_requirments">Special requirments</a></li> -->
 						</ul>
 					</li>
+					<?php endif; ?>
 					<?php  
 					if (has_any_permission([
 						'TEMPLATES_VIEW',
@@ -294,17 +321,61 @@
 					</li>
 					<?php endif; ?>
 
-					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
+					<?php if (has_any_permission([
+						'CONVERTED_TRIPS_REPORT',
+						'LEAD_REPORT',
+						'QUOTATION_REPORT',
+						'TRANSPORTER_REPORT',
+						'CUSTOMER_PAYMENT_REPORT',
+						'PROPERTY_PAYMENTS_REPORT',
+						'CATEGORY_UPDATE',
+						'CATEGORY_DELETE',
+						'INCLUSION_AND_EXCLUSION_VIEW',
+						'INCLUSION_AND_EXCLUSION_CREATE',
+						'INCLUSION_AND_EXCLUSION_UPDATE',
+						'INCLUSION_AND_EXCLUSION_DELETE',
+						'PAYMENT_POLICY_VIEW',
+						'PAYMENT_POLICY_CREATE',
+						'PAYMENT_POLICY_UPDATE',
+						'PAYMENT_POLICY_DELETE',
+						'TERMS_AND_CONDITIONS_VIEW',
+						'TERMS_AND_CONDITIONS_CREATE',
+						'TERMS_AND_CONDITIONS_UPDATE',
+						'TERMS_AND_CONDITIONS_DELETE',
+						'CANCELLATION_AND_POLICY_VIEW',
+						'CANCELLATION_AND_POLICY_CREATE',
+						'CANCELLATION_AND_POLICY_UPDATE',
+						'CANCELLATION_AND_POLICY_DELETE'
+					])): ?>
+					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(2)=="transporter_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report" || $this->uri->segment(2)=="customer_payment_report" || $this->uri->segment(2)=="property_payments_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
 							<i class="bi bi-bar-chart-line-fill"></i>
 							<span class="nav-text">Reports</span>
 						</a>
 						<ul aria-expanded="false">
+							<?php if (has_permission('CONVERTED_TRIPS_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="converted_trips_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/converted_trips_report">Converted Trips</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('LEAD_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="lead_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Leads/lead_report">Lead Report</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('QUOTATION_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="quotation_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/quotation_report">Quotation Report</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('TRANSPORTER_REPORT')): ?>
+								<li class="<?php if($this->uri->segment(2) == "transporter_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/transporter_report">Transporter Report</a></li>
+							<?php endif; ?>
+						<?php if (has_permission('CUSTOMER_PAYMENT_REPORT')): ?>
+							<li class="<?php if($this->uri->segment(2)=="customer_payment_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Receipt_scheduler/customer_payment_report">Customer Payment Report</a></li>
+						<?php endif; ?>
+						<?php if (has_permission('PROPERTY_PAYMENTS_REPORT')): ?>
+							<li class="<?php if($this->uri->segment(2)=="property_payments_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Property_reservation/property_payments_report">Property Payments Report</a></li>
+						<?php endif; ?>
+						<?php if($this->session->userdata('user_type') == 'A'): ?>
 						<li class="<?php if($this->uri->segment(1)=="IncentiveConfig"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/IncentiveConfig">Incentive Config</a></li>
+						<?php endif; ?>
 						</ul>
 					</li>
+					<?php endif; ?>
 					<?php if($this->session->userdata('user_type') == 'A'){ ?>
 					<li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
 						<!-- <i class="flaticon-050-info"></i> -->

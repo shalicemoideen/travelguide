@@ -34,6 +34,24 @@ class Transporter extends MY_Controller {
 		$this->load->view('template', $template);
 	}
 
+	public function dashboard()
+	{
+		if ($this->session->userdata('user_type') != 'T') {
+			redirect('/Dashboard');
+		}
+
+		$this->db->select('t.*, u.user_name');
+		$this->db->from('transporter t');
+		$this->db->join('user_details u', 'u.user_id = t.user_id_fk', 'left');
+		$this->db->where('t.user_id_fk', $this->session->userdata('user_id'));
+		$this->db->where('t.transporter_status', 1);
+		$query = $this->db->get();
+		$template['transporter'] = $query->row();
+
+		$template['body'] = 'Transporter/dashboard';
+		$this->load->view('template', $template);
+	}
+
 	public function get(){
 		$this->load->model('Transporter_model');
     	$param['draw'] = (isset($_REQUEST['draw']))?$_REQUEST['draw']:'';
@@ -127,9 +145,20 @@ class Transporter extends MY_Controller {
 			);
 		$insert = $this->Transporter_model->save($data);
 
+		// Create linked user login for the transporter
+		$login_username = $this->input->post('login_username');
+		$login_password = $this->input->post('login_password');
+		if ($insert && $login_username && $login_password) {
+			$role_id = $this->_get_or_create_transporter_role();
+			$user_id = $this->_create_transporter_user($insert, $transporter_name, $login_username, $login_password, $role_id);
+			if ($user_id) {
+				$this->Transporter_model->update(array('transporter_id' => $insert), array('user_id_fk' => $user_id));
+			}
+		}
+
 		$vehicle_id_fk = $this->input->post('vehicle_id_fk');
 
-			foreach ($vehicle_id_fk as $key => $value) {		
+			if (is_array($vehicle_id_fk)) { foreach ($vehicle_id_fk as $key => $value) {		
 					
 					$vehicle_id = $value;
 
@@ -141,6 +170,7 @@ class Transporter extends MY_Controller {
 
 					$this->General_model->add($this->transporter_vehicle,$vehicle_list);
 			}
+		}
 		
 		echo json_encode(array("status" => TRUE));
 	}
@@ -199,11 +229,28 @@ class Transporter extends MY_Controller {
 			// print_r($data);exit();
 		$this->Transporter_model->update(array('transporter_id' => $this->input->post('id')), $data);
 
+		// Create or update linked user login for the transporter
+		$login_username = $this->input->post('login_username');
+		$login_password = $this->input->post('login_password');
+		if ($login_username) {
+			$existing = $this->Transporter_model->get_by_id($id);
+			if ($existing && !empty($existing->user_id_fk)) {
+				$this->_update_transporter_user($existing->user_id_fk, $transporter_name, $login_username, $login_password ?: null);
+			} else {
+				$role_id = $this->_get_or_create_transporter_role();
+				$password_for_create = $login_password ?: $transporter_name . '123';
+				$user_id = $this->_create_transporter_user($id, $transporter_name, $login_username, $password_for_create, $role_id);
+				if ($user_id) {
+					$this->Transporter_model->update(array('transporter_id' => $id), array('user_id_fk' => $user_id));
+				}
+			}
+		}
+
 		$this->General_model->delete($this->transporter_vehicle,'transporter_id_fk',$id);
 
 			$vehicle_id_fk = $this->input->post('vehicle_id_fk');
 
-			foreach ($vehicle_id_fk as $key => $value) {		
+			if (is_array($vehicle_id_fk)) { foreach ($vehicle_id_fk as $key => $value) {		
 					
 					$vehicle_id = $value;
 
@@ -215,6 +262,7 @@ class Transporter extends MY_Controller {
 
 					$this->General_model->add($this->transporter_vehicle,$vehicle_list);
 			}
+		}
 		echo json_encode(array("status" => TRUE));
 	}
 
@@ -238,6 +286,13 @@ class Transporter extends MY_Controller {
 		$updateData = array('transporter_status' => 0);
 		
 		$this->Transporter_model->update(array('transporter_id' => $this->input->post('id')), $updateData);
+
+		// Also disable linked user login
+		$transporter = $this->Transporter_model->get_by_id($this->input->post('id'));
+		if ($transporter && !empty($transporter->user_id_fk)) {
+			$this->db->where('user_id', $transporter->user_id_fk);
+			$this->db->update('user_details', array('user_status' => 0));
+		}
 
 		// $transporter_name = $this->input->post('transporter_name');
 		// $ip = $this->input->ip_address();
@@ -275,12 +330,131 @@ class Transporter extends MY_Controller {
 			$data['status'] = FALSE;
 		}
 
-		
+		if($this->input->post('login_username') == '')
+		{
+			$data['inputerror'][] = 'login_username';
+			$data['error_string'][] = 'Login username is required';
+			$data['status'] = FALSE;
+		}
+		else
+		{
+			$exclude_user_id = NULL;
+			if ($this->input->post('id')) {
+				$transporter = $this->Transporter_model->get_by_id($this->input->post('id'));
+				if ($transporter && !empty($transporter->user_id_fk)) {
+					$exclude_user_id = $transporter->user_id_fk;
+				}
+			}
+
+			$this->db->where('user_name', $this->input->post('login_username'));
+			$this->db->where('user_status', 1);
+			if ($exclude_user_id) {
+				$this->db->where('user_id !=', $exclude_user_id);
+			}
+			$existing = $this->db->get('user_details')->row();
+			if ($existing) {
+				$data['inputerror'][] = 'login_username';
+				$data['error_string'][] = 'This login username is already in use';
+				$data['status'] = FALSE;
+			}
+		}
+
+		if($this->input->post('id') == '' && $this->input->post('login_password') == '')
+		{
+			$data['inputerror'][] = 'login_password';
+			$data['error_string'][] = 'Login password is required';
+			$data['status'] = FALSE;
+		}
+
 		if($data['status'] === FALSE)
 		{
 			echo json_encode($data);
 			exit();
 		}
+	}
+
+	private function _get_or_create_transporter_role()
+	{
+		$role_name = 'TRANSPORTER LOGIN';
+		$role = $this->db->where('name', $role_name)->where('status', 1)->get('tr_roles')->row();
+		if ($role) {
+			return $role->id;
+		}
+
+		$this->load->helper('date');
+		if (function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$now = date('Y-m-d h:i:s a');
+		$currentuserid = $this->session->userdata('user_id') ? $this->session->userdata('user_id') : 1;
+
+		$this->db->insert('tr_roles', array(
+			'name' => $role_name,
+			'description' => 'Auto-created role for transporter login',
+			'status' => 1,
+			'created_by' => $currentuserid,
+			'updated_by' => $currentuserid,
+			'created_at' => $now,
+			'updated_at' => $now,
+		));
+		return $this->db->insert_id();
+	}
+
+	private function _create_transporter_user($transporter_id, $transporter_name, $username, $password, $role_id)
+	{
+		$this->load->helper('date');
+		if (function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date = date('Y-m-d');
+		$time = date('h:i:sa');
+
+		$user_data = array(
+			'admin_name' => $transporter_name,
+			'user_id_fk' => 0,
+			'shift_id_fk' => 0,
+			'meta_force_stop' => 'N',
+			'tamil_speak' => '',
+			'user_unique_id' => '',
+			'company_name' => '',
+			'main_head_staff_id' => 0,
+			'main_head_staff_name' => '',
+			'user_type' => 'T',
+			'user_address' => '',
+			'user_email_address' => '',
+			'user_phone_number' => '',
+			'user_lan_number' => '',
+			'user_city' => '',
+			'user_state' => '',
+			'user_zipcode' => '',
+			'country_id_fk' => 0,
+			'role_id_fk' => $role_id,
+			'designation_id_fk' => 0,
+			'user_date_of_joining' => $date,
+			'user_profile_pic' => '',
+			'user_name' => $username,
+			'password' => $password,
+			'user_description' => '',
+			'user_created_date' => $date,
+			'user_created_time' => $time,
+			'user_status' => 1,
+		);
+
+		$this->db->insert('user_details', $user_data);
+		return $this->db->insert_id();
+	}
+
+	private function _update_transporter_user($user_id, $transporter_name, $username, $password = null)
+	{
+		$user_data = array(
+			'admin_name' => $transporter_name,
+			'user_name' => $username,
+		);
+		if ($password) {
+			$user_data['password'] = $password;
+		}
+		$this->db->where('user_id', $user_id);
+		$this->db->update('user_details', $user_data);
 	}
 	
 }

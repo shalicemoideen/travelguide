@@ -301,7 +301,8 @@ class Receipt_scheduler extends MY_Controller {
             'payment_slip' => $upload['filename'],
             'payment_received_by_userid' => $this->currentuserid,
             'payment_received_by_username' => $this->currentusername,
-            'payment_status' => 1
+            'payment_status' => 1,
+            'accountant_approval_status' => 'pending'
         );
 
         $payment_id = $this->Receipt_scheduler_model->save_payment($payment_data);
@@ -364,6 +365,28 @@ class Receipt_scheduler extends MY_Controller {
     {
         $date = DateTime::createFromFormat('!d/m/Y', trim($value));
         return $date && $date->format('d/m/Y') === trim($value) ? $date->format('Y-m-d') : null;
+    }
+
+    public function approve_payment()
+    {
+        if (!has_permission('RECEIPT_SCHEDULER_APPROVE_PAYMENT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Approve Payment'));
+            return;
+        }
+
+        $payment_id = (int)$this->input->post('payment_id');
+        $payment = $this->Receipt_scheduler_model->get_payment_by_id($payment_id);
+        if (!$payment) {
+            echo json_encode(array('error' => true, 'message' => 'Payment not found'));
+            return;
+        }
+
+        $result = $this->Receipt_scheduler_model->approve_payment($payment_id, $this->currentuserid, $this->currentusername);
+        if ($result) {
+            echo json_encode(array('error' => false, 'message' => 'Payment approved by accountant'));
+        } else {
+            echo json_encode(array('error' => true, 'message' => 'Failed to approve payment'));
+        }
     }
 
     public function get_payment_summary()
@@ -431,6 +454,150 @@ class Receipt_scheduler extends MY_Controller {
     {
         $count = $this->Receipt_scheduler_model->update_overdue_status();
         echo json_encode(array('updated' => $count));
+    }
+
+    public function customer_payment_report()
+    {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+            show_error('Permission denied: Customer Payment Report', 403);
+            return;
+        }
+
+        $template['body'] = 'Receipt_scheduler/customer_payment_report';
+        $template['script'] = 'Receipt_scheduler/customer_payment_report_script';
+        $this->load->view('template', $template);
+    }
+
+    public function get_customer_scheduler_report_table()
+    {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $param = array(
+            'quotation_number_filter' => $this->input->post('quotation_number_filter'),
+            'guest_name_filter' => $this->input->post('guest_name_filter'),
+            'payment_type_filter' => $this->input->post('payment_type_filter'),
+            'start_date' => $this->_payment_date($this->input->post('start_date')),
+            'end_date' => $this->_payment_date($this->input->post('end_date')),
+            'start' => $this->input->post('start'),
+            'length' => $this->input->post('length'),
+        );
+
+        $result = $this->Receipt_scheduler_model->getCustomerSchedulerReportTable($param);
+        echo json_encode($result);
+    }
+
+    public function get_customer_payment_report_table()
+    {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $param = array(
+            'start_date' => $this->_payment_date($this->input->post('start_date')),
+            'end_date' => $this->_payment_date($this->input->post('end_date')),
+            'quotation_number_filter' => $this->input->post('quotation_number_filter'),
+            'guest_name_filter' => $this->input->post('guest_name_filter'),
+            'payment_type_filter' => $this->input->post('payment_type_filter'),
+            'installment_number_filter' => $this->input->post('installment_number_filter'),
+            'status_filter' => $this->input->post('status_filter'),
+            'approval_pending_filter' => $this->input->post('approval_pending_filter'),
+            'start' => $this->input->post('start'),
+            'length' => $this->input->post('length'),
+        );
+
+        $result = $this->Receipt_scheduler_model->getCustomerPaymentReportTable($param);
+        echo json_encode($result);
+    }
+
+    public function ajax_record_customer_payment()
+    {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $installment_id   = (int)$this->input->post('installment_id');
+        $payment_amount   = (float)$this->input->post('payment_amount');
+        $payment_date     = $this->_payment_date($this->input->post('payment_date'));
+        $payment_method   = $this->input->post('payment_method');
+        $payment_ref      = $this->input->post('payment_reference');
+        $payment_remarks  = $this->input->post('payment_remarks');
+
+        if (!$payment_date) {
+            echo json_encode(array('error' => true, 'message' => 'Please enter a valid payment date in dd/mm/yyyy format'));
+            return;
+        }
+
+        $installment = $this->Receipt_scheduler_model->get_installment_by_id($installment_id);
+        if (!$installment) {
+            echo json_encode(array('error' => true, 'message' => 'Installment not found'));
+            return;
+        }
+
+        $upload = $this->_upload_payment_slip();
+        if (!$upload['status']) {
+            echo json_encode(array('error' => true, 'message' => $upload['message']));
+            return;
+        }
+
+        $payment_data = array(
+            'installment_id_fk' => $installment_id,
+            'receipt_scheduler_id_fk' => $installment->receipt_scheduler_id_fk,
+            'payment_amount' => $payment_amount,
+            'payment_date' => $payment_date,
+            'payment_method' => $payment_method,
+            'payment_reference' => $payment_ref,
+            'payment_remarks' => $payment_remarks,
+            'payment_slip' => $upload['filename'],
+            'payment_received_by_userid' => $this->currentuserid,
+            'payment_received_by_username' => $this->currentusername,
+            'payment_status' => 1,
+            'accountant_approval_status' => 'approved',
+            'accountant_approved_by_userid' => $this->currentuserid,
+            'accountant_approved_by_username' => $this->currentusername,
+            'accountant_approved_at' => date('Y-m-d H:i:s')
+        );
+
+        $payment_id = $this->Receipt_scheduler_model->save_payment($payment_data);
+
+        if ($payment_id) {
+            $new_paid_amount = (float)$installment->paid_amount + (float)$payment_amount;
+            $new_status = 'PARTIAL';
+            if ($new_paid_amount >= (float)$installment->calculated_amount) {
+                $new_status = 'PAID';
+            }
+
+            $this->Receipt_scheduler_model->update_installment(
+                array('installment_id' => $installment_id),
+                array(
+                    'paid_amount' => $new_paid_amount,
+                    'paid_date' => $payment_date,
+                    'payment_status' => $new_status,
+                    'payment_reference' => $payment_ref,
+                    'payment_method' => $payment_method
+                )
+            );
+
+            echo json_encode(array('error' => false, 'message' => 'Payment recorded and auto-approved successfully'));
+        } else {
+            echo json_encode(array('error' => true, 'message' => 'Failed to record payment'));
+        }
+    }
+
+    public function ajax_get_installment_payments()
+    {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $installment_id = (int)$this->input->post('installment_id');
+        $payments = $this->Receipt_scheduler_model->get_payments_by_installment_id($installment_id);
+        echo json_encode(array('error' => false, 'payments' => $payments));
     }
 }
 ?>

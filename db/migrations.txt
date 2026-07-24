@@ -255,10 +255,51 @@ ALTER TABLE property_payment_scheduler_payments ADD COLUMN payment_paid_by_usern
 
 ALTER TABLE property_payment_scheduler ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total_amount, ADD COLUMN IF NOT EXISTS discounted_total DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER discount_amount;
 
-INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
-('RECEIPT_SCHEDULER_PAY_INITIAL', 'PAY INITIAL', 'RECEIPT_SCHEDULER', 'RECEIPT_SCHEDULER_PAY', 'Permission to record payment for the first/initial installment (Sales Executive)', 1, 1, NULL, NOW(), NOW()),
-('RECEIPT_SCHEDULER_PAY_OTHER', 'PAY OTHER', 'RECEIPT_SCHEDULER', 'RECEIPT_SCHEDULER_PAY', 'Permission to record payment for subsequent installments (Reservation Team)', 1, 1, NULL, NOW(), NOW()),
-('QUOTATION_VIEW_CONFIRMED', 'VIEW CONFIRMED', 'QUOTATION', 'QUOTATION_VIEW', 'Allows viewing only confirmed quotations (status Confirmed & Ready to Trip) — Reservation Team', 1, 1, NULL, NOW(), NOW());
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('RECEIPT_SCHEDULER_PAY_INITIAL', 'PAY INITIAL', 'RECEIPT SCHEDULER', 'RECEIPT SCHEDULER PAY', 'Permission to record payment for the first/initial installment (Sales Executive)', 1, 1, NOW()),
+('RECEIPT_SCHEDULER_PAY_OTHER', 'PAY OTHER', 'RECEIPT SCHEDULER', 'RECEIPT SCHEDULER PAY', 'Permission to record payment for subsequent installments (Reservation Team)', 1, 1, NOW()),
+('QUOTATION_VIEW_CONFIRMED', 'VIEW CONFIRMED', 'QUOTATION', 'QUOTATION VIEW', 'Allows viewing only confirmed quotations (status Confirmed & Ready to Trip) — Reservation Team', 1, 1, NOW());
 
 ALTER TABLE receipt_scheduler_payments ADD COLUMN IF NOT EXISTS payment_slip VARCHAR(255) NULL AFTER payment_remarks;
 ALTER TABLE property_payment_scheduler_payments ADD COLUMN IF NOT EXISTS payment_slip VARCHAR(255) NULL AFTER payment_remarks;
+
+ALTER TABLE receipt_scheduler_payments ADD COLUMN IF NOT EXISTS accountant_approval_status ENUM('pending','approved') NOT NULL DEFAULT 'pending' AFTER payment_slip;
+ALTER TABLE receipt_scheduler_payments ADD COLUMN IF NOT EXISTS accountant_approved_by_userid INT(11) NULL DEFAULT NULL AFTER accountant_approval_status;
+ALTER TABLE receipt_scheduler_payments ADD COLUMN IF NOT EXISTS accountant_approved_by_username VARCHAR(255) NULL DEFAULT NULL AFTER accountant_approved_by_userid;
+ALTER TABLE receipt_scheduler_payments ADD COLUMN IF NOT EXISTS accountant_approved_at DATETIME NULL DEFAULT NULL AFTER accountant_approved_by_username;
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('RECEIPT_SCHEDULER_APPROVE_PAYMENT', 'APPROVE PAYMENT', 'RECEIPT SCHEDULER', 'RECEIPT SCHEDULER PAY', 'Permission to approve receipt scheduler payments by accountant', 1, 1, NOW());
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('PROPERTY_PAYMENTS_REPORT', 'PROPERTY PAYMENTS REPORT', 'REPORTS', 'MAIN REPORTS', 'Property Payments Report menu access and update', 1, 1, NOW());
+
+ALTER TABLE `transporter` ADD COLUMN IF NOT EXISTS `user_id_fk` INT(11) NULL DEFAULT NULL AFTER `transporter_base_station_id_fk`;
+ALTER TABLE `transporter` MODIFY COLUMN `user_id_fk` INT(11) NULL DEFAULT NULL AFTER `transporter_base_station_id_fk`;
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('CUSTOMER_PAYMENT_REPORT', 'CUSTOMER PAYMENT REPORT', 'REPORTS', 'MAIN REPORTS', 'Customer Payment Report menu access', 1, 1, NOW());
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('CONVERTED_TRIPS_REPORT', 'CONVERTED TRIPS REPORT', 'REPORTS', 'MAIN REPORTS', 'Converted Trips Report menu access', 1, 1, NOW());
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('LEAD_REPORT', 'LEAD REPORT', 'REPORTS', 'MAIN REPORTS', 'Lead Report menu access', 1, 1, NOW());
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('QUOTATION_REPORT', 'QUOTATION REPORT', 'REPORTS', 'MAIN REPORTS', 'Quotation Report menu access', 1, 1, NOW());
+
+CREATE TABLE IF NOT EXISTS `quotation_review` (
+  `review_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `quotation_id_fk` INT(11) NOT NULL,
+  `review_rating` TINYINT(1) NOT NULL,
+  `review_comment` TEXT NULL DEFAULT NULL,
+  `reviewed_by_user_id` INT(11) NULL DEFAULT NULL,
+  `reviewed_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `review_status` TINYINT(4) NULL DEFAULT '1',
+  PRIMARY KEY (`review_id`),
+  KEY `idx_quotation_id` (`quotation_id_fk`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('QUOTATION_REVIEW', 'QUOTATION REVIEW', 'QUOTATION', 'QUOTATION HUB', 'Update quotation review rating in hub', 1, 1, NOW());

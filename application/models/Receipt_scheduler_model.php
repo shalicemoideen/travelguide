@@ -154,10 +154,21 @@ class Receipt_scheduler_model extends CI_Model {
     public function get_installments_by_scheduler_id($receipt_scheduler_id)
     {
         return $this->db
-            ->from($this->table_installments)
-            ->where('receipt_scheduler_id_fk', $receipt_scheduler_id)
-            ->where('installment_status', 1)
-            ->order_by('installment_number', 'ASC')
+            ->select('i.*, latest_p.payment_id as latest_payment_id, latest_p.accountant_approval_status')
+            ->from($this->table_installments . ' i')
+            ->join('(
+                SELECT p1.*
+                FROM receipt_scheduler_payments p1
+                INNER JOIN (
+                    SELECT installment_id_fk, MAX(payment_id) as max_payment_id
+                    FROM receipt_scheduler_payments
+                    WHERE payment_status = 1
+                    GROUP BY installment_id_fk
+                ) p2 ON p2.installment_id_fk = p1.installment_id_fk AND p2.max_payment_id = p1.payment_id
+            ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
+            ->where('i.receipt_scheduler_id_fk', $receipt_scheduler_id)
+            ->where('i.installment_status', 1)
+            ->order_by('i.installment_number', 'ASC')
             ->get()
             ->result();
     }
@@ -221,6 +232,71 @@ class Receipt_scheduler_model extends CI_Model {
             ->where('payment_status', 1)
             ->get()
             ->row();
+    }
+
+    public function approve_payment($payment_id, $user_id, $username)
+    {
+        $this->db
+            ->where('payment_id', $payment_id)
+            ->update($this->table_payments, array(
+                'accountant_approval_status' => 'approved',
+                'accountant_approved_by_userid' => $user_id,
+                'accountant_approved_by_username' => $username,
+                'accountant_approved_at' => date('Y-m-d H:i:s')
+            ));
+        return $this->db->affected_rows() > 0;
+    }
+
+    public function is_first_installment_approved($receipt_scheduler_id)
+    {
+        $row = $this->db
+            ->select('latest_p.accountant_approval_status')
+            ->from('receipt_scheduler_installments i')
+            ->join('(
+                SELECT p1.installment_id_fk, p1.accountant_approval_status
+                FROM receipt_scheduler_payments p1
+                INNER JOIN (
+                    SELECT installment_id_fk, MAX(payment_id) as max_payment_id
+                    FROM receipt_scheduler_payments
+                    WHERE payment_status = 1
+                    GROUP BY installment_id_fk
+                ) p2 ON p2.installment_id_fk = p1.installment_id_fk AND p2.max_payment_id = p1.payment_id
+            ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
+            ->where('i.receipt_scheduler_id_fk', $receipt_scheduler_id)
+            ->where('i.installment_status', 1)
+            ->where('i.installment_number', 1)
+            ->order_by('i.installment_id', 'ASC')
+            ->limit(1)
+            ->get()
+            ->row();
+
+        return $row && $row->accountant_approval_status === 'approved';
+    }
+
+    public function is_first_installment_payment_pending($receipt_scheduler_id)
+    {
+        $row = $this->db
+            ->select('latest_p.accountant_approval_status')
+            ->from('receipt_scheduler_installments i')
+            ->join('(
+                SELECT p1.installment_id_fk, p1.accountant_approval_status
+                FROM receipt_scheduler_payments p1
+                INNER JOIN (
+                    SELECT installment_id_fk, MAX(payment_id) as max_payment_id
+                    FROM receipt_scheduler_payments
+                    WHERE payment_status = 1
+                    GROUP BY installment_id_fk
+                ) p2 ON p2.installment_id_fk = p1.installment_id_fk AND p2.max_payment_id = p1.payment_id
+            ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
+            ->where('i.receipt_scheduler_id_fk', $receipt_scheduler_id)
+            ->where('i.installment_status', 1)
+            ->where('i.installment_number', 1)
+            ->order_by('i.installment_id', 'ASC')
+            ->limit(1)
+            ->get()
+            ->row();
+
+        return $row && $row->accountant_approval_status !== null && $row->accountant_approval_status !== 'approved';
     }
 
     public function get_total_paid_amount($receipt_scheduler_id)
@@ -392,6 +468,210 @@ class Receipt_scheduler_model extends CI_Model {
         $this->db->where('installment_status', 1);
         $this->db->update($this->table_installments, array('payment_status' => 'OVERDUE'));
         return $this->db->affected_rows();
+    }
+
+    public function getCustomerPaymentReportTable($param)
+    {
+        $start_date              = isset($param['start_date']) ? $param['start_date'] : '';
+        $end_date                = isset($param['end_date']) ? $param['end_date'] : '';
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $installment_number_filter = isset($param['installment_number_filter']) ? $param['installment_number_filter'] : '';
+        $status_filter           = isset($param['status_filter']) ? $param['status_filter'] : '';
+        $approval_pending_filter = isset($param['approval_pending_filter']) ? $param['approval_pending_filter'] : '';
+
+        $this->db
+            ->select('i.installment_id, i.installment_number, i.due_date, i.calculated_amount, i.paid_amount, i.payment_status,
+                      rs.receipt_scheduler_id, rs.payment_type, rs.total_amount,
+                      q.quotation_number, q.quotation_id,
+                      l.guest_name,
+                      latest_p.payment_id as latest_payment_id,
+                      latest_p.accountant_approval_status as latest_approval_status')
+            ->from($this->table_installments . ' i')
+            ->join($this->table . ' rs', 'rs.receipt_scheduler_id = i.receipt_scheduler_id_fk', 'inner')
+            ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->join('(
+                SELECT p1.payment_id, p1.installment_id_fk, p1.accountant_approval_status
+                FROM ' . $this->table_payments . ' p1
+                INNER JOIN (
+                    SELECT installment_id_fk, MAX(payment_id) as max_payment_id
+                    FROM ' . $this->table_payments . '
+                    WHERE payment_status = 1
+                    GROUP BY installment_id_fk
+                ) p2 ON p2.installment_id_fk = p1.installment_id_fk AND p2.max_payment_id = p1.payment_id
+                WHERE p1.payment_status = 1
+            ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
+            ->where('i.installment_status', 1)
+            ->where('rs.receipt_scheduler_status', 1);
+
+        $this->_applyCustomerPaymentReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $payment_type_filter, $installment_number_filter, $status_filter, $approval_pending_filter);
+
+        $this->db->order_by('i.due_date', 'ASC');
+
+        if ($param['length'] != -1 && $param['start'] != 'false' && $param['length'] != 'false') {
+            $this->db->limit($param['length'], $param['start']);
+        }
+
+        $query = $this->db->get();
+
+        $data['data'] = $query->result();
+        $data['recordsTotal'] = $this->getCustomerPaymentReportTotalCount($param);
+        $data['recordsFiltered'] = $this->getCustomerPaymentReportTotalCount($param);
+        return $data;
+    }
+
+    public function getCustomerPaymentReportTotalCount($param = NULL)
+    {
+        $start_date              = isset($param['start_date']) ? $param['start_date'] : '';
+        $end_date                = isset($param['end_date']) ? $param['end_date'] : '';
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $installment_number_filter = isset($param['installment_number_filter']) ? $param['installment_number_filter'] : '';
+        $status_filter           = isset($param['status_filter']) ? $param['status_filter'] : '';
+        $approval_pending_filter = isset($param['approval_pending_filter']) ? $param['approval_pending_filter'] : '';
+
+        $this->db
+            ->from($this->table_installments . ' i')
+            ->join($this->table . ' rs', 'rs.receipt_scheduler_id = i.receipt_scheduler_id_fk', 'inner')
+            ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->join('(
+                SELECT p1.installment_id_fk, p1.accountant_approval_status
+                FROM ' . $this->table_payments . ' p1
+                INNER JOIN (
+                    SELECT installment_id_fk, MAX(payment_id) as max_payment_id
+                    FROM ' . $this->table_payments . '
+                    WHERE payment_status = 1
+                    GROUP BY installment_id_fk
+                ) p2 ON p2.installment_id_fk = p1.installment_id_fk AND p2.max_payment_id = p1.payment_id
+                WHERE p1.payment_status = 1
+            ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
+            ->where('i.installment_status', 1)
+            ->where('rs.receipt_scheduler_status', 1);
+
+        $this->_applyCustomerPaymentReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $payment_type_filter, $installment_number_filter, $status_filter, $approval_pending_filter);
+
+        return $this->db->get()->num_rows();
+    }
+
+    private function _applyCustomerPaymentReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $payment_type_filter, $installment_number_filter, $status_filter, $approval_pending_filter = '')
+    {
+        if ($start_date) {
+            $this->db->where('i.due_date >=', $start_date);
+        }
+        if ($end_date) {
+            $this->db->where('i.due_date <=', $end_date);
+        }
+        if ($quotation_number_filter) {
+            $this->db->like('q.quotation_number', $quotation_number_filter);
+        }
+        if ($guest_name_filter) {
+            $this->db->like('l.guest_name', $guest_name_filter);
+        }
+        if ($payment_type_filter) {
+            $this->db->where('rs.payment_type', $payment_type_filter);
+        }
+        if ($installment_number_filter !== '' && $installment_number_filter !== null) {
+            $this->db->where('i.installment_number', (int)$installment_number_filter);
+        }
+        if ($status_filter) {
+            $this->db->where('i.payment_status', $status_filter);
+        }
+        if ($approval_pending_filter === '1') {
+            $this->db->group_start()
+                ->where('latest_p.accountant_approval_status IS NULL', null, false)
+                ->or_where('latest_p.accountant_approval_status !=', 'approved')
+                ->group_end();
+        }
+    }
+
+    public function getCustomerSchedulerReportTable($param)
+    {
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $start_date              = isset($param['start_date']) ? $param['start_date'] : '';
+        $end_date                = isset($param['end_date']) ? $param['end_date'] : '';
+
+        $this->db
+            ->select('rs.receipt_scheduler_id, rs.payment_type, rs.total_amount, rs.max_emi_count,
+                      rs.quotation_id_fk,
+                      q.quotation_number,
+                      l.guest_name,
+                      DATE_FORMAT(rs.receipt_scheduler_created_date, \'%d-%m-%Y\') as created_date_formatted,
+                      COALESCE(SUM(i.paid_amount), 0) as total_paid,
+                      (rs.total_amount - COALESCE(SUM(i.paid_amount), 0)) as pending_amount')
+            ->from('receipt_scheduler rs')
+            ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->join($this->table_installments . ' i', 'i.receipt_scheduler_id_fk = rs.receipt_scheduler_id AND i.installment_status = 1', 'left')
+            ->where('rs.receipt_scheduler_status', 1);
+
+        if ($quotation_number_filter) {
+            $this->db->like('q.quotation_number', $quotation_number_filter);
+        }
+        if ($guest_name_filter) {
+            $this->db->like('l.guest_name', $guest_name_filter);
+        }
+        if ($payment_type_filter) {
+            $this->db->where('rs.payment_type', $payment_type_filter);
+        }
+        if ($start_date) {
+            $this->db->where('rs.receipt_scheduler_created_date >=', $start_date);
+        }
+        if ($end_date) {
+            $this->db->where('rs.receipt_scheduler_created_date <=', $end_date);
+        }
+
+        $this->db->group_by('rs.receipt_scheduler_id');
+        $this->db->order_by('rs.receipt_scheduler_id', 'DESC');
+
+        if ($param['length'] != -1 && $param['start'] != 'false' && $param['length'] != 'false') {
+            $this->db->limit($param['length'], $param['start']);
+        }
+
+        $query = $this->db->get();
+
+        $data['data'] = $query->result();
+        $data['recordsTotal'] = $this->getCustomerSchedulerReportTotalCount($param);
+        $data['recordsFiltered'] = $this->getCustomerSchedulerReportTotalCount($param);
+        return $data;
+    }
+
+    public function getCustomerSchedulerReportTotalCount($param = NULL)
+    {
+        $quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+        $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+        $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $start_date              = isset($param['start_date']) ? $param['start_date'] : '';
+        $end_date                = isset($param['end_date']) ? $param['end_date'] : '';
+
+        $this->db
+            ->from('receipt_scheduler rs')
+            ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->where('rs.receipt_scheduler_status', 1);
+
+        if ($quotation_number_filter) {
+            $this->db->like('q.quotation_number', $quotation_number_filter);
+        }
+        if ($guest_name_filter) {
+            $this->db->like('l.guest_name', $guest_name_filter);
+        }
+        if ($payment_type_filter) {
+            $this->db->where('rs.payment_type', $payment_type_filter);
+        }
+        if ($start_date) {
+            $this->db->where('rs.receipt_scheduler_created_date >=', $start_date);
+        }
+        if ($end_date) {
+            $this->db->where('rs.receipt_scheduler_created_date <=', $end_date);
+        }
+
+        return $this->db->count_all_results();
     }
 
     public function get_payment_summary($receipt_scheduler_id)

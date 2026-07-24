@@ -36,7 +36,7 @@ class Transporter_model extends CI_Model{
 		$this->db->join('transporter_vehicle', 'transporter_vehicle.transporter_id_fk = transporter.transporter_id','left');
 		$this->db->join('state', 'transporter.transporter_base_station_id_fk = state.state_id','left');
 		$this->db->order_by('transporter_id', 'DESC');
-		$this->db->group_by('transporter_vehicle.transporter_id_fk');
+		$this->db->group_by('transporter.transporter_id');
         $query = $this->db->get();
         // echo $this->db->last_query();die;
 
@@ -65,7 +65,7 @@ class Transporter_model extends CI_Model{
 		$this->db->join('state', 'transporter.transporter_base_station_id_fk = state.state_id','left');
 		$this->db->where("transporter_status",1);
 		$this->db->order_by('transporter_id', 'DESC');
-		$this->db->group_by('transporter_vehicle.transporter_id_fk');
+		$this->db->group_by('transporter.transporter_id');
         $query = $this->db->get();
     	return $query->num_rows();
     }
@@ -147,9 +147,11 @@ class Transporter_model extends CI_Model{
 	
 	public function get_by_id($id)
 	{
-		$this->db->from($this->table);
-		$this->db->where("transporter_status",1);
-		$this->db->where('transporter_id',$id);
+		$this->db->select('t.*, u.user_name as login_username');
+		$this->db->from($this->table . ' t');
+		$this->db->join('user_details u', 'u.user_id = t.user_id_fk', 'left');
+		$this->db->where("t.transporter_status",1);
+		$this->db->where('t.transporter_id',$id);
 		$query = $this->db->get();
 
 		return $query->row();

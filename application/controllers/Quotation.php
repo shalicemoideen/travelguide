@@ -248,7 +248,29 @@ class Quotation extends MY_Controller {
 
 		$data = $this->Quotation_model->get_quotation_hub_summary($quotation_id);
 
+		if (!empty($data)) {
+			$this->load->model('Receipt_scheduler_model');
+			$scheduler = $this->Receipt_scheduler_model->get_by_quotation_id($quotation_id);
+			$data['first_emi_approved'] = false;
+			$data['first_emi_payment_pending'] = false;
+			$data['all_payments_complete'] = false;
+			if ($scheduler) {
+				$data['first_emi_approved'] = $this->Receipt_scheduler_model->is_first_installment_approved($scheduler->receipt_scheduler_id);
+				$data['first_emi_payment_pending'] = $this->Receipt_scheduler_model->is_first_installment_payment_pending($scheduler->receipt_scheduler_id);
 
+				$summary = $this->Receipt_scheduler_model->get_payment_summary($scheduler->receipt_scheduler_id);
+				if ($summary && $summary['pending_amount'] <= 0 && $summary['total_amount'] > 0) {
+					$data['all_payments_complete'] = true;
+				}
+			}
+
+			$this->load->model('Property_reservation_model');
+			$prSummary = $this->Property_reservation_model->get_status_summary($quotation_id);
+			$data['all_properties_reserved'] = false;
+			if (!empty($prSummary) && $prSummary['total'] > 0) {
+				$data['all_properties_reserved'] = ($prSummary['reconfirmed'] === $prSummary['total']);
+			}
+		}
 
 		if (!empty($data['start_date'])) {
 
@@ -273,6 +295,62 @@ class Quotation extends MY_Controller {
 			'data' => $data
 
 		));
+
+	}
+
+
+
+	public function ajax_update_review()
+
+	{
+
+		header('Content-Type: application/json');
+
+
+
+		if (!has_permission('QUOTATION_REVIEW')) {
+
+			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
+
+			return;
+
+		}
+
+
+
+		$quotation_id = (int)$this->input->post('quotation_id');
+
+		$review_rating = (int)$this->input->post('review_rating');
+
+		$review_comment = $this->input->post('review_comment');
+
+
+
+		if ($quotation_id <= 0) {
+
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID missing'));
+
+			return;
+
+		}
+
+
+
+		if ($review_rating < 1 || $review_rating > 5) {
+
+			echo json_encode(array('status' => false, 'message' => 'Rating must be between 1 and 5'));
+
+			return;
+
+		}
+
+
+
+		$result = $this->Quotation_model->update_review($quotation_id, $review_rating, $review_comment);
+
+
+
+		echo json_encode($result);
 
 	}
 
@@ -341,25 +419,39 @@ class Quotation extends MY_Controller {
 
 		$quotation_id      = (int)$this->input->post('quotation_id');
 		$transporter_id    = (int)$this->input->post('transporter_id');
-		$driver_name       = $this->input->post('driver_name');
-		$driver_mobile     = $this->input->post('driver_mobile');
-		$cab_number        = $this->input->post('cab_number');
 
 		if ($quotation_id <= 0) {
 			echo json_encode(array('status' => false, 'message' => 'Quotation ID missing'));
 			return;
 		}
 
-		$this->db->where('quotation_id', $quotation_id);
-		$this->db->update($this->table, array(
-			'quotation_transporter_id_fk' => $transporter_id > 0 ? $transporter_id : NULL,
-			'quotation_driver_name'       => $driver_name,
-			'quotation_driver_mobile'     => $driver_mobile,
-			'quotation_cab_number'        => $cab_number,
-			'quotation_current_status'    => 7,
-		));
+		if ($transporter_id <= 0) {
+			echo json_encode(array('status' => false, 'message' => 'Please select a transporter'));
+			return;
+		}
 
-		// Mark lead as converted to trip on driver allocation
+		// Upsert into the separate transport allocation table
+		$existing = $this->db->where('quotation_id_fk', $quotation_id)
+							 ->where('status', 1)
+							 ->get('quotation_transport_allocation')
+							 ->row();
+		$allocation_data = array(
+			'quotation_id_fk'     => $quotation_id,
+			'transporter_id_fk'   => $transporter_id > 0 ? $transporter_id : NULL,
+		);
+		if ($existing) {
+			$this->db->where('id', $existing->id);
+			$this->db->update('quotation_transport_allocation', $allocation_data);
+		} else {
+			$allocation_data['status'] = 1;
+			$this->db->insert('quotation_transport_allocation', $allocation_data);
+		}
+
+		// Update quotation status to Driver Not Assigned
+		$this->db->where('quotation_id', $quotation_id);
+		$this->db->update($this->table, array('quotation_current_status' => 9));
+
+		// Mark lead as converted to trip on transporter allocation
 		$quotation = $this->db->where('quotation_id', $quotation_id)
 							  ->where('quotation_status', 1)
 							  ->get($this->table)
@@ -369,14 +461,63 @@ class Quotation extends MY_Controller {
 			$this->db->update('leads', array('lead_current_status' => 3));
 		}
 
-		echo json_encode(array('status' => true, 'message' => 'Driver allocated. Status set to Ready to Trip.'));
+		echo json_encode(array('status' => true, 'message' => 'Transporter allocated. Status set to Driver Not Assigned.'));
+	}
+
+	public function ajax_mark_reservation_complete()
+	{
+		if (!has_permission('PROPERTY_RESERVATION')) {
+			echo json_encode(array('status' => false, 'message' => 'Permission denied: Property Reservation'));
+			return;
+		}
+
+		$quotation_id = (int)$this->input->post('quotation_id');
+		if ($quotation_id <= 0) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID missing'));
+			return;
+		}
+
+		$quotation = $this->db->where('quotation_id', $quotation_id)
+							  ->where('quotation_status', 1)
+							  ->get($this->table)
+							  ->row();
+		if (!$quotation) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation not found'));
+			return;
+		}
+
+		if ((int)$quotation->quotation_current_status !== 5) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation must be in Confirmed status.'));
+			return;
+		}
+
+		$this->load->model('Property_reservation_model');
+		$prSummary = $this->Property_reservation_model->get_status_summary($quotation_id);
+		if (empty($prSummary) || $prSummary['total'] == 0) {
+			echo json_encode(array('status' => false, 'message' => 'No property reservations found.'));
+			return;
+		}
+		if ($prSummary['reconfirmed'] !== $prSummary['total']) {
+			echo json_encode(array('status' => false, 'message' => 'All property reservations must be reconfirmed before completing.'));
+			return;
+		}
+
+		$this->db->where('quotation_id', $quotation_id);
+		$this->db->update($this->table, array('quotation_current_status' => 8));
+
+		if ($this->db->affected_rows() > 0) {
+			echo json_encode(array('status' => true, 'message' => 'Reservation completed successfully. Voucher and itinerary tabs are now enabled.'));
+		} else {
+			echo json_encode(array('status' => false, 'message' => 'No changes made or already completed.'));
+		}
 	}
 
 	public function ajax_get_transporters()
 	{
 		$transporters = $this->db
-			->select('transporter_id, transporter_name')
+			->select('user_id_fk as transporter_id, transporter_name')
 			->where('transporter_status', 1)
+			->where('user_id_fk IS NOT NULL')
 			->order_by('transporter_name', 'ASC')
 			->get('transporter')
 			->result_array();
@@ -586,12 +727,23 @@ public function client_confirmation_preview($quotation_id)
 		$this->load->model('Receipt_scheduler_model');
 		$has_scheduler = $this->Receipt_scheduler_model->check_scheduler_exists($quotation_id);
 
+		$first_emi_approved = false;
+		if ($has_scheduler) {
+			$scheduler = $this->Receipt_scheduler_model->get_by_quotation_id($quotation_id);
+			if ($scheduler) {
+				$first_emi_approved = $this->Receipt_scheduler_model->is_first_installment_approved($scheduler->receipt_scheduler_id);
+			}
+		}
+
 		$messages = array();
 		if (!$has_confirmation) {
 			$messages[] = 'Client Confirmation is not created.';
 		}
 		if (!$has_scheduler) {
 			$messages[] = 'Receipt Scheduler is not created.';
+		}
+		if ($has_scheduler && !$first_emi_approved) {
+			$messages[] = 'First installment payment must be approved by accountant before confirmation.';
 		}
 
 		echo json_encode(array(
@@ -788,7 +940,7 @@ public function client_confirmation_preview($quotation_id)
 
 	    }
 
-		// Reservation team: restrict to confirmed statuses only (5=Confirmed, 7=Ready to Trip)
+		// Reservation team: restrict to confirmed statuses only (5=Confirmed, 7=Ready to Trip, 9=Driver Not Assigned)
 		if (!has_permission('QUOTATION_VIEW') && has_permission('QUOTATION_VIEW_CONFIRMED')) {
 			$param['confirmed_only'] = true;
 		}
@@ -1148,6 +1300,16 @@ public function property_voucher_preview($quotation_id)
     }
 
     $data = $this->Quotation_model->get_property_voucher_preview($quotation_id);
+
+    if (empty($data['main'])) {
+        show_error('Property voucher details not found');
+        return;
+    }
+
+    if (empty($data['properties'])) {
+        show_error('No confirmed property reservations found for this quotation. Please confirm properties first.');
+        return;
+    }
 
     $this->load->view(
         'Quotation/property_voucher_preview',
@@ -3654,8 +3816,6 @@ if (!empty($accommodationPlanIds)) {
 			'quotation_updated_at' => $date1,
 
         );
-
-
 
         $this->db->where('quotation_id', $quotation_id);
 
@@ -8013,6 +8173,10 @@ public function ajax_delete()
 
 	public function converted_trips_report()
 	{
+		if (!has_permission('CONVERTED_TRIPS_REPORT')) {
+			show_error('Permission denied: Converted Trips Report', 403);
+			return;
+		}
 		$template['staff']            = $this->Quotation_model->fetch_staff_users();
 		$template['current_user_type'] = $this->session->userdata('user_type');
 		$template['current_user_id']   = $this->session->userdata('user_id');
@@ -8057,6 +8221,10 @@ public function ajax_delete()
 
 	public function quotation_report()
 	{
+		if (!has_permission('QUOTATION_REPORT')) {
+			show_error('Permission denied: Quotation Report', 403);
+			return;
+		}
 		$template['staff']            = $this->Quotation_model->fetch_staff_users();
 		$template['current_user_type'] = $this->currentusertype;
 		$template['current_user_id']   = $this->currentuserid;
@@ -8097,6 +8265,123 @@ public function ajax_delete()
 
 		$data = $this->Quotation_model->getQuotationReport($param);
 		echo json_encode($data);
+	}
+
+	public function transporter_report()
+	{
+		if (!has_permission('TRANSPORTER_REPORT')) {
+			redirect('/login');
+		}
+
+		$template['current_user_type'] = $this->currentusertype;
+		$template['current_user_id']   = $this->currentuserid;
+		$template['body']   = 'Quotation/transporter_report';
+		$template['script'] = 'Quotation/transporter_report_script';
+		$this->load->view('template', $template);
+	}
+
+	public function ajax_get_driver_not_assigned()
+	{
+		if (!has_permission('TRANSPORTER_REPORT')) {
+			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
+			return;
+		}
+
+		$param['draw']        = isset($_REQUEST['draw'])                  ? $_REQUEST['draw']                  : '';
+		$param['length']      = isset($_REQUEST['length'])                ? $_REQUEST['length']                : '10';
+		$param['start']       = isset($_REQUEST['start'])                 ? $_REQUEST['start']                 : '0';
+		$param['order']       = isset($_REQUEST['order'][0]['column'])    ? $_REQUEST['order'][0]['column']    : '';
+		$param['dir']         = isset($_REQUEST['order'][0]['dir'])       ? $_REQUEST['order'][0]['dir']       : '';
+		$param['searchValue'] = isset($_REQUEST['search']['value'])       ? $_REQUEST['search']['value']       : '';
+
+		if ($this->currentusertype != 'A') {
+			$param['transporter_id_fk'] = $this->currentuserid;
+		}
+
+		$status_filter = isset($_REQUEST['status_filter']) ? $_REQUEST['status_filter'] : '';
+		if ($status_filter) {
+			$param['status_filter'] = $status_filter;
+		}
+
+		$start_date = isset($_REQUEST['start_date']) ? $_REQUEST['start_date'] : '';
+		$end_date   = isset($_REQUEST['end_date'])   ? $_REQUEST['end_date']   : '';
+
+		if ($start_date) {
+			$start_date = str_replace('/', '-', $start_date);
+			$param['start_date'] = date('Y-m-d', strtotime($start_date));
+		}
+		if ($end_date) {
+			$end_date = str_replace('/', '-', $end_date);
+			$param['end_date'] = date('Y-m-d', strtotime($end_date));
+		}
+
+		$data = $this->Quotation_model->getDriverNotAssignedReport($param);
+		echo json_encode($data);
+	}
+
+	public function ajax_update_driver_details()
+	{
+		if (!has_permission('TRANSPORTER_REPORT')) {
+			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
+			return;
+		}
+
+		$allocation_id   = (int)$this->input->post('allocation_id');
+		$quotation_id    = (int)$this->input->post('quotation_id');
+		$driver_name     = trim($this->input->post('driver_name'));
+		$driver_mobile   = trim($this->input->post('driver_mobile'));
+		$cab_number      = trim($this->input->post('cab_number'));
+
+		if ($allocation_id <= 0 || $quotation_id <= 0) {
+			echo json_encode(array('status' => false, 'message' => 'Invalid allocation'));
+			return;
+		}
+
+		if ($driver_name == '') {
+			echo json_encode(array('status' => false, 'message' => 'Driver name is required'));
+			return;
+		}
+
+		if ($driver_mobile == '') {
+			echo json_encode(array('status' => false, 'message' => 'Driver mobile is required'));
+			return;
+		}
+
+		if ($cab_number == '') {
+			echo json_encode(array('status' => false, 'message' => 'Cab number is required'));
+			return;
+		}
+
+		if ($this->currentusertype != 'A') {
+			$allocation = $this->db->where('id', $allocation_id)
+								   ->where('transporter_id_fk', $this->currentuserid)
+								   ->get('quotation_transport_allocation')
+								   ->row();
+			if (!$allocation) {
+				echo json_encode(array('status' => false, 'message' => 'Allocation not found or access denied'));
+				return;
+			}
+		}
+
+		$update_data = array(
+			'driver_name'   => $driver_name,
+			'driver_mobile' => $driver_mobile,
+			'cab_number'    => $cab_number
+		);
+		$this->Quotation_model->updateTransportAllocation(array('id' => $allocation_id), $update_data);
+
+		$this->db->where('quotation_id', $quotation_id);
+		$this->db->update('quotation', array('quotation_current_status' => 7));
+
+		$quotation = $this->db->where('quotation_id', $quotation_id)
+							  ->get('quotation')
+							  ->row();
+		if ($quotation && !empty($quotation->leads_id_fk)) {
+			$this->db->where('leads_id', $quotation->leads_id_fk);
+			$this->db->update('leads', array('lead_current_status' => 3));
+		}
+
+		echo json_encode(array('status' => true, 'message' => 'Driver details updated. Status set to Ready to Trip.'));
 	}
 }
 

@@ -78,6 +78,9 @@ class Login extends CI_Controller{
 					if($user_type == 'H'){
 						redirect('Payment_control');
                     }
+                    if($user_type == 'T'){
+                        redirect('Dashboard');
+                    }
 
                     
                 }

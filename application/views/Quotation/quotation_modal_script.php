@@ -1942,9 +1942,20 @@ function saveQuotation() {
 
 
 
-    const form = document.getElementById('form5') || document.getElementById('form');
+    const form = document.getElementById('form') || document.getElementById('form5');
 
     const data = new FormData(form);
+
+    data.set('leads_id_hidden', $('#leads_id_hidden').val() || '');
+    data.set('packages_id_hidden', $('#packages_id_hidden').val() || '');
+    data.set('leads_id', $('#leads_id').val() || $('#leads_id_hidden').val() || '');
+    data.set('packages_id_fk', $('#packages_id_fk').val() || $('#packages_id_hidden').val() || '');
+    data.set('quotation_date', $('#quotation_date').val() || '');
+    data.set('arriving_destination', $('#arriving_destination').val() || '');
+    data.set('departuring_destination', $('#departuring_destination').val() || '');
+    data.set('quotation_remarks', $('#quotation_remarks').val() || '');
+    data.set('total_inclusion_amount', $('#total_inclusion_amount').val() || 0);
+    data.set('total_special_requirment_amount', $('#total_special_requirment_amount').val() || 0);
 
 
 
@@ -1974,13 +1985,27 @@ function saveQuotation() {
 
             if (res.status) {
 
-                if (save_method === 'update' && typeof reload_table === 'function') {
+                if (save_method === 'update') {
 
-                    reload_table();
+                    if (typeof reload_table === 'function') {
+
+                        reload_table();
+
+                    }
 
                     resetQuotationModalForm();
 
                     $('#QuotationModal').modal('hide');
+
+                    if (typeof IS_QUOTATION_HUB !== 'undefined' && IS_QUOTATION_HUB) {
+
+                        swal("Quotation updated successfully", "", "success").then(function() {
+
+                            window.location.reload();
+
+                        });
+
+                    }
 
                 } else {
 
@@ -5128,9 +5153,7 @@ function getOptionTemplate(index) {
 
                            name="quotation_options_room_category_display[]"
 
-                           value="1"
-
-                           checked>
+                           value="1">
 
                     <label class="form-check-label">
 
@@ -5154,9 +5177,7 @@ function getOptionTemplate(index) {
 
                            name="quotation_options_meal_plan_display[]"
 
-                           value="1"
-
-                           checked>
+                           value="1">
 
                     <label class="form-check-label">
 
@@ -5180,9 +5201,7 @@ function getOptionTemplate(index) {
 
                         name="quotation_options_vehicle_display[]"
 
-                        value="1"
-
-                        checked>
+                        value="1">
 
                     <label class="form-check-label">
 

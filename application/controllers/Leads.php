@@ -3504,7 +3504,7 @@ private function get_accommodation_date_by_index($start_date, $index)
 		$this->db->select('user_id as id, admin_name as text');
 		$this->db->from('user_details');
 		$this->db->where('user_status', 1);
-		// $this->db->where('user_type', 'S');
+		$this->db->where('user_type !=', 'T');
 		if ($search) { $this->db->like('admin_name', $search); }
 		$this->db->order_by('admin_name', 'ASC');
 		echo json_encode(['results' => $this->db->get()->result()]);
@@ -3596,6 +3596,10 @@ private function get_accommodation_date_by_index($start_date, $index)
 
 	public function lead_report()
 	{
+		if (!has_permission('LEAD_REPORT')) {
+			show_error('Permission denied: Lead Report', 403);
+			return;
+		}
 		$template['staff']            = $this->Leads_model->fetch_staff_details();
 		$template['current_user_type'] = $this->currentusertype;
 		$template['current_user_id']   = $this->currentuserid;

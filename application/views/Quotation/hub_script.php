@@ -1,6 +1,7 @@
 <script>
 var hub_can_pay_initial = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_INITIAL') ? 'true' : 'false'; ?>;
 var hub_can_pay_other = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_OTHER') ? 'true' : 'false'; ?>;
+var hub_can_approve_payment = <?php echo has_permission('RECEIPT_SCHEDULER_APPROVE_PAYMENT') ? 'true' : 'false'; ?>;
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -108,6 +109,10 @@ function loadQuotationHubSummary(quotation_id)
 
             else if (data.quotation_current_status == 6) statusHtml = '<span class="badge badge-danger">Cancelled</span>';
 
+            else if (data.quotation_current_status == 8) statusHtml = '<span class="badge badge-info">Reservation Completed</span>';
+
+            else if (data.quotation_current_status == 9) statusHtml = '<span class="badge badge-warning">Driver Not Assigned</span>';
+
             else if (data.quotation_current_status == 7) statusHtml = '<span class="badge badge-primary">Ready to Trip</span>';
 
 
@@ -115,7 +120,7 @@ function loadQuotationHubSummary(quotation_id)
             $('#hubQuotationStatus').html(statusHtml);
 
             // Show confirmed option inside the status card
-            if (data.quotation_current_status == 5 && data.confirmed_option_title) {
+            if ((data.quotation_current_status == 5 || data.quotation_current_status == 8) && data.confirmed_option_title) {
                 $('#hubStatusConfirmedOption').show();
                 $('#hubStatusOptionText').text(data.confirmed_option_title);
             } else {
@@ -132,6 +137,9 @@ function loadQuotationHubSummary(quotation_id)
             // Update action buttons and tabs based on status
 
             updateQuotationHubActions(data.quotation_current_status);
+
+            // Update review card
+            updateReviewCard(data);
 
         },
 
@@ -165,26 +173,74 @@ function updateQuotationHubActions(status) {
 
     }
 
-    // Status 1=Generated: Show Confirm button (permission required)
+    // Status 1=Generated: Show Confirm button (permission required, first EMI approved by accountant required)
 
     else if (status == 1 && hasPermission('CONFIRM_QUOTATION')) {
 
-        buttonsHtml = '<button type="button" class="btn btn-success btn-sm" onclick="showConfirmModal()">' +
+        var hubSummary = window._hubSummaryData || {};
+        var firstEmiApproved = hubSummary.first_emi_approved == true;
+        var firstEmiPaymentPending = hubSummary.first_emi_payment_pending == true;
 
-                      '<i class="la la-check-circle me-1"></i> Confirm Quotation</button>';
+        if (firstEmiApproved) {
+            buttonsHtml = '<button type="button" class="btn btn-success btn-sm" onclick="showConfirmModal()">' +
+                          '<i class="la la-check-circle me-1"></i> Confirm Quotation</button>';
+        } else {
+            buttonsHtml = '<button type="button" class="btn btn-success btn-sm" disabled title="First installment payment must be approved by accountant">' +
+                          '<i class="la la-check-circle me-1"></i> Confirm Quotation</button>';
+            if (firstEmiPaymentPending) {
+                buttonsHtml += '<div class="text-danger mt-1 small">Waiting for accounts approve on advance payment to confirm</div>';
+            }
+        }
 
     }
 
-    // Status 5=Confirmed: Show confirmed badge + Driver Allocation button
+    // Status 5=Confirmed: Show reservation completed button (enabled once all properties reconfirmed)
 
     else if (status == 5) {
 
+        var hubSummary = window._hubSummaryData || {};
+        var allPropertiesReserved = hubSummary.all_properties_reserved == true;
+
         var confirmedOption = $('#hubStatusOptionText').text();
         var optionLabel = confirmedOption ? ' <span style="background:#fff;color:#155724;padding:2px 8px;border-radius:12px;margin-left:6px;font-size:14px;">' + confirmedOption + '</span>' : '';
+
         buttonsHtml = '<span class="badge badge-success p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check me-1"></i> Quotation Confirmed' + optionLabel + '</span> ';
-        if (hasPermission('DRIVER_ITINERARY')) {
-            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-car me-1"></i> Driver Allocation</button>';
+        if (hasPermission('PROPERTY_RESERVATION')) {
+            if (allPropertiesReserved) {
+                buttonsHtml += '<button type="button" class="btn btn-success btn-sm ms-2" onclick="showMarkReservationCompletedModal()"><i class="la la-check-circle me-1"></i> Reservation Completed</button>';
+            } else {
+                buttonsHtml += '<button type="button" class="btn btn-success btn-sm ms-2" disabled title="All property reservations must be reconfirmed first"><i class="la la-check-circle me-1"></i> Reservation Completed</button>';
+            }
         }
+        buttonsHtml += buildEditQuotationButton();
+
+    }
+
+    // Status 8=Reservation Completed: Show confirmed badge + Transporter Allocation; voucher/itinerary tabs enabled
+
+    else if (status == 8) {
+
+        var confirmedOption = $('#hubStatusOptionText').text();
+        var optionLabel = confirmedOption ? ' <span style="background:#fff;color:#155724;padding:2px 8px;border-radius:12px;margin-left:6px;font-size:14px;">' + confirmedOption + '</span>' : '';
+        buttonsHtml = '<span class="badge badge-info p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check me-1"></i> Reservation Completed' + optionLabel + '</span> ';
+        if (hasPermission('DRIVER_ITINERARY')) {
+            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-car me-1"></i> Transporter Allocation</button>';
+        }
+        buttonsHtml += buildEditQuotationButton();
+        buttonsHtml += buildVoucherDropdown();
+
+    }
+
+    // Status 9=Driver Not Assigned
+
+    else if (status == 9) {
+
+        buttonsHtml = '<span class="badge badge-warning p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-car me-1"></i> Driver Not Assigned</span> ';
+        if (hasPermission('DRIVER_ITINERARY')) {
+            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Transporter Allocation</button>';
+        }
+        buttonsHtml += buildEditQuotationButton();
+        buttonsHtml += buildVoucherDropdown();
 
     }
 
@@ -194,8 +250,10 @@ function updateQuotationHubActions(status) {
 
         buttonsHtml = '<span class="badge badge-primary p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-car me-1"></i> Ready to Trip</span> ';
         if (hasPermission('DRIVER_ITINERARY')) {
-            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Driver Allocation</button>';
+            buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Transporter Allocation</button>';
         }
+        buttonsHtml += buildEditQuotationButton();
+        buttonsHtml += buildVoucherDropdown();
 
     }
 
@@ -209,9 +267,9 @@ function updateQuotationHubActions(status) {
 
     // Group 1: Client confirmation, Receipt Scheduler, Property reservation
 
-    // Enabled only for status 1 (Generated) and 5 (Confirmed)
+    // Enabled for status 1, 5, 8, 9, 7
 
-    var group1Enabled = (status == 1 || status == 5 || status == 7);
+    var group1Enabled = (status == 1 || status == 5 || status == 8 || status == 9 || status == 7);
 
     toggleTab('tabClientConfirmation', group1Enabled,
 
@@ -233,22 +291,176 @@ function updateQuotationHubActions(status) {
 
 
 
-    // Group 2: Property voucher, Tour voucher, Driver itinerary
+    // Group 2: Financial posting
 
-    // Enabled only for status 5 (Confirmed)
+    // Enabled only for status 8 (Reservation Completed), 9 (Driver Not Assigned) and 7 (Ready to Trip)
 
-    var group2Enabled = (status == 5 || status == 7);
+    var group2Enabled = (status == 8 || status == 9 || status == 7);
 
-    var group2Tooltip = (status == 5 || status == 7) ? '' : 'Quotation must be confirmed first';
-
-    toggleTab('tabPropertyVoucher', group2Enabled, group2Tooltip);
-
-    toggleTab('tabTourVoucher', group2Enabled, group2Tooltip);
-
-    toggleTab('tabDriverItinerary', group2Enabled, group2Tooltip);
+    var group2Tooltip = group2Enabled ? '' : 'Quotation must be confirmed and property reservations must be completed first';
 
     toggleTab('tabFinancialPosting', group2Enabled, group2Tooltip);
 
+}
+
+function updateReviewCard(data) {
+    var reviewCard = $('#hubReviewCard');
+    var reviewDisplay = $('#hubReviewDisplay');
+    var reviewAction = $('#hubReviewAction');
+
+    // Show review card only when status is 7 (Ready to Trip) and all payments complete
+    if (data.quotation_current_status != 7) {
+        reviewCard.hide();
+        return;
+    }
+
+    if (!data.all_payments_complete) {
+        reviewCard.hide();
+        return;
+    }
+
+    reviewCard.show();
+
+    var reviewId = data.review_id || null;
+    var reviewRating = parseInt(data.review_rating) || 0;
+
+    if (reviewId && reviewRating > 0) {
+        var stars = '';
+        for (var i = 1; i <= 5; i++) {
+            stars += '<i class="la la-star" style="color:' + (i <= reviewRating ? '#ffc107' : '#ccc') + ';font-size:22px;"></i>';
+        }
+        reviewDisplay.html(stars + ' <span class="badge bg-success ms-2">Reviewed</span>');
+        if (data.review_comment) {
+            reviewDisplay.append('<div style="font-size:13px;color:#6c757d;margin-top:4px;font-weight:400;">' + $('<div>').text(data.review_comment).html() + '</div>');
+        }
+        if (hasPermission('QUOTATION_REVIEW')) {
+            reviewAction.html('<button type="button" class="btn btn-warning btn-sm" onclick="openReviewModal(' + reviewRating + ', ' + '\'' + (data.review_comment || '').replace(/'/g, "\\'") + '\'' + ')"><i class="la la-edit me-1"></i> Update Review</button>');
+        } else {
+            reviewAction.empty();
+        }
+    } else {
+        reviewDisplay.html('<span class="badge bg-warning">Review Pending</span>');
+        if (hasPermission('QUOTATION_REVIEW')) {
+            reviewAction.html('<button type="button" class="btn btn-primary btn-sm" onclick="openReviewModal(0, \'\')"><i class="la la-star me-1"></i> Add Review</button>');
+        } else {
+            reviewAction.empty();
+        }
+    }
+}
+
+function openReviewModal(currentRating, currentComment) {
+    var quotation_id = $('#quotation_id').val();
+    $('#review_quotation_id').val(quotation_id);
+    $('#review_rating_input').val(currentRating);
+    $('#review_comment_input').val(currentComment);
+
+    // Reset stars
+    $('.review-star').css('color', '#ccc');
+    for (var i = 1; i <= currentRating; i++) {
+        $('.review-star[data-val="' + i + '"]').css('color', '#ffc107');
+    }
+
+    var ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    if (currentRating > 0) {
+        $('#reviewRatingText').text(ratingLabels[currentRating]);
+    } else {
+        $('#reviewRatingText').text('Select a rating');
+    }
+
+    new bootstrap.Modal(document.getElementById('hubReviewModal')).show();
+}
+
+$(document).on('click', '.review-star', function() {
+    var val = parseInt($(this).data('val'));
+    $('#review_rating_input').val(val);
+    $('.review-star').css('color', '#ccc');
+    for (var i = 1; i <= val; i++) {
+        $('.review-star[data-val="' + i + '"]').css('color', '#ffc107');
+    }
+    var ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    $('#reviewRatingText').text(ratingLabels[val]);
+});
+
+$(document).on('mouseenter', '.review-star', function() {
+    var val = parseInt($(this).data('val'));
+    $('.review-star').css('color', '#ccc');
+    for (var i = 1; i <= val; i++) {
+        $('.review-star[data-val="' + i + '"]').css('color', '#ffc107');
+    }
+});
+
+$(document).on('mouseleave', '#reviewStarContainer', function() {
+    var currentVal = parseInt($('#review_rating_input').val()) || 0;
+    $('.review-star').css('color', '#ccc');
+    for (var i = 1; i <= currentVal; i++) {
+        $('.review-star[data-val="' + i + '"]').css('color', '#ffc107');
+    }
+});
+
+function submitReview() {
+    var quotation_id = $('#review_quotation_id').val();
+    var rating = parseInt($('#review_rating_input').val());
+    var comment = $('#review_comment_input').val();
+
+    if (!quotation_id) {
+        alert('Quotation ID missing');
+        return;
+    }
+    if (rating < 1 || rating > 5) {
+        alert('Please select a rating (1-5 stars)');
+        return;
+    }
+
+    $.ajax({
+        url: '<?php echo base_url(); ?>index.php/Quotation/ajax_update_review',
+        type: 'POST',
+        data: {
+            quotation_id: quotation_id,
+            review_rating: rating,
+            review_comment: comment
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (res.status) {
+                bootstrap.Modal.getInstance(document.getElementById('hubReviewModal')).hide();
+                swal('Review updated successfully', '', 'success').then(function() {
+                    window.location.reload();
+                });
+            } else {
+                alert(res.message || 'Failed to update review');
+            }
+        },
+        error: function(xhr) {
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+}
+
+function buildEditQuotationButton() {
+    var quotation_id = $('#quotation_id').val();
+    if (!quotation_id) return '';
+    if (!hasPermission('QUOTATION_UPDATE')) return '';
+    return '<button type="button" class="btn btn-secondary btn-sm ms-2" onclick="edit_quotation(' + quotation_id + ')"><i class="la la-edit me-1"></i> Edit Quotation</button>';
+}
+
+function buildVoucherDropdown() {
+    var quotation_id = $('#quotation_id').val();
+    if (!quotation_id) return '';
+    var baseUrl = '<?php echo base_url(); ?>index.php/Quotation/';
+    var html = '<div class="btn-group ms-2">';
+    html += '<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="la la-ellipsis-h me-1"></i> Actions</button>';
+    html += '<ul class="dropdown-menu dropdown-menu-end">';
+    if (hasPermission('PROPERTY_VOUCHER')) {
+        html += '<li><a class="dropdown-item" target="_blank" href="' + baseUrl + 'property_voucher_preview/' + quotation_id + '"><i class="la la-building me-2"></i>Property Voucher</a></li>';
+    }
+    if (hasPermission('TOUR_VOUCHER')) {
+        html += '<li><a class="dropdown-item" target="_blank" href="' + baseUrl + 'tour_voucher_preview/' + quotation_id + '"><i class="la la-map me-2"></i>Tour Voucher</a></li>';
+    }
+    if (hasPermission('DRIVER_ITINERARY')) {
+        html += '<li><a class="dropdown-item" target="_blank" href="' + baseUrl + 'driver_itinerary_preview/' + quotation_id + '"><i class="la la-car me-2"></i>Driver Itinerary</a></li>';
+    }
+    html += '</ul></div>';
+    return html;
 }
 
 
@@ -351,11 +563,6 @@ function showDriverAllocationModal() {
         }
     });
 
-    // Pre-fill other fields immediately
-    $('#da_driver_name').val(summaryData.quotation_driver_name || '');
-    $('#da_driver_mobile').val(summaryData.quotation_driver_mobile || '');
-    $('#da_cab_number').val(summaryData.quotation_cab_number || '');
-
     $('#driverAllocationModal').off('shown.bs.modal').on('shown.bs.modal', function() {
         $('#da_transporter_id').next('.select2').find('.select2-selection').focus();
     });
@@ -375,11 +582,23 @@ function showDriverAllocationModal() {
 function submitDriverAllocation() {
 
     var quotation_id = $('#quotation_id').val();
+    var transporter_id = $('#da_transporter_id').val();
 
     if (!quotation_id) {
-        alert('Quotation ID missing.');
+        var n = new notify({ title: '', style: 'error', message: 'Quotation ID missing.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
+
+    if (!transporter_id) {
+        $('#da_transporter_id').closest('.form-group, .mb-3').addClass('input-warning-o');
+        $('#da_transporter_id').focus();
+        var n = new notify({ title: '', style: 'error', message: 'Please select a transporter.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        return;
+    }
+
+    $('#da_transporter_id').closest('.form-group, .mb-3').removeClass('input-warning-o');
 
     $.ajax({
         url: "<?php echo base_url(); ?>index.php/Quotation/ajax_driver_allocation",
@@ -387,19 +606,16 @@ function submitDriverAllocation() {
         dataType: "json",
         data: {
             quotation_id:   quotation_id,
-            transporter_id: $('#da_transporter_id').val(),
-            driver_name:    $('#da_driver_name').val(),
-            driver_mobile:  $('#da_driver_mobile').val(),
-            cab_number:     $('#da_cab_number').val()
+            transporter_id: $('#da_transporter_id').val()
         },
         success: function(res) {
             $('#driverAllocationModal').modal('hide');
             if (res.status) {
                 loadQuotationHubSummary(quotation_id);
-                var n = new notify({ title: '', style: 'success', message: 'Driver allocated successfully! Status set to Ready to Trip.', icon: 'fas fa-check' });
+                var n = new notify({ title: '', style: 'success', message: 'Transporter allocated successfully! Status set to Driver Not Assigned.', icon: 'fas fa-check' });
                 n.show(); setTimeout(function(){ n.hide(); }, 3000);
             } else {
-                var n = new notify({ title: '', style: 'error', message: res.message || 'Failed to allocate driver.', icon: 'fas fa-times' });
+                var n = new notify({ title: '', style: 'error', message: res.message || 'Failed to allocate transporter.', icon: 'fas fa-times' });
                 n.show(); setTimeout(function(){ n.hide(); }, 5000);
             }
         },
@@ -413,6 +629,10 @@ function submitDriverAllocation() {
 }
 
 
+
+function showMarkReservationCompletedModal() {
+    $('#markReservationCompletedModal').modal('show');
+}
 
 function showConfirmModal() {
 
@@ -664,6 +884,49 @@ $('#btnConfirmYes').on('click', function() {
 
     });
 
+});
+
+// Mark Property Reservation Completed
+$('#btnMarkReservationCompletedYes').on('click', function() {
+    var quotation_id = $('#quotation_id').val();
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_mark_reservation_complete",
+        type: "POST",
+        dataType: "json",
+        data: { quotation_id: quotation_id },
+        success: function(res) {
+            $('#markReservationCompletedModal').modal('hide');
+            if (res.status) {
+                loadQuotationHubSummary(quotation_id);
+                var n = new notify({
+                    title: '',
+                    style: 'success',
+                    message: res.message || 'Reservation marked as completed successfully.',
+                    icon: 'fas fa-check'
+                });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            } else {
+                var n = new notify({
+                    title: '',
+                    style: 'error',
+                    message: res.message || 'Failed to mark reservation as completed.',
+                    icon: 'fas fa-times'
+                });
+                n.show(); setTimeout(function(){ n.hide(); }, 5000);
+            }
+        },
+        error: function() {
+            $('#markReservationCompletedModal').modal('hide');
+            var n = new notify({
+                title: '',
+                style: 'error',
+                message: 'Server error occurred',
+                icon: 'fas fa-times'
+            });
+            n.show(); setTimeout(function(){ n.hide(); }, 5000);
+        }
+    });
 });
 
 
@@ -2907,6 +3170,8 @@ function hub_viewScheduler(id) {
 
             $('#hub_view_total_amount').text('₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
 
+            $('#hub_view_total_card').text('₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+
             $('#hub_view_paid_amount').text('₹' + parseFloat(response.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
 
             $('#hub_view_pending_amount').text('₹' + parseFloat(response.pending_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
@@ -2921,15 +3186,22 @@ function hub_viewScheduler(id) {
 
                 var inst = installments[i];
 
-                var statusClass = inst.payment_status == 'PAID' ? 'bg-success' : (inst.payment_status == 'PARTIAL' ? 'bg-warning' : (inst.payment_status == 'OVERDUE' ? 'bg-danger' : 'bg-secondary'));
-
                 html += '<tr><td>' + inst.installment_number + '</td><td>' + hub_formatDate(inst.due_date) + '</td>';
 
                 html += '<td>₹' + parseFloat(inst.calculated_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
 
                 html += '<td>₹' + parseFloat(inst.paid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>';
 
-                html += '<td><span class="badge ' + statusClass + '">' + inst.payment_status + '</span></td><td>';
+                var statusClass = '';
+                if (inst.payment_status == 'PAID') statusClass = 'bg-success';
+                else if (inst.payment_status == 'PARTIAL') statusClass = 'bg-warning';
+                else if (inst.payment_status == 'OVERDUE') statusClass = 'bg-danger';
+                else if (inst.payment_status == 'PENDING') statusClass = 'bg-danger';
+                else statusClass = 'bg-secondary';
+
+                html += '<td><span class="badge ' + statusClass + '">' + inst.payment_status + '</span></td>';
+
+                html += '<td>';
 
                 if (inst.payment_status != 'PAID') {
 
@@ -2947,7 +3219,7 @@ function hub_viewScheduler(id) {
 
                 if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
 
-                    html += '<button class="btn btn-info btn-xs" onclick="hub_viewReceipts(' + inst.installment_id + ')" title="Receipts"><i class="fas fa-receipt"></i> Receipt</button>';
+                    html += '<button class="btn btn-info btn-xs me-1" onclick="hub_viewReceipts(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-history"></i> History</button>';
 
                 }
 
@@ -3000,13 +3272,28 @@ function hub_recordPayment(installmentId, dueAmount) {
 
 function hub_savePayment() {
 
+    var $amount = $('#hub_payment_amount');
     var $date = $('#hub_payment_date');
     var $slip = $('#hub_payment_slip');
+
+    var amountVal = $.trim($amount.val());
+    if (amountVal == '' || isNaN(amountVal) || parseFloat(amountVal) <= 0) {
+        $amount.addClass('is-invalid');
+        var n = new notify({ title: '', style: 'error', message: 'Please enter a valid payment amount greater than 0.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        $amount.focus();
+        return;
+    } else {
+        $amount.removeClass('is-invalid');
+    }
+
     var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
     $date.toggleClass('is-invalid', !dateValid);
     $slip.toggleClass('is-invalid', !$slip.val());
     if (!dateValid || !$slip.val()) {
-        alert('Payment date and payment slip are required.');
+        var msg = !dateValid ? 'Please enter a valid payment date in dd/mm/yyyy format.' : 'Please upload a payment slip.';
+        var n = new notify({ title: '', style: 'error', message: msg, icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
 
@@ -3022,7 +3309,8 @@ function hub_savePayment() {
 
             if (response.error) {
 
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message || 'Failed to record payment.', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             } else {
 
@@ -3032,10 +3320,59 @@ function hub_savePayment() {
 
                 hub_schedulerTable.ajax.reload();
 
+                loadQuotationHubSummary($('#quotation_id').val());
+
+                var n = new notify({ title: '', style: 'success', message: response.message || 'Payment recorded successfully.', icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+
+            }
+
+        },
+        error: function() {
+            var n = new notify({ title: '', style: 'error', message: 'Failed to record payment.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        }
+
+    });
+
+}
+
+
+
+function hub_approvePayment(paymentId) {
+
+    if (!confirm('Approve this payment by accountant?')) {
+        return;
+    }
+
+    $.ajax({
+
+        url: "<?php echo base_url(); ?>index.php/Receipt_scheduler/approve_payment",
+
+        type: 'POST', data: { payment_id: paymentId }, dataType: 'json',
+
+        success: function(response) {
+
+            if (response.error) {
+
+                alert(response.message);
+
+            } else {
+
+                hub_viewScheduler(hub_currentSchedulerId);
+
+                hub_schedulerTable.ajax.reload();
+
+                loadQuotationHubSummary($('#quotation_id').val());
+
                 alert(response.message);
 
             }
 
+        },
+
+        error: function() {
+            alert('Failed to approve payment.');
         }
 
     });
@@ -3078,7 +3415,14 @@ function hub_viewReceipts(installmentId) {
 
                     html += '<td>' + (p.payment_received_by_username || '-') + '</td>';
 
-                    html += '<td><button class="btn btn-primary btn-xs" onclick="hub_printReceipt(' + p.payment_id + ')"><i class="fas fa-print"></i> Print</button></td>';
+                    var approvalStatus = p.accountant_approval_status ? p.accountant_approval_status : 'pending';
+                    var approvalClass = approvalStatus == 'approved' ? 'bg-success' : 'bg-warning';
+                    html += '<td><span class="badge ' + approvalClass + '">' + approvalStatus.charAt(0).toUpperCase() + approvalStatus.slice(1) + '</span></td>';
+
+                    var slipLink = p.payment_slip
+                        ? '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + p.payment_slip + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip"><i class="fas fa-file-alt"></i></a>'
+                        : '';
+                    html += '<td><div class="d-flex">' + slipLink + '<button class="btn btn-primary shadow btn-xs sharp" onclick="hub_printReceipt(' + p.payment_id + ')" title="Print Receipt"><i class="fas fa-print"></i></button></div></td>';
 
                     html += '</tr>';
 
@@ -3086,7 +3430,7 @@ function hub_viewReceipts(installmentId) {
 
             } else {
 
-                html += '<tr><td colspan="6" class="text-center text-muted">No payments found</td></tr>';
+                html += '<tr><td colspan="7" class="text-center text-muted">No payments found</td></tr>';
 
             }
 
@@ -3643,12 +3987,14 @@ function hubSaveConfirmation() {
     if (!type) { alert('Please select payment terms'); return; }
     hubPostForm('property_reservation/save_confirmation', '#hub_confirmForm', function() {
         hubReloadReservation();
+        loadQuotationHubSummary($('#quotation_id').val());
     });
 }
 
 function hubSaveReconfirmation() {
     hubPostForm('property_reservation/save_reconfirmation', '#hub_reconForm', function() {
         hubReloadReservation();
+        loadQuotationHubSummary($('#quotation_id').val());
     });
 }
 
@@ -3729,50 +4075,6 @@ function hubFormatDate(d) {
     return String(dt.getDate()).padStart(2, '0') + ' ' +
            dt.toLocaleString('en-US', { month: 'short' }) + ' ' + dt.getFullYear();
 }
-
-$(document).on('click', '#btnPropertyVoucher', function () {
-
-    var quotation_id = $('#quotation_id').val();
-
-    if (!quotation_id) {
-        alert('Quotation ID missing');
-        return;
-    }
-
-    window.open(
-        '<?php echo base_url(); ?>index.php/Quotation/property_voucher_preview/' + quotation_id,
-        '_blank'
-    );
-});
-
-$(document).on('click', '#btnTourVoucher', function () {
-
-    var quotation_id = $('#quotation_id').val();
-
-    if (!quotation_id) {
-        alert('Quotation ID missing');
-        return;
-    }
-
-    window.open(
-        "<?php echo base_url(); ?>index.php/Quotation/tour_voucher_preview/" + quotation_id,
-        "_blank"
-    );
-});
-
-$(document).on('click', '#btnDriverItinerary', function () {
-    var quotation_id = $('#quotation_id').val();
-
-    if (!quotation_id) {
-        alert('Quotation ID missing');
-        return;
-    }
-
-    window.open(
-        "<?php echo base_url(); ?>index.php/Quotation/driver_itinerary_preview/" + quotation_id,
-        "_blank"
-    );
-});
 
 // ==================== Financial Posting ====================
 
@@ -4091,6 +4393,15 @@ function hubPrViewPaymentSummary() {
         success: function(res) {
             if (res.error) { alert(res.message); return; }
             var d = res.data;
+            var s = d.scheduler || d.payment || null;
+            if (s) {
+                $('#hub_pr_view_quotation').text(s.quotation_number || '-');
+                $('#hub_pr_view_guest').text(s.guest_name || '-');
+                $('#hub_pr_view_property').text(s.properties_name || '-');
+                $('#hub_pr_view_type').html(s.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>');
+            }
+            var totalAmt = d.net_total || (s ? (s.discounted_total > 0 ? s.discounted_total : s.total_amount) : 0);
+            $('#hub_pr_view_total').text('₹' + parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#hub_pr_view_paid').text('₹' + parseFloat(d.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#hub_pr_view_pending').text('₹' + parseFloat(d.pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#hub_pr_view_overdue').text(d.overdue_count);
@@ -4098,7 +4409,7 @@ function hubPrViewPaymentSummary() {
             var insts = d.installments;
             for (var i = 0; i < insts.length; i++) {
                 var inst = insts[i];
-                var sc = inst.payment_status === 'PAID' ? 'bg-success' : (inst.payment_status === 'PARTIAL' ? 'bg-warning' : (inst.payment_status === 'OVERDUE' ? 'bg-danger' : 'bg-secondary'));
+                var sc = inst.payment_status === 'PAID' ? 'bg-success' : (inst.payment_status === 'PARTIAL' ? 'bg-warning' : (inst.payment_status === 'OVERDUE' ? 'bg-danger' : (inst.payment_status === 'PENDING' ? 'bg-danger' : 'bg-secondary')));
                 var remaining = parseFloat(inst.calculated_amount) - parseFloat(inst.paid_amount);
                 html += '<tr>';
                 html += '<td>' + inst.installment_number + '</td>';
@@ -4111,7 +4422,7 @@ function hubPrViewPaymentSummary() {
                     html += '<button class="btn btn-success btn-xs me-1" onclick="hubPrRecordPayment(' + inst.installment_id + ',' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
                 }
                 if (inst.payment_status === 'PAID' || inst.payment_status === 'PARTIAL') {
-                    html += '<button class="btn btn-info btn-xs" onclick="hubPrViewReceipts(' + inst.installment_id + ')"><i class="fas fa-receipt"></i> Receipts</button>';
+                    html += '<button class="btn btn-info btn-xs" onclick="hubPrViewReceipts(' + inst.installment_id + ')"><i class="fas fa-history"></i> Payment History</button>';
                 }
                 html += '</td></tr>';
             }
@@ -4139,13 +4450,28 @@ function hubPrRecordPayment(installmentId, dueAmount) {
 }
 
 function hubPrSavePayment() {
+    var $amount = $('#hub_pr_pay_amount');
     var $date = $('#hub_pr_pay_date');
     var $slip = $('#hub_pr_pay_slip');
+
+    var amountVal = $.trim($amount.val());
+    if (amountVal == '' || isNaN(amountVal) || parseFloat(amountVal) <= 0) {
+        $amount.addClass('is-invalid');
+        var n = new notify({ title: '', style: 'error', message: 'Please enter a valid payment amount greater than 0.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        $amount.focus();
+        return;
+    } else {
+        $amount.removeClass('is-invalid');
+    }
+
     var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
     $date.toggleClass('is-invalid', !dateValid);
     $slip.toggleClass('is-invalid', !$slip.val());
     if (!dateValid || !$slip.val()) {
-        alert('Payment date and payment slip are required.');
+        var msg = !dateValid ? 'Please enter a valid payment date in dd/mm/yyyy format.' : 'Please upload a payment slip.';
+        var n = new notify({ title: '', style: 'error', message: msg, icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
 
@@ -4158,10 +4484,19 @@ function hubPrSavePayment() {
         contentType: false,
         dataType: 'json',
         success: function(res) {
-            if (res.error) { alert(res.message); return; }
+            if (res.error) {
+                var n = new notify({ title: '', style: 'error', message: res.message || 'Failed to record payment.', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+                return;
+            }
             $('#hubPrRecordPaymentModal').modal('hide');
             hubPrViewPaymentSummary();
-            alert(res.message);
+            var n = new notify({ title: '', style: 'success', message: res.message || 'Payment recorded successfully.', icon: 'fas fa-check' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        },
+        error: function() {
+            var n = new notify({ title: '', style: 'error', message: 'Failed to record payment.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
     });
 }
@@ -4184,7 +4519,11 @@ function hubPrViewReceipts(installmentId) {
                     html += '<td>' + (p.payment_method || '-') + '</td>';
                     html += '<td>' + (p.payment_reference || '-') + '</td>';
                     html += '<td>' + (p.payment_paid_by_username || '-') + '</td>';
-                    html += '<td><button class="btn btn-primary btn-xs" onclick="hubPrPrintReceipt(' + p.payment_id + ')"><i class="fas fa-print"></i> Print</button></td>';
+                    if (p.payment_slip) {
+                        html += '<td><a href="<?php echo base_url(); ?>uploads/payment_slips/' + p.payment_slip + '" target="_blank" class="btn btn-primary btn-xs"><i class="fas fa-file-alt"></i> View</a></td>';
+                    } else {
+                        html += '<td>-</td>';
+                    }
                     html += '</tr>';
                 }
             } else {
@@ -4226,4 +4565,9 @@ function fpReset() {
         $('#fp_record_id').val('');
     }
 }
+
+var IS_QUOTATION_HUB = true;
+
+<?php include(APPPATH . 'views/Quotation/quotation_modal_script.php'); ?>
+
 </script>

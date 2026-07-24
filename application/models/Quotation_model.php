@@ -112,7 +112,7 @@ class Quotation_model extends CI_Model{
 
         $this->db->where("quotation_status",1);
         if (!empty($param['confirmed_only'])) {
-            $this->db->where_in('quotation_current_status', array(5, 7));
+            $this->db->where_in('quotation_current_status', array(5, 7, 9));
         }
 
 
@@ -423,9 +423,10 @@ class Quotation_model extends CI_Model{
 
                     qo.quotation_options_title as confirmed_option_title,
 
-                    q.quotation_transporter_id_fk, q.quotation_driver_name,
-                    q.quotation_driver_mobile, q.quotation_cab_number,
-                    t.transporter_name')
+                    qta.transporter_id_fk as quotation_transporter_id_fk,
+                    t.transporter_name,
+
+                    qr.review_id, qr.review_rating, qr.review_comment, qr.reviewed_at')
 
             ->from('quotation q')
 
@@ -435,7 +436,11 @@ class Quotation_model extends CI_Model{
 
             ->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left')
 
-            ->join('transporter t', 't.transporter_id = q.quotation_transporter_id_fk', 'left')
+            ->join('quotation_transport_allocation qta', 'qta.quotation_id_fk = q.quotation_id AND qta.status = 1', 'left')
+
+            ->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left')
+
+            ->join('quotation_review qr', 'qr.quotation_id_fk = q.quotation_id AND qr.review_status = 1', 'left')
 
             ->where('q.quotation_id', (int)$quotation_id)
 
@@ -446,6 +451,98 @@ class Quotation_model extends CI_Model{
             ->get()
 
             ->row_array();
+
+    }
+
+
+
+    public function update_review($quotation_id, $review_rating, $review_comment = '')
+
+    {
+
+        $ci =& get_instance();
+
+        $user_id = $ci->session->userdata('user_id') ? $ci->session->userdata('user_id') : null;
+
+
+
+        // Check if a review already exists for this quotation
+
+        $existing = $this->db
+
+            ->where('quotation_id_fk', (int)$quotation_id)
+
+            ->where('review_status', 1)
+
+            ->get('quotation_review')
+
+            ->row_array();
+
+
+
+        if ($existing) {
+
+            // Update existing review
+
+            $this->db->where('review_id', $existing['review_id']);
+
+            $updated = $this->db->update('quotation_review', array(
+
+                'review_rating' => $review_rating,
+
+                'review_comment' => $review_comment,
+
+                'reviewed_by_user_id' => $user_id,
+
+                'reviewed_at' => date('Y-m-d H:i:s')
+
+            ));
+
+        } else {
+
+            // Insert new review
+
+            $updated = $this->db->insert('quotation_review', array(
+
+                'quotation_id_fk' => (int)$quotation_id,
+
+                'review_rating' => $review_rating,
+
+                'review_comment' => $review_comment,
+
+                'reviewed_by_user_id' => $user_id,
+
+                'reviewed_at' => date('Y-m-d H:i:s'),
+
+                'review_status' => 1
+
+            ));
+
+        }
+
+
+
+        if ($updated) {
+
+            return array(
+
+                'status' => true,
+
+                'message' => 'Review updated successfully'
+
+            );
+
+        } else {
+
+            return array(
+
+                'status' => false,
+
+                'message' => 'Failed to update review'
+
+            );
+
+        }
 
     }
 
@@ -7045,6 +7142,137 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		$this->db->where('l.leads_status', 1);
 		$query = $this->db->get();
 		return $query->num_rows();
+	}
+
+	public function getDriverNotAssignedReport($param)
+	{
+		$searchValue       = isset($param['searchValue'])       ? $param['searchValue']       : '';
+		$quotation_number  = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+		$guest_name        = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+		$transporter_id_fk = isset($param['transporter_id_fk']) ? $param['transporter_id_fk'] : '';
+		$start_date        = isset($param['start_date'])        ? $param['start_date']        : '';
+		$end_date          = isset($param['end_date'])          ? $param['end_date']          : '';
+		$status_filter     = isset($param['status_filter'])     ? $param['status_filter']     : '';
+
+		$this->db->select('
+			qta.id as allocation_id,
+			q.quotation_id,
+			l.guest_name,
+			DATE_FORMAT(l.start_date, "%d-%m-%Y") as travel_date,
+			qta.transporter_id_fk,
+			t.transporter_name,
+			qta.driver_name,
+			qta.driver_mobile,
+			qta.cab_number,
+			q.quotation_current_status', FALSE);
+		$this->db->from('quotation_transport_allocation qta');
+		$this->db->join('quotation q', 'q.quotation_id = qta.quotation_id_fk', 'inner');
+		$this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'left');
+		$this->db->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left');
+		$this->db->where('q.quotation_status', 1);
+		if ($status_filter) {
+			$this->db->where('q.quotation_current_status', (int)$status_filter);
+		} else {
+			$this->db->where_in('q.quotation_current_status', array(9, 7));
+		}
+
+		if ($transporter_id_fk) {
+			$this->db->where('qta.transporter_id_fk', $transporter_id_fk);
+		}
+		if ($quotation_number) {
+			$this->db->like('q.quotation_number', $quotation_number);
+		}
+		if ($guest_name) {
+			$this->db->like('l.guest_name', $guest_name);
+		}
+		if ($start_date) {
+			$this->db->where('l.start_date >=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where('l.start_date <=', $end_date);
+		}
+		if ($searchValue) {
+			$this->db->group_start();
+			$this->db->like('q.quotation_number', $searchValue);
+			$this->db->or_like('l.leads_number', $searchValue);
+			$this->db->or_like('l.guest_name', $searchValue);
+			$this->db->or_like('t.transporter_name', $searchValue);
+			$this->db->or_like('qta.driver_name', $searchValue);
+			$this->db->or_like('qta.cab_number', $searchValue);
+			$this->db->group_end();
+		}
+
+		if ($param['length'] == -1) {
+			// no limit
+		} elseif ($param['start'] != 'false' and $param['length'] != 'false') {
+			$this->db->limit($param['length'], $param['start']);
+		}
+
+		$this->db->order_by('q.quotation_id', 'DESC');
+		$query = $this->db->get();
+		$data['data']            = $query->result();
+		$data['recordsTotal']    = $this->getDriverNotAssignedReportCount($param);
+		$data['recordsFiltered'] = $this->getDriverNotAssignedReportCount($param);
+		return $data;
+	}
+
+	public function getDriverNotAssignedReportCount($param = NULL)
+	{
+		$searchValue       = isset($param['searchValue'])       ? $param['searchValue']       : '';
+		$quotation_number  = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+		$guest_name        = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+		$transporter_id_fk = isset($param['transporter_id_fk']) ? $param['transporter_id_fk'] : '';
+		$start_date        = isset($param['start_date'])        ? $param['start_date']        : '';
+		$end_date          = isset($param['end_date'])          ? $param['end_date']          : '';
+		$status_filter     = isset($param['status_filter'])     ? $param['status_filter']     : '';
+
+		$this->db->select('qta.id', FALSE);
+		$this->db->from('quotation_transport_allocation qta');
+		$this->db->join('quotation q', 'q.quotation_id = qta.quotation_id_fk', 'inner');
+		$this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'left');
+		$this->db->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left');
+		$this->db->where('q.quotation_status', 1);
+		if ($status_filter) {
+			$this->db->where('q.quotation_current_status', (int)$status_filter);
+		} else {
+			$this->db->where_in('q.quotation_current_status', array(9, 7));
+		}
+
+		if ($transporter_id_fk) {
+			$this->db->where('qta.transporter_id_fk', $transporter_id_fk);
+		}
+		if ($quotation_number) {
+			$this->db->like('q.quotation_number', $quotation_number);
+		}
+		if ($guest_name) {
+			$this->db->like('l.guest_name', $guest_name);
+		}
+		if ($start_date) {
+			$this->db->where('l.start_date >=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where('l.start_date <=', $end_date);
+		}
+		if ($searchValue) {
+			$this->db->group_start();
+			$this->db->like('q.quotation_number', $searchValue);
+			$this->db->or_like('l.leads_number', $searchValue);
+			$this->db->or_like('l.guest_name', $searchValue);
+			$this->db->or_like('t.transporter_name', $searchValue);
+			$this->db->or_like('qta.driver_name', $searchValue);
+			$this->db->or_like('qta.cab_number', $searchValue);
+			$this->db->group_end();
+		}
+
+		$query = $this->db->get();
+		return $query->num_rows();
+	}
+
+	public function updateTransportAllocation($where, $data)
+	{
+		$this->db->where($where);
+		$this->db->update('quotation_transport_allocation', $data);
+		return $this->db->affected_rows();
 	}
 
 

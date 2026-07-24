@@ -370,11 +370,113 @@ class Property_reservation extends MY_Controller {
             echo json_encode(array('error' => true, 'message' => 'Not found'));
             return;
         }
+
+        $scheduler = $this->Property_reservation_model->get_scheduler_with_details($scheduler_id);
+        if ($scheduler) {
+            $summary['scheduler'] = $scheduler;
+            $summary['scheduler']->properties_name = $this->_get_property_name_by_reservation($scheduler->property_reservation_id_fk);
+        }
+
         echo json_encode(array('error' => false, 'data' => $summary));
+    }
+
+    public function property_payments_report()
+    {
+        if (!has_permission('PROPERTY_PAYMENTS_REPORT')) {
+            show_error('Permission denied: Property Payments Report', 403);
+            return;
+        }
+        $template['body']   = 'Property_reservation/payments_report';
+        $template['script'] = 'Property_reservation/payments_report_script';
+        $this->load->view('template', $template);
+    }
+
+    public function get_property_scheduler_report_table()
+    {
+        if (!has_permission('PROPERTY_PAYMENTS_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $param = array(
+            'quotation_number_filter' => $this->input->post('quotation_number_filter'),
+            'guest_name_filter' => $this->input->post('guest_name_filter'),
+            'property_name_filter' => $this->input->post('property_name_filter'),
+            'payment_type_filter' => $this->input->post('payment_type_filter'),
+            'start' => $this->input->post('start'),
+            'length' => $this->input->post('length'),
+        );
+
+        $result = $this->Property_reservation_model->getPropertySchedulerReportTable($param);
+        echo json_encode($result);
+    }
+
+    public function get_property_payment_summary()
+    {
+        if (!has_permission('PROPERTY_PAYMENTS_REPORT') && !has_permission('PROPERTY_RESERVATION')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $scheduler_id = (int)$this->input->post('scheduler_id');
+        $summary = $this->Property_reservation_model->get_payment_summary_by_scheduler($scheduler_id);
+        if (!$summary) {
+            echo json_encode(array('error' => true, 'message' => 'Payment schedule not found'));
+            return;
+        }
+
+        $scheduler = $this->Property_reservation_model->get_scheduler_with_details($scheduler_id);
+        if ($scheduler) {
+            $summary['payment'] = $scheduler;
+            $summary['payment']->properties_name = $this->_get_property_name_by_reservation($scheduler->property_reservation_id_fk);
+        }
+
+        echo json_encode($summary);
+    }
+
+    private function _get_property_name_by_reservation($reservation_id)
+    {
+        if (!$reservation_id) return '';
+        $this->load->model('Property_reservation_model');
+        $row = $this->db->select('p.properties_name')
+            ->from('property_reservation pr')
+            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
+            ->where('pr.property_reservation_id', (int)$reservation_id)
+            ->get()->row();
+        return $row ? $row->properties_name : '';
+    }
+
+    public function get_property_payments_report_table()
+    {
+        if (!has_permission('PROPERTY_PAYMENTS_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied'));
+            return;
+        }
+
+        $param = array(
+            'start_date'  => $this->_payment_date($this->input->post('start_date')),
+            'end_date'    => $this->_payment_date($this->input->post('end_date')),
+            'quotation_number_filter' => $this->input->post('quotation_number_filter'),
+            'guest_name_filter' => $this->input->post('guest_name_filter'),
+            'property_name_filter' => $this->input->post('property_name_filter'),
+            'payment_type_filter' => $this->input->post('payment_type_filter'),
+            'installment_number_filter' => $this->input->post('installment_number_filter'),
+            'status_filter' => $this->input->post('status_filter'),
+            'start' => $this->input->post('start'),
+            'length' => $this->input->post('length'),
+        );
+
+        $result = $this->Property_reservation_model->getPropertyPaymentsReportTable($param);
+        echo json_encode($result);
     }
 
     public function ajax_record_payment()
     {
+        if (!has_permission('PROPERTY_RESERVATION') && !has_permission('PROPERTY_PAYMENTS_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
+            return;
+        }
+
         $installment_id  = (int)$this->input->post('installment_id');
         $scheduler_id    = (int)$this->input->post('scheduler_id');
         $payment_amount  = (float)$this->input->post('payment_amount');
@@ -460,6 +562,10 @@ class Property_reservation extends MY_Controller {
 
     public function ajax_get_installment_payments()
     {
+        if (!has_permission('PROPERTY_RESERVATION') && !has_permission('PROPERTY_PAYMENTS_REPORT')) {
+            echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
+            return;
+        }
         $installment_id = (int)$this->input->post('installment_id');
         $payments = $this->Property_reservation_model->get_payments_by_installment_id($installment_id);
         echo json_encode(array('error' => false, 'payments' => $payments));
