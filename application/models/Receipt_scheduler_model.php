@@ -247,6 +247,31 @@ class Receipt_scheduler_model extends CI_Model {
         return $this->db->affected_rows() > 0;
     }
 
+    public function get_quotation_id_by_payment($payment_id)
+    {
+        $row = $this->db
+            ->select('rs.quotation_id_fk')
+            ->from($this->table_payments . ' p')
+            ->join($this->table_installments . ' i', 'i.installment_id = p.installment_id_fk', 'inner')
+            ->join($this->table . ' rs', 'rs.receipt_scheduler_id = i.receipt_scheduler_id_fk', 'inner')
+            ->where('p.payment_id', (int)$payment_id)
+            ->get()
+            ->row();
+        return $row ? (int)$row->quotation_id_fk : 0;
+    }
+
+    public function get_quotation_id_by_installment($installment_id)
+    {
+        $row = $this->db
+            ->select('rs.quotation_id_fk')
+            ->from($this->table_installments . ' i')
+            ->join($this->table . ' rs', 'rs.receipt_scheduler_id = i.receipt_scheduler_id_fk', 'inner')
+            ->where('i.installment_id', (int)$installment_id)
+            ->get()
+            ->row();
+        return $row ? (int)$row->quotation_id_fk : 0;
+    }
+
     public function is_first_installment_approved($receipt_scheduler_id)
     {
         $row = $this->db

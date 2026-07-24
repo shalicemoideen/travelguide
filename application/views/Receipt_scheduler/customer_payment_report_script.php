@@ -156,6 +156,7 @@ function viewSchedulerDetails(schedulerId) {
             $('#cpd_guest_name').text(scheduler.guest_name);
             $('#cpd_payment_type').html(scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>');
             $('#cpd_total_amount').text('₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+            $('#cpd_total_card').text('₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#cpd_paid_amount').text('₹' + parseFloat(response.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#cpd_pending_amount').text('₹' + parseFloat(response.pending_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#cpd_overdue_count').text(response.overdue_count);
@@ -168,6 +169,7 @@ function viewSchedulerDetails(schedulerId) {
                 if (inst.payment_status == 'PAID') statusClass = 'bg-success';
                 else if (inst.payment_status == 'PARTIAL') statusClass = 'bg-warning';
                 else if (inst.payment_status == 'OVERDUE') statusClass = 'bg-danger';
+                else if (inst.payment_status == 'PENDING') statusClass = 'bg-danger';
                 else statusClass = 'bg-secondary';
 
                 html += '<tr>';
@@ -185,7 +187,7 @@ function viewSchedulerDetails(schedulerId) {
                     }
                 }
                 if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
-                    html += '<button class="btn btn-info btn-xs" onclick="viewCustomerPaymentHistory(' + inst.installment_id + ')" title="Receipts"><i class="fas fa-receipt"></i> Receipt</button>';
+                    html += '<button class="btn btn-info btn-xs" onclick="viewCustomerPaymentHistory(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-receipt"></i> History</button>';
                 }
                 html += '</td>';
                 html += '</tr>';

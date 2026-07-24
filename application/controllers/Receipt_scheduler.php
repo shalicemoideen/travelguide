@@ -383,6 +383,14 @@ class Receipt_scheduler extends MY_Controller {
 
         $result = $this->Receipt_scheduler_model->approve_payment($payment_id, $this->currentuserid, $this->currentusername);
         if ($result) {
+            $quotation_id = $this->Receipt_scheduler_model->get_quotation_id_by_payment($payment_id);
+            if ($quotation_id) {
+                $quotation = $this->db->where('quotation_id', $quotation_id)->get('quotation')->row();
+                if ($quotation && (int)$quotation->quotation_current_status === 1) {
+                    $this->db->where('quotation_id', $quotation_id);
+                    $this->db->update('quotation', array('quotation_current_status' => 5));
+                }
+            }
             echo json_encode(array('error' => false, 'message' => 'Payment approved by accountant'));
         } else {
             echo json_encode(array('error' => true, 'message' => 'Failed to approve payment'));
@@ -583,6 +591,15 @@ class Receipt_scheduler extends MY_Controller {
             );
 
             echo json_encode(array('error' => false, 'message' => 'Payment recorded and auto-approved successfully'));
+
+            $quotation_id = $this->Receipt_scheduler_model->get_quotation_id_by_installment($installment_id);
+            if ($quotation_id) {
+                $quotation = $this->db->where('quotation_id', $quotation_id)->get('quotation')->row();
+                if ($quotation && (int)$quotation->quotation_current_status === 1) {
+                    $this->db->where('quotation_id', $quotation_id);
+                    $this->db->update('quotation', array('quotation_current_status' => 5));
+                }
+            }
         } else {
             echo json_encode(array('error' => true, 'message' => 'Failed to record payment'));
         }

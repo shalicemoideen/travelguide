@@ -7275,6 +7275,86 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		return $this->db->affected_rows();
 	}
 
+	public function get_transporter_guest_details($quotation_id)
+	{
+		$quotation_id = (int)$quotation_id;
+
+		$main = $this->db
+			->select('
+				q.quotation_id,
+				q.quotation_number,
+				q.arriving_destination,
+				q.departuring_destination,
+				l.leads_id,
+				l.guest_name,
+				l.whats_number,
+				l.alternative_number,
+				l.start_date,
+				l.end_date,
+				l.duration
+			')
+			->from('quotation q')
+			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+			->where('q.quotation_id', $quotation_id)
+			->where('q.quotation_status', 1)
+			->get()
+			->row_array();
+
+		if (!$main) {
+			return array('main' => null, 'guest_count' => array(), 'days' => array());
+		}
+
+		$lead_id = $main['leads_id'];
+
+		$guest_count = $this->db
+			->select('
+				gcd.pax_count_plan,
+				gcd.adults,
+				gcd.children,
+				gcd.total_count,
+				gcd.guset_count_details_type
+			')
+			->from('guset_count gc')
+			->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id', 'left')
+			->where('gc.guset_count_lead_id_fk', $lead_id)
+			->where('gc.guset_count_status', 1)
+			->where('gcd.guset_count_details_status', 1)
+			->order_by('gcd.guset_count_details_id', 'ASC')
+			->get()
+			->result_array();
+
+		$days = $this->db
+			->select('
+				qpd.quotation_properties_days_day,
+				ap.accommodation_date,
+				ap.accommodation_day_name,
+				s.state_name,
+				p.properties_name,
+				p.properties_sales_contact_phone_number,
+				p.properties_reservation_contact_phone_number,
+				p.properties_google_map_location,
+				qid.quotation_itineraries_days_description
+			')
+			->from('quotation_confirmation qc')
+			->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
+			->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
+			->join('state s', 's.state_id = ap.stay_destination_id_fk', 'left')
+			->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
+			->join('properties p', 'p.properties_id = qp.properties_id_fk', 'left')
+			->join('quotation_itinerary_days qid', 'qid.quotation_itinerary_days_id = qpd.quotation_itinerary_days_id_fk', 'left')
+			->where('qc.quotation_id_fk', $quotation_id)
+			->where('qc.property_confirmation_status', 1)
+			->group_by('qpd.quotation_properties_days_id')
+			->order_by('ap.accommodation_date', 'ASC')
+			->get()
+			->result_array();
+
+		return array(
+			'main'        => $main,
+			'guest_count' => $guest_count,
+			'days'        => $days
+		);
+	}
 
 
 }

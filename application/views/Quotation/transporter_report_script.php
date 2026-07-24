@@ -74,10 +74,14 @@ function loadTransporterReportTable() {
             {
                 data: null,
                 render: function(data, type, row) {
+                    var html = '<button type="button" class="btn btn-info shadow btn-xs sharp me-1" onclick="viewGuestDetails(' + row.quotation_id + ')" title="View Guest Details"><i class="fas fa-eye"></i></button>';
+                    html += '<a class="btn btn-secondary shadow btn-xs sharp me-1" target="_blank" href="' + base_url + 'Quotation/driver_itinerary_preview/' + row.quotation_id + '" title="Driver Itinerary"><i class="fas fa-route"></i></a>';
                     if (row.quotation_current_status == 7) {
-                        return '<button type="button" class="btn btn-warning shadow btn-xs sharp me-1" onclick="openAssignDriverModal(' + row.allocation_id + ',' + row.quotation_id + ')" title="Edit Driver Details"><i class="fas fa-edit"></i></button>';
+                        html += '<button type="button" class="btn btn-warning shadow btn-xs sharp me-1" onclick="openAssignDriverModal(' + row.allocation_id + ',' + row.quotation_id + ')" title="Edit Driver Details"><i class="fas fa-edit"></i></button>';
+                    } else {
+                        html += '<button type="button" class="btn btn-success shadow btn-xs sharp me-1" onclick="openAssignDriverModal(' + row.allocation_id + ',' + row.quotation_id + ')" title="Assign Driver"><i class="fas fa-edit"></i></button>';
                     }
-                    return '<button type="button" class="btn btn-success shadow btn-xs sharp me-1" onclick="openAssignDriverModal(' + row.allocation_id + ',' + row.quotation_id + ')" title="Assign Driver"><i class="fas fa-edit"></i></button>';
+                    return html;
                 }
             }
         ]
@@ -181,6 +185,174 @@ function submitAssignDriver() {
             var n = new notify({ title: '', style: 'error', message: 'Server error occurred.', icon: 'fas fa-times' });
             n.show(); setTimeout(function(){ n.hide(); }, 5000);
         }
+    });
+}
+
+var _guestDetailsCache = null;
+
+function viewGuestDetails(quotationId) {
+    _guestDetailsCache = null;
+    $('#guestDetailsContent').html('<div class="text-center text-muted py-4">Loading...</div>');
+    $('#viewGuestDetailsModal').modal('show');
+
+    $.ajax({
+        url: base_url + 'Quotation/ajax_get_transporter_guest_details',
+        type: 'POST',
+        dataType: 'json',
+        data: { quotation_id: quotationId },
+        success: function(res) {
+            if (!res.status) {
+                $('#guestDetailsContent').html('<div class="text-center text-danger py-4">' + (res.message || 'Failed to load') + '</div>');
+                return;
+            }
+            var d = res.data;
+            _guestDetailsCache = d;
+            renderGuestDetails(d);
+        },
+        error: function() {
+            $('#guestDetailsContent').html('<div class="text-center text-danger py-4">Server error occurred.</div>');
+        }
+    });
+}
+
+function fmtDate(dateStr) {
+    if (!dateStr || dateStr == '0000-00-00') return '-';
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function renderGuestDetails(d) {
+    var m = d.main;
+    var gc = d.guest_count || [];
+    var days = d.days || [];
+
+    var totalAdults = 0, totalChildren = 0, totalGuests = 0;
+    for (var i = 0; i < gc.length; i++) {
+        totalAdults += parseInt(gc[i].adults || 0);
+        totalChildren += parseInt(gc[i].children || 0);
+        totalGuests += parseInt(gc[i].total_count || 0);
+    }
+
+    var html = '';
+
+    html += '<div class="row mb-3">';
+    html += '<div class="col-md-6"><strong>Guest Name:</strong> ' + escapeHtml(m.guest_name || '-') + '</div>';
+    html += '<div class="col-md-6"><strong>Quotation No:</strong> ' + escapeHtml(m.quotation_number || '-') + '</div>';
+    html += '</div>';
+
+    html += '<div class="row mb-3">';
+    html += '<div class="col-md-6"><strong>Phone (WhatsApp):</strong> ' + escapeHtml(m.whats_number || '-') + '</div>';
+    html += '<div class="col-md-6"><strong>Alternative Number:</strong> ' + escapeHtml(m.alternative_number || '-') + '</div>';
+    html += '</div>';
+
+    html += '<div class="row mb-3">';
+    html += '<div class="col-md-4"><strong>Travel Date:</strong> ' + fmtDate(m.start_date) + '</div>';
+    html += '<div class="col-md-4"><strong>Tour Duration:</strong> ' + (m.duration || 0) + ' Nights</div>';
+    html += '<div class="col-md-4"><strong>Travel End Date:</strong> ' + fmtDate(m.end_date) + '</div>';
+    html += '</div>';
+
+    html += '<div class="row mb-3">';
+    html += '<div class="col-md-6"><strong>Arrival:</strong> ' + escapeHtml(m.arriving_destination || '-') + '</div>';
+    html += '<div class="col-md-6"><strong>Departure:</strong> ' + escapeHtml(m.departuring_destination || '-') + '</div>';
+    html += '</div>';
+
+    html += '<hr>';
+    html += '<h6 class="fw-bold mb-2">Guest Count</h6>';
+    if (gc.length > 0) {
+        html += '<p class="mb-3"><strong>Total Guest Count ' + totalGuests + ':</strong> ' + totalAdults + ' Adults, ' + totalChildren + ' Child</p>';
+    } else {
+        html += '<p class="text-muted mb-3">No guest count data available.</p>';
+    }
+
+    html += '<hr>';
+    html += '<h6 class="fw-bold mb-2">Itinerary Details</h6>';
+    if (days.length > 0) {
+        for (var i = 0; i < days.length; i++) {
+            var day = days[i];
+            html += '<div class="card mb-2">';
+            html += '<div class="card-body py-2">';
+            html += '<div class="fw-bold text-primary">' + escapeHtml(day.quotation_properties_days_day || ('Day ' + (i+1))) + ': ' + escapeHtml(day.state_name || '-') + ' (' + fmtDate(day.accommodation_date) + ')</div>';
+            html += '<div class="text-danger fw-bold">' + escapeHtml(day.properties_name || '-') + '</div>';
+            if (day.properties_sales_contact_phone_number || day.properties_reservation_contact_phone_number) {
+                var contact = day.properties_sales_contact_phone_number || day.properties_reservation_contact_phone_number;
+                html += '<div class="small text-muted">Contact: ' + escapeHtml(contact) + '</div>';
+            }
+            if (day.quotation_itineraries_days_description) {
+                html += '<div class="small mt-1">' + day.quotation_itineraries_days_description + '</div>';
+            }
+            html += '</div></div>';
+        }
+    } else {
+        html += '<p class="text-muted">No itinerary data available.</p>';
+    }
+
+    $('#guestDetailsContent').html(html);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function copyGuestDetails() {
+    if (!_guestDetailsCache) {
+        var n = new notify({ title: '', style: 'error', message: 'No data to copy.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        return;
+    }
+
+    var d = _guestDetailsCache;
+    var m = d.main;
+    var gc = d.guest_count || [];
+    var days = d.days || [];
+
+    var totalAdults = 0, totalChildren = 0, totalGuests = 0;
+    for (var i = 0; i < gc.length; i++) {
+        totalAdults += parseInt(gc[i].adults || 0);
+        totalChildren += parseInt(gc[i].children || 0);
+        totalGuests += parseInt(gc[i].total_count || 0);
+    }
+
+    var text = '';
+    text += 'Guest Name: ' + (m.guest_name || '-') + '\n';
+    text += 'Quotation No: ' + (m.quotation_number || '-') + '\n';
+    text += 'Phone (WhatsApp): ' + (m.whats_number || '-') + '\n';
+    text += 'Alternative Number: ' + (m.alternative_number || '-') + '\n';
+    text += 'Travel Date: ' + fmtDate(m.start_date) + '\n';
+    text += 'Tour Duration: ' + (m.duration || 0) + ' Nights\n';
+    text += 'Travel End Date: ' + fmtDate(m.end_date) + '\n';
+    text += 'Arrival: ' + (m.arriving_destination || '-') + '\n';
+    text += 'Departure: ' + (m.departuring_destination || '-') + '\n';
+    text += '\n--- Guest Count ---\n';
+    if (gc.length > 0) {
+        text += 'Total Guest Count ' + totalGuests + ': ' + totalAdults + ' Adults, ' + totalChildren + ' Child\n';
+    } else {
+        text += 'No guest count data.\n';
+    }
+    text += '\n--- Itinerary ---\n';
+    if (days.length > 0) {
+        for (var i = 0; i < days.length; i++) {
+            var day = days[i];
+            text += (day.quotation_properties_days_day || ('Day ' + (i+1))) + ': ' + (day.state_name || '-') + ' (' + fmtDate(day.accommodation_date) + ')\n';
+            text += '  Hotel: ' + (day.properties_name || '-') + '\n';
+            if (day.properties_sales_contact_phone_number || day.properties_reservation_contact_phone_number) {
+                text += '  Contact: ' + (day.properties_sales_contact_phone_number || day.properties_reservation_contact_phone_number) + '\n';
+            }
+            if (day.quotation_itineraries_days_description) {
+                text += '  ' + day.quotation_itineraries_days_description.replace(/<[^>]*>/g, '') + '\n';
+            }
+            text += '\n';
+        }
+    } else {
+        text += 'No itinerary data.\n';
+    }
+
+    navigator.clipboard.writeText(text).then(function() {
+        var n = new notify({ title: '', style: 'success', message: 'Guest details copied to clipboard.', icon: 'fas fa-check' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+    }, function() {
+        var n = new notify({ title: '', style: 'error', message: 'Failed to copy. Please try again.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
     });
 }
 </script>

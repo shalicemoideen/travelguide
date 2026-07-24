@@ -8383,6 +8383,39 @@ public function ajax_delete()
 
 		echo json_encode(array('status' => true, 'message' => 'Driver details updated. Status set to Ready to Trip.'));
 	}
+
+	public function ajax_get_transporter_guest_details()
+	{
+		if (!has_permission('TRANSPORTER_REPORT')) {
+			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
+			return;
+		}
+
+		$quotation_id = (int)$this->input->post('quotation_id');
+		if (!$quotation_id) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID required'));
+			return;
+		}
+
+		if ($this->currentusertype != 'A') {
+			$allocation = $this->db->where('quotation_id_fk', $quotation_id)
+								   ->where('transporter_id_fk', $this->currentuserid)
+								   ->get('quotation_transport_allocation')
+								   ->row();
+			if (!$allocation) {
+				echo json_encode(array('status' => false, 'message' => 'Access denied'));
+				return;
+			}
+		}
+
+		$data = $this->Quotation_model->get_transporter_guest_details($quotation_id);
+		if (empty($data['main'])) {
+			echo json_encode(array('status' => false, 'message' => 'Guest details not found'));
+			return;
+		}
+
+		echo json_encode(array('status' => true, 'data' => $data));
+	}
 }
 
 

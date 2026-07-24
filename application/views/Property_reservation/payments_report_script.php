@@ -156,7 +156,7 @@ function viewPropertySchedulerDetails(schedulerId) {
                     html += '<button class="btn btn-success btn-xs me-1" onclick="openRecordPropertyPayment(' + inst.installment_id + ', ' + currentPropertySchedulerId + ', ' + remaining.toFixed(2) + ')"><i class="fas fa-money-bill"></i> Pay</button>';
                 }
                 if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
-                    html += '<button class="btn btn-info btn-xs" onclick="viewPropertyPaymentHistory(' + inst.installment_id + ')" title="Receipts"><i class="fas fa-receipt"></i> Receipt</button>';
+                    html += '<button class="btn btn-info btn-xs" onclick="viewPropertyPaymentHistory(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-receipt"></i> History</button>';
                 }
                 html += '</td>';
                 html += '</tr>';

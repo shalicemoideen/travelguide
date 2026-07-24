@@ -112,27 +112,35 @@
                 </div>
 
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body text-center">
+                                <h6 class="text-white">Total</h6>
+                                <h4 class="text-white" id="cpd_total_card">₹0.00</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="card bg-success text-white">
                             <div class="card-body text-center">
-                                <h6>Paid</h6>
-                                <h4 id="cpd_paid_amount">₹0.00</h4>
+                                <h6 class="text-white">Paid</h6>
+                                <h4 class="text-white" id="cpd_paid_amount">₹0.00</h4>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card bg-warning">
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
                             <div class="card-body text-center">
-                                <h6>Pending</h6>
-                                <h4 id="cpd_pending_amount">₹0.00</h4>
+                                <h6 class="text-white">Pending</h6>
+                                <h4 class="text-white" id="cpd_pending_amount">₹0.00</h4>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-danger text-white">
                             <div class="card-body text-center">
-                                <h6>Overdue</h6>
-                                <h4 id="cpd_overdue_count">0</h4>
+                                <h6 class="text-white">Overdue</h6>
+                                <h4 class="text-white" id="cpd_overdue_count">0</h4>
                             </div>
                         </div>
                     </div>
@@ -174,41 +182,43 @@
             <div class="modal-body">
                 <form id="recordCustomerPaymentForm" enctype="multipart/form-data">
                     <input type="hidden" id="cp_installment_id" name="installment_id">
-                    <div class="mb-3">
-                        <label class="form-label">Due Amount</label>
-                        <input type="text" class="form-control" id="cp_installment_amount" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Payment Amount <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" class="form-control" id="cp_payment_amount" name="payment_amount" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Payment Date <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control datepicker" id="cp_payment_date" name="payment_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Payment Method</label>
-                        <select class="form-control" id="cp_payment_method" name="payment_method">
-                            <option value="">Select Method</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Card">Card</option>
-                            <option value="UPI">UPI</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Cheque">Cheque</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Reference Number</label>
-                        <input type="text" class="form-control" id="cp_payment_reference" name="payment_reference">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" id="cp_payment_slip" name="payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
-                        <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Remarks</label>
-                        <textarea class="form-control" id="cp_payment_remarks" name="payment_remarks" rows="2"></textarea>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Due Amount</label>
+                            <input type="text" class="form-control" id="cp_installment_amount" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Amount <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="cp_payment_amount" name="payment_amount" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control datepicker" id="cp_payment_date" name="payment_date" placeholder="dd/mm/yyyy" autocomplete="off" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-control" id="cp_payment_method" name="payment_method">
+                                <option value="">Select Method</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Card">Card</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Reference Number</label>
+                            <input type="text" class="form-control" id="cp_payment_reference" name="payment_reference" placeholder="Transaction/Receipt No.">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="cp_payment_slip" name="payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                            <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" id="cp_payment_remarks" name="payment_remarks" rows="2"></textarea>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -220,12 +230,12 @@
     </div>
 </div>
 
-<!-- Payment Receipts Modal -->
+<!-- Payment History Modal -->
 <div class="modal fade" id="viewCustomerPaymentsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Payment Receipts</h5>
+                <h5 class="modal-title">Payment History</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
