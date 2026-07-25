@@ -2644,6 +2644,7 @@ function loadPropertyStatus(quotation_id)
                             <tr style="background:#f8f9fa;border-bottom:2px solid #e9ecef;">
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;width:40px;">#</th>
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;">Property</th>
+                                <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;text-align:right;">Amount</th>
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;">Reservation Status</th>
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;text-align:right;">Action</th>
                             </tr>
@@ -2672,6 +2673,7 @@ function loadPropertyStatus(quotation_id)
                 html += '<td style="padding:14px 18px;vertical-align:middle;">'
                       +   '<div style="font-weight:600;font-size:14px;color:#212529;">' + escapeHtml(row.properties_name || '-') + '</div>'
                       + '</td>';
+                html += '<td style="padding:14px 18px;vertical-align:middle;text-align:right;font-weight:600;color:#212529;font-size:13px;">' + (row.property_total > 0 ? '\u20b9' + parseFloat(row.property_total).toLocaleString('en-IN', {minimumFractionDigits:2}) : '<span style="color:#adb5bd;">-</span>') + '</td>';
                 html += '<td style="padding:14px 18px;vertical-align:middle;">' + buildPropertyStatusBadges(row) + '</td>';
                 html += '<td style="padding:14px 18px;vertical-align:middle;">' + actionBtns + '</td>';
                 html += '</tr>';
@@ -4100,7 +4102,10 @@ function fpLoad(leadId) {
     $('#fp_record_id').val('');
 
     // Clear dynamic rows
-    $('#fpHubTable tbody tr.fp-hotel-day').remove();
+    $('#fpHubTable tbody tr.fp-day-header').remove();
+    $('#fpHubTable tbody tr.fp-day-hotel').remove();
+    $('#fpHubTable tbody tr.fp-day-inclusion').remove();
+    $('#fpHubTable tbody tr.fp-day-special').remove();
     $('#fpHubTable tbody tr.fp-expense').remove();
 
     // Reset static fields
@@ -4148,9 +4153,18 @@ function fpLoad(leadId) {
             if (defaults) {
                 $('[name="fp_driver_quoted"]').val(defaults.driver_quote_amount || '');
                 $('[name="fp_driver_actual"]').val(defaults.driver_quote_amount || '');
-                if (defaults.hotel_days && defaults.hotel_days.length) {
+                if (defaults.days && defaults.days.length) {
+                    defaults.days.forEach(function(day) {
+                        fpAddDay(day);
+                    });
+                } else if (defaults.hotel_days && defaults.hotel_days.length) {
                     defaults.hotel_days.forEach(function(day) {
-                        fpAddHotelDay(day.day_label, day.day_cost, day.day_cost, '');
+                        fpAddDay({
+                            day_label: day.day_label,
+                            hotel_cost: day.day_cost,
+                            inclusions_cost: 0,
+                            special_cost: 0
+                        });
                     });
                 }
                 if (defaults.margin_value) {
@@ -4170,9 +4184,9 @@ function fpLoad(leadId) {
         $('#fpMargin').text(d.fp_margin != null ? parseFloat(d.fp_margin).toFixed(2) : '0.00');
         $('#fpNotes').val(d.fp_notes || '');
 
-        if (d.hotel_days && d.hotel_days.length) {
-            d.hotel_days.forEach(function(day) {
-                fpAddHotelDay(day.fphd_day_label, day.fphd_quoted_amount, day.fphd_actual_amount, day.fphd_description);
+        if (d.days && d.days.length) {
+            d.days.forEach(function(day) {
+                fpAddDay(day);
             });
         }
 
@@ -4201,29 +4215,60 @@ function fpLoad(leadId) {
     });
 }
 
-function fpAddHotelDay(label, quoted, actual, desc) {
-    label = label || '';
-    quoted = (quoted !== undefined && quoted !== null) ? quoted : '';
-    actual = (actual !== undefined && actual !== null) ? actual : '';
-    desc = desc || '';
+function fpAddDay(dayData) {
+    dayData = dayData || {};
+    var dayLabel = dayData.day_label || 'Day 1';
+    var hotelQuoted = dayData.hotel_quoted != null ? dayData.hotel_quoted : (dayData.hotel_cost || '');
+    var hotelActual = dayData.hotel_actual != null ? dayData.hotel_actual : (dayData.hotel_cost || '');
+    var hotelDesc = dayData.hotel_desc || '';
+    var incQuoted = dayData.inc_quoted != null ? dayData.inc_quoted : (dayData.inclusions_cost || '');
+    var incActual = dayData.inc_actual != null ? dayData.inc_actual : (dayData.inclusions_cost || '');
+    var incDesc = dayData.inc_desc || dayData.inclusion_desc || '';
+    var specialQuoted = dayData.special_quoted != null ? dayData.special_quoted : (dayData.special_cost || '');
+    var specialActual = dayData.special_actual != null ? dayData.special_actual : (dayData.special_cost || '');
+    var specialDesc = dayData.special_desc || '';
 
-    var dayIndex = $('#fpHubTable tbody tr.fp-hotel-day').length + 1;
-    var dayLabel = label || 'Day ' + dayIndex + ' hotel cost';
+    var safeLabel = escapeHtml(dayLabel);
+    var daySubtotal = (parseFloat(hotelQuoted) || 0) + (parseFloat(incQuoted) || 0) + (parseFloat(specialQuoted) || 0);
+    var html = '';
 
-    var html = '<tr class="fp-hotel-day table-light fp-label">' +
-        '<td class="fw-bold"><input type="text" class="form-control form-control-sm" name="hotel_labels[]" value="' + escapeHtml(dayLabel) + '"></td>' +
-        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="hotel_quoted[]" value="' + quoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
-        '<td><input type="number" class="form-control form-control-sm fp-actual" name="hotel_actual[]" value="' + actual + '" placeholder="0.00" min="0" step="0.01"></td>' +
-        '<td><input type="text" class="form-control form-control-sm" name="hotel_descs[]" value="' + escapeHtml(desc) + '" placeholder="Description"></td>' +
-        '<td class="text-center"><!-- <button type="button" class="btn btn-sm btn-link text-danger" onclick="fpRemoveRow(this)"><i class="la la-trash"></i></button> --></td>' +
+    // Day title row (grouped header with per-day subtotal)
+    html += '<tr class="fp-day-header">' +
+        '<td colspan="5">' +
+            '<span class="fp-day-badge"><i class="la la-calendar-day me-1"></i>' + safeLabel + '</span>' +
+            '<span class="fp-day-subtotal">Day Total (Quoted): <b>' + daySubtotal.toFixed(2) + '</b></span>' +
+        '</td>' +
         '</tr>';
 
-    var $lastHotel = $('#fpHubTable tbody tr.fp-hotel-day').last();
-    if ($lastHotel.length) {
-        $lastHotel.after(html);
-    } else {
-        $('#fpHotelDayHeader').after(html);
-    }
+    // Hotel row
+    html += '<tr class="fp-day-hotel fp-day-item" data-day-label="' + safeLabel + '">' +
+        '<td class="fp-item-label"><span class="fp-item-icon fp-icon-hotel"><i class="la la-hotel"></i></span>Hotel Rent</td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="day_hotel_quoted[]" value="' + hotelQuoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-actual" name="day_hotel_actual[]" value="' + hotelActual + '" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td><input type="text" class="form-control form-control-sm" name="day_hotel_desc[]" value="' + escapeHtml(hotelDesc) + '" placeholder="Description"></td>' +
+        '<td class="text-center"></td>' +
+        '</tr>';
+
+    // Inclusions row
+    html += '<tr class="fp-day-inclusion fp-day-item">' +
+        '<td class="fp-item-label"><span class="fp-item-icon fp-icon-inc"><i class="la la-concierge-bell"></i></span>Property Based Inclusions</td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="day_inc_quoted[]" value="' + incQuoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-actual" name="day_inc_actual[]" value="' + incActual + '" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td><input type="text" class="form-control form-control-sm" name="day_inc_desc[]" value="' + escapeHtml(incDesc) + '" placeholder="Description"></td>' +
+        '<td class="text-center"></td>' +
+        '</tr>';
+
+    // Special Requirements row
+    html += '<tr class="fp-day-special fp-day-item">' +
+        '<td class="fp-item-label"><span class="fp-item-icon fp-icon-special"><i class="la la-star"></i></span>Special Requirements</td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-quoted" name="day_special_quoted[]" value="' + specialQuoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
+        '<td><input type="number" class="form-control form-control-sm fp-actual" name="day_special_actual[]" value="' + specialActual + '" placeholder="0.00" min="0" step="0.01"></td>' +
+        '<td><input type="text" class="form-control form-control-sm" name="day_special_desc[]" value="' + escapeHtml(specialDesc) + '" placeholder="Description"></td>' +
+        '<td class="text-center"></td>' +
+        '</tr>';
+
+    // Insert before the Other Expenses section to preserve day order
+    $('#fpOtherExpHeader').before(html);
     fpCalculate();
 }
 
@@ -4321,21 +4366,33 @@ function fpSubmit() {
         fp_cost_after: parseFloat($('#fpCostAfterPost').text()) || 0,
         fp_margin: parseFloat($('#fpMargin').text()) || 0,
         fp_notes: $('#fpNotes').val() || '',
-        hotel_labels: [],
-        hotel_quoted: [],
-        hotel_actual: [],
-        hotel_descs: [],
+        days: [],
         exp_labels: [],
         exp_amounts: [],
         exp_descs: []
     };
 
-    $('#fpHubTable tr.fp-hotel-day').each(function() {
-        payload.hotel_labels.push($(this).find('[name="hotel_labels[]"]').val() || '');
-        payload.hotel_quoted.push(parseFloat($(this).find('[name="hotel_quoted[]"]').val()) || 0);
-        payload.hotel_actual.push(parseFloat($(this).find('[name="hotel_actual[]"]').val()) || 0);
-        payload.hotel_descs.push($(this).find('[name="hotel_descs[]"]').val() || '');
-    });
+    // Collect day-based data
+    var dayCount = $('#fpHubTable tbody tr.fp-day-hotel').length;
+    for (var i = 0; i < dayCount; i++) {
+        var hotelRow = $('#fpHubTable tbody tr.fp-day-hotel').eq(i);
+        var incRow = $('#fpHubTable tbody tr.fp-day-inclusion').eq(i);
+        var specialRow = $('#fpHubTable tbody tr.fp-day-special').eq(i);
+
+        var dayLabel = hotelRow.data('dayLabel') || ('Day ' + (i + 1));
+        payload.days.push({
+            day_label: dayLabel,
+            hotel_quoted: parseFloat(hotelRow.find('[name="day_hotel_quoted[]"]').val()) || 0,
+            hotel_actual: parseFloat(hotelRow.find('[name="day_hotel_actual[]"]').val()) || 0,
+            hotel_desc: hotelRow.find('[name="day_hotel_desc[]"]').val() || '',
+            inc_quoted: parseFloat(incRow.find('[name="day_inc_quoted[]"]').val()) || 0,
+            inc_actual: parseFloat(incRow.find('[name="day_inc_actual[]"]').val()) || 0,
+            inc_desc: incRow.find('[name="day_inc_desc[]"]').val() || '',
+            special_quoted: parseFloat(specialRow.find('[name="day_special_quoted[]"]').val()) || 0,
+            special_actual: parseFloat(specialRow.find('[name="day_special_actual[]"]').val()) || 0,
+            special_desc: specialRow.find('[name="day_special_desc[]"]').val() || ''
+        });
+    }
 
     $('#fpHubTable tr.fp-expense').each(function() {
         payload.exp_labels.push($(this).find('[name="exp_labels[]"]').val() || '');

@@ -436,6 +436,7 @@ class Property_reservation_model extends CI_Model {
             } else {
                 $r->check_out_date = null;
             }
+            $r->property_total = $this->get_property_total_amount($quotation_id, $r->properties_id);
         }
 
         $total       = count($rows);

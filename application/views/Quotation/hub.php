@@ -154,6 +154,59 @@
     border-color: #00838f;
     box-shadow: 0 0 0 2px rgba(0, 131, 143, 0.15);
 }
+/* Per-day grouped costing block */
+#financialPostingTab .fp-table tbody tr.fp-day-header td {
+    background: linear-gradient(135deg, #00838f 0%, #006064 100%);
+    padding: 8px 12px;
+    border: none;
+}
+#financialPostingTab .fp-day-badge {
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+}
+#financialPostingTab .fp-day-subtotal {
+    float: right;
+    color: #e0f2f1;
+    font-weight: 600;
+    font-size: 12px;
+}
+#financialPostingTab .fp-day-subtotal b {
+    color: #fff;
+    font-size: 13px;
+}
+#financialPostingTab .fp-table tbody tr.fp-day-item td {
+    border: 1px solid #e0f2f1;
+    background: #f7fbfb;
+}
+#financialPostingTab .fp-table tbody tr.fp-day-item.fp-day-special td {
+    border-bottom: 2px solid #b2dfdb;
+}
+#financialPostingTab .fp-item-label {
+    font-weight: 600;
+    color: #004d40;
+    padding-left: 18px !important;
+    white-space: nowrap;
+}
+#financialPostingTab .fp-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    margin-right: 8px;
+    color: #fff;
+    font-size: 14px;
+    vertical-align: middle;
+}
+#financialPostingTab .fp-icon-hotel   { background: #00838f; }
+#financialPostingTab .fp-icon-inc     { background: #26a69a; }
+#financialPostingTab .fp-icon-special { background: #ff8f00; }
 </style>
 <!--**********************************
             Content body start
@@ -420,12 +473,7 @@
                                                                         <td><input type="text" class="form-control form-control-sm" name="fp_driver_desc" placeholder="Description"></td>
                                                                         <td></td>
                                                                     </tr>
-                                                                    <!-- Hotel day header -->
-                                                                    <tr id="fpHotelDayHeader">
-                                                                        <td colspan="5" class="fp-section-header">
-                                                                            Hotel Costs <!-- — <button type="button" class="btn btn-sm btn-info" onclick="fpAddHotelDay()"><i class="la la-plus me-1"></i>Add Day</button> -->
-                                                                        </td>
-                                                                    </tr>
+                                                                    <!-- Day-based rows will be inserted here dynamically -->
                                                                     <!-- Other expense header -->
                                                                     <tr id="fpOtherExpHeader">
                                                                         <td colspan="5" class="fp-section-header">

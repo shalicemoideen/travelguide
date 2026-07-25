@@ -1076,23 +1076,78 @@ class Quotation_model extends CI_Model{
 
 
 
+            // Confirmed property / room for each day of this option
+            $confirmations = $this->db
+                ->select('properties_day_id_fk, properties_id_fk, properties_room_id_fk')
+                ->from('quotation_confirmation')
+                ->where('quotation_id_fk', $quotation_id)
+                ->where('option_id_fk', $option_id)
+                ->where('property_confirmation_status', 1)
+                ->get()
+                ->result_array();
+
+            $confirmedQpByDay = array();
+            $confirmedRoomIds = array();
+            foreach ($confirmations as $cnf) {
+                $dayId  = (int)$cnf['properties_day_id_fk'];
+                $roomId = (int)$cnf['properties_room_id_fk'];
+                if ($roomId) {
+                    $confirmedRoomIds[] = $roomId;
+                }
+                if ((int)$cnf['properties_id_fk']) {
+                    $confirmedQpByDay[$dayId] = (int)$cnf['properties_id_fk'];
+                }
+            }
+
+            // Resolve the confirmed quotation_properties rows to real property ids
+            $confirmedPropertyByDay = array();
+            if (!empty($confirmedQpByDay)) {
+                $qpRows = $this->db
+                    ->select('quotation_properties_id, properties_id_fk')
+                    ->from('quotation_properties')
+                    ->where_in('quotation_properties_id', array_values($confirmedQpByDay))
+                    ->get()
+                    ->result_array();
+
+                $qpPropertyMap = array();
+                foreach ($qpRows as $qpRow) {
+                    $qpPropertyMap[(int)$qpRow['quotation_properties_id']] = (int)$qpRow['properties_id_fk'];
+                }
+                foreach ($confirmedQpByDay as $dayId => $qpId) {
+                    if (isset($qpPropertyMap[$qpId])) {
+                        $confirmedPropertyByDay[$dayId] = $qpPropertyMap[$qpId];
+                    }
+                }
+            }
+
+            // Cost only the confirmed room(s); fall back to every room when nothing is confirmed yet
+            $dayCostExpr = 'COALESCE(SUM(qrtd.manual_total_rate), 0) as day_cost';
+            if (!empty($confirmedRoomIds)) {
+                $dayCostExpr = 'COALESCE(SUM(CASE WHEN qpr.quotation_properties_rooms_id IN ('
+                    . implode(',', array_unique($confirmedRoomIds))
+                    . ') THEN qrtd.manual_total_rate ELSE 0 END), 0) as day_cost';
+            }
+
             $hotelDays = $this->db
 
-                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, COALESCE(SUM(qrtd.manual_total_rate), 0) as day_cost', FALSE)
+                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, qpd.packages_properties_days_id_fk, ' . $dayCostExpr, FALSE)
 
-                ->from('quotation_confirmation qc')
+                ->from('quotation_properties_days qpd')
 
-                ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
+                ->join('quotation_properties qp', 'qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id', 'inner')
 
-                ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_rooms_id = qc.properties_room_id_fk', 'inner')
+                ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_id_fk = qp.quotation_properties_id', 'inner')
 
-                ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id', 'left')
+                ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_room_tariff_details_status = 1', 'left')
 
-                ->where('qc.quotation_id_fk', $quotation_id)
 
-                ->where('qc.property_confirmation_status', 1)
+                ->where('qpd.quotation_id_fk', $quotation_id)
+
+                ->where('qpd.quotation_options_id_fk', $option_id)
 
                 ->where('qpd.quotation_properties_days_status', 1)
+
+                ->where('qp.quotation_properties_status', 1)
 
                 ->where('qpr.quotation_properties_rooms_status', 1)
 
@@ -1118,7 +1173,120 @@ class Quotation_model extends CI_Model{
 
             $defaults['hotel_days'] = $hotelDays;
 
+            // Inclusions of this option, per quotation day + property
+            $inclusionRows = $this->db
+                ->select('qpi.quotation_properties_days_id_fk, qpi.inclusion_property_id_fk, qpi.inclusion_name, qpi.inclusion_amount')
+                ->from('quotation_property_inclusions qpi')
+                ->where('qpi.quotation_id_fk', $quotation_id)
+                ->where('qpi.quotation_options_id_fk', $option_id)
+                ->where('qpi.quotation_property_inclusions_status', 1)
+                ->get()
+                ->result_array();
 
+            // Special requirements per quotation day
+            $specialRows = $this->db
+                ->select('qsr.quotation_properties_days_id_fk, qsr.quotation_special_requirements_name, qsr.quotation_special_requirements_cost')
+                ->from('quotation_special_requirements qsr')
+                ->where('qsr.quotation_id_fk', $quotation_id)
+                ->where('qsr.quotation_special_requirements_status', 1)
+                ->get()
+                ->result_array();
+
+            // Reservation totals / discounts of the confirmed properties, keyed by real property id
+            $reservationRows = $this->db
+                ->select('pr.property_reservation_id, pr.properties_id_fk, pps.total_amount, pps.discount_amount, pps.discounted_total')
+                ->from('property_reservation pr')
+                ->join('property_payment_scheduler pps', 'pps.property_reservation_id_fk = pr.property_reservation_id AND pps.property_payment_scheduler_status = 1', 'left')
+                ->where('pr.quotation_id_fk', $quotation_id)
+                ->where('pr.property_reservation_status', 1)
+                ->order_by('pr.property_reservation_id', 'ASC')
+                ->get()
+                ->result_array();
+
+            $reservationQueue = array();
+            foreach ($reservationRows as $res) {
+                $reservationQueue[(int)$res['properties_id_fk']][] = $res;
+            }
+
+            // Build combined days array with hotel + inclusions + special per day
+            $combinedDays = array();
+            $inclusionsTotal = 0;
+            $specialTotal = 0;
+
+            foreach ($hotelDays as $day) {
+                $dayId = (int)$day['quotation_properties_days_id'];
+                $confirmedPropertyId = isset($confirmedPropertyByDay[$dayId]) ? $confirmedPropertyByDay[$dayId] : 0;
+
+                // Inclusions of the confirmed property only (all of them when nothing is confirmed)
+                $incAmount = 0;
+                $incNames  = array();
+                foreach ($inclusionRows as $inc) {
+                    if ((int)$inc['quotation_properties_days_id_fk'] !== $dayId) {
+                        continue;
+                    }
+                    if ($confirmedPropertyId && (int)$inc['inclusion_property_id_fk'] !== $confirmedPropertyId) {
+                        continue;
+                    }
+                    $incAmount += (float)$inc['inclusion_amount'];
+                    if ($inc['inclusion_name'] !== '') {
+                        $incNames[] = $inc['inclusion_name'];
+                    }
+                }
+
+                $specAmount = 0;
+                $specNames  = array();
+                foreach ($specialRows as $sr) {
+                    if ((int)$sr['quotation_properties_days_id_fk'] !== $dayId) {
+                        continue;
+                    }
+                    $specAmount += (float)$sr['quotation_special_requirements_cost'];
+                    if ($sr['quotation_special_requirements_name'] !== '') {
+                        $specNames[] = $sr['quotation_special_requirements_name'];
+                    }
+                }
+
+                $inclusionsTotal += $incAmount;
+                $specialTotal += $specAmount;
+
+                $hotelQuoted = (float)$day['day_cost'];
+                $hotelActual = $hotelQuoted;
+                $hotelDesc   = '';
+
+                if ($confirmedPropertyId && !empty($reservationQueue[$confirmedPropertyId])) {
+                    $res      = array_shift($reservationQueue[$confirmedPropertyId]);
+                    $resTotal = (float)$res['total_amount'];
+                    $resNet   = (float)$res['discounted_total'];
+                    $resDisc  = (float)$res['discount_amount'];
+
+                    if ($resNet > 0) {
+                        $hotelActual = $resNet;
+                    } elseif ($resTotal > 0) {
+                        $hotelActual = $resTotal;
+                    }
+                    if ($resDisc > 0) {
+                        $hotelDesc = 'Reservation discount: ' . number_format($resDisc, 2, '.', '');
+                    }
+                }
+
+                $combinedDays[] = array(
+                    'day_label' => $day['day_label'],
+                    'hotel_cost' => $hotelQuoted,
+                    'hotel_quoted' => $hotelQuoted,
+                    'hotel_actual' => $hotelActual,
+                    'hotel_desc' => $hotelDesc,
+                    'inclusions_cost' => $incAmount,
+                    'inclusion_desc' => implode(', ', $incNames),
+                    'special_cost' => $specAmount,
+                    'special_desc' => implode(', ', $specNames),
+                );
+            }
+
+            $defaults['days'] = $combinedDays;
+
+            // Calculate pre_quoted_amount as: driver + hotel + inclusions + special + margin
+            $driverAmount = isset($defaults['driver_quote_amount']) ? $defaults['driver_quote_amount'] : 0;
+            $marginValue = isset($defaults['margin_value']) ? $defaults['margin_value'] : 0;
+            $defaults['pre_quoted_amount'] = $hotelTotal + $inclusionsTotal + $specialTotal + $driverAmount + $marginValue;
 
             return $defaults;
 

@@ -8077,25 +8077,56 @@ public function ajax_delete()
 			$this->db->where('fp_id', $recordId)->update('financial_posting', $main);
 			$fpId = $recordId;
 			$this->db->where('fphd_fp_id_fk', $fpId)->delete('financial_posting_hotel_days');
+			if ($this->db->table_exists('financial_posting_inclusions')) {
+				$this->db->where('fpi_fp_id_fk', $fpId)->delete('financial_posting_inclusions');
+			}
+			if ($this->db->table_exists('financial_posting_special')) {
+				$this->db->where('fps_fp_id_fk', $fpId)->delete('financial_posting_special');
+			}
 			$this->db->where('fpe_fp_id_fk',  $fpId)->delete('financial_posting_expenses');
 		} else {
 			$this->db->insert('financial_posting', $main);
 			$fpId = $this->db->insert_id();
 		}
 
-		$hotelLabels = isset($payload['hotel_labels'])  ? $payload['hotel_labels']  : [];
-		$hotelQuoted = isset($payload['hotel_quoted'])  ? $payload['hotel_quoted']  : [];
-		$hotelActual = isset($payload['hotel_actual'])  ? $payload['hotel_actual']  : [];
-		$hotelDescs  = isset($payload['hotel_descs'])   ? $payload['hotel_descs']   : [];
-		foreach ($hotelLabels as $i => $label) {
+		// Save day-based data
+		$days = isset($payload['days']) ? $payload['days'] : [];
+		foreach ($days as $i => $day) {
+			$dayLabel = isset($day['day_label']) ? $day['day_label'] : 'Day ' . ($i + 1);
+
+			// Hotel
 			$this->db->insert('financial_posting_hotel_days', [
 				'fphd_fp_id_fk'      => $fpId,
-				'fphd_day_label'     => $label,
-				'fphd_quoted_amount' => (float)(isset($hotelQuoted[$i]) ? $hotelQuoted[$i] : 0),
-				'fphd_actual_amount' => (float)(isset($hotelActual[$i]) ? $hotelActual[$i] : 0),
-				'fphd_description'   => isset($hotelDescs[$i]) ? $hotelDescs[$i] : '',
+				'fphd_day_label'     => $dayLabel,
+				'fphd_quoted_amount' => (float)(isset($day['hotel_quoted']) ? $day['hotel_quoted'] : 0),
+				'fphd_actual_amount' => (float)(isset($day['hotel_actual']) ? $day['hotel_actual'] : 0),
+				'fphd_description'   => isset($day['hotel_desc']) ? $day['hotel_desc'] : '',
 				'fphd_sort_order'    => $i,
 			]);
+
+			// Inclusions - check if table exists
+			if ($this->db->table_exists('financial_posting_inclusions')) {
+				$this->db->insert('financial_posting_inclusions', [
+					'fpi_fp_id_fk'      => $fpId,
+					'fpi_day_label'     => $dayLabel,
+					'fpi_quoted_amount' => (float)(isset($day['inc_quoted']) ? $day['inc_quoted'] : 0),
+					'fpi_actual_amount' => (float)(isset($day['inc_actual']) ? $day['inc_actual'] : 0),
+					'fpi_description'   => isset($day['inc_desc']) ? $day['inc_desc'] : '',
+					'fpi_sort_order'    => $i,
+				]);
+			}
+
+			// Special Requirements - check if table exists
+			if ($this->db->table_exists('financial_posting_special')) {
+				$this->db->insert('financial_posting_special', [
+					'fps_fp_id_fk'      => $fpId,
+					'fps_day_label'     => $dayLabel,
+					'fps_quoted_amount' => (float)(isset($day['special_quoted']) ? $day['special_quoted'] : 0),
+					'fps_actual_amount' => (float)(isset($day['special_actual']) ? $day['special_actual'] : 0),
+					'fps_description'   => isset($day['special_desc']) ? $day['special_desc'] : '',
+					'fps_sort_order'    => $i,
+				]);
+			}
 		}
 
 		$expLabels  = isset($payload['exp_labels'])  ? $payload['exp_labels']  : [];
@@ -8146,11 +8177,78 @@ public function ajax_delete()
 			->get('financial_posting_expenses')
 			->result_array();
 
+		$inclusions = array();
+		if ($this->db->table_exists('financial_posting_inclusions')) {
+			$inclusions = $this->db
+				->where('fpi_fp_id_fk', $fpId)
+				->order_by('fpi_sort_order', 'ASC')
+				->get('financial_posting_inclusions')
+				->result_array();
+		}
+
+		$special = array();
+		if ($this->db->table_exists('financial_posting_special')) {
+			$special = $this->db
+				->where('fps_fp_id_fk', $fpId)
+				->order_by('fps_sort_order', 'ASC')
+				->get('financial_posting_special')
+				->result_array();
+		}
+
+		// Convert hotel_days to days format for JavaScript
+		$days = array();
+		foreach ($hotelDays as $i => $hotel) {
+			$dayLabel = isset($hotel['fphd_day_label']) ? $hotel['fphd_day_label'] : 'Day ' . ($i + 1);
+			$days[] = array(
+				'day_label' => $dayLabel,
+				'hotel_cost' => (float)$hotel['fphd_quoted_amount'],
+				'hotel_quoted' => (float)$hotel['fphd_quoted_amount'],
+				'hotel_actual' => (float)$hotel['fphd_actual_amount'],
+				'hotel_desc' => $hotel['fphd_description'],
+				'inclusions_cost' => 0,
+				'inc_quoted' => 0,
+				'inc_actual' => 0,
+				'inc_desc' => '',
+				'special_cost' => 0,
+				'special_quoted' => 0,
+				'special_actual' => 0,
+				'special_desc' => ''
+			);
+		}
+
+		// Merge inclusions into days
+		foreach ($inclusions as $inc) {
+			$dayLabel = $inc['fpi_day_label'];
+			foreach ($days as &$day) {
+				if ($day['day_label'] == $dayLabel) {
+					$day['inclusions_cost'] = (float)$inc['fpi_quoted_amount'];
+					$day['inc_quoted'] = (float)$inc['fpi_quoted_amount'];
+					$day['inc_actual'] = (float)$inc['fpi_actual_amount'];
+					$day['inc_desc'] = $inc['fpi_description'];
+					break;
+				}
+			}
+		}
+
+		// Merge special requirements into days
+		foreach ($special as $sp) {
+			$dayLabel = $sp['fps_day_label'];
+			foreach ($days as &$day) {
+				if ($day['day_label'] == $dayLabel) {
+					$day['special_cost'] = (float)$sp['fps_quoted_amount'];
+					$day['special_quoted'] = (float)$sp['fps_quoted_amount'];
+					$day['special_actual'] = (float)$sp['fps_actual_amount'];
+					$day['special_desc'] = $sp['fps_description'];
+					break;
+				}
+			}
+		}
+
 		echo json_encode([
 			'status' => true,
 			'data'   => array_merge($main, [
-				'hotel_days' => $hotelDays,
-				'expenses'   => $expenses,
+				'days'     => $days,
+				'expenses' => $expenses,
 			]),
 		]);
 	}
