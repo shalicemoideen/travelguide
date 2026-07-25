@@ -91,6 +91,22 @@
 
                     <input type="hidden" id="property_reservation_id" value="">
 
+                    <!-- Property Rent + Property-based Inclusions -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="pr-info-box">
+                                <div class="lbl">Property Rent</div>
+                                <div class="val">INR <span id="rent_breakdown_total">0.00</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="pr-info-box">
+                                <div class="lbl">Property-based Inclusions</div>
+                                <div id="inclusions_detail_list" class="val" style="font-weight:500;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="accordion pr-accordion" id="prAccordion">
 
                         <!-- LEVEL 1: Hotel Blocking -->

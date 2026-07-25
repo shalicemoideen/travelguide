@@ -120,6 +120,9 @@ function renderReservation(res) {
     $('#info_checkout').text(formatDate(r.check_out_date));
     $('#info_duration').text((r.duration_nights || 1) + ' Night(s)');
 
+    renderRentBreakdown(res.rent_breakdown || []);
+    renderInclusionsDetail(res.inclusions_detail || []);
+
     // Level 1
     $('#blocking_cnfm_by').val(r.blocking_cnfm_by || '');
     $('#blocking_cutoff_date').val(r.blocking_cutoff_date || '');
@@ -190,6 +193,28 @@ function renderReservation(res) {
 
     renderComments(res.comments || []);
     $('#reservation_panel').show();
+}
+
+function pr_money(v) {
+    return parseFloat(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderRentBreakdown(rows) {
+    var total = 0;
+    rows.forEach(function(row) {
+        total += parseFloat(row.day_rent) || 0;
+    });
+    $('#rent_breakdown_total').text(pr_money(total));
+}
+
+function renderInclusionsDetail(rows) {
+    var html = '';
+    rows.forEach(function(row) {
+        var amt = parseFloat(row.inclusion_amount) || 0;
+        html += '<div>' + escapeHtml(row.inclusion_name || '-') + ' &mdash; <strong>INR ' + pr_money(amt) + '</strong></div>';
+    });
+    if (!html) html = '<span class="text-muted">No property-based inclusions</span>';
+    $('#inclusions_detail_list').html(html);
 }
 
 function setPill(sel, status, doneValue) {

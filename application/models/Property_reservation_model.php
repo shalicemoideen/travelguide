@@ -373,6 +373,71 @@ class Property_reservation_model extends CI_Model {
         return $result ? (float)$result->property_total : 0;
     }
 
+    /**
+     * Per-day property rent breakdown for the confirmed rooms of a property.
+     * Mirrors the joins in get_property_total_amount, grouped by day.
+     */
+    public function get_property_rent_breakdown($quotation_id, $properties_id)
+    {
+        return $this->db
+            ->select('qpd.quotation_properties_days_id,
+                      qpd.quotation_properties_days_day AS day_label,
+                      ap.accommodation_date,
+                      SUM(qrtd.manual_total_rate) AS day_rent')
+            ->from('quotation_confirmation qc')
+            ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
+            ->join('quotation_properties_days qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'inner')
+            ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
+            ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_rooms_id = qc.properties_room_id_fk', 'inner')
+            ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id', 'left')
+            ->where('qc.quotation_id_fk', (int)$quotation_id)
+            ->where('qc.property_confirmation_status', 1)
+            ->where('qp.properties_id_fk', (int)$properties_id)
+            ->where('qp.quotation_properties_status', 1)
+            ->where('qpr.quotation_properties_rooms_status', 1)
+            ->group_by('qpd.quotation_properties_days_id')
+            ->order_by('ap.accommodation_date', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    /**
+     * Property-based inclusions (name + amount + date) for the confirmed
+     * option(s) of a property.
+     */
+    public function get_property_inclusions_detail($quotation_id, $properties_id)
+    {
+        $opts = $this->db
+            ->distinct()
+            ->select('qc.option_id_fk')
+            ->from('quotation_confirmation qc')
+            ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
+            ->where('qc.quotation_id_fk', (int)$quotation_id)
+            ->where('qc.property_confirmation_status', 1)
+            ->where('qp.properties_id_fk', (int)$properties_id)
+            ->get()
+            ->result();
+
+        $option_ids = array();
+        foreach ($opts as $o) { $option_ids[] = (int)$o->option_id_fk; }
+
+        $this->db
+            ->select('qpi.inclusion_name, qpi.inclusion_amount, qpi.accommodation_date')
+            ->from('quotation_property_inclusions qpi')
+            ->where('qpi.quotation_id_fk', (int)$quotation_id)
+            ->where('qpi.inclusion_property_id_fk', (int)$properties_id)
+            ->where('qpi.quotation_property_inclusions_status', 1);
+
+        if (!empty($option_ids)) {
+            $this->db->where_in('qpi.quotation_options_id_fk', $option_ids);
+        }
+
+        return $this->db
+            ->order_by('qpi.accommodation_date', 'ASC')
+            ->get()
+            ->result();
+    }
+
     // =========================================================
     // COMMENTS
     // =========================================================

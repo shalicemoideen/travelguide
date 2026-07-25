@@ -631,6 +631,22 @@
                                 </div>
                             </div>
 
+                            <!-- Property Rent + Property-based Inclusions -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;background:#fff;height:100%;">
+                                        <div style="color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Property Rent</div>
+                                        <div style="color:#111827;font-weight:700;font-size:15px;margin-top:4px;">INR <span id="hub_rent_breakdown_total">0.00</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;background:#fff;height:100%;">
+                                        <div style="color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Property-based Inclusions</div>
+                                        <div id="hub_inclusions_detail_list" style="color:#111827;font-weight:500;font-size:14px;margin-top:4px;">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Accordion -->
                             <div class="accordion" id="hubResAccordion" style="border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
 
@@ -711,9 +727,13 @@
                                                                 </div>
                                                             </div>
                                                             <div class="text-end">
-                                                                <div class="text-muted" style="font-size:12px;">Total Amount</div>
+                                                                <div class="text-muted" style="font-size:12px;">Hotel Rent: <span class="fw-semibold text-dark">INR <span id="hub_rent_amount_display">0</span></span></div>
+                                                                <div class="text-muted" style="font-size:12px;">Property Inclusions: <span class="fw-semibold text-dark">INR <span id="hub_inclusion_amount_display">0</span></span></div>
+                                                                <div class="text-muted mt-1" style="font-size:12px;">Total Amount</div>
                                                                 <div class="fw-bold" style="font-size:20px;">INR <span id="hub_payment_total_display">0</span></div>
                                                                 <input type="hidden" name="total_amount" id="hub_res_total_amount" value="0">
+                                                                <input type="hidden" id="hub_rent_amount" value="0">
+                                                                <input type="hidden" id="hub_inclusion_amount" value="0">
                                                                 <div class="mt-2 d-flex align-items-center justify-content-end gap-2">
                                                                     <label class="form-label mb-0 text-muted" style="font-size:12px;">Discount</label>
                                                                     <input type="number" min="0" step="0.01" class="form-control form-control-sm" id="hub_discount_amount" name="discount_amount" value="0" style="width:110px;" oninput="hub_applyDiscount()">

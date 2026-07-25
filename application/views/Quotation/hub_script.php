@@ -3717,9 +3717,15 @@ function hubRenderReservation(res) {
     hubInitConfirmationDatepickers();
     hubSetPill('#hub_pill_recon', r.reconfirmation_status, 'RECONFIRMED');
 
-    var total = res.total_amount || 0;
+    var rentAmount = parseFloat(res.total_amount) || 0;
+    var inclusionTotal = hubSumInclusions(res.inclusions_detail || []);
+    var total = rentAmount + inclusionTotal;
+    $('#hub_rent_amount').val(rentAmount);
+    $('#hub_inclusion_amount').val(inclusionTotal);
+    $('#hub_rent_amount_display').text(rentAmount.toLocaleString('en-IN'));
+    $('#hub_inclusion_amount_display').text(inclusionTotal.toLocaleString('en-IN'));
     $('#hub_res_total_amount').val(total);
-    $('#hub_payment_total_display').text(parseFloat(total).toLocaleString('en-IN'));
+    $('#hub_payment_total_display').text(total.toLocaleString('en-IN'));
     hub_res_current_scheduler_id = 0;
     $('#hub_btn_view_payments').hide();
     $('#hub_discount_amount').val(0);
@@ -3734,13 +3740,11 @@ function hubRenderReservation(res) {
 
     if (res.payment) {
         var p = res.payment;
-        $('#hub_res_total_amount').val(p.total_amount);
-        $('#hub_payment_total_display').text(parseFloat(p.total_amount).toLocaleString('en-IN'));
         hub_res_current_scheduler_id = parseInt(p.property_payment_scheduler_id) || 0;
         $('#hub_btn_view_payments').css('display', hub_res_current_scheduler_id > 0 ? 'inline-block' : 'none');
         var hubSavedDiscount = parseFloat(p.discount_amount) || 0;
         $('#hub_discount_amount').val(hubSavedDiscount);
-        var hubNet = parseFloat(p.discounted_total) || (parseFloat(p.total_amount) - hubSavedDiscount);
+        var hubNet = Math.max(0, total - hubSavedDiscount);
         $('#hub_discounted_total').val(hubNet);
         if (hubSavedDiscount > 0) {
             $('#hub_discounted_total_val').text(hubNet.toLocaleString('en-IN'));
@@ -3766,7 +3770,40 @@ function hubRenderReservation(res) {
         }
     }
 
+    hubRenderRentBreakdown(res.rent_breakdown || []);
+    hubRenderInclusionsDetail(res.inclusions_detail || []);
+
     hubRenderComments(res.comments || []);
+}
+
+function hub_money(v) {
+    return parseFloat(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function hubRenderRentBreakdown(rows) {
+    var total = 0;
+    rows.forEach(function(row) {
+        total += parseFloat(row.day_rent) || 0;
+    });
+    $('#hub_rent_breakdown_total').text(hub_money(total));
+}
+
+function hubSumInclusions(rows) {
+    var total = 0;
+    (rows || []).forEach(function(row) {
+        total += parseFloat(row.inclusion_amount) || 0;
+    });
+    return total;
+}
+
+function hubRenderInclusionsDetail(rows) {
+    var html = '';
+    rows.forEach(function(row) {
+        var amt = parseFloat(row.inclusion_amount) || 0;
+        html += '<div>' + escapeHtml(row.inclusion_name || '-') + ' &mdash; <strong>INR ' + hub_money(amt) + '</strong></div>';
+    });
+    if (!html) html = '<span class="text-muted">No property-based inclusions</span>';
+    $('#hub_inclusions_detail_list').html(html);
 }
 
 function hubSetPill(sel, status, doneValue) {

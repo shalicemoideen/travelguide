@@ -104,14 +104,18 @@ class Property_reservation extends MY_Controller {
         $installments = $payment ? $this->Property_reservation_model->get_installments($payment->property_payment_scheduler_id) : array();
         $comments     = $this->Property_reservation_model->get_comments($reservation->property_reservation_id);
         $total_amount = $this->Property_reservation_model->get_property_total_amount($quotation_id, $properties_id);
+        $rent_breakdown    = $this->Property_reservation_model->get_property_rent_breakdown($quotation_id, $properties_id);
+        $inclusions_detail = $this->Property_reservation_model->get_property_inclusions_detail($quotation_id, $properties_id);
 
         echo json_encode(array(
-            'status'       => true,
-            'reservation'  => $reservation,
-            'payment'      => $payment,
-            'installments' => $installments,
-            'comments'     => $comments,
-            'total_amount' => $total_amount,
+            'status'            => true,
+            'reservation'       => $reservation,
+            'payment'           => $payment,
+            'installments'      => $installments,
+            'comments'          => $comments,
+            'total_amount'      => $total_amount,
+            'rent_breakdown'    => $rent_breakdown,
+            'inclusions_detail' => $inclusions_detail,
         ));
     }
 
