@@ -363,6 +363,7 @@ class Room_tariff_management_model extends CI_Model{
 		// 2) rooms of the property
 		$rooms = $this->db->where('properties_id_fk', $propertyId)
 						->where('properties_room_category_status', 1)
+						->order_by('room_category_show_order', 'ASC')
 						->order_by('properties_room_category_id', 'ASC')
 						->get('properties_room_category')
 						->result_array();

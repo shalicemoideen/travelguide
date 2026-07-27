@@ -417,7 +417,7 @@ class Property_reservation extends MY_Controller {
 
     public function get_property_payment_summary()
     {
-        if (!has_permission('PROPERTY_PAYMENTS_REPORT') && !has_permission('PROPERTY_RESERVATION')) {
+        if (!has_permission('PROPERTY_PAYMENTS_REPORT') && !has_permission('PROPERTY_RESERVATION') && !has_permission('PAYMENT_REPORT')) {
             echo json_encode(array('error' => true, 'message' => 'Permission denied'));
             return;
         }
@@ -436,6 +436,34 @@ class Property_reservation extends MY_Controller {
         }
 
         echo json_encode($summary);
+    }
+
+    public function get_property_scheduler_by_quotation()
+    {
+        $quotation_id = (int)$this->input->post('quotation_id');
+        if (!$quotation_id) {
+            echo json_encode(array('error' => true, 'message' => 'Quotation ID required'));
+            return;
+        }
+
+        $rows = $this->db
+            ->select('property_payment_scheduler_id')
+            ->from('property_payment_scheduler')
+            ->where('quotation_id_fk', $quotation_id)
+            ->where('property_payment_scheduler_status', 1)
+            ->order_by('property_payment_scheduler_id', 'DESC')
+            ->get()
+            ->result();
+
+        if ($rows) {
+            $ids = array();
+            foreach ($rows as $r) {
+                $ids[] = $r->property_payment_scheduler_id;
+            }
+            echo json_encode(array('property_payment_scheduler_ids' => $ids));
+        } else {
+            echo json_encode(array('error' => true, 'message' => 'No property scheduler found'));
+        }
     }
 
     private function _get_property_name_by_reservation($reservation_id)
@@ -476,7 +504,7 @@ class Property_reservation extends MY_Controller {
 
     public function ajax_record_payment()
     {
-        if (!has_permission('PROPERTY_RESERVATION') && !has_permission('PROPERTY_PAYMENTS_REPORT')) {
+        if (!has_permission('PROPERTY_RESERVATION') && !has_permission('PROPERTY_PAYMENTS_REPORT') && !has_permission('PAYMENT_REPORT')) {
             echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
             return;
         }
@@ -566,7 +594,7 @@ class Property_reservation extends MY_Controller {
 
     public function ajax_get_installment_payments()
     {
-        if (!has_permission('PROPERTY_RESERVATION') && !has_permission('PROPERTY_PAYMENTS_REPORT')) {
+        if (!has_permission('PROPERTY_RESERVATION') && !has_permission('PROPERTY_PAYMENTS_REPORT') && !has_permission('PAYMENT_REPORT')) {
             echo json_encode(array('error' => true, 'message' => 'Permission denied: Property Reservation'));
             return;
         }

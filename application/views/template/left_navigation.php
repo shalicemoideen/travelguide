@@ -328,6 +328,7 @@
 						'TRANSPORTER_REPORT',
 						'CUSTOMER_PAYMENT_REPORT',
 						'PROPERTY_PAYMENTS_REPORT',
+						'PAYMENT_REPORT',
 						'CATEGORY_UPDATE',
 						'CATEGORY_DELETE',
 						'INCLUSION_AND_EXCLUSION_VIEW',
@@ -347,7 +348,7 @@
 						'CANCELLATION_AND_POLICY_UPDATE',
 						'CANCELLATION_AND_POLICY_DELETE'
 					])): ?>
-					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(2)=="transporter_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report" || $this->uri->segment(2)=="customer_payment_report" || $this->uri->segment(2)=="property_payments_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
+					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(2)=="transporter_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report" || $this->uri->segment(2)=="customer_payment_report" || $this->uri->segment(2)=="property_payments_report" || $this->uri->segment(1)=="Payment_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
 							<i class="bi bi-bar-chart-line-fill"></i>
 							<span class="nav-text">Reports</span>
 						</a>
@@ -369,6 +370,9 @@
 						<?php endif; ?>
 						<?php if (has_permission('PROPERTY_PAYMENTS_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="property_payments_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Property_reservation/property_payments_report">Property Payments Report</a></li>
+						<?php endif; ?>
+						<?php if (has_permission('PAYMENT_REPORT')): ?>
+							<li class="<?php if($this->uri->segment(1)=="Payment_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Payment_report">Payment Report</a></li>
 						<?php endif; ?>
 						<?php if($this->session->userdata('user_type') == 'A'): ?>
 						<li class="<?php if($this->uri->segment(1)=="IncentiveConfig"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/IncentiveConfig">Incentive Config</a></li>

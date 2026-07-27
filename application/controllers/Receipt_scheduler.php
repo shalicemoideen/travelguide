@@ -247,7 +247,7 @@ class Receipt_scheduler extends MY_Controller {
 
     public function record_payment()
     {
-        if (!has_permission('RECEIPT_SCHEDULER')) {
+        if (!has_permission('RECEIPT_SCHEDULER') && !has_permission('PAYMENT_REPORT')) {
             echo json_encode(array('error' => true, 'message' => 'Permission denied: Receipt Scheduler'));
             return;
         }
@@ -404,6 +404,30 @@ class Receipt_scheduler extends MY_Controller {
         echo json_encode($summary);
     }
 
+    public function get_scheduler_by_quotation()
+    {
+        $quotation_id = (int)$this->input->post('quotation_id');
+        if (!$quotation_id) {
+            echo json_encode(array('error' => true, 'message' => 'Quotation ID required'));
+            return;
+        }
+
+        $row = $this->db
+            ->select('receipt_scheduler_id')
+            ->from('receipt_scheduler')
+            ->where('quotation_id_fk', $quotation_id)
+            ->where('receipt_scheduler_status', 1)
+            ->order_by('receipt_scheduler_id', 'DESC')
+            ->get()
+            ->row();
+
+        if ($row) {
+            echo json_encode(array('receipt_scheduler_id' => $row->receipt_scheduler_id));
+        } else {
+            echo json_encode(array('error' => true, 'message' => 'No scheduler found'));
+        }
+    }
+
     public function get_installments()
     {
         $scheduler_id = $this->input->post('receipt_scheduler_id');
@@ -523,7 +547,7 @@ class Receipt_scheduler extends MY_Controller {
 
     public function ajax_record_customer_payment()
     {
-        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT') && !has_permission('PAYMENT_REPORT')) {
             echo json_encode(array('error' => true, 'message' => 'Permission denied'));
             return;
         }
@@ -607,7 +631,7 @@ class Receipt_scheduler extends MY_Controller {
 
     public function ajax_get_installment_payments()
     {
-        if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
+        if (!has_permission('CUSTOMER_PAYMENT_REPORT') && !has_permission('PAYMENT_REPORT')) {
             echo json_encode(array('error' => true, 'message' => 'Permission denied'));
             return;
         }

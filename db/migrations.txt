@@ -303,3 +303,6 @@ CREATE TABLE IF NOT EXISTS `quotation_review` (
 
 INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
 ('QUOTATION_REVIEW', 'QUOTATION REVIEW', 'QUOTATION', 'QUOTATION HUB', 'Update quotation review rating in hub', 1, 1, NOW());
+
+INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
+('PAYMENT_REPORT', 'PAYMENT REPORT', 'REPORTS', 'PAYMENT REPORT', 'View combined customer and property payment report', 1, 1, NOW());

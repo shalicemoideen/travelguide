@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
@@ -7522,6 +7522,121 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			'guest_count' => $guest_count,
 			'days'        => $days
 		);
+	}
+
+	public function get_payment_report_table($param)
+	{
+		$quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+		$guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+		$cust_pay_status_filter  = isset($param['customer_payment_status_filter']) ? $param['customer_payment_status_filter'] : '';
+		$cust_approval_filter    = isset($param['customer_approval_filter']) ? $param['customer_approval_filter'] : '';
+		$prop_pay_status_filter  = isset($param['property_payment_status_filter']) ? $param['property_payment_status_filter'] : '';
+
+		$this->db
+			->select('q.quotation_id, q.quotation_number, l.guest_name, l.whats_number,
+			          (SELECT COUNT(*) FROM receipt_scheduler rs WHERE rs.quotation_id_fk = q.quotation_id AND rs.receipt_scheduler_status = 1) as has_customer_scheduler,
+			          (SELECT COUNT(*) FROM property_payment_scheduler pps WHERE pps.quotation_id_fk = q.quotation_id AND pps.property_payment_scheduler_status = 1) as has_property_scheduler,
+			          (SELECT GROUP_CONCAT(DISTINCT rsi.payment_status) FROM receipt_scheduler rs2
+			           INNER JOIN receipt_scheduler_installments rsi ON rsi.receipt_scheduler_id_fk = rs2.receipt_scheduler_id AND rsi.installment_status = 1
+			           WHERE rs2.quotation_id_fk = q.quotation_id AND rs2.receipt_scheduler_status = 1) as customer_payment_statuses,
+			          (SELECT COUNT(*) FROM receipt_scheduler_payments rsp
+			           INNER JOIN receipt_scheduler_installments rsi2 ON rsi2.installment_id = rsp.installment_id_fk
+			           INNER JOIN receipt_scheduler rs3 ON rs3.receipt_scheduler_id = rsi2.receipt_scheduler_id_fk
+			           WHERE rs3.quotation_id_fk = q.quotation_id AND rs3.receipt_scheduler_status = 1
+			           AND rsp.payment_status = 1 AND (rsp.accountant_approval_status IS NULL OR rsp.accountant_approval_status != "approved")) as customer_approval_pending,
+			          (SELECT GROUP_CONCAT(DISTINCT ppsi.payment_status) FROM property_payment_scheduler pps2
+			           INNER JOIN property_payment_scheduler_installments ppsi ON ppsi.property_payment_scheduler_id_fk = pps2.property_payment_scheduler_id AND ppsi.installment_status = 1
+			           WHERE pps2.quotation_id_fk = q.quotation_id AND pps2.property_payment_scheduler_status = 1) as property_payment_statuses')
+			->from('quotation q')
+			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+			->where('q.quotation_status', 1)
+			->where_in('q.quotation_current_status', array(5, 7, 8, 9))
+			->having('(has_customer_scheduler > 0 OR has_property_scheduler > 0)');
+
+		if ($quotation_number_filter) {
+			$this->db->like('q.quotation_number', $quotation_number_filter);
+		}
+		if ($guest_name_filter) {
+			$this->db->like('l.guest_name', $guest_name_filter);
+		}
+		if ($cust_pay_status_filter) {
+			$this->db->having("customer_payment_statuses LIKE '%" . $cust_pay_status_filter . "%'");
+		}
+		if ($cust_approval_filter === 'pending') {
+			$this->db->having('customer_approval_pending > 0');
+		} elseif ($cust_approval_filter === 'approved') {
+			$this->db->having('customer_approval_pending = 0');
+			$this->db->having('has_customer_scheduler > 0');
+		}
+		if ($prop_pay_status_filter) {
+			$this->db->having("property_payment_statuses LIKE '%" . $prop_pay_status_filter . "%'");
+		}
+
+		$this->db->order_by('q.quotation_id', 'DESC');
+
+		if ($param['length'] != -1 && $param['start'] != 'false' && $param['length'] != 'false') {
+			$this->db->limit($param['length'], $param['start']);
+		}
+
+		$query = $this->db->get();
+
+		$data['data'] = $query->result();
+		$data['recordsTotal'] = $this->get_payment_report_total_count($param);
+		$data['recordsFiltered'] = $this->get_payment_report_total_count($param);
+		return $data;
+	}
+
+	public function get_payment_report_total_count($param = NULL)
+	{
+		$quotation_number_filter = isset($param['quotation_number_filter']) ? $param['quotation_number_filter'] : '';
+		$guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
+		$cust_pay_status_filter  = isset($param['customer_payment_status_filter']) ? $param['customer_payment_status_filter'] : '';
+		$cust_approval_filter    = isset($param['customer_approval_filter']) ? $param['customer_approval_filter'] : '';
+		$prop_pay_status_filter  = isset($param['property_payment_status_filter']) ? $param['property_payment_status_filter'] : '';
+
+		$this->db
+			->select('q.quotation_id,
+			          (SELECT COUNT(*) FROM receipt_scheduler rs WHERE rs.quotation_id_fk = q.quotation_id AND rs.receipt_scheduler_status = 1) as has_customer_scheduler,
+			          (SELECT COUNT(*) FROM property_payment_scheduler pps WHERE pps.quotation_id_fk = q.quotation_id AND pps.property_payment_scheduler_status = 1) as has_property_scheduler,
+			          (SELECT GROUP_CONCAT(DISTINCT rsi.payment_status) FROM receipt_scheduler rs2
+			           INNER JOIN receipt_scheduler_installments rsi ON rsi.receipt_scheduler_id_fk = rs2.receipt_scheduler_id AND rsi.installment_status = 1
+			           WHERE rs2.quotation_id_fk = q.quotation_id AND rs2.receipt_scheduler_status = 1) as customer_payment_statuses,
+			          (SELECT COUNT(*) FROM receipt_scheduler_payments rsp
+			           INNER JOIN receipt_scheduler_installments rsi2 ON rsi2.installment_id = rsp.installment_id_fk
+			           INNER JOIN receipt_scheduler rs3 ON rs3.receipt_scheduler_id = rsi2.receipt_scheduler_id_fk
+			           WHERE rs3.quotation_id_fk = q.quotation_id AND rs3.receipt_scheduler_status = 1
+			           AND rsp.payment_status = 1 AND (rsp.accountant_approval_status IS NULL OR rsp.accountant_approval_status != "approved")) as customer_approval_pending,
+			          (SELECT GROUP_CONCAT(DISTINCT ppsi.payment_status) FROM property_payment_scheduler pps2
+			           INNER JOIN property_payment_scheduler_installments ppsi ON ppsi.property_payment_scheduler_id_fk = pps2.property_payment_scheduler_id AND ppsi.installment_status = 1
+			           WHERE pps2.quotation_id_fk = q.quotation_id AND pps2.property_payment_scheduler_status = 1) as property_payment_statuses')
+			->from('quotation q')
+			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+			->where('q.quotation_status', 1)
+			->where_in('q.quotation_current_status', array(5, 7, 8, 9))
+			->having('(has_customer_scheduler > 0 OR has_property_scheduler > 0)');
+
+		if ($quotation_number_filter) {
+			$this->db->like('q.quotation_number', $quotation_number_filter);
+		}
+		if ($guest_name_filter) {
+			$this->db->like('l.guest_name', $guest_name_filter);
+		}
+		if ($cust_pay_status_filter) {
+			$this->db->having("customer_payment_statuses LIKE '%" . $cust_pay_status_filter . "%'");
+		}
+		if ($cust_approval_filter === 'pending') {
+			$this->db->having('customer_approval_pending > 0');
+		} elseif ($cust_approval_filter === 'approved') {
+			$this->db->having('customer_approval_pending = 0');
+			$this->db->having('has_customer_scheduler > 0');
+		}
+		if ($prop_pay_status_filter) {
+			$this->db->having("property_payment_statuses LIKE '%" . $prop_pay_status_filter . "%'");
+		}
+
+		$subquery = $this->db->get_compiled_select();
+		$count_query = $this->db->query("SELECT COUNT(*) as cnt FROM ($subquery) as sub")->row();
+		return $count_query ? $count_query->cnt : 0;
 	}
 
 

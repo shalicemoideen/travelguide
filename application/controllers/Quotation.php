@@ -8514,6 +8514,30 @@ public function ajax_delete()
 
 		echo json_encode(array('status' => true, 'data' => $data));
 	}
+
+	public function ajax_get_quotation_basic_info()
+	{
+		$quotation_id = (int)$this->input->post('quotation_id');
+		if (!$quotation_id) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID required'));
+			return;
+		}
+
+		$row = $this->db
+			->select('q.quotation_id, q.quotation_number, q.quotation_current_status, l.guest_name, l.whats_number')
+			->from('quotation q')
+			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+			->where('q.quotation_id', $quotation_id)
+			->get()
+			->row_array();
+
+		if (!$row) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation not found'));
+			return;
+		}
+
+		echo json_encode(array('status' => true, 'data' => $row));
+	}
 }
 
 

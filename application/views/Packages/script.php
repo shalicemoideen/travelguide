@@ -1721,7 +1721,17 @@ if (isEmpty($itinerary.val())) {
           return true;
         }
 
-        $dayRow.find('.assignment-row').each(function () {
+        const $assignRows = $dayRow.find('.assignment-row');
+
+        if ($assignRows.length === 0) {
+          ok = false;
+          var dayLabel = $dayRow.find('td').first().text().trim() || 'this day';
+          var $addBtn = $dayRow.find('.add-assignment');
+          markInvalidAndRemember($addBtn.length ? $addBtn : $dayRow, 'At least one property is required for ' + dayLabel);
+          return;
+        }
+
+        $assignRows.each(function () {
 
           const $row = $(this);
           const $propSel = $row.find('select.property-select');
@@ -3678,6 +3688,9 @@ function getDaysFromItinerary() {
           </td>
           <td colspan="3">
             <div class="assignments" data-dest-id="${escapeHtml(destId)}"></div>
+            <div class="mt-2">
+              <button type="button" class="btn btn-danger btn-sm add-assignment">+ Add Property</button>
+            </div>
           </td>
         </tr>
       `);
@@ -4198,6 +4211,9 @@ function $roomsSelectHasValue($select, val) {
           </td>
           <td colspan="3">
             <div class="assignments" data-dest-id="${escapeHtml(destId)}"></div>
+            <div class="mt-2">
+              <button type="button" class="btn btn-danger btn-sm add-assignment">+ Add Property</button>
+            </div>
           </td>
         </tr>
       `);
@@ -4273,9 +4289,7 @@ function $roomsSelectHasValue($select, val) {
     var $assignments = $dayRow.find('.assignments');
     var rowKey = Date.now() + '_' + Math.floor(Math.random() * 1000);
 
-    var buttonsHtml = isFirst
-      ? '<button type="button" class="btn btn-danger btn-sm add-assignment">+ Add</button>'
-      : '<button type="button" class="btn btn-danger btn-sm remove-assignment">X</button>';
+    var buttonsHtml = '<button type="button" class="btn btn-danger btn-sm remove-assignment">X</button>';
 
     var $a = $(`
       <div class="assignment-row d-flex gap-3 align-items-start mb-2" data-row-key="${rowKey}">
