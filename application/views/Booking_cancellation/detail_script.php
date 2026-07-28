@@ -28,8 +28,8 @@ $(function () {
 
     function toast(type, msg) {
         if (typeof notify !== 'undefined') {
-            new notify({ status: type === 'error' ? 'error' : 'success', title: msg,
-                         autoclose: true, autotimeout: 4000 }).show();
+            new notify({ style: type === 'error' ? 'error' : 'success', message: msg,
+                         timeout: 4000 }).show();
         } else { alert(msg); }
     }
 
