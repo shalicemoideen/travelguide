@@ -26,7 +26,7 @@ $(function () {
 
     function toast(type, msg) {
         if (typeof notify !== 'undefined') {
-            new notify({ status: type === 'error' ? 'error' : 'success', title: msg, autoclose: true, autotimeout: 3500 }).show();
+            new notify({ style: type === 'error' ? 'error' : 'success', message: msg, timeout: 3500 }).show();
         } else {
             alert(msg);
         }
