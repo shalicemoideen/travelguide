@@ -213,6 +213,9 @@ function updateQuotationHubActions(status) {
             }
         }
         buttonsHtml += buildEditQuotationButton();
+        if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
+            buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
+        }
 
     }
 
@@ -228,6 +231,9 @@ function updateQuotationHubActions(status) {
         }
         buttonsHtml += buildEditQuotationButton();
         buttonsHtml += buildVoucherDropdown();
+        if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
+            buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
+        }
 
     }
 
@@ -241,6 +247,9 @@ function updateQuotationHubActions(status) {
         }
         buttonsHtml += buildEditQuotationButton();
         buttonsHtml += buildVoucherDropdown();
+        if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
+            buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
+        }
 
     }
 
@@ -254,6 +263,20 @@ function updateQuotationHubActions(status) {
         }
         buttonsHtml += buildEditQuotationButton();
         buttonsHtml += buildVoucherDropdown();
+        if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
+            buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
+        }
+
+    }
+
+    // Status 6=Cancelled
+
+    else if (status == 6) {
+
+        buttonsHtml = '<span class="badge badge-danger p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-ban me-1"></i> Cancelled</span> ';
+        if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
+            buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation" class="btn btn-outline-danger btn-sm ms-2"><i class="la la-eye me-1"></i> View Cancellation Records</a>';
+        }
 
     }
 
@@ -4267,18 +4290,22 @@ function fpAddDay(dayData) {
 
     var safeLabel = escapeHtml(dayLabel);
     var daySubtotal = (parseFloat(hotelQuoted) || 0) + (parseFloat(incQuoted) || 0) + (parseFloat(specialQuoted) || 0);
+    var dayIndex = $('#fpHubTable tbody tr.fp-day-header').length;
+    var collapsedClass = dayIndex > 0 ? ' fp-collapsed' : '';
     var html = '';
 
     // Day title row (grouped header with per-day subtotal)
-    html += '<tr class="fp-day-header">' +
+    html += '<tr class="fp-day-header' + collapsedClass + '">' +
         '<td colspan="5">' +
+            '<span class="fp-day-toggle"><i class="la la-angle-down"></i></span>' +
             '<span class="fp-day-badge"><i class="la la-calendar-day me-1"></i>' + safeLabel + '</span>' +
             '<span class="fp-day-subtotal">Day Total (Quoted): <b>' + daySubtotal.toFixed(2) + '</b></span>' +
         '</td>' +
         '</tr>';
 
     // Hotel row
-    html += '<tr class="fp-day-hotel fp-day-item" data-day-label="' + safeLabel + '">' +
+    var itemHiddenClass = dayIndex > 0 ? ' fp-hidden' : '';
+    html += '<tr class="fp-day-hotel fp-day-item' + itemHiddenClass + '" data-day-label="' + safeLabel + '">' +
         '<td class="fp-item-label"><span class="fp-item-icon fp-icon-hotel"><i class="la la-hotel"></i></span>Hotel Rent</td>' +
         '<td><input type="number" class="form-control form-control-sm fp-quoted" name="day_hotel_quoted[]" value="' + hotelQuoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
         '<td><input type="number" class="form-control form-control-sm fp-actual" name="day_hotel_actual[]" value="' + hotelActual + '" placeholder="0.00" min="0" step="0.01"></td>' +
@@ -4287,7 +4314,7 @@ function fpAddDay(dayData) {
         '</tr>';
 
     // Inclusions row
-    html += '<tr class="fp-day-inclusion fp-day-item">' +
+    html += '<tr class="fp-day-inclusion fp-day-item' + itemHiddenClass + '">' +
         '<td class="fp-item-label"><span class="fp-item-icon fp-icon-inc"><i class="la la-concierge-bell"></i></span>Property Based Inclusions</td>' +
         '<td><input type="number" class="form-control form-control-sm fp-quoted" name="day_inc_quoted[]" value="' + incQuoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
         '<td><input type="number" class="form-control form-control-sm fp-actual" name="day_inc_actual[]" value="' + incActual + '" placeholder="0.00" min="0" step="0.01"></td>' +
@@ -4296,7 +4323,7 @@ function fpAddDay(dayData) {
         '</tr>';
 
     // Special Requirements row
-    html += '<tr class="fp-day-special fp-day-item">' +
+    html += '<tr class="fp-day-special fp-day-item' + itemHiddenClass + '">' +
         '<td class="fp-item-label"><span class="fp-item-icon fp-icon-special"><i class="la la-star"></i></span>Special Requirements</td>' +
         '<td><input type="number" class="form-control form-control-sm fp-quoted" name="day_special_quoted[]" value="' + specialQuoted + '" placeholder="0.00" min="0" step="0.01" readonly></td>' +
         '<td><input type="number" class="form-control form-control-sm fp-actual" name="day_special_actual[]" value="' + specialActual + '" placeholder="0.00" min="0" step="0.01"></td>' +
@@ -4308,6 +4335,14 @@ function fpAddDay(dayData) {
     $('#fpOtherExpHeader').before(html);
     fpCalculate();
 }
+
+// Toggle day section collapse/expand
+$(document).on('click', '#fpHubTable tbody tr.fp-day-header', function() {
+    var $header = $(this);
+    var $items = $header.nextUntil('tr.fp-day-header, tr#fpOtherExpHeader', 'tr.fp-day-item');
+    $header.toggleClass('fp-collapsed');
+    $items.toggleClass('fp-hidden');
+});
 
 function fpAddExpense(label, amount, desc) {
     label = label || '';
@@ -4367,19 +4402,6 @@ function fpCalculate() {
             .css($.extend({}, badgeStyle, {'background':'#dc3545'}));
     } else {
         $('#fpDifference').removeClass('text-success text-danger').addClass('text-white')
-            .css($.extend({}, badgeStyle, {'background':'#6c757d'}));
-    }
-
-    var totalMargin = margin + difference;
-    $('#fpTotalMargin').text(totalMargin.toFixed(2));
-    if (totalMargin > 0) {
-        $('#fpTotalMargin').removeClass('text-danger text-muted').addClass('text-white')
-            .css($.extend({}, badgeStyle, {'background':'#198754'}));
-    } else if (totalMargin < 0) {
-        $('#fpTotalMargin').removeClass('text-success text-muted').addClass('text-white')
-            .css($.extend({}, badgeStyle, {'background':'#dc3545'}));
-    } else {
-        $('#fpTotalMargin').removeClass('text-success text-danger').addClass('text-white')
             .css($.extend({}, badgeStyle, {'background':'#6c757d'}));
     }
 }

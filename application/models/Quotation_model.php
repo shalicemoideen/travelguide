@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
@@ -1130,7 +1130,7 @@ class Quotation_model extends CI_Model{
 
             $hotelDays = $this->db
 
-                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, qpd.packages_properties_days_id_fk, ' . $dayCostExpr, FALSE)
+                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, qpd.packages_properties_days_id_fk, qpd.quotation_itinerary_days_id_fk, ' . $dayCostExpr, FALSE)
 
                 ->from('quotation_properties_days qpd')
 
@@ -1175,7 +1175,7 @@ class Quotation_model extends CI_Model{
 
             // Inclusions of this option, per quotation day + property
             $inclusionRows = $this->db
-                ->select('qpi.quotation_properties_days_id_fk, qpi.inclusion_property_id_fk, qpi.inclusion_name, qpi.inclusion_amount')
+                ->select('qpi.quotation_properties_days_id_fk, qpi.quotation_itinerary_days_id_fk, qpi.inclusion_property_id_fk, qpi.inclusion_name, qpi.inclusion_amount')
                 ->from('quotation_property_inclusions qpi')
                 ->where('qpi.quotation_id_fk', $quotation_id)
                 ->where('qpi.quotation_options_id_fk', $option_id)
@@ -1185,7 +1185,7 @@ class Quotation_model extends CI_Model{
 
             // Special requirements per quotation day
             $specialRows = $this->db
-                ->select('qsr.quotation_properties_days_id_fk, qsr.quotation_special_requirements_name, qsr.quotation_special_requirements_cost')
+                ->select('qsr.quotation_properties_days_id_fk, qsr.quotation_itinerary_days_id_fk, qsr.quotation_special_requirements_name, qsr.quotation_special_requirements_cost')
                 ->from('quotation_special_requirements qsr')
                 ->where('qsr.quotation_id_fk', $quotation_id)
                 ->where('qsr.quotation_special_requirements_status', 1)
@@ -1215,13 +1215,14 @@ class Quotation_model extends CI_Model{
 
             foreach ($hotelDays as $day) {
                 $dayId = (int)$day['quotation_properties_days_id'];
+                $dayItinId = (int)$day['quotation_itinerary_days_id_fk'];
                 $confirmedPropertyId = isset($confirmedPropertyByDay[$dayId]) ? $confirmedPropertyByDay[$dayId] : 0;
 
                 // Inclusions of the confirmed property only (all of them when nothing is confirmed)
                 $incAmount = 0;
                 $incNames  = array();
                 foreach ($inclusionRows as $inc) {
-                    if ((int)$inc['quotation_properties_days_id_fk'] !== $dayId) {
+                    if (!$this->fp_row_matches_day($inc, $dayId, $dayItinId)) {
                         continue;
                     }
                     if ($confirmedPropertyId && (int)$inc['inclusion_property_id_fk'] !== $confirmedPropertyId) {
@@ -1236,7 +1237,7 @@ class Quotation_model extends CI_Model{
                 $specAmount = 0;
                 $specNames  = array();
                 foreach ($specialRows as $sr) {
-                    if ((int)$sr['quotation_properties_days_id_fk'] !== $dayId) {
+                    if (!$this->fp_row_matches_day($sr, $dayId, $dayItinId)) {
                         continue;
                     }
                     $specAmount += (float)$sr['quotation_special_requirements_cost'];
@@ -1254,14 +1255,15 @@ class Quotation_model extends CI_Model{
 
                 if ($confirmedPropertyId && !empty($reservationQueue[$confirmedPropertyId])) {
                     $res      = array_shift($reservationQueue[$confirmedPropertyId]);
-                    $resTotal = (float)$res['total_amount'];
-                    $resNet   = (float)$res['discounted_total'];
                     $resDisc  = (float)$res['discount_amount'];
 
-                    if ($resNet > 0) {
-                        $hotelActual = $resNet;
-                    } elseif ($resTotal > 0) {
-                        $hotelActual = $resTotal;
+                    // Hotel actual = room rent (quoted tariff) minus discount only.
+                    // Do NOT use payment scheduler total_amount / discounted_total —
+                    // those include property-based inclusion costs which have their
+                    // own separate column on the Financial Posting screen.
+                    $hotelActual = $hotelQuoted - $resDisc;
+                    if ($hotelActual < 0) {
+                        $hotelActual = 0;
                     }
                     if ($resDisc > 0) {
                         $hotelDesc = 'Reservation discount: ' . number_format($resDisc, 2, '.', '');
@@ -1283,10 +1285,10 @@ class Quotation_model extends CI_Model{
 
             $defaults['days'] = $combinedDays;
 
-            // Calculate pre_quoted_amount as: driver + hotel + inclusions + special + margin
-            $driverAmount = isset($defaults['driver_quote_amount']) ? $defaults['driver_quote_amount'] : 0;
-            $marginValue = isset($defaults['margin_value']) ? $defaults['margin_value'] : 0;
-            $defaults['pre_quoted_amount'] = $hotelTotal + $inclusionsTotal + $specialTotal + $driverAmount + $marginValue;
+            // pre_quoted_amount = quotation_options_total_quote_rate (hotel + driver + margin)
+            // plus property-based inclusions and special requirements, which are not
+            // included in total_quote_rate but were quoted to the customer on top.
+            $defaults['pre_quoted_amount'] = (float)$defaults['pre_quoted_amount'] + $inclusionsTotal + $specialTotal;
 
             return $defaults;
 
@@ -1298,7 +1300,28 @@ class Quotation_model extends CI_Model{
 
     }
 
+    /**
+     * Match an inclusion / special-requirement row to a quotation day.
+     *
+     * quotation_property_inclusions and quotation_special_requirements store the
+     * day linkage in quotation_itinerary_days_id_fk; quotation_properties_days_id_fk
+     * is frequently saved as 0. Match on the itinerary day first and fall back to the
+     * properties-day id only when both sides carry a non-zero value.
+     */
+    private function fp_row_matches_day($row, $dayId, $dayItinId)
+    {
+        $rowItinId = isset($row['quotation_itinerary_days_id_fk']) ? (int)$row['quotation_itinerary_days_id_fk'] : 0;
+        if ($dayItinId && $rowItinId) {
+            return $rowItinId === $dayItinId;
+        }
 
+        $rowDayId = isset($row['quotation_properties_days_id_fk']) ? (int)$row['quotation_properties_days_id_fk'] : 0;
+        if ($dayId && $rowDayId) {
+            return $rowDayId === $dayId;
+        }
+
+        return false;
+    }
 
     public function get_active_vehicles()
 

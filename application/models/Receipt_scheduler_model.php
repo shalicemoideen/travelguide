@@ -87,6 +87,7 @@ class Receipt_scheduler_model extends CI_Model {
             $this->db->where('rs.receipt_scheduler_created_date <=', $end_date);
         }
 
+        $this->db->where('q.quotation_current_status !=', 6);
         $this->db->where('rs.receipt_scheduler_status', 1);
 
         if ($param['length'] != -1 && $param['start'] != 'false' && $param['length'] != 'false') {
@@ -130,6 +131,7 @@ class Receipt_scheduler_model extends CI_Model {
 
         $this->db->from('receipt_scheduler rs');
         $this->db->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left');
+        $this->db->where('q.quotation_current_status !=', 6);
         $this->db->where('rs.receipt_scheduler_status', 1);
         $query = $this->db->get();
         return $query->num_rows();
@@ -348,6 +350,7 @@ class Receipt_scheduler_model extends CI_Model {
             ->from('quotation q')
             ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
             ->where('q.quotation_current_status', 1) // 5 = accepted/confirmed
+            ->where('q.quotation_current_status !=', 6)
             ->where('q.quotation_status', 1)
             ->order_by('q.quotation_id', 'DESC')
             ->get()
@@ -462,6 +465,7 @@ class Receipt_scheduler_model extends CI_Model {
             ->where('i.payment_status', 'PENDING')
             ->where('i.installment_status', 1)
             ->where('rs.receipt_scheduler_status', 1)
+            ->where('q.quotation_current_status !=', 6)
             ->order_by('i.due_date', 'ASC')
             ->get()
             ->result();
@@ -480,6 +484,7 @@ class Receipt_scheduler_model extends CI_Model {
             ->where('i.due_date <', $today)
             ->where('i.installment_status', 1)
             ->where('rs.receipt_scheduler_status', 1)
+            ->where('q.quotation_current_status !=', 6)
             ->order_by('i.due_date', 'ASC')
             ->get()
             ->result();
@@ -529,7 +534,8 @@ class Receipt_scheduler_model extends CI_Model {
                 WHERE p1.payment_status = 1
             ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
             ->where('i.installment_status', 1)
-            ->where('rs.receipt_scheduler_status', 1);
+            ->where('rs.receipt_scheduler_status', 1)
+            ->where('q.quotation_current_status !=', 6);
 
         $this->_applyCustomerPaymentReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $payment_type_filter, $installment_number_filter, $status_filter, $approval_pending_filter);
 
@@ -575,7 +581,8 @@ class Receipt_scheduler_model extends CI_Model {
                 WHERE p1.payment_status = 1
             ) latest_p', 'latest_p.installment_id_fk = i.installment_id', 'left')
             ->where('i.installment_status', 1)
-            ->where('rs.receipt_scheduler_status', 1);
+            ->where('rs.receipt_scheduler_status', 1)
+            ->where('q.quotation_current_status !=', 6);
 
         $this->_applyCustomerPaymentReportFilters($start_date, $end_date, $quotation_number_filter, $guest_name_filter, $payment_type_filter, $installment_number_filter, $status_filter, $approval_pending_filter);
 
@@ -633,7 +640,8 @@ class Receipt_scheduler_model extends CI_Model {
             ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
             ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
             ->join($this->table_installments . ' i', 'i.receipt_scheduler_id_fk = rs.receipt_scheduler_id AND i.installment_status = 1', 'left')
-            ->where('rs.receipt_scheduler_status', 1);
+            ->where('rs.receipt_scheduler_status', 1)
+            ->where('q.quotation_current_status !=', 6);
 
         if ($quotation_number_filter) {
             $this->db->like('q.quotation_number', $quotation_number_filter);
@@ -678,7 +686,8 @@ class Receipt_scheduler_model extends CI_Model {
             ->from('receipt_scheduler rs')
             ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
             ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
-            ->where('rs.receipt_scheduler_status', 1);
+            ->where('rs.receipt_scheduler_status', 1)
+            ->where('q.quotation_current_status !=', 6);
 
         if ($quotation_number_filter) {
             $this->db->like('q.quotation_number', $quotation_number_filter);

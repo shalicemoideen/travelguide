@@ -4200,7 +4200,7 @@
 
             <tr class="fp-total-row">
 
-              <td>Actual Cost <small class="text-muted fw-normal">(sum of Quoted)</small></td>
+              <td>Actual Cost <small class="text-muted fw-normal">(sum of Expected)</small></td>
 
               <td colspan="3"><span class="fp-calc-val" id="fpActualCost">0.00</span></td>
 

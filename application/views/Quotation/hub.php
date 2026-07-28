@@ -159,6 +159,21 @@
     background: linear-gradient(135deg, #00838f 0%, #006064 100%);
     padding: 8px 12px;
     border: none;
+    cursor: pointer;
+}
+#financialPostingTab .fp-day-toggle {
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    margin-right: 8px;
+    font-size: 16px;
+    transition: transform 0.2s ease;
+}
+#financialPostingTab .fp-table tbody tr.fp-day-header.fp-collapsed .fp-day-toggle {
+    transform: rotate(-90deg);
+}
+#financialPostingTab .fp-table tbody tr.fp-day-item.fp-hidden {
+    display: none;
 }
 #financialPostingTab .fp-day-badge {
     display: inline-flex;
@@ -482,7 +497,7 @@
                                                                     </tr>
                                                                     <!-- Totals -->
                                                                     <tr class="table-info fw-bold fp-total" id="fpActualCostRow">
-                                                                        <td>Actual Cost <small class="text-muted fw-normal">(sum of Quoted)</small></td>
+                                                                        <td>Actual Cost <small class="text-muted fw-normal">(sum of Expected)</small></td>
                                                                         <td colspan="3"><span id="fpActualCost">0.00</span></td>
                                                                         <td></td>
                                                                     </tr>
@@ -509,16 +524,10 @@
                                                                         <td colspan="3"><span id="fpPreQuotedAmount" class="fw-bold text-primary">0.00</span></td>
                                                                         <td></td>
                                                                     </tr>
-                                                                    <!-- Difference -->
+                                                                    <!-- Total margin -->
                                                                     <tr class="table-light fp-label" id="fpDifferenceRow">
-                                                                        <td class="fw-bold">Difference <small class="text-muted fw-normal">(Pre Quoted − Total)</small></td>
+                                                                        <td class="fw-bold">Total margin <small class="text-muted fw-normal">(Pre quoted - Total)</small></td>
                                                                         <td colspan="3"><span id="fpDifference" class="fw-bold" style="font-size:1.25rem;">0.00</span></td>
-                                                                        <td></td>
-                                                                    </tr>
-                                                                    <!-- Total Margin (final profit) -->
-                                                                    <tr class="table-light fp-label" id="fpTotalMarginRow">
-                                                                        <td class="fw-bold">Total Margin <small class="text-muted fw-normal">(Margin + Difference)</small></td>
-                                                                        <td colspan="3"><span id="fpTotalMargin" class="fw-bold" style="font-size:1.25rem;">0.00</span></td>
                                                                         <td></td>
                                                                     </tr>
                                                                     <!-- Description -->
