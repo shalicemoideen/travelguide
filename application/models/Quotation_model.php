@@ -7573,7 +7573,6 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			->from('quotation q')
 			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
 			->where('q.quotation_status', 1)
-			->where_in('q.quotation_current_status', array(5, 7, 8, 9))
 			->having('(has_customer_scheduler > 0 OR has_property_scheduler > 0)');
 
 		if ($quotation_number_filter) {
@@ -7635,7 +7634,6 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			->from('quotation q')
 			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
 			->where('q.quotation_status', 1)
-			->where_in('q.quotation_current_status', array(5, 7, 8, 9))
 			->having('(has_customer_scheduler > 0 OR has_property_scheduler > 0)');
 
 		if ($quotation_number_filter) {
@@ -7662,5 +7660,152 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		return $count_query ? $count_query->cnt : 0;
 	}
 
+	public function get_costing_breakup_data($quotation_id)
+	{
+		$quotation = $this->db
+			->select('q.*, l.guest_name, l.leads_number, l.start_date, l.end_date, l.whats_number, ud.admin_name, qo.quotation_options_title as confirmed_option_title, qo.quotation_options_id as confirmed_option_id')
+			->from('quotation q')
+			->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+			->join('user_details ud', 'ud.user_id = q.quotation_created_by_userid', 'left')
+			->join('quotation_confirmation qc', 'qc.quotation_id_fk = q.quotation_id AND qc.property_confirmation_status = 1', 'left')
+			->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left')
+			->where('q.quotation_id', $quotation_id)
+			->where('q.quotation_status', 1)
+			->group_by('q.quotation_id')
+			->get()
+			->row();
+
+		if (!$quotation) {
+			return array();
+		}
+
+		$options = $this->db
+			->select('qo.*, v.vehicle_name, v.vehicle_number_seat')
+			->from('quotation_options qo')
+			->join('vehicle v', 'v.vehicle_id = qo.quotation_options_vehicle_id_fk', 'left')
+			->where('qo.quotation_id_fk', $quotation_id)
+			->where('qo.quotation_options_status', 1)
+			->order_by('qo.quotation_options_id', 'ASC')
+			->get()
+			->result();
+
+		foreach ($options as &$option) {
+
+			$option->inclusions = $this->db
+				->select('qpi.*, p.properties_name as inc_property_name, pc.property_category_name as inc_category_name')
+				->from('quotation_property_inclusions qpi')
+				->join('properties p', 'p.properties_id = qpi.inclusion_property_id_fk', 'left')
+				->join('property_category pc', 'pc.property_category_id = p.property_category_id_fk', 'left')
+				->where('qpi.quotation_id_fk', (int)$quotation_id)
+				->where('qpi.quotation_options_id_fk', (int)$option->quotation_options_id)
+				->where('qpi.quotation_property_inclusions_status', 1)
+				->get()
+				->result();
+			$option->special_requirements = $this->get_quotation_special_requirements_preview($quotation_id);
+
+			$days = $this->db
+				->select('qpd.*, s.state_name, ap.accommodation_date, ap.meal_plan_id_fk,
+					gcd.guset_count_details_id, gcd.guset_count_details_type,
+					mp.meal_plan_id, mp.meal_plan_name')
+				->from('quotation_properties_days qpd')
+				->join('state s', 's.state_id = qpd.quotation_properties_days_destination_id_fk', 'left')
+				->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
+				->join('guset_count_details gcd', 'gcd.guset_count_details_id = ap.guset_count_details_id_fk', 'left')
+				->join('meal_plan mp', 'mp.meal_plan_id = ap.meal_plan_id_fk', 'left')
+				->where('qpd.quotation_id_fk', $quotation_id)
+				->where('qpd.quotation_options_id_fk', $option->quotation_options_id)
+				->where('qpd.quotation_properties_days_status', 1)
+				->order_by('qpd.quotation_properties_days_id', 'ASC')
+				->get()
+				->result();
+
+			foreach ($days as &$day) {
+
+				$properties = $this->db
+					->select('qp.*, p.properties_name, pc.property_category_name')
+					->from('quotation_properties qp')
+					->join('properties p', 'p.properties_id = qp.properties_id_fk', 'left')
+					->join('property_category pc', 'pc.property_category_id = p.property_category_id_fk', 'left')
+					->where('qp.quotation_properties_days_id_fk', $day->quotation_properties_days_id)
+					->where('qp.quotation_properties_status', 1)
+					->order_by('qp.quotation_properties_id', 'ASC')
+					->get()
+					->result();
+
+				foreach ($properties as &$prop) {
+
+					$rooms = $this->db
+						->select('qpr.*, prc.properties_room_category_name,
+							qrtd.quotation_room_tariff_details_id,
+							qrtd.pax_wise_bed_adult_db_count, qrtd.pax_wise_bed_adult_eb_count, qrtd.pax_wise_bed_adult_sgl_count,
+							qrtd.pax_wise_bed_child_db_count, qrtd.pax_wise_bed_child_eb_count, qrtd.pax_wise_bed_child_sb_count,
+							qrtd.pax_wise_bed_baby_db_count, qrtd.pax_wise_bed_baby_eb_count, qrtd.pax_wise_bed_baby_sb_count,
+							qrtd.room_unit_auto_count, qrtd.room_unit_auto_rate, qrtd.room_unit_auto_total_rate,
+							qrtd.room_unit_manual_count, qrtd.room_unit_manual_rate, qrtd.room_unit_manual_total_rate,
+							qrtd.extra_bed_adult_auto_count, qrtd.extra_bed_adult_auto_rate, qrtd.extra_bed_adult_auto_total_rate,
+							qrtd.extra_bed_adult_manual_count, qrtd.extra_bed_adult_manual_rate, qrtd.extra_bed_adult_manual_total_rate,
+							qrtd.extra_bed_child_auto_count, qrtd.extra_bed_child_auto_rate, qrtd.extra_bed_child_auto_total_rate,
+							qrtd.extra_bed_child_manual_count, qrtd.extra_bed_child_manual_rate, qrtd.extra_bed_child_manual_total_rate,
+							qrtd.child_sharing_bed_auto_count, qrtd.child_sharing_bed_auto_rate, qrtd.child_sharing_bed_auto_total_rate,
+							qrtd.child_sharing_bed_manual_count, qrtd.child_sharing_bed_manual_rate, qrtd.child_sharing_bed_manual_total_rate,
+							qrtd.single_occupancy_auto_count, qrtd.single_occupancy_auto_rate, qrtd.single_occupancy_auto_total_rate,
+							qrtd.single_occupancy_manual_count, qrtd.single_occupancy_manual_rate, qrtd.single_occupancy_manual_total_rate,
+							qrtd.supplyment_auto_cost, qrtd.supplyment_auto_total_cost,
+							qrtd.supplyment_manual_cost, qrtd.supplyment_manual_total_cost,
+							qrtd.auto_total_rate, qrtd.manual_total_rate')
+						->from('quotation_properties_rooms qpr')
+						->join('properties_room_category prc', 'prc.properties_room_category_id = qpr.quotation_properties_rooms_id_fk', 'left')
+						->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = ' . (int)$quotation_id, 'left')
+						->where('qpr.quotation_properties_id_fk', $prop->quotation_properties_id)
+						->where('qpr.quotation_properties_rooms_status', 1)
+						->order_by('qpr.quotation_properties_rooms_id', 'ASC')
+						->get()
+						->result();
+
+					$prop->rooms = $rooms;
+				}
+				unset($prop);
+
+				$day->properties = $properties;
+			}
+			unset($day);
+
+			$option->days = $days;
+
+			$inclusionTotal = 0;
+			foreach ($option->inclusions as $inc) {
+				$inclusionTotal += (float)$inc->inclusion_amount;
+			}
+
+			$specialTotal = 0;
+			foreach ($option->special_requirements as $sr) {
+				$specialTotal += (float)$sr->quotation_special_requirements_cost;
+			}
+
+			$hotelTotal = 0;
+			foreach ($option->days as $day) {
+				foreach ($day->properties as $prop) {
+					foreach ($prop->rooms as $room) {
+						$hotelTotal += (float)$room->manual_total_rate;
+					}
+				}
+			}
+
+			$option->hotel_total = $hotelTotal;
+			$option->inclusion_total = $inclusionTotal;
+			$option->special_total = $specialTotal;
+			$option->cab_amount = (float)$option->quotation_options_cab_amount;
+			$option->total_cost = (float)$option->quotation_options_total_cost;
+			$option->margin_value = (float)$option->quotation_options_margin_value;
+			$option->quote_rate = (float)$option->quotation_options_total_quote_rate;
+			$option->grand_total = $option->quote_rate + $inclusionTotal + $specialTotal;
+		}
+		unset($option);
+
+		return array(
+			'quotation' => $quotation,
+			'options'   => $options,
+		);
+	}
 
 }

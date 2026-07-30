@@ -100,7 +100,7 @@ $money_open = in_array($status, array('APPROVED', 'SETTLED'));
                     <?php endif; ?>
 
                     <?php if ($money_open && has_permission('BOOKING_CANCELLATION_REVERSE')): ?>
-                        <button class="btn btn-outline-light btn-sm" id="bcdReverse">
+                        <button class="btn btn-outline-light btn-sm" id="bcdReverse" style="display:none;">
                             <i class="la la-undo me-1"></i> Reverse
                         </button>
                     <?php endif; ?>
@@ -197,13 +197,13 @@ $money_open = in_array($status, array('APPROVED', 'SETTLED'));
                                     <label class="form-label mb-1">Suggested (supplier cost)</label>
                                     <input type="text" class="form-control" id="cc_suggested" readonly>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-2" style="display:none;">
                                     <div class="form-check mt-4">
                                         <input class="form-check-input" type="checkbox" id="cc_override">
                                         <label class="form-check-label" for="cc_override">Override</label>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-4" style="display:none;">
                                     <label class="form-label mb-1">Justification (required if overriding)</label>
                                     <input type="text" class="form-control" id="cc_note" placeholder="Why the suggested figure is not used">
                                 </div>

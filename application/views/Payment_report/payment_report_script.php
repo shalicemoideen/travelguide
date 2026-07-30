@@ -178,8 +178,6 @@ function viewPaymentDetails(quotationId, hasCustomer, hasProperty) {
     $('#customerPaymentContent').html('<div class="text-center text-muted py-4">Loading customer payment details...</div>');
     $('#propertyPaymentContent').html('<div class="text-center text-muted py-4">Loading property payment details...</div>');
 
-    var isConfirmed = false;
-
     $.ajax({
         url: base_url + 'Quotation/ajax_get_quotation_basic_info',
         type: 'POST',
@@ -191,15 +189,11 @@ function viewPaymentDetails(quotationId, hasCustomer, hasProperty) {
                 $('#pd_quotation_number').text(d.quotation_number || '-');
                 $('#pd_guest_name').text(d.guest_name || '-');
                 $('#pd_phone').text(d.whats_number || '-');
-                isConfirmed = (parseInt(d.quotation_current_status) === 5);
             }
 
-            if (hasProperty > 0 && isConfirmed) {
+            if (hasProperty > 0) {
                 $('#property-tab').css('pointer-events', '').css('opacity', '');
                 loadPropertySchedulerId(quotationId);
-            } else if (hasProperty > 0 && !isConfirmed) {
-                $('#property-tab').css('pointer-events', 'none').css('opacity', '0.5');
-                $('#propertyPaymentContent').html('<div class="text-center text-warning py-4"><i class="fas fa-lock me-2"></i>Property reservation is available only after the quotation is confirmed.</div>');
             } else {
                 $('#property-tab').css('pointer-events', 'none').css('opacity', '0.5');
                 $('#propertyPaymentContent').html('<div class="text-center text-muted py-4">No property payment scheduler found.</div>');

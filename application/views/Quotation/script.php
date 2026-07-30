@@ -321,6 +321,11 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
+                // Costing breakup button
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
+                }
+
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
@@ -363,6 +368,11 @@ var table;
                 if (hasPermission('QUOTATION_HUB')) {
 
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+
+                // Costing breakup button
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
                 }
 
                 // Delete button
@@ -409,6 +419,11 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
+                // Costing breakup button
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
+                }
+
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
@@ -451,6 +466,11 @@ var table;
                 if (hasPermission('QUOTATION_HUB')) {
 
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+
+                // Costing breakup button
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
                 }
 
                 // Delete button
@@ -497,6 +517,11 @@ var table;
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
+                // Costing breakup button
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
+                }
+
                 // Delete button
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
@@ -519,6 +544,9 @@ var table;
                 if (hasPermission('QUOTATION_HUB')) {
                     actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
+                }
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml8 += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
                 }
@@ -539,6 +567,9 @@ var table;
                 if (hasPermission('QUOTATION_HUB')) {
                     actionHtml7 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml7 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
+                }
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml7 += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
                 }
@@ -558,6 +589,9 @@ var table;
                 }
                 if (hasPermission('QUOTATION_HUB')) {
                     actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
                 }
                 if (hasPermission('QUOTATION_DELETE')) {
                     actionHtml9 += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
@@ -586,6 +620,11 @@ var table;
                 if (hasPermission('QUOTATION_HUB')) {
 
                     actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+
+                // Costing breakup button
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
                 }
 
                 // Delete button

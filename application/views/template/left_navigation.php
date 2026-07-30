@@ -388,12 +388,12 @@
 							<?php if (has_permission('TRANSPORTER_REPORT')): ?>
 								<li class="<?php if($this->uri->segment(2) == "transporter_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/transporter_report">Transporter Report</a></li>
 							<?php endif; ?>
-						<?php if (has_permission('CUSTOMER_PAYMENT_REPORT')): ?>
+						<!-- <?php if (has_permission('CUSTOMER_PAYMENT_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="customer_payment_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Receipt_scheduler/customer_payment_report">Customer Payment Report</a></li>
 						<?php endif; ?>
 						<?php if (has_permission('PROPERTY_PAYMENTS_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="property_payments_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Property_reservation/property_payments_report">Property Payments Report</a></li>
-						<?php endif; ?>
+						<?php endif; ?> -->
 						<?php if (has_permission('PAYMENT_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(1)=="Payment_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Payment_report">Payment Report</a></li>
 						<?php endif; ?>

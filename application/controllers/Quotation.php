@@ -184,6 +184,34 @@ class Quotation extends MY_Controller {
 
 	}
 
+	public function costing_breakup($quotation_id)
+
+	{
+
+		if (!has_permission('COSTING_BREAKUP')) {
+
+			show_error('Permission denied: Quotation Details');
+
+			return;
+
+		}
+
+		$this->load->model('Quotation_model');
+
+		$data = $this->Quotation_model->get_costing_breakup_data($quotation_id);
+
+		if (empty($data['quotation'])) {
+
+			show_404();
+
+			return;
+
+		}
+
+		$this->load->view('Quotation/costing_breakup', $data);
+
+	}
+
 
 
 	// public function quotation_hub($quotation_id)
