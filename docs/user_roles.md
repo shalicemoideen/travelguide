@@ -17,11 +17,13 @@ User submits login form
 Login/ajax_login
   │
   ▼
-Loginmodel::login_validation()
-  ├── Verify username exists in user_details
-  ├── Verify password matches (plaintext comparison)
+Loginmodel::checkUserLogin()
+  ├── Load active user by user_name only (no password in SQL)
+  ├── Verify password with password_verify() against the stored hash
+  │     └── Legacy plaintext passwords are accepted once, then transparently
+  │         re-hashed via password_hash(PASSWORD_DEFAULT) (rehash-on-login)
   ├── Check user_status = 1 (active)
-  └── Fetch user details + role
+  └── Fetch user details + role (password hash stripped before session set)
   │
   ▼
 Loginmodel::get_user_permissions_by_role($role_id)
@@ -172,7 +174,7 @@ Additional permissions are added via SQL migration files:
 
 ## Security Notes
 
-- **Password storage**: Passwords are stored in plaintext in `user_details.password` (no hashing)
+- **Password storage**: Passwords are stored as secure hashes in `user_details.password` using PHP `password_hash()` with `PASSWORD_DEFAULT`; verified with `password_verify()`. Legacy plaintext passwords are transparently upgraded to hashes on the user's next successful login (rehash-on-login). The password hash is never returned to the UI or stored in the session.
 - **Session-based auth**: File-based sessions; expires on browser close
 - **CSRF protection**: Enabled with token regeneration
 - **XSS filtering**: Applied via form validation rules

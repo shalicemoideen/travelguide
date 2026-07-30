@@ -251,7 +251,7 @@ Append-only audit trail for each payment made to a property owner.
 | `role_id_fk` | int(11) | FK to tr_roles |
 | `designation_id_fk` | int(11) | FK to designation |
 | `user_name` | varchar(255) | Login username |
-| `password` | varchar(255) | Login password |
+| `password` | varchar(255) | Login password (stored as a PHP `password_hash()` hash, not plaintext) |
 | `user_status` | int(11) | 1=active, 0=inactive |
 | `meta_force_stop` | varchar(50) | N=not stopped, Y=stopped |
 | `tamil_speak` | varchar(50) | Tamil speaking flag |

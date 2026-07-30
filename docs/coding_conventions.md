@@ -258,7 +258,7 @@ public function get() {
 
 ## Known Technical Debt
 
-- **Plaintext passwords**: `user_details.password` stores passwords without hashing
+- **Password hashing**: `user_details.password` stores secure hashes via `password_hash(PASSWORD_DEFAULT)`, verified with `password_verify()`. Legacy plaintext passwords are transparently rehashed on first successful login
 - **No input sanitization on some AJAX endpoints**: Some methods accept raw POST data without form validation
 - **Duplicate controllers**: `Role.php` and `Roles.php` both exist; `Inclusions_exclusion-old.php` and `Payment_policies-OLD.php` are legacy versions
 - **Large controllers**: `Quotation.php` (189KB) and `Leads.php` (126KB) are monolithic and could be refactored

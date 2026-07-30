@@ -66,7 +66,7 @@ class Staff extends MY_Controller {
 
     public function ajax_add()
 	{
-		$this->_validate();
+		$this->_validate(TRUE);
 		
 		$this->load->helper('date');
 		if(function_exists('date_default_timezone_set')) {
@@ -132,7 +132,7 @@ class Staff extends MY_Controller {
                 'designation_id_fk' => $this->input->post('designation_id_fk'),
                 'user_date_of_joining' => $user_date_of_joining,
                 'user_name' => $this->input->post('user_name'),
-                'password' => $this->input->post('password'),
+                'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
                 'device_user_id' => $this->input->post('device_user_id'),
 				 // Logic: If input is 'Y', save 'Y', otherwise save 'N'
 				'meta_force_stop' => ($this->input->post('meta_force_stop') == 'Y') ? 'Y' : 'N',
@@ -180,6 +180,11 @@ class Staff extends MY_Controller {
 	{
 		$data = $this->Staff_model->get_by_id($id);
 		// $data->dob = ($data->dob == '0000-00-00') ? '' : $data->dob; // if 0000-00-00 set tu empty for datepicker compatibility
+
+		// Never expose the stored password hash to the edit form.
+		if (isset($data->password)) {
+			unset($data->password);
+		}
 		
 		// Fetch staff languages
 		$staff_languages = $this->Staff_model->fetch_staff_languages($id);
@@ -193,7 +198,7 @@ class Staff extends MY_Controller {
 
 	public function ajax_update()
 	{
-		$this->_validate();
+		$this->_validate(FALSE);
 		
 		$this->load->helper('date');
 		if(function_exists('date_default_timezone_set')) {
@@ -285,7 +290,6 @@ class Staff extends MY_Controller {
                 'designation_id_fk' => $this->input->post('designation_id_fk'),
                 'user_date_of_joining' => $user_date_of_joining,
                 'user_name' => $this->input->post('user_name'),
-                'password' => $this->input->post('password'),
                 'device_user_id' => $this->input->post('device_user_id'),
 				// Logic: If input is 'Y', save 'Y', otherwise save 'N'
 				'meta_force_stop' => ($this->input->post('meta_force_stop') == 'Y') ? 'Y' : 'N',
@@ -299,6 +303,12 @@ class Staff extends MY_Controller {
 				// 'user_type' => 'S',
                 // 'user_status' => 1
 			);
+
+		// Only update the password when a new one is entered; otherwise keep the existing hash unchanged.
+		$new_password = $this->input->post('password');
+		if (trim((string) $new_password) !== '') {
+			$data['password'] = password_hash($new_password, PASSWORD_DEFAULT);
+		}
 			// print_r($data);exit();
 		$this->Staff_model->update(array('user_id' => $this->input->post('id')), $data);
 
@@ -379,7 +389,7 @@ class Staff extends MY_Controller {
 		echo json_encode(array("status" => TRUE));
 	}
 
-	private function _validate()
+	private function _validate($password_required = TRUE)
 	{
 		$data = array();
 		$data['error_string'] = array();
@@ -401,10 +411,27 @@ class Staff extends MY_Controller {
 			$data['status'] = FALSE;
 		}
 
-        if($this->input->post('password') == '')
+		$password = (string) $this->input->post('password');
+		if($password_required && trim($password) === '')
 		{
 			$data['inputerror'][] = 'password';
-			$data['error_string'][] = 'Staff name is required';
+			$data['error_string'][] = 'Password is required';
+			$data['status'] = FALSE;
+		}
+		// Enforce password strength whenever a password is supplied.
+		// On edit, a blank password means "keep existing" and is skipped.
+		elseif(trim($password) !== '' && !$this->_is_strong_password($password))
+		{
+			$data['inputerror'][] = 'password';
+			$data['error_string'][] = 'Password must be at least 8 characters and include at least one letter and one number';
+			$data['status'] = FALSE;
+		}
+
+		// Confirm password must match whenever a password is being set/changed.
+		if(trim($password) !== '' && $this->input->post('confirm_password') !== $password)
+		{
+			$data['inputerror'][] = 'confirm_password';
+			$data['error_string'][] = 'Password and confirm password do not match';
 			$data['status'] = FALSE;
 		}
 		if($this->input->post('shift_id_fk') == '')
@@ -424,6 +451,14 @@ class Staff extends MY_Controller {
 			echo json_encode($data);
 			exit();
 		}
+	}
+
+	// Minimum password complexity: at least 8 characters, one letter and one number.
+	private function _is_strong_password($password)
+	{
+		return (strlen($password) >= 8)
+			&& preg_match('/[A-Za-z]/', $password)
+			&& preg_match('/[0-9]/', $password);
 	}
 	
 }

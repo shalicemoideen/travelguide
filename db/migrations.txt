@@ -303,3 +303,8 @@ CREATE TABLE IF NOT EXISTS `quotation_review` (
 
 INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `description`, `status`, `created_by`, `created_at`) VALUES
 ('QUOTATION_REVIEW', 'QUOTATION REVIEW', 'QUOTATION', 'QUOTATION HUB', 'Update quotation review rating in hub', 1, 1, NOW());
+
+-- Secure password storage: ensure user_details.password can hold PHP password_hash() output.
+-- password_hash(PASSWORD_DEFAULT) currently produces 60 chars (bcrypt) but future algorithms
+-- may need more; VARCHAR(255) is the recommended, future-proof length. Existing data is preserved.
+ALTER TABLE `user_details` MODIFY `password` VARCHAR(255) NOT NULL;

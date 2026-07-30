@@ -54,9 +54,16 @@ class Staff_model extends CI_Model{
 		$this->db->join('designation', 'designation.designation_id = user_details.designation_id_fk','left');
 		$this->db->order_by('user_id', 'DESC');
         $query = $this->db->get();
-        
 
-        $data['data'] = $query->result();
+        $rows = $query->result();
+        // Never send the stored password hash to the browser/DataTable.
+        foreach ($rows as $row) {
+            if (isset($row->password)) {
+                unset($row->password);
+            }
+        }
+
+        $data['data'] = $rows;
         $data['recordsTotal'] = $this->getStaffTotalCount($param);
         $data['recordsFiltered'] = $this->getStaffTotalCount($param);
         return $data;

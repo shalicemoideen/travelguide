@@ -150,19 +150,19 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                                        columns: [0, 1, 2, 3, 4, 5, 6]
                                     }
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                                        columns: [0, 1, 2, 3, 4, 5, 6]
                                     }
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6, 7]
+                                        columns: [0 ,1, 2, 3, 4, 5, 6]
                                     }
                                 },
                                
@@ -204,7 +204,7 @@ var table;
 
             actionHtml += '</div>';
 
-            $('td', row).eq(8).html(actionHtml);
+            $('td', row).eq(7).html(actionHtml);
 
 			// $('td', row).eq(10).html('<div class="d-flex"><a href="javascript:void(0)" onclick="edit_staff('+data['user_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a><a href="javascript:void(0)" onclick="return delete_staff('+data['user_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a></div>');
 			
@@ -227,7 +227,6 @@ var table;
             { "data": "designation_name", "orderable": false },   
             { "data": "user_date_of_joining", "orderable": false },   
             { "data": "user_name", "orderable": false }, 
-            { "data": "password", "orderable": false },                      
             { "data": "user_id", "orderable": false }
             
             
@@ -334,7 +333,8 @@ function edit_staff(id)
             $('[name="user_lan_number"]').val(data.user_lan_number); 
             $('[name="user_date_of_joining"]').val(data.user_date_of_joining);
             $('[name="user_name"]').val(data.user_name);
-            $('[name="password"]').val(data.password);
+            $('[name="password"]').val('');
+            $('[name="confirm_password"]').val('');
             $('[name="device_user_id"]').val(data.device_user_id);
             $('[name="user_description"]').val(data.user_description);  
 
@@ -446,7 +446,16 @@ function save()
     // clear old file errors
     $('.form-group').removeClass('input-warning-o');
     $('.help-block').text('');
-     
+
+    // Client-side confirm password check for immediate feedback.
+    var pwd = $('#password').val();
+    var confirmPwd = $('#confirm_password').val();
+    if (pwd !== '' && pwd !== confirmPwd) {
+        $('#confirm_password').closest('.form-group').addClass('input-warning-o');
+        $('#confirm_password').closest('.form-group').find('.help-block').first().text('Password and confirm password do not match');
+        return;
+    }
+
     var url;
 
     if(save_method == 'add') {
