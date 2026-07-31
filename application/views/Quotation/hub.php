@@ -1,6 +1,14 @@
 
 
 <style>
+.confirmation-option-card:not(.is-confirmed):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(74,62,224,0.2) !important;
+}
+.confirmation-option-card.is-confirmed:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(46,125,50,0.25) !important;
+}
 .quotation-hub-summary {
     margin-bottom: 25px;
 }
@@ -397,22 +405,32 @@
                                             <div class="pt-4">
 
                                                 <div class="card border-0 shadow-sm">
-                                                    <div class="card-header bg-white">
+                                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                                                         <h5 class="mb-0 fw-bold">Client Confirmation</h5>
+                                                        <div class="d-flex gap-2 align-items-center">
+                                                            <button type="button" class="btn d-none" id="copyExportConfirmationBtn" style="
+                                                                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                                                                color: white; border: none; padding: 8px 18px; font-size: 13px;
+                                                                font-weight: 600; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                                                transition: all 0.3s ease; cursor: pointer;
+                                                            " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 12px rgba(17,153,142,0.4)';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                                                                <i class="fas fa-file-export me-2"></i> View / Copy / Export Confirmation
+                                                            </button>
+                                                        </div>
                                                     </div>
 
                                                     <div class="card-body">
                                                         <div class="row mb-3">
-                                                            <div class="col-md-4">
-                                                                <label class="form-label fw-semibold">Select Quotation Option</label>
-                                                                <select id="confirmationOptionSelect" class="form-select">
-                                                                    <option value="">Select Option</option>
-                                                                </select>
+                                                            <div class="col-md-5">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                                                    <input type="text" id="confirmationOptionSearch" class="form-control border-start-0" placeholder="Search options...">
+                                                                </div>
                                                             </div>
                                                         </div>
 
-                                                        <div id="confirmationOptionDetails">
-                                                            <div class="alert alert-info mb-0">Please select an option to view details.</div>
+                                                        <div id="confirmationOptionSummary">
+                                                            <div class="alert alert-info mb-0">Loading options...</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -947,14 +965,34 @@
             </div>
         </div>
 
+        <!-- Client Confirmation Option Details Modal -->
+        <div class="modal fade" id="confirmationOptionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content" style="border:none;border-radius:12px;overflow:hidden;">
+                    <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:14px 20px;">
+                        <h5 class="modal-title fw-bold" id="confirmationOptionModalTitle" style="font-size:16px;color:#fff;">Option Details</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0" id="confirmationOptionModalBody" style="max-height:70vh;overflow-y:auto;">
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid #e5e7eb;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="btnSubmitConfirmation">
+                            <i class="fas fa-check-circle me-1"></i> Submit Confirmation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== Receipt Scheduler Modals ===== -->
 
         <!-- Add/Edit Scheduler Modal -->
         <div class="modal fade" id="hub_schedulerModal" role="dialog" data-backdrop="static" data-keyboard="false">
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog" role="document" style="max-width: 850px;">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="hub_schedulerModalTitle">Create Payment Schedule</h5>
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title text-white" id="hub_schedulerModalTitle">Create Payment Schedule</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -971,8 +1009,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Total Amount <span class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" class="form-control" name="total_amount" id="hub_total_amount" required>
-                                        <small class="text-muted">Auto-calculated from quotation, can be adjusted</small>
+                                        <input type="number" step="0.01" class="form-control" name="total_amount" id="hub_total_amount" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -996,28 +1033,46 @@
                             </div>
                             <!-- Full Payment Section -->
                             <div id="hub_fullPaymentSection" style="display:none;">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-title">Full Payment Details</h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Cutoff Date <span class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control" id="hub_cutoff_date" placeholder="dd/mm/yyyy">
-                                                    <input type="hidden" name="cutoff_date" id="hub_cutoff_date_hidden">
-                                                    <small id="hub_cutoff_date_display" class="text-primary fw-semibold"></small>
-                                                    <small class="text-muted d-block">Payment must be received by this date</small>
-                                                </div>
-                                            </div>
+                                <div class="option-block" style="margin-bottom:0;">
+                                    <div class="option-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                                        <span><i class="fas fa-money-bill-wave me-1"></i> Full Payment Details</span>
+                                    </div>
+                                    <div class="option-body" style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:50%;background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Description</th>
+                                                        <th style="width:50%;background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><strong>Total Amount</strong></td>
+                                                        <td class="fw-bold text-success" id="hub_full_total_display">₹0.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Cutoff Date <span class="text-danger">*</span></strong></td>
+                                                        <td>
+                                                            <input type="text" class="form-control form-control-sm" id="hub_cutoff_date" placeholder="dd/mm/yyyy">
+                                                            <input type="hidden" name="cutoff_date" id="hub_cutoff_date_hidden">
+                                                            <small id="hub_cutoff_date_display" class="text-primary fw-semibold"></small>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <!-- EMI Section -->
                             <div id="hub_emiSection" style="display:none;">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-title">EMI Configuration</h6>
+                                <div class="option-block" style="margin-bottom:0;">
+                                    <div class="option-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                                        <span><i class="fas fa-calendar-check me-1"></i> EMI Configuration</span>
+                                        <span style="background:rgba(255,255,255,.2);padding:4px 12px;border-radius:6px;font-size:14px;font-weight:600;">Total: <span id="hub_emi_total_display">₹0.00</span></span>
+                                    </div>
+                                    <div class="option-body" style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:16px;">
                                         <div class="row mb-3">
                                             <div class="col-md-4">
                                                 <label class="form-label">Maximum EMI Count <span class="text-danger">*</span></label>
@@ -1032,28 +1087,28 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label">&nbsp;</label>
-                                                <button type="button" class="btn btn-info btn-sm d-block" onclick="hub_generateEmiRows()">
-                                                    <i class="fas fa-sync"></i> Generate EMI Rows
+                                                <button type="button" class="btn btn-warning btn-sm d-block" onclick="hub_generateEmiRows()">
+                                                    <i class="fas fa-redo"></i> Reset
                                                 </button>
                                             </div>
                                         </div>
                                         <div class="table-responsive">
-                                            <table class="table table-bordered" id="hub_emiTable">
-                                                <thead class="table-secondary">
+                                            <table class="table table-bordered table-sm mb-0" id="hub_emiTable">
+                                                <thead>
                                                     <tr>
-                                                        <th width="80">EMI #</th>
-                                                        <th class="amount-col" id="hub_emiAmountHeader">Amount</th>
-                                                        <th width="150">Due Date</th>
-                                                        <th width="120">Calculated</th>
+                                                        <th width="80" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">EMI #</th>
+                                                        <th class="amount-col" id="hub_emiAmountHeader" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                                        <th width="150" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th>
+                                                        <th width="120" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Calculated</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="hub_emiTableBody"></tbody>
                                                 <tfoot>
-                                                    <tr class="table-warning">
+                                                    <tr style="background:#eef2ff;">
                                                         <td><strong>Total</strong></td>
-                                                        <td id="hub_emiTotalCol">-</td>
+                                                        <td id="hub_emiTotalCol" class="fw-bold">-</td>
                                                         <td>-</td>
-                                                        <td id="hub_emiCalculatedTotal">0.00</td>
+                                                        <td id="hub_emiCalculatedTotal" class="fw-bold text-success">0.00</td>
                                                     </tr>
                                                 </tfoot>
                                             </table>
@@ -1073,68 +1128,89 @@
 
         <!-- View Payment Summary Modal -->
         <div class="modal fade" id="hub_viewModal" role="dialog">
-            <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-dialog" role="document" style="max-width: 900px;">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Payment Schedule Details</h5>
+                    <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);">
+                        <h5 class="modal-title text-white"><i class="fas fa-file-invoice-dollar me-1"></i> Payment Schedule Details</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row mb-3">
-                            <div class="col-md-3"><strong>Quotation:</strong> <span id="hub_view_quotation_number">-</span></div>
-                            <div class="col-md-3"><strong>Guest:</strong> <span id="hub_view_guest_name">-</span></div>
-                            <div class="col-md-3"><strong>Type:</strong> <span id="hub_view_payment_type">-</span></div>
-                            <div class="col-md-3"><strong>Total:</strong> <span id="hub_view_total_amount">-</span></div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <div class="card bg-secondary text-white">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-white">Total</h6>
-                                        <h4 class="text-white" id="hub_view_total_card">₹0.00</h4>
-                                    </div>
+                        <!-- Detail Grid -->
+                        <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+                            <div class="row g-0" id="hub_viewDetailGrid">
+                                <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                                    <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Quotation No.</small>
+                                    <span style="font-size:14px;font-weight:600;" id="hub_view_quotation_number">-</span>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card bg-success text-white">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-white">Paid</h6>
-                                        <h4 class="text-white" id="hub_view_paid_amount">₹0.00</h4>
-                                    </div>
+                                <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                                    <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Guest Name</small>
+                                    <span style="font-size:14px;font-weight:600;" id="hub_view_guest_name">-</span>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card bg-warning text-white">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-white">Pending</h6>
-                                        <h4 class="text-white" id="hub_view_pending_amount">₹0.00</h4>
-                                    </div>
+                                <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                                    <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Phone</small>
+                                    <span style="font-size:14px;font-weight:600;" id="hub_view_phone">-</span>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card bg-danger text-white">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-white">Overdue</h6>
-                                        <h4 class="text-white" id="hub_view_overdue_count">0</h4>
-                                    </div>
+                                <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;">
+                                    <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Payment Type</small>
+                                    <span style="font-size:14px;font-weight:600;" id="hub_view_payment_type">-</span>
+                                </div>
+                                <div class="col-md-12" style="padding:12px 16px;">
+                                    <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Total Amount</small>
+                                    <span style="font-size:18px;font-weight:700;color:#2e7d32;" id="hub_view_total_amount">₹0.00</span>
                                 </div>
                             </div>
                         </div>
-                        <h6>Installments</h6>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-sm" id="hub_viewInstallmentsTable">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Due Date</th>
-                                        <th>Amount</th>
-                                        <th>Paid</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="hub_viewInstallmentsBody"></tbody>
-                            </table>
+
+                        <!-- Summary Cards -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div style="background:#fff;border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e5e7eb;">
+                                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;">Total</div>
+                                    <div style="font-size:18px;font-weight:700;color:#64748b;" id="hub_view_total_card">₹0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="background:linear-gradient(135deg,#2e7d32,#388e3c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Paid</div>
+                                    <div style="font-size:18px;font-weight:700;color:#fff;" id="hub_view_paid_amount">₹0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Pending</div>
+                                    <div style="font-size:18px;font-weight:700;color:#fff;" id="hub_view_pending_amount">₹0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Overdue</div>
+                                    <div style="font-size:18px;font-weight:700;color:#fff;" id="hub_view_overdue_count">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Installments Table -->
+                        <div class="option-block" style="margin-bottom:0;">
+                            <div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;">
+                                <i class="fas fa-list me-1"></i> Installments
+                            </div>
+                            <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm mb-0" id="hub_viewInstallmentsTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th>
+                                                <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th>
+                                                <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                                <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Paid</th>
+                                                <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Status</th>
+                                                <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="hub_viewInstallmentsBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1146,7 +1222,7 @@
 
         <!-- Payment History Modal -->
         <div class="modal fade" id="hub_receiptsModal" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog" role="document" style="max-width: 650px;">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Payment History</h5>

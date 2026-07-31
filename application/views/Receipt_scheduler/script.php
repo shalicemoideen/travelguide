@@ -5,6 +5,9 @@ var save_method;
 var currentSchedulerId = null;
 var rs_can_pay_initial = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_INITIAL') ? 'true' : 'false'; ?>;
 var rs_can_pay_other = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_OTHER') ? 'true' : 'false'; ?>;
+var rs_can_view = <?php echo has_permission('RECEIPT_SCHEDULER') || has_permission('PAYMENT_REPORT') ? 'true' : 'false'; ?>;
+var rs_can_edit = <?php echo has_permission('RECEIPT_SCHEDULER') ? 'true' : 'false'; ?>;
+var rs_can_delete = <?php echo has_permission('RECEIPT_SCHEDULER') ? 'true' : 'false'; ?>;
 
 $(document).ready(function() {
     loadTable();
@@ -42,6 +45,7 @@ function loadTable() {
         "processing": true,
         "serverSide": true,
         "order": [],
+        "searching": false,
         "ajax": {
             "url": base_url + "receipt_scheduler/get_table",
             "type": "POST",
@@ -92,9 +96,15 @@ function loadTable() {
                 data: null,
                 render: function(data, type, row) {
                     var html = '<div class="d-flex">';
-                    html += '<button type="button" class="btn btn-info btn-sm me-1" onclick="viewScheduler(' + row.receipt_scheduler_id + ')" title="View"><i class="fas fa-eye"></i></button>';
-                    html += '<button type="button" class="btn btn-warning btn-sm me-1" onclick="editScheduler(' + row.receipt_scheduler_id + ')" title="Edit"><i class="fas fa-edit"></i></button>';
-                    html += '<button type="button" class="btn btn-danger btn-sm" onclick="deleteScheduler(' + row.receipt_scheduler_id + ')" title="Delete"><i class="fas fa-trash"></i></button>';
+                    if (rs_can_view) {
+                        html += '<button type="button" class="btn btn-info btn-sm me-1" onclick="viewScheduler(' + row.receipt_scheduler_id + ')" title="View"><i class="fas fa-eye"></i></button>';
+                    }
+                    if (rs_can_edit && (!row.has_payments || row.has_payments == 0)) {
+                        html += '<button type="button" class="btn btn-warning btn-sm me-1" onclick="editScheduler(' + row.receipt_scheduler_id + ')" title="Edit"><i class="fas fa-edit"></i></button>';
+                    }
+                    if (rs_can_delete && (!row.has_payments || row.has_payments == 0)) {
+                        html += '<button type="button" class="btn btn-danger btn-sm" onclick="deleteScheduler(' + row.receipt_scheduler_id + ')" title="Delete"><i class="fas fa-trash"></i></button>';
+                    }
                     html += '</div>';
                     return html;
                 }
@@ -133,9 +143,13 @@ function togglePaymentType() {
     if (type == 'FULL') {
         $('#fullPaymentSection').show();
         $('#emiSection').hide();
+        var amt = parseFloat($('#total_amount').val()) || 0;
+        $('#full_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
     } else if (type == 'EMI') {
         $('#fullPaymentSection').hide();
         $('#emiSection').show();
+        var amt = parseFloat($('#total_amount').val()) || 0;
+        $('#emi_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
         generateEmiRows();
     } else {
         $('#fullPaymentSection').hide();
@@ -266,16 +280,19 @@ function save() {
         success: function(response) {
             $('#btnSave').prop('disabled', false).text('Save');
             if (response.error) {
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             } else {
                 $('#schedulerModal').modal('hide');
                 table.ajax.reload();
-                alert(response.message);
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             }
         },
         error: function() {
             $('#btnSave').prop('disabled', false).text('Save');
-            alert('An error occurred. Please try again.');
+            var n = new notify({ title: '', style: 'error', message: 'An error occurred. Please try again.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
     });
 }
@@ -290,12 +307,27 @@ function editScheduler(id) {
         success: function(response) {
             var scheduler = response.scheduler;
             var installments = response.installments;
+            var hasPayments = response.has_payments || false;
 
             $('#receipt_scheduler_id').val(scheduler.receipt_scheduler_id);
             $('#quotation_id_fk').val(scheduler.quotation_id_fk).prop('disabled', true);
             $('#total_amount').val(scheduler.total_amount);
             $('#payment_type').val(scheduler.payment_type);
             $('#receipt_scheduler_remarks').val(scheduler.receipt_scheduler_remarks);
+
+            if (hasPayments) {
+                $('#total_amount').prop('readonly', true);
+                $('#payment_type').prop('disabled', true);
+                $('#max_emi_count').prop('readonly', true);
+                $('#split_type').prop('disabled', true);
+                $('button[onclick="generateEmiRows()"]').prop('disabled', true);
+            } else {
+                $('#total_amount').prop('readonly', false);
+                $('#payment_type').prop('disabled', false);
+                $('#max_emi_count').prop('readonly', false);
+                $('#split_type').prop('disabled', false);
+                $('button[onclick="generateEmiRows()"]').prop('disabled', false);
+            }
 
             togglePaymentType();
 
@@ -316,13 +348,13 @@ function editScheduler(id) {
                     html += '<td class="text-center"><strong>EMI ' + inst.installment_number + '</strong></td>';
                     html += '<td>';
                     if (scheduler.split_type == 'PERCENTAGE') {
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '"' + (hasPayments ? ' readonly' : '') + '>';
                     } else {
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '"' + (hasPayments ? ' readonly' : '') + '>';
                     }
                     html += '</td>';
                     html += '<td>';
-                    html += '<input type="text" class="form-control form-control-sm emi-due-date" placeholder="dd/mm/yyyy" value="' + formatDateSlashDMY(inst.due_date) + '" required>';
+                    html += '<input type="text" class="form-control form-control-sm emi-due-date" placeholder="dd/mm/yyyy" value="' + formatDateSlashDMY(inst.due_date) + '" required' + (hasPayments ? ' readonly' : '') + '>';
                     html += '<input type="hidden" name="emi_due_date[]" class="emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
                     html += '</td>';
                     html += '<td class="calculated-amount text-end">₹' + parseFloat(inst.calculated_amount).toFixed(2) + '</td>';
@@ -333,7 +365,11 @@ function editScheduler(id) {
                 calculateEmiTotal();
             }
 
-            $('.modal-title').text('Edit Payment Schedule');
+            if (hasPayments) {
+                $('.modal-title').text('Edit Payment Schedule (Locked — Payments Collected)');
+            } else {
+                $('.modal-title').text('Edit Payment Schedule');
+            }
             $('#schedulerModal').modal('show');
         }
     });
@@ -348,7 +384,8 @@ function viewScheduler(id) {
         dataType: 'json',
         success: function(response) {
             if (!response || !response.scheduler) {
-                alert('Unable to load payment details');
+                var n = new notify({ title: '', style: 'error', message: 'Unable to load payment details', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
                 return;
             }
 
@@ -426,7 +463,8 @@ function savePayment() {
     $date.toggleClass('is-invalid', !dateValid);
     $slip.toggleClass('is-invalid', !$slip.val());
     if (!dateValid || !$slip.val()) {
-        alert('Payment date and payment slip are required.');
+        var n = new notify({ title: '', style: 'error', message: 'Payment date and payment slip are required.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
 
@@ -440,12 +478,14 @@ function savePayment() {
         dataType: 'json',
         success: function(response) {
             if (response.error) {
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             } else {
                 $('#paymentModal').modal('hide');
                 viewScheduler(currentSchedulerId);
                 table.ajax.reload();
-                alert(response.message);
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             }
         }
     });
@@ -500,10 +540,12 @@ function confirmDelete() {
         success: function(response) {
             $('#deleteModal').modal('hide');
             if (response.error) {
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             } else {
                 table.ajax.reload();
-                alert(response.message);
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             }
         }
     });
@@ -520,7 +562,12 @@ function formatDate(dateStr) {
 
 $('#total_amount').on('change', function() {
     if ($('#payment_type').val() == 'EMI') {
+        var amt = parseFloat($(this).val()) || 0;
+        $('#emi_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
         generateEmiRows();
+    } else if ($('#payment_type').val() == 'FULL') {
+        var amt = parseFloat($(this).val()) || 0;
+        $('#full_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
     }
 });
 

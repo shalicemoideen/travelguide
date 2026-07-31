@@ -2,12 +2,25 @@
 var hub_can_pay_initial = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_INITIAL') ? 'true' : 'false'; ?>;
 var hub_can_pay_other = <?php echo has_permission('RECEIPT_SCHEDULER_PAY_OTHER') ? 'true' : 'false'; ?>;
 var hub_can_approve_payment = <?php echo has_permission('RECEIPT_SCHEDULER_APPROVE_PAYMENT') ? 'true' : 'false'; ?>;
+var hub_can_view = <?php echo has_permission('RECEIPT_SCHEDULER') || has_permission('PAYMENT_REPORT') ? 'true' : 'false'; ?>;
+var hub_can_edit = <?php echo has_permission('RECEIPT_SCHEDULER') ? 'true' : 'false'; ?>;
+var hub_can_delete = <?php echo has_permission('RECEIPT_SCHEDULER') ? 'true' : 'false'; ?>;
 
 document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    // alert('hub ready');
+    // Fix: nested modal scrolling - when child modal closes, restore modal-open on body if parent is still visible
+    ['hub_receiptsModal', 'hub_paymentModal'].forEach(function(childModalId) {
+        $('#' + childModalId).on('hidden.bs.modal', function () {
+            if ($('#hub_viewModal').hasClass('show')) {
+                document.body.classList.add('modal-open');
+            }
+        });
+    });
+    $('#hub_viewModal').on('hidden.bs.modal', function () {
+        document.body.classList.remove('modal-open');
+    });
 
 
 
@@ -306,11 +319,11 @@ function updateQuotationHubActions(status) {
 
         (status == 5 ? '' : 'Quotation must be generated first'));
 
-    toggleTab('tabPropertyReservation', group1Enabled,
+    var propertyReservationEnabled = (status == 5 || status == 8 || status == 9 || status == 7);
 
-        status == 1 ? '' :
+    toggleTab('tabPropertyReservation', propertyReservationEnabled,
 
-        (status == 5 ? '' : 'Quotation must be generated first'));
+        status == 5 ? '' : 'Quotation must be confirmed first');
 
 
 
@@ -1736,6 +1749,8 @@ $('a[href="#clientConfirmationTab"]').on('shown.bs.tab', function () {
 
 
 
+var _confirmationSelectedOptionId = 0;
+
 function loadConfirmationOptions(quotation_id, savedData)
 
 {
@@ -1752,67 +1767,24 @@ function loadConfirmationOptions(quotation_id, savedData)
 
         success: function(res) {
 
-            var html = '<option value="">Select Option</option>';
-
-
+            var confirmationOptionsData = [];
 
             if (res.status && res.data) {
-
-                $.each(res.data, function(i, row) {
-
-                    html += '<option value="' + row.quotation_options_id + '">' +
-
-                        escapeHtml(row.quotation_options_title || 'Option ' + (i + 1)) +
-
-                    '</option>';
-
-                });
-
+                confirmationOptionsData = res.data;
             }
 
+            window._confirmationOptionsData = confirmationOptionsData;
+            window._confirmationSavedData = savedData || null;
 
+            renderOptionSummaryCards(confirmationOptionsData, savedData);
 
-            $('#confirmationOptionSelect').html(html);
-
-
-
-            if ($.fn.select2) {
-
-                if ($('#confirmationOptionSelect').hasClass('select2-hidden-accessible')) {
-
-                    $('#confirmationOptionSelect').select2('destroy');
-
-                }
-
-
-
-                $('#confirmationOptionSelect').select2({
-
-                    width: '100%',
-
-                    placeholder: 'Select Option'
-
-                });
-
-            }
-
-
-
+            // Export button: show if there's a confirmed option, hide otherwise
             if (savedData && savedData.option_id) {
-
-                $('#confirmationOptionSelect').val(savedData.option_id).trigger('change.select2');
-
-                loadConfirmationOptionDetails(quotation_id, savedData.option_id, savedData.rows || []);
-
+                $('#copyExportConfirmationBtn')
+                    .removeClass('d-none')
+                    .data('quotation-id', quotation_id);
             } else {
-
-                // No saved data — reset details section and hide export button
-                $('#confirmationOptionDetails').html(`
-                    <div class="alert alert-info mb-0">Please select an option to view details.</div>
-                `);
-
                 $('#copyExportConfirmationBtn').addClass('d-none');
-
             }
 
         }
@@ -1823,21 +1795,142 @@ function loadConfirmationOptions(quotation_id, savedData)
 
 
 
-$(document).on('change', '#confirmationOptionSelect', function () {
+// Search filter for option cards
+$(document).on('input', '#confirmationOptionSearch', function() {
+    var term = $(this).val().toLowerCase().trim();
+    $('#confirmationOptionSummary .confirmation-option-card').each(function() {
+        var title = $(this).data('title').toString().toLowerCase();
+        var vehicle = $(this).data('vehicle').toString().toLowerCase();
+        if (!term || title.indexOf(term) !== -1 || vehicle.indexOf(term) !== -1) {
+            $(this).closest('.confirmation-option-col').show();
+        } else {
+            $(this).closest('.confirmation-option-col').hide();
+        }
+    });
+});
 
+
+
+function openConfirmationOptionModal(optId)
+{
     var quotation_id = $('#quotation_id').val();
+    var optIdInt = parseInt(optId);
 
-    var quotation_options_id = $(this).val();
+    // Track selected option
+    window._confirmationSelectedOptionId = optIdInt;
+
+    // Update card highlight (selected vs confirmed)
+    updateOptionCardSelection(optIdInt);
+
+    // Show export button only if this is the confirmed option
+    var confirmedOptionId = (window._confirmationSavedData && window._confirmationSavedData.option_id) ? parseInt(window._confirmationSavedData.option_id) : 0;
+    if (confirmedOptionId && confirmedOptionId === optIdInt) {
+        $('#copyExportConfirmationBtn').removeClass('d-none').data('quotation-id', quotation_id);
+    } else {
+        $('#copyExportConfirmationBtn').addClass('d-none');
+    }
+
+    // Find option data for title
+    var optData = null;
+    if (window._confirmationOptionsData) {
+        $.each(window._confirmationOptionsData, function(i, o) {
+            if (parseInt(o.quotation_options_id) === optIdInt) { optData = o; return false; }
+        });
+    }
+
+    var title = optData ? escapeHtml(optData.quotation_options_title || 'Option') : 'Option';
+    $('#confirmationOptionModalTitle').text(title + ' — Property & Room Details');
+
+    // Show loading in modal body
+    $('#confirmationOptionModalBody').html(`
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 mb-0 text-muted">Loading option details...</p>
+        </div>
+    `);
+
+    // Show modal
+    var modalEl = document.getElementById('confirmationOptionModal');
+    var bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    // Fetch saved rows so confirmation_ids are available for update on submit
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_saved_confirmation",
+        type: "POST",
+        dataType: "json",
+        data: { quotation_id: quotation_id },
+        success: function(saved) {
+            var savedRows = saved.status ? saved.rows : [];
+            var preCheck = saved.status && String(saved.option_id) === String(optId);
+            loadConfirmationOptionDetails(quotation_id, optId, savedRows, preCheck);
+        },
+        error: function() {
+            loadConfirmationOptionDetails(quotation_id, optId, [], false);
+        }
+    });
+}
 
 
 
-    if (!quotation_options_id) {
+function updateOptionCardSelection(optId)
+{
+    $('.confirmation-option-card').each(function() {
+        var $card = $(this);
+        var cardOptId = parseInt($card.data('opt-id'));
+        var isConfirmed = $card.hasClass('is-confirmed');
 
-        $('#confirmationOptionDetails').html(`
+        if (cardOptId === optId && !isConfirmed) {
+            // Selected (not confirmed) — amber/orange highlight
+            $card.css('border', '2px solid #f59e0b').css('box-shadow', '0 4px 12px rgba(245,158,11,0.25)');
+            $card.find('.confirmation-card-header').css('background', 'linear-gradient(135deg,#f59e0b,#f97316)');
+        } else if (!isConfirmed) {
+            // Reset to default
+            $card.css('border', '1px solid #e5e7eb').css('box-shadow', '');
+            $card.find('.confirmation-card-header').css('background', 'linear-gradient(135deg,#4a3ee0,#5a4ff0)');
+        }
+        // Confirmed cards keep their green styling regardless
+    });
+}
 
-            <div class="alert alert-info mb-0">Please select an option to view details.</div>
 
-        `);
+
+function loadConfirmationOptionDetails(quotation_id, quotation_options_id, savedRows, preCheck)
+
+{
+    savedRows = savedRows || [];
+    if (preCheck === undefined) preCheck = true;
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_confirmation_option_details",
+        type: "POST",
+        dataType: "json",
+        data: {
+            quotation_id: quotation_id,
+            quotation_options_id: quotation_options_id
+        },
+        success: function(res) {
+            if (!res.status || !res.data.length) {
+                $('#confirmationOptionModalBody').html(`
+                    <div class="alert alert-warning m-3 mb-0">No details found for this option.</div>
+                `);
+                return;
+            }
+
+            $('#confirmationOptionModalBody').html(buildConfirmationDetailsTable(res.data, savedRows, preCheck));
+        }
+    });
+}
+
+
+
+function renderOptionSummaryCards(options, savedData)
+
+{
+
+    if (!options || options.length === 0) {
+
+        $('#confirmationOptionSummary').html('<div class="alert alert-info mb-0">No options available for this quotation.</div>');
 
         return;
 
@@ -1845,113 +1938,165 @@ $(document).on('change', '#confirmationOptionSelect', function () {
 
 
 
-    // Always fetch saved rows so confirmation_ids are available for update on submit
+    var confirmedOptionId = (savedData && savedData.option_id) ? savedData.option_id : 0;
 
-    $.ajax({
 
-        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_saved_confirmation",
 
-        type: "POST",
+    var html = '<div id="confirmationOptionSummary" class="mb-4">';
 
-        dataType: "json",
+    html += '<div class="fw-bold mb-2" style="font-size:15px;color:#333;">Quotation Options Overview</div>';
 
-        data: { quotation_id: quotation_id },
+    html += '<div class="row g-3">';
 
-        success: function(saved) {
 
-            var savedRows = saved.status ? saved.rows : [];
 
-            // If the selected option matches the saved option, pre-check the saved checkboxes
+    $.each(options, function(i, opt) {
 
-            var preCheck  = saved.status && String(saved.option_id) === String(quotation_options_id);
+        var isConfirmed = (parseInt(confirmedOptionId) === parseInt(opt.quotation_options_id));
 
-            // Hide button until rooms are (re-)checked after option change
-            $('#copyExportConfirmationBtn').addClass('d-none');
+        var title = escapeHtml(opt.quotation_options_title || 'Option ' + (i + 1));
 
-            loadConfirmationOptionDetails(quotation_id, quotation_options_id, savedRows, preCheck);
+        var vehicle = opt.vehicle_name ? escapeHtml(opt.vehicle_name) : '';
 
-        },
 
-        error: function() {
 
-            loadConfirmationOptionDetails(quotation_id, quotation_options_id, [], false);
+        html += '<div class="col-md-6 col-lg-4 confirmation-option-col">';
+
+        html += '<div class="card h-100 confirmation-option-card' + (isConfirmed ? ' is-confirmed' : '') + '" data-opt-id="' + opt.quotation_options_id + '" data-title="' + title + '" data-vehicle="' + vehicle + '" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;cursor:pointer;transition:all 0.3s ease;' + (isConfirmed ? 'border-color:#2e7d32;border-width:2px;' : '') + '" onclick="openConfirmationOptionModal(' + opt.quotation_options_id + ')">';
+
+
+
+        // Header
+
+        html += '<div class="confirmation-card-header" style="' + (isConfirmed ? 'background:linear-gradient(135deg,#2e7d32,#388e3c);color:#fff;' : 'background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;') + 'padding:12px 16px;">';
+
+        html += '<div class="d-flex justify-content-between align-items-center">';
+
+        html += '<span style="font-size:14px;font-weight:700;">Option ' + (i + 1) + ' &mdash; ' + title + '</span>';
+
+        if (isConfirmed) {
+
+            html += '<span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;"><i class="fas fa-check-circle"></i> Confirmed</span>';
 
         }
 
+        html += '</div>';
+
+        if (vehicle) {
+
+            html += '<div style="font-size:12px;opacity:0.9;margin-top:4px;"><i class="fas fa-car"></i> ' + vehicle + '</div>';
+
+        }
+
+        html += '</div>';
+
+
+
+        // Body - cost summary cards
+
+        html += '<div class="card-body p-2">';
+
+        html += '<div class="row g-1 text-center">';
+
+
+
+        var items = [
+
+            { label: 'Hotel', value: opt.hotel_total || 0, color: '#1e40af' },
+
+            { label: 'Transport', value: opt.cab_amount || 0, color: '#6b7280' },
+
+            { label: 'Inclusions', value: opt.inclusion_total || 0, color: '#7c3aed' },
+
+            { label: 'Special', value: opt.special_total || 0, color: '#db2777' },
+
+            { label: 'Total Cost', value: opt.total_cost || 0, color: '#dc2626' },
+
+            { label: 'Margin', value: opt.margin_value || 0, color: '#f59e0b' },
+
+            { label: 'Quote Rate', value: opt.quote_rate || 0, color: '#2563eb' }
+
+        ];
+
+
+
+        $.each(items, function(j, item) {
+
+            html += '<div class="col-6 col-md-4">';
+
+            html += '<div style="background:#f8fafc;border-radius:6px;padding:8px 4px;">';
+
+            html += '<div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.3px;">' + item.label + '</div>';
+
+            html += '<div style="font-size:13px;font-weight:700;color:' + item.color + ';">&#8377;' + formatNumber(item.value) + '</div>';
+
+            html += '</div>';
+
+            html += '</div>';
+
+        });
+
+
+
+        html += '</div>'; // row
+
+
+
+        // Grand total bar
+
+        html += '<div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:6px;padding:10px;margin-top:8px;text-align:center;">';
+
+        html += '<span style="font-size:12px;opacity:0.9;">Grand Total</span><br>';
+
+        html += '<span style="font-size:18px;font-weight:800;">&#8377;' + formatNumber(opt.grand_total || 0) + '</span>';
+
+        html += '</div>';
+
+
+
+        html += '</div>'; // card-body
+
+        html += '</div>'; // card
+
+        html += '</div>'; // col
+
     });
 
-});
+
+
+    html += '</div></div>';
 
 
 
-function loadConfirmationOptionDetails(quotation_id, quotation_options_id, savedRows, preCheck)
+    $('#confirmationOptionSummary').replaceWith(html);
+
+}
+
+
+
+function formatNumber(n)
 
 {
 
-    savedRows = savedRows || [];
+    return parseFloat(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    if (preCheck === undefined) preCheck = true;
-
-
-
-    $('#confirmationOptionDetails').html(`
-
-        <div class="text-center py-4">
-
-            <div class="spinner-border text-primary"></div>
-
-            <p class="mt-2 mb-0">Loading option details...</p>
-
-        </div>
-
-    `);
+}
 
 
 
-    $.ajax({
+function formatDateShort(dateStr)
 
-        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_confirmation_option_details",
+{
 
-        type: "POST",
+    if (!dateStr) return '';
 
-        dataType: "json",
+    var d = new Date(dateStr);
 
-        data: {
+    if (isNaN(d.getTime())) return dateStr;
 
-            quotation_id: quotation_id,
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-            quotation_options_id: quotation_options_id
-
-        },
-
-        success: function(res) {
-
-            if (!res.status || !res.data.length) {
-
-                $('#confirmationOptionDetails').html(`
-
-                    <div class="alert alert-warning mb-0">No details found.</div>
-
-                `);
-
-                return;
-
-            }
-
-
-
-            $('#confirmationOptionDetails').html(buildConfirmationDetailsTable(res.data, savedRows, preCheck));
-
-            // Show button if this option has saved data
-            if (preCheck && savedRows.length > 0) {
-                $('#copyExportConfirmationBtn')
-                    .removeClass('d-none')
-                    .data('quotation-id', quotation_id);
-            }
-
-        }
-
-    });
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 
 }
 
@@ -1967,8 +2112,6 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-    // Build a lookup keyed by day only: properties_day_id_fk -> { id, properties_room_id_fk }
-
     var savedMap = {};
 
     $.each(savedRows, function(i, r) {
@@ -1979,45 +2122,39 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-    var html = `
+    var html = '<form id="confirmationSubmitForm" style="padding:0;margin:0;">';
 
-        <form id="confirmationSubmitForm">
+    html += '<div style="padding:12px 20px;background:#eef2ff;border-bottom:1px solid #e5e7eb;font-size:13px;color:#4a3ee0;font-weight:600;">';
 
-        <div class="table-responsive">
+    html += '<i class="fas fa-info-circle me-1"></i> Select one room per day, then click Submit Confirmation.';
 
-            <table class="table table-bordered align-middle" id="confirmationDetailsTable">
+    html += '</div>';
 
-                <thead class="table-light">
+    html += '<div style="overflow-x:auto;"><table id="confirmationDetailsTable" style="width:100%;border-collapse:collapse;font-size:13px;font-family:Poppins,sans-serif;">';
 
-                    <tr>
+    html += '<thead><tr>';
 
-                        <th>Day</th>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:left;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:180px;">Day &amp; Destination</th>';
 
-                        <th>Destination</th>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:left;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Property</th>';
 
-                        <th>Property</th>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:left;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Room</th>';
 
-                        <th>Room</th>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:90px;">Room Cost</th>';
 
-                        <th style="width:80px" class="text-center">Select</th>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:80px;">Extra Bed</th>';
 
-                    </tr>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:90px;">Total</th>';
 
-                </thead>
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:center;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:50px;">Select</th>';
 
-                <tbody>
-
-    `;
+    html += '</tr></thead><tbody>';
 
 
 
     $.each(days, function(i, day) {
 
         if (!day.properties || !day.properties.length) return;
-
-
-
-        // count total room rows for this day (for rowspan)
 
         var dayRowspan = 0;
 
@@ -2029,8 +2166,6 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
         });
 
-
-
         var dayRendered  = false;
 
         var daySaved     = savedMap[day.quotation_properties_days_id] || {};
@@ -2039,61 +2174,84 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
         var dayRoomSaved = daySaved.room_id || 0;
 
+        var dayDate = day.accommodation_date && day.accommodation_date !== '0000-00-00' ? formatDateShort(day.accommodation_date) : '';
+
+        var dayDest = escapeHtml(day.state_name || '-');
+
+        var isLastDay = (i === days.length - 1);
+
 
 
         $.each(day.properties, function(j, property) {
 
             var rooms = (property.rooms && property.rooms.length) ? property.rooms : [null];
 
-
-
-            // count room rows for this property (for rowspan)
-
             var propRowspan = rooms.length;
 
             var propRendered = false;
+
+            var propCatName = property.property_category_name ? ' (' + escapeHtml(property.property_category_name) + ')' : '';
+
+            var isLastProp = (j === day.properties.length - 1);
 
 
 
             $.each(rooms, function(k, room) {
 
-                var roomName      = room ? escapeHtml(room.properties_room_category_name || '-') : '-';
+                var roomName  = room ? escapeHtml(room.properties_room_category_name || '-') : '-';
 
-                var roomCatId     = room ? room.quotation_properties_rooms_id_fk : '';
+                var roomCatId = room ? room.quotation_properties_rooms_id_fk : '';
 
-                var roomQprId     = room ? room.quotation_properties_rooms_id : '';
+                var roomQprId = room ? room.quotation_properties_rooms_id : '';
+
+                var roomCost  = room ? formatNumber(room.room_unit_manual_total_rate || 0) : '0.00';
+
+                var ebaCost   = room ? formatNumber((parseFloat(room.extra_bed_adult_manual_total_rate || 0) + parseFloat(room.extra_bed_child_manual_total_rate || 0))) : '0.00';
+
+                var roomTotal = room ? formatNumber(room.manual_total_rate || 0) : '0.00';
+
+                var isLastRoom = (k === rooms.length - 1);
 
 
 
-                html += '<tr>';
+                // Border between days: thick top border for first row of a new day
+                var rowBorder = 'border-bottom:1px solid #f3f4f6;';
+
+                if (isLastRoom && isLastProp) {
+
+                    rowBorder = 'border-bottom:2px solid #e5e7eb;';
+
+                }
 
 
 
-                // Day + Destination cell (rowspan over all room rows for this day)
+                html += '<tr style="' + rowBorder + '">';
+
+
 
                 if (!dayRendered) {
 
-                    html += `
+                    html += '<td rowspan="' + dayRowspan + '" style="background:#f0f4ff;font-weight:600;color:#4a3ee0;vertical-align:top;border-right:2px solid #e5e7eb;padding:12px 14px;width:180px;">';
 
-                        <td rowspan="${dayRowspan}" class="align-middle fw-semibold text-center">
+                    html += '<input type="hidden" class="hid_days_id" value="' + day.quotation_properties_days_id + '">';
 
-                            <input type="hidden" class="hid_days_id" value="${day.quotation_properties_days_id}">
+                    html += '<input type="hidden" class="hid_confirmation_id" value="' + dayConfId + '">';
 
-                            <input type="hidden" class="hid_confirmation_id" value="${dayConfId}">
+                    html += '<input type="hidden" class="hid_destination_id" value="' + day.quotation_properties_days_destination_id_fk + '">';
 
-                            ${escapeHtml(day.quotation_properties_days_day || '-')}
+                    html += '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">' + escapeHtml(day.quotation_properties_days_day || '-') + '</div>';
 
-                        </td>
+                    if (dayDate) html += '<div style="font-size:12px;color:#6b7280;margin-bottom:4px;"><i class="far fa-calendar" style="margin-right:3px;"></i>' + dayDate + '</div>';
 
-                        <td rowspan="${dayRowspan}" class="align-middle text-center">
+                    html += '<div style="font-size:12px;color:#374151;margin-bottom:4px;"><i class="fas fa-map-marker-alt" style="color:#4a3ee0;margin-right:3px;"></i>' + dayDest + '</div>';
 
-                            <input type="hidden" class="hid_destination_id" value="${day.quotation_properties_days_destination_id_fk}">
+                    if (day.meal_plan_name) {
 
-                            ${escapeHtml(day.state_name || '-')}
+                        html += '<span style="display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-top:2px;"><i class="fas fa-utensils" style="font-size:11px;margin-right:2px;"></i>' + escapeHtml(day.meal_plan_name) + '</span>';
 
-                        </td>
+                    }
 
-                    `;
+                    html += '</td>';
 
                     dayRendered = true;
 
@@ -2101,21 +2259,19 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-                // Property cell (rowspan over all room rows for this property)
-
                 if (!propRendered) {
 
-                    html += `
+                    var propBorderRight = 'border-right:1px solid #e5e7eb;';
 
-                        <td rowspan="${propRowspan}" class="align-middle">
+                    var propBorderBottom = isLastProp ? '' : 'border-bottom:1px solid #e5e7eb;';
 
-                            <input type="hidden" class="hid_property_id" value="${property.properties_id_fk}">
+                    html += '<td rowspan="' + propRowspan + '" style="background:#eef2ff;font-weight:700;color:#4a3ee0;font-size:14px;padding:10px 12px;vertical-align:top;' + propBorderRight + propBorderBottom + '">';
 
-                            ${escapeHtml(property.properties_name || '-')}
+                    html += '<input type="hidden" class="hid_property_id" value="' + property.properties_id_fk + '">';
 
-                        </td>
+                    html += escapeHtml(property.properties_name || '-') + propCatName;
 
-                    `;
+                    html += '</td>';
 
                     propRendered = true;
 
@@ -2123,44 +2279,43 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-                // Room cell + hidden + checkbox
+                var roomBorderBottom = (isLastRoom && !isLastProp) ? 'border-bottom:1px solid #e5e7eb;' : '';
 
-                html += `
+                html += '<td style="padding:10px 12px;vertical-align:top;' + roomBorderBottom + '">';
 
-                        <td class="align-middle">
+                html += '<input type="hidden" class="hid_room_cat_id" value="' + roomCatId + '">';
 
-                            <input type="hidden" class="hid_room_cat_id" value="${roomCatId}">
+                html += '<span style="font-size:13px;font-weight:500;">' + roomName + '</span>';
 
-                            ${roomName}
+                html += '</td>';
 
-                        </td>
+                html += '<td style="padding:10px 12px;text-align:right;font-weight:600;color:#1e40af;white-space:nowrap;' + roomBorderBottom + '">&#8377;' + roomCost + '</td>';
 
-                        <td class="text-center align-middle">
+                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">&#8377;' + ebaCost + '</td>';
 
-                            <input type="checkbox"
+                html += '<td style="padding:10px 12px;text-align:right;font-weight:700;color:#dc2626;white-space:nowrap;' + roomBorderBottom + '">&#8377;' + roomTotal + '</td>';
 
-                                   class="form-check-input confirmationRoomCheck"
+                html += '<td style="padding:10px 12px;text-align:center;vertical-align:middle;' + roomBorderBottom + '">';
 
-                                   data-days-id="${day.quotation_properties_days_id}"
+                html += '<input type="checkbox" class="form-check-input confirmationRoomCheck"';
 
-                                   data-destination-id="${day.quotation_properties_days_destination_id_fk}"
+                html += ' data-days-id="' + day.quotation_properties_days_id + '"';
 
-                                   
+                html += ' data-destination-id="' + day.quotation_properties_days_destination_id_fk + '"';
 
-                                   data-property-id="${property.quotation_properties_id}"
-                                   data-room-id="${roomQprId}"
+                html += ' data-property-id="' + property.quotation_properties_id + '"';
 
-                                   data-qpr-id="${roomQprId}"
+                html += ' data-room-id="' + roomQprId + '"';
 
-                                   data-confirmation-id="${dayConfId}"
+                html += ' data-qpr-id="' + roomQprId + '"';
 
-                                   ${preCheck && dayRoomSaved && String(dayRoomSaved) === String(roomQprId) ? 'checked' : ''}>
+                html += ' data-confirmation-id="' + dayConfId + '"';
 
-                        </td>
+                html += (preCheck && dayRoomSaved && String(dayRoomSaved) === String(roomQprId) ? ' checked' : '') + '>';
 
-                    </tr>
+                html += '</td>';
 
-                `;
+                html += '</tr>';
 
             });
 
@@ -2170,41 +2325,7 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-    html += `
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-        <div class="mt-3">
-
-            <button type="button" class="btn btn-primary" id="btnSubmitConfirmation">
-
-                <i class="fas fa-check-circle me-1"></i> Submit Confirmation
-
-            </button>
-            <button type="button" class="btn d-none" id="copyExportConfirmationBtn" style="
-                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                font-size: 14px;
-                font-weight: 600;
-                border-radius: 6px;
-                margin-left: 10px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                transition: all 0.3s ease;
-            " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 12px rgba(17, 153, 142, 0.4)';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
-                <i class="fas fa-file-export me-2"></i> View / Copy / Export Confirmation
-            </button>
-
-        </div>
-
-        </form>
-
-    `;
+    html += '</tbody></table></div></form>';
 
 
 
@@ -2288,23 +2409,13 @@ $(document).on('click', '#btnSubmitConfirmation', function () {
 
 
 
-    $('#confirmationSubmitModal').modal('show');
-
-});
-
-
-
-$(document).on('click', '#btnConfirmSubmitYes', function () {
-
-    $('#confirmationSubmitModal').modal('hide');
-
-
+    if (!confirm('Are you sure you want to submit the client confirmation?')) return;
 
     var checked      = $('#confirmationDetailsTable .confirmationRoomCheck:checked');
 
     var quotation_id = $('#quotation_id').val();
 
-    var option_id    = $('#confirmationOptionSelect').val();
+    var option_id    = window._confirmationSelectedOptionId || 0;
 
 
 
@@ -2367,9 +2478,16 @@ properties_room_id_fk: $(this).data('room-id')
 
             // Show Copy/Export button on success
             if (res.status) {
-                $('#copyExportConfirmationBtn')
-                    .removeClass('d-none')
-                    .data('quotation-id', quotation_id);
+                // Update saved data so the confirmed option is tracked
+                window._confirmationSavedData = { option_id: option_id, rows: [] };
+
+                // Close the option details modal
+                var optModalEl = document.getElementById('confirmationOptionModal');
+                var optBsModal = bootstrap.Modal.getInstance(optModalEl);
+                if (optBsModal) optBsModal.hide();
+
+                // Reload options to reflect confirmed state (export button will show via loadConfirmationOptions)
+                loadConfirmationOptions(quotation_id, { option_id: option_id, rows: [] });
             }
 
         },
@@ -2384,21 +2502,6 @@ properties_room_id_fk: $(this).data('room-id')
 
     });
 
-});
-
-// Copy/Export Confirmation Button Handler
-$(document).on('click', '#copyExportConfirmationBtn', function () {
-    var quotationId = $(this).data('quotation-id');
-
-    if (!quotationId) {
-        alert('Quotation ID missing');
-        return;
-    }
-
-    window.open(
-        "<?php echo base_url(); ?>index.php/Quotation/client_confirmation_preview/" + quotationId,
-        "_blank"
-    );
 });
 
 
@@ -2468,7 +2571,7 @@ $('#tabReceiptScheduler').on('shown.bs.tab', function() {
                     <div class="pt-3">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="mb-0 fw-bold">Receipt Scheduler - Payment Schedules</h5>
-                            <button onclick="hub_add_scheduler()" class="btn btn-rounded btn-primary btn-sm">+ Create Payment Schedule</button>
+                            <button id="hub_addSchedulerBtn" onclick="hub_add_scheduler()" class="btn btn-rounded btn-primary btn-sm">+ Create Payment Schedule</button>
                         </div>
                         <div class="table-responsive">
                             <table id="hub_scheduler_table" class="display" style="min-width: 845px">
@@ -2493,6 +2596,32 @@ $('#tabReceiptScheduler').on('shown.bs.tab', function() {
                 hub_schedulerTable = null;
 
             }
+
+            // Check if scheduler already exists — hide Add button if so
+            $.ajax({
+                url: "<?php echo base_url(); ?>index.php/Receipt_scheduler/get_scheduler_by_quotation",
+                type: 'POST',
+                data: { quotation_id: quotation_id },
+                dataType: 'json',
+                success: function(schedRes) {
+                    if (schedRes && schedRes.receipt_scheduler_id) {
+                        $('#hub_addSchedulerBtn').hide();
+                    } else {
+                        if (hub_can_edit) {
+                            $('#hub_addSchedulerBtn').show();
+                        } else {
+                            $('#hub_addSchedulerBtn').hide();
+                        }
+                    }
+                },
+                error: function() {
+                    if (hub_can_edit) {
+                        $('#hub_addSchedulerBtn').show();
+                    } else {
+                        $('#hub_addSchedulerBtn').hide();
+                    }
+                }
+            });
 
             // Load scheduler
             if (!hub_schedulerTable) {
@@ -2562,6 +2691,8 @@ function hub_loadSchedulerTable(quotation_id) {
 
         },
 
+        "searching": false,
+
         "columnDefs": [{ "targets": [0, -1], "orderable": false }],
 
         "columns": [
@@ -2592,11 +2723,17 @@ function hub_loadSchedulerTable(quotation_id) {
 
                 var html = '<div class="d-flex">';
 
-                html += '<button type="button" class="btn btn-info btn-sm me-1" onclick="hub_viewScheduler(' + row.receipt_scheduler_id + ')" title="View"><i class="fas fa-eye"></i></button>';
+                if (hub_can_view) {
+                    html += '<button type="button" class="btn btn-info btn-sm me-1" onclick="hub_viewScheduler(' + row.receipt_scheduler_id + ')" title="View"><i class="fas fa-eye"></i></button>';
+                }
 
-                html += '<button type="button" class="btn btn-warning btn-sm me-1" onclick="hub_editScheduler(' + row.receipt_scheduler_id + ')" title="Edit"><i class="fas fa-edit"></i></button>';
+                if (hub_can_edit && (!row.has_payments || row.has_payments == 0)) {
+                    html += '<button type="button" class="btn btn-warning btn-sm me-1" onclick="hub_editScheduler(' + row.receipt_scheduler_id + ')" title="Edit"><i class="fas fa-edit"></i></button>';
+                }
 
-                html += '<button type="button" class="btn btn-danger btn-sm" onclick="hub_deleteScheduler(' + row.receipt_scheduler_id + ')" title="Delete"><i class="fas fa-trash"></i></button>';
+                if (hub_can_delete && (!row.has_payments || row.has_payments == 0)) {
+                    html += '<button type="button" class="btn btn-danger btn-sm" onclick="hub_deleteScheduler(' + row.receipt_scheduler_id + ')" title="Delete"><i class="fas fa-trash"></i></button>';
+                }
 
                 html += '</div>';
 
@@ -2822,11 +2959,18 @@ function hub_togglePaymentType() {
 
         $('#hub_emiSection').hide();
 
+        var amt = parseFloat($('#hub_total_amount').val()) || 0;
+
+        $('#hub_full_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+
     } else if (type == 'EMI') {
 
         $('#hub_fullPaymentSection').hide();
 
         $('#hub_emiSection').show();
+
+        var amt = parseFloat($('#hub_total_amount').val()) || 0;
+        $('#hub_emi_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
 
         hub_generateEmiRows();
 
@@ -3051,7 +3195,8 @@ function hub_save() {
 
             if (response.error) {
 
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             } else {
 
@@ -3059,7 +3204,12 @@ function hub_save() {
 
                 hub_schedulerTable.ajax.reload();
 
-                alert(response.message);
+                if (hub_save_method == 'add') {
+                    $('#hub_addSchedulerBtn').hide();
+                }
+
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             }
 
@@ -3069,7 +3219,8 @@ function hub_save() {
 
             $('#hub_btnSave').prop('disabled', false).text('Save');
 
-            alert('An error occurred. Please try again.');
+            var n = new notify({ title: '', style: 'error', message: 'An error occurred. Please try again.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
         }
 
@@ -3095,6 +3246,8 @@ function hub_editScheduler(id) {
 
             var installments = response.installments;
 
+            var hasPayments = response.has_payments || false;
+
             $('#hub_receipt_scheduler_id').val(scheduler.receipt_scheduler_id);
 
             $('#hub_quotation_id_fk').val(scheduler.quotation_id_fk);
@@ -3106,6 +3259,20 @@ function hub_editScheduler(id) {
             $('#hub_payment_type').val(scheduler.payment_type);
 
             $('#hub_receipt_scheduler_remarks').val(scheduler.receipt_scheduler_remarks);
+
+            if (hasPayments) {
+                $('#hub_total_amount').prop('readonly', true);
+                $('#hub_payment_type').prop('disabled', true);
+                $('#hub_max_emi_count').prop('readonly', true);
+                $('#hub_split_type').prop('disabled', true);
+                $('button[onclick="hub_generateEmiRows()"]').prop('disabled', true);
+            } else {
+                $('#hub_total_amount').prop('readonly', false);
+                $('#hub_payment_type').prop('disabled', false);
+                $('#hub_max_emi_count').prop('readonly', false);
+                $('#hub_split_type').prop('disabled', false);
+                $('button[onclick="hub_generateEmiRows()"]').prop('disabled', false);
+            }
 
             hub_togglePaymentType();
 
@@ -3131,17 +3298,17 @@ function hub_editScheduler(id) {
 
                     if (scheduler.split_type == 'PERCENTAGE') {
 
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '"' + (hasPayments ? ' readonly' : '') + '>';
 
                     } else {
 
-                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
+                        html += '<input type="number" step="0.01" class="form-control form-control-sm hub-emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '"' + (hasPayments ? ' readonly' : '') + '>';
 
                     }
 
                     html += '</td><td>';
 
-                    html += '<input type="text" class="form-control form-control-sm hub-emi-due-date" placeholder="dd/mm/yyyy" value="' + hub_formatDateDMY(inst.due_date) + '" required>';
+                    html += '<input type="text" class="form-control form-control-sm hub-emi-due-date" placeholder="dd/mm/yyyy" value="' + hub_formatDateDMY(inst.due_date) + '" required' + (hasPayments ? ' readonly' : '') + '>';
 
                     html += '<input type="hidden" name="emi_due_date[]" class="hub-emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
 
@@ -3159,7 +3326,11 @@ function hub_editScheduler(id) {
 
             }
 
-            $('#hub_schedulerModalTitle').text('Edit Payment Schedule');
+            if (hasPayments) {
+                $('#hub_schedulerModalTitle').text('Edit Payment Schedule (Locked — Payments Collected)');
+            } else {
+                $('#hub_schedulerModalTitle').text('Edit Payment Schedule');
+            }
 
             $('#hub_schedulerModal').modal('show');
 
@@ -3183,13 +3354,19 @@ function hub_viewScheduler(id) {
 
         success: function(response) {
 
-            if (!response || !response.scheduler) { alert('Unable to load payment details'); return; }
+            if (!response || !response.scheduler) {
+                var n = new notify({ title: '', style: 'error', message: 'Unable to load payment details', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+                return;
+            }
 
             var scheduler = response.scheduler;
 
             $('#hub_view_quotation_number').text(scheduler.quotation_number);
 
             $('#hub_view_guest_name').text(scheduler.guest_name);
+
+            $('#hub_view_phone').text(scheduler.whats_number || '-');
 
             $('#hub_view_payment_type').html(scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>');
 
@@ -3380,7 +3557,8 @@ function hub_approvePayment(paymentId) {
 
             if (response.error) {
 
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             } else {
 
@@ -3390,14 +3568,16 @@ function hub_approvePayment(paymentId) {
 
                 loadQuotationHubSummary($('#quotation_id').val());
 
-                alert(response.message);
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             }
 
         },
 
         error: function() {
-            alert('Failed to approve payment.');
+            var n = new notify({ title: '', style: 'error', message: 'Failed to approve payment.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
 
     });
@@ -3507,13 +3687,19 @@ function hub_confirmDelete() {
 
             if (response.error) {
 
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             } else {
 
                 hub_schedulerTable.ajax.reload();
 
-                alert(response.message);
+                if (hub_can_edit) {
+                    $('#hub_addSchedulerBtn').show();
+                }
+
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
 
             }
 
@@ -3539,7 +3725,16 @@ function hub_formatDate(dateStr) {
 
 $('#hub_total_amount').on('change', function() {
 
-    if ($('#hub_payment_type').val() == 'EMI') hub_generateEmiRows();
+    if ($('#hub_payment_type').val() == 'EMI') {
+        var amt = parseFloat($(this).val()) || 0;
+        $('#hub_emi_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+        hub_generateEmiRows();
+    }
+
+    else if ($('#hub_payment_type').val() == 'FULL') {
+        var amt = parseFloat($(this).val()) || 0;
+        $('#hub_full_total_display').text('₹' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+    }
 
 });
 

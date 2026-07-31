@@ -59,6 +59,52 @@ class Receipt_scheduler extends MY_Controller {
         $split_type = $this->input->post('split_type');
         $remarks = $this->input->post('receipt_scheduler_remarks');
 
+        // Validation
+        if (empty($quotation_id)) {
+            echo json_encode(array('error' => true, 'message' => 'Quotation is required'));
+            return;
+        }
+        if (empty($payment_type) || !in_array($payment_type, array('FULL', 'EMI'))) {
+            echo json_encode(array('error' => true, 'message' => 'Payment type is required'));
+            return;
+        }
+        if (empty($total_amount) || (float)$total_amount <= 0) {
+            echo json_encode(array('error' => true, 'message' => 'Total amount must be greater than 0'));
+            return;
+        }
+        if ($payment_type == 'FULL') {
+            $cutoff_date = $this->input->post('cutoff_date');
+            if (empty($cutoff_date)) {
+                echo json_encode(array('error' => true, 'message' => 'Cutoff date is required for Full Payment'));
+                return;
+            }
+        } else {
+            $emi_amounts = $this->input->post('emi_amount');
+            $emi_percentages = $this->input->post('emi_percentage');
+            $emi_due_dates = $this->input->post('emi_due_date');
+            if (!is_array($emi_due_dates) || count($emi_due_dates) < 2) {
+                echo json_encode(array('error' => true, 'message' => 'At least 2 EMI installments are required'));
+                return;
+            }
+            for ($i = 0; $i < count($emi_due_dates); $i++) {
+                if ($split_type == 'AMOUNT') {
+                    if (!isset($emi_amounts[$i]) || (float)$emi_amounts[$i] <= 0) {
+                        echo json_encode(array('error' => true, 'message' => 'EMI amount is required for installment ' . ($i + 1)));
+                        return;
+                    }
+                } else {
+                    if (!isset($emi_percentages[$i]) || (float)$emi_percentages[$i] <= 0) {
+                        echo json_encode(array('error' => true, 'message' => 'EMI percentage is required for installment ' . ($i + 1)));
+                        return;
+                    }
+                }
+                if (empty($emi_due_dates[$i])) {
+                    echo json_encode(array('error' => true, 'message' => 'Due date is required for installment ' . ($i + 1)));
+                    return;
+                }
+            }
+        }
+
         // Check if scheduler already exists for this quotation
         if ($this->Receipt_scheduler_model->check_scheduler_exists($quotation_id)) {
             echo json_encode(array('error' => true, 'message' => 'Payment schedule already exists for this quotation'));
@@ -149,6 +195,73 @@ class Receipt_scheduler extends MY_Controller {
         $split_type = $this->input->post('split_type');
         $remarks = $this->input->post('receipt_scheduler_remarks');
 
+        // Validation
+        if (empty($scheduler_id)) {
+            echo json_encode(array('error' => true, 'message' => 'Scheduler ID is required'));
+            return;
+        }
+        if (empty($payment_type) || !in_array($payment_type, array('FULL', 'EMI'))) {
+            echo json_encode(array('error' => true, 'message' => 'Payment type is required'));
+            return;
+        }
+        if (empty($total_amount) || (float)$total_amount <= 0) {
+            echo json_encode(array('error' => true, 'message' => 'Total amount must be greater than 0'));
+            return;
+        }
+        if ($payment_type == 'FULL') {
+            $cutoff_date = $this->input->post('cutoff_date');
+            if (empty($cutoff_date)) {
+                echo json_encode(array('error' => true, 'message' => 'Cutoff date is required for Full Payment'));
+                return;
+            }
+        } else {
+            $emi_amounts = $this->input->post('emi_amount');
+            $emi_percentages = $this->input->post('emi_percentage');
+            $emi_due_dates = $this->input->post('emi_due_date');
+            if (!is_array($emi_due_dates) || count($emi_due_dates) < 2) {
+                echo json_encode(array('error' => true, 'message' => 'At least 2 EMI installments are required'));
+                return;
+            }
+            for ($i = 0; $i < count($emi_due_dates); $i++) {
+                if ($split_type == 'AMOUNT') {
+                    if (!isset($emi_amounts[$i]) || (float)$emi_amounts[$i] <= 0) {
+                        echo json_encode(array('error' => true, 'message' => 'EMI amount is required for installment ' . ($i + 1)));
+                        return;
+                    }
+                } else {
+                    if (!isset($emi_percentages[$i]) || (float)$emi_percentages[$i] <= 0) {
+                        echo json_encode(array('error' => true, 'message' => 'EMI percentage is required for installment ' . ($i + 1)));
+                        return;
+                    }
+                }
+                if (empty($emi_due_dates[$i])) {
+                    echo json_encode(array('error' => true, 'message' => 'Due date is required for installment ' . ($i + 1)));
+                    return;
+                }
+            }
+        }
+
+        // Check if payments have been collected — prevent payment type / EMI config changes
+        $existing = $this->Receipt_scheduler_model->get_by_id($scheduler_id);
+        if (!$existing) {
+            echo json_encode(array('error' => true, 'message' => 'Scheduler not found'));
+            return;
+        }
+        $has_payments = $this->Receipt_scheduler_model->has_payments($scheduler_id);
+        if ($has_payments) {
+            if ($existing->payment_type !== $payment_type) {
+                echo json_encode(array('error' => true, 'message' => 'Payment type cannot be changed after payments have been collected'));
+                return;
+            }
+            // Only allow remarks update if payments have started
+            $this->Receipt_scheduler_model->update(
+                array('receipt_scheduler_id' => $scheduler_id),
+                array('receipt_scheduler_remarks' => $remarks)
+            );
+            echo json_encode(array('error' => false, 'message' => 'Payment schedule updated successfully (remarks only — payments already collected)'));
+            return;
+        }
+
         $scheduler_data = array(
             'payment_type' => $payment_type,
             'total_amount' => $total_amount,
@@ -213,10 +326,12 @@ class Receipt_scheduler extends MY_Controller {
         $id = $this->input->post('receipt_scheduler_id');
         $scheduler = $this->Receipt_scheduler_model->get_by_id($id);
         $installments = $this->Receipt_scheduler_model->get_installments_by_scheduler_id($id);
+        $has_payments = $this->Receipt_scheduler_model->has_payments($id);
 
         echo json_encode(array(
             'scheduler' => $scheduler,
-            'installments' => $installments
+            'installments' => $installments,
+            'has_payments' => $has_payments
         ));
     }
 

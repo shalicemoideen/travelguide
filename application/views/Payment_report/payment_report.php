@@ -105,8 +105,8 @@
 <div class="modal fade" id="paymentDetailsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Payment Details</h5>
+            <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);">
+                <h5 class="modal-title text-white"><i class="fas fa-file-invoice-dollar me-1"></i> Payment Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -114,16 +114,21 @@
                 <input type="hidden" id="pd_customer_scheduler_id" value="0">
                 <input type="hidden" id="pd_property_scheduler_id" value="0">
 
-                <!-- Info Row -->
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <strong>Quotation:</strong> <span id="pd_quotation_number">-</span>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>Guest:</strong> <span id="pd_guest_name">-</span>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>Phone:</strong> <span id="pd_phone">-</span>
+                <!-- Detail Grid -->
+                <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+                    <div class="row g-0">
+                        <div class="col-md-4" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Quotation No.</small>
+                            <span style="font-size:14px;font-weight:600;" id="pd_quotation_number">-</span>
+                        </div>
+                        <div class="col-md-4" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Guest Name</small>
+                            <span style="font-size:14px;font-weight:600;" id="pd_guest_name">-</span>
+                        </div>
+                        <div class="col-md-4" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Phone</small>
+                            <span style="font-size:14px;font-weight:600;" id="pd_phone">-</span>
+                        </div>
                     </div>
                 </div>
 
@@ -221,7 +226,7 @@
 
 <!-- Customer Payment History Modal -->
 <div class="modal fade" id="viewCustomerPaymentsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Payment History</h5>
@@ -315,7 +320,7 @@
 
 <!-- Property Payment History Modal -->
 <div class="modal fade" id="viewPropertyPaymentsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Payment History</h5>

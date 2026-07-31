@@ -9,7 +9,9 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0">Receipt Scheduler - Payment Schedules</h4>
+                        <?php if (has_permission('RECEIPT_SCHEDULER')): ?>
                         <a onclick="add_scheduler()" class="btn btn-rounded btn-primary btn-sm">+ Create Payment Schedule</a>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <!-- Filters -->
@@ -73,10 +75,10 @@
 
 <!-- Add/Edit Scheduler Modal -->
 <div class="modal fade" id="schedulerModal" role="dialog" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog" role="document" style="max-width: 850px;">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create Payment Schedule</h5>
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white">Create Payment Schedule</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -100,8 +102,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Total Amount <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" class="form-control" name="total_amount" id="total_amount" required>
-                                <small class="text-muted">Auto-calculated from quotation, can be adjusted</small>
+                                <input type="number" step="0.01" class="form-control" name="total_amount" id="total_amount" readonly>
                             </div>
                         </div>
                     </div>
@@ -127,18 +128,33 @@
 
                     <!-- Full Payment Section -->
                     <div id="fullPaymentSection" style="display:none;">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="card-title">Full Payment Details</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Cutoff Date <span class="text-danger">*</span></label>
-                                            <input type="date" class="form-control" name="cutoff_date" id="cutoff_date">
-                                            <small id="cutoff_date_display" class="text-primary fw-semibold"></small>
-                                            <small class="text-muted d-block">Payment must be received by this date</small>
-                                        </div>
-                                    </div>
+                        <div class="option-block" style="margin-bottom:0;">
+                            <div class="option-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                                <span><i class="fas fa-money-bill-wave me-1"></i> Full Payment Details</span>
+                            </div>
+                            <div class="option-body" style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:50%;background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Description</th>
+                                                <th style="width:50%;background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Total Amount</strong></td>
+                                                <td class="fw-bold text-success" id="full_total_display">₹0.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Cutoff Date <span class="text-danger">*</span></strong></td>
+                                                <td>
+                                                    <input type="date" class="form-control form-control-sm" name="cutoff_date" id="cutoff_date">
+                                                    <small id="cutoff_date_display" class="text-primary fw-semibold"></small>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -146,9 +162,12 @@
 
                     <!-- EMI Section -->
                     <div id="emiSection" style="display:none;">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="card-title">EMI Configuration</h6>
+                        <div class="option-block" style="margin-bottom:0;">
+                            <div class="option-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                                <span><i class="fas fa-calendar-check me-1"></i> EMI Configuration</span>
+                                <span style="background:rgba(255,255,255,.2);padding:4px 12px;border-radius:6px;font-size:14px;font-weight:600;">Total: <span id="emi_total_display">₹0.00</span></span>
+                            </div>
+                            <div class="option-body" style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:16px;">
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <label class="form-label">Maximum EMI Count <span class="text-danger">*</span></label>
@@ -163,30 +182,30 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">&nbsp;</label>
-                                        <button type="button" class="btn btn-info btn-sm d-block" onclick="generateEmiRows()">
-                                            <i class="fas fa-sync"></i> Generate EMI Rows
+                                        <button type="button" class="btn btn-warning btn-sm d-block" onclick="generateEmiRows()">
+                                            <i class="fas fa-redo"></i> Reset
                                         </button>
                                     </div>
                                 </div>
 
                                 <div class="table-responsive">
-                                    <table class="table table-bordered" id="emiTable">
-                                        <thead class="table-secondary">
+                                    <table class="table table-bordered table-sm mb-0" id="emiTable">
+                                        <thead>
                                             <tr>
-                                                <th width="80">EMI #</th>
-                                                <th class="amount-col" id="emiAmountHeader">Amount</th>
-                                                <th width="150">Due Date</th>
-                                                <th width="120">Calculated</th>
+                                                <th width="80" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">EMI #</th>
+                                                <th class="amount-col" id="emiAmountHeader" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                                <th width="150" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th>
+                                                <th width="120" style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Calculated</th>
                                             </tr>
                                         </thead>
                                         <tbody id="emiTableBody">
                                         </tbody>
                                         <tfoot>
-                                            <tr class="table-warning">
+                                            <tr style="background:#eef2ff;">
                                                 <td><strong>Total</strong></td>
-                                                <td id="emiTotalCol">-</td>
+                                                <td id="emiTotalCol" class="fw-bold">-</td>
                                                 <td>-</td>
-                                                <td id="emiCalculatedTotal">0.00</td>
+                                                <td id="emiCalculatedTotal" class="fw-bold text-success">0.00</td>
                                             </tr>
                                         </tfoot>
                                     </table>

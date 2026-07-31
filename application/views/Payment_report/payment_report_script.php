@@ -16,6 +16,18 @@ var pendingApprovePaymentId = null;
 $(document).ready(function() {
     loadPaymentReportTable();
 
+    // Fix: nested modal scrolling - when child modal closes, restore modal-open on body if parent is still visible
+    ['recordCustomerPaymentModal', 'viewCustomerPaymentsModal', 'recordPropertyPaymentModal', 'viewPropertyPaymentsModal', 'approveConfirmModal'].forEach(function(childModalId) {
+        $('#' + childModalId).on('hidden.bs.modal', function () {
+            if ($('#paymentDetailsModal').hasClass('show')) {
+                document.body.classList.add('modal-open');
+            }
+        });
+    });
+    $('#paymentDetailsModal').on('hidden.bs.modal', function () {
+        document.body.classList.remove('modal-open');
+    });
+
     if ($.fn.datepicker) {
         $('.datepicker').datepicker({
             format: 'dd/mm/yyyy',
@@ -284,20 +296,22 @@ function loadCustomerPaymentDetails(schedulerId) {
             var html = '';
 
             html += '<div class="row mb-3">';
-            html += '<div class="col-md-3"><strong>Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
-            html += '<div class="col-md-3"><strong>Total:</strong> ₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div>';
+            html += '<div class="col-md-6"><strong>Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
+            html += '<div class="col-md-6"><strong>Total:</strong> <span class="fw-bold text-success">₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</span></div>';
             html += '</div>';
 
             html += '<div class="row mb-3">';
-            html += '<div class="col-md-3"><div class="card bg-secondary text-white"><div class="card-body text-center"><h6 class="text-white">Total</h6><h4 class="text-white">₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</h4></div></div></div>';
-            html += '<div class="col-md-3"><div class="card bg-success text-white"><div class="card-body text-center"><h6 class="text-white">Paid</h6><h4 class="text-white">₹' + parseFloat(response.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</h4></div></div></div>';
-            html += '<div class="col-md-3"><div class="card bg-warning text-white"><div class="card-body text-center"><h6 class="text-white">Pending</h6><h4 class="text-white">₹' + parseFloat(response.pending_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</h4></div></div></div>';
-            html += '<div class="col-md-3"><div class="card bg-danger text-white"><div class="card-body text-center"><h6 class="text-white">Overdue</h6><h4 class="text-white">' + response.overdue_count + '</h4></div></div></div>';
+            html += '<div class="col-md-3"><div style="background:#fff;border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e5e7eb;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;">Total</div><div style="font-size:18px;font-weight:700;color:#64748b;">₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div></div></div>';
+            html += '<div class="col-md-3"><div style="background:linear-gradient(135deg,#2e7d32,#388e3c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Paid</div><div style="font-size:18px;font-weight:700;color:#fff;">₹' + parseFloat(response.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div></div></div>';
+            html += '<div class="col-md-3"><div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Pending</div><div style="font-size:18px;font-weight:700;color:#fff;">₹' + parseFloat(response.pending_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div></div></div>';
+            html += '<div class="col-md-3"><div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Overdue</div><div style="font-size:18px;font-weight:700;color:#fff;">' + response.overdue_count + '</div></div></div>';
             html += '</div>';
 
-            html += '<h6>Installments</h6>';
+            html += '<div class="option-block" style="margin-bottom:0;">';
+            html += '<div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;"><i class="fas fa-list me-1"></i> Installments</div>';
+            html += '<div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">';
             html += '<div class="table-responsive">';
-            html += '<table class="table table-bordered table-sm"><thead class="table-light"><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            html += '<table class="table table-bordered table-sm mb-0"><thead><tr><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Paid</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Status</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th></tr></thead><tbody>';
 
             var installments = response.installments;
             for (var i = 0; i < installments.length; i++) {
@@ -330,7 +344,7 @@ function loadCustomerPaymentDetails(schedulerId) {
                 html += '</tr>';
             }
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table></div></div></div>';
             $('#customerPaymentContent').html(html);
         },
         error: function() {
@@ -401,20 +415,22 @@ function loadSinglePropertyPaymentDetails(schedulerId, idx, onSuccess, onError) 
             html += '<div class="card-body">';
 
             html += '<div class="row mb-3">';
-            html += '<div class="col-md-3"><strong>Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
-            html += '<div class="col-md-3"><strong>Total:</strong> ₹' + parseFloat(response.net_total).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div>';
+            html += '<div class="col-md-6"><strong>Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
+            html += '<div class="col-md-6"><strong>Total:</strong> <span class="fw-bold text-success">₹' + parseFloat(response.net_total).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</span></div>';
             html += '</div>';
 
             html += '<div class="row mb-3">';
-            html += '<div class="col-md-3"><div class="card bg-secondary text-white"><div class="card-body text-center"><h6 class="text-white">Total</h6><h4 class="text-white">₹' + parseFloat(response.net_total).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</h4></div></div></div>';
-            html += '<div class="col-md-3"><div class="card bg-success text-white"><div class="card-body text-center"><h6 class="text-white">Paid</h6><h4 class="text-white">₹' + parseFloat(response.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</h4></div></div></div>';
-            html += '<div class="col-md-3"><div class="card bg-warning text-white"><div class="card-body text-center"><h6 class="text-white">Pending</h6><h4 class="text-white">₹' + parseFloat(response.pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</h4></div></div></div>';
-            html += '<div class="col-md-3"><div class="card bg-danger text-white"><div class="card-body text-center"><h6 class="text-white">Overdue</h6><h4 class="text-white">' + response.overdue_count + '</h4></div></div></div>';
+            html += '<div class="col-md-3"><div style="background:#fff;border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e5e7eb;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;">Total</div><div style="font-size:18px;font-weight:700;color:#64748b;">₹' + parseFloat(response.net_total).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div></div></div>';
+            html += '<div class="col-md-3"><div style="background:linear-gradient(135deg,#2e7d32,#388e3c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Paid</div><div style="font-size:18px;font-weight:700;color:#fff;">₹' + parseFloat(response.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div></div></div>';
+            html += '<div class="col-md-3"><div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Pending</div><div style="font-size:18px;font-weight:700;color:#fff;">₹' + parseFloat(response.pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</div></div></div>';
+            html += '<div class="col-md-3"><div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Overdue</div><div style="font-size:18px;font-weight:700;color:#fff;">' + response.overdue_count + '</div></div></div>';
             html += '</div>';
 
-            html += '<h6>Installments</h6>';
+            html += '<div class="option-block" style="margin-bottom:0;">';
+            html += '<div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;"><i class="fas fa-list me-1"></i> Installments</div>';
+            html += '<div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">';
             html += '<div class="table-responsive">';
-            html += '<table class="table table-bordered table-sm"><thead class="table-light"><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            html += '<table class="table table-bordered table-sm mb-0"><thead><tr><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Paid</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Status</th><th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th></tr></thead><tbody>';
 
             var installments = response.installments;
             for (var i = 0; i < installments.length; i++) {
@@ -446,7 +462,7 @@ function loadSinglePropertyPaymentDetails(schedulerId, idx, onSuccess, onError) 
                 html += '</tr>';
             }
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table></div></div></div>';
             html += '</div>'; // card-body
             html += '</div>'; // collapse
             html += '</div>'; // card
@@ -490,20 +506,23 @@ function submitCustomerPayment() {
     var slip   = $('#cp_payment_slip')[0].files[0];
 
     if (amount == '' || isNaN(amount) || parseFloat(amount) <= 0) {
-        alert('Please enter a valid payment amount greater than 0.');
+        var n = new notify({ title: '', style: 'error', message: 'Please enter a valid payment amount greater than 0.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         $('#cp_payment_amount').focus();
         return;
     }
 
     var datePattern = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!datePattern.test(date)) {
-        alert('Payment date must be in dd/mm/yyyy format.');
+        var n = new notify({ title: '', style: 'error', message: 'Payment date must be in dd/mm/yyyy format.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         $('#cp_payment_date').focus();
         return;
     }
 
     if (!slip) {
-        alert('Please upload a payment slip.');
+        var n = new notify({ title: '', style: 'error', message: 'Please upload a payment slip.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         $('#cp_payment_slip').focus();
         return;
     }
@@ -519,18 +538,21 @@ function submitCustomerPayment() {
         dataType: 'json',
         success: function(response) {
             if (response.error) {
-                alert(response.message);
+                var n = new notify({ title: '', style: 'error', message: response.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             } else {
                 $('#recordCustomerPaymentModal').modal('hide');
                 paymentReportTable.ajax.reload();
                 if (currentCustomerSchedulerId) {
                     loadCustomerPaymentDetails(currentCustomerSchedulerId);
                 }
-                alert(response.message);
+                var n = new notify({ title: '', style: 'success', message: response.message, icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             }
         },
         error: function() {
-            alert('Failed to record payment.');
+            var n = new notify({ title: '', style: 'error', message: 'Failed to record payment.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
     });
 }
@@ -576,7 +598,8 @@ function viewCustomerPaymentHistory(installmentId) {
             $('#viewCustomerPaymentsModal').modal('show');
         },
         error: function() {
-            alert('Failed to load payment history.');
+            var n = new notify({ title: '', style: 'error', message: 'Failed to load payment history.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
     });
 }
@@ -699,7 +722,8 @@ function viewPropertyPaymentHistory(installmentId) {
             $('#viewPropertyPaymentsModal').modal('show');
         },
         error: function() {
-            alert('Failed to load payment history.');
+            var n = new notify({ title: '', style: 'error', message: 'Failed to load payment history.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
     });
 }
@@ -730,7 +754,8 @@ function submitApprovePayment() {
             $('#approveConfirmModal').modal('hide');
             pendingApprovePaymentId = null;
             if (response.error) {
-                alert(response.message || 'Failed to approve payment.');
+                var n = new notify({ title: '', style: 'error', message: response.message || 'Failed to approve payment.', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             } else {
                 paymentReportTable.ajax.reload();
                 if (currentCustomerSchedulerId) {
@@ -739,13 +764,15 @@ function submitApprovePayment() {
                 if (currentHistoryInstallmentId && $('#viewCustomerPaymentsModal').is(':visible')) {
                     viewCustomerPaymentHistory(currentHistoryInstallmentId);
                 }
-                alert(response.message || 'Payment approved successfully.');
+                var n = new notify({ title: '', style: 'success', message: response.message || 'Payment approved successfully.', icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
             }
         },
         error: function() {
             $('#approveConfirmModal').modal('hide');
             pendingApprovePaymentId = null;
-            alert('Failed to approve payment.');
+            var n = new notify({ title: '', style: 'error', message: 'Failed to approve payment.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
         }
     });
 }

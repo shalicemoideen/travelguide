@@ -31,7 +31,7 @@ class Receipt_scheduler_model extends CI_Model {
     public function get_by_id($id)
     {
         return $this->db
-            ->select('rs.*, q.quotation_number, q.quotation_id, l.guest_name, l.leads_number')
+            ->select('rs.*, q.quotation_number, q.quotation_id, l.guest_name, l.leads_number, l.whats_number')
             ->from('receipt_scheduler rs')
             ->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left')
             ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
@@ -95,7 +95,8 @@ class Receipt_scheduler_model extends CI_Model {
         }
 
         $this->db->select('rs.*, q.quotation_number, l.guest_name, l.leads_number,
-                          DATE_FORMAT(rs.receipt_scheduler_created_date, \'%d-%m-%Y\') as created_date_formatted');
+                          DATE_FORMAT(rs.receipt_scheduler_created_date, \'%d-%m-%Y\') as created_date_formatted,
+                          (SELECT COUNT(*) FROM receipt_scheduler_payments p WHERE p.receipt_scheduler_id_fk = rs.receipt_scheduler_id AND p.payment_status = 1) as has_payments');
         $this->db->from('receipt_scheduler rs');
         $this->db->join('quotation q', 'q.quotation_id = rs.quotation_id_fk', 'left');
         $this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'left');
@@ -440,6 +441,16 @@ class Receipt_scheduler_model extends CI_Model {
             'total_amount' => $base_amount + $inclusion_amount + $special_amount,
             'travel_start_date' => !empty($main['start_date']) ? $main['start_date'] : ''
         );
+    }
+
+    public function has_payments($receipt_scheduler_id)
+    {
+        $count = $this->db
+            ->from($this->table_payments)
+            ->where('receipt_scheduler_id_fk', $receipt_scheduler_id)
+            ->where('payment_status', 1)
+            ->count_all_results();
+        return $count > 0;
     }
 
     public function check_scheduler_exists($quotation_id)

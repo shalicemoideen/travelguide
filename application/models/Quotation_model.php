@@ -708,21 +708,114 @@ class Quotation_model extends CI_Model{
 
     {
 
-        return $this->db
+        $options = $this->db
 
-            ->select('quotation_options_id, quotation_options_title')
+            ->select('qo.quotation_options_id, qo.quotation_options_title,
+                qo.quotation_options_cab_amount, qo.quotation_options_total_cost,
+                qo.quotation_options_margin_value, qo.quotation_options_total_quote_rate,
+                v.vehicle_name')
 
-            ->from('quotation_options')
+            ->from('quotation_options qo')
 
-            ->where('quotation_id_fk', $quotation_id)
+            ->join('vehicle v', 'v.vehicle_id = qo.quotation_options_vehicle_id_fk', 'left')
 
-            ->where('quotation_options_status', 1)
+            ->where('qo.quotation_id_fk', $quotation_id)
 
-            ->order_by('quotation_options_id', 'ASC')
+            ->where('qo.quotation_options_status', 1)
+
+            ->order_by('qo.quotation_options_id', 'ASC')
 
             ->get()
 
             ->result_array();
+
+
+
+        foreach ($options as &$opt) {
+
+            $optId = (int)$opt['quotation_options_id'];
+
+
+
+            $incRow = $this->db
+
+                ->select('COALESCE(SUM(qpi.inclusion_amount),0) as total')
+
+                ->from('quotation_property_inclusions qpi')
+
+                ->where('qpi.quotation_id_fk', (int)$quotation_id)
+
+                ->where('qpi.quotation_options_id_fk', $optId)
+
+                ->where('qpi.quotation_property_inclusions_status', 1)
+
+                ->get()->row();
+
+            $opt['inclusion_total'] = $incRow ? (float)$incRow->total : 0;
+
+
+
+            $specRow = $this->db
+
+                ->select('COALESCE(SUM(qsr.quotation_special_requirements_cost),0) as total')
+
+                ->from('quotation_special_requirements qsr')
+
+                ->where('qsr.quotation_id_fk', (int)$quotation_id)
+
+                ->where('qsr.quotation_special_requirements_status', 1)
+
+                ->get()->row();
+
+            $opt['special_total'] = $specRow ? (float)$specRow->total : 0;
+
+
+
+            $hotelRow = $this->db
+
+                ->select('COALESCE(SUM(qrtd.manual_total_rate),0) as total')
+
+                ->from('quotation_properties_days qpd')
+
+                ->join('quotation_properties qp', 'qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id', 'inner')
+
+                ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_id_fk = qp.quotation_properties_id', 'inner')
+
+                ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id', 'left')
+
+                ->where('qpd.quotation_id_fk', (int)$quotation_id)
+
+                ->where('qpd.quotation_options_id_fk', $optId)
+
+                ->where('qpd.quotation_properties_days_status', 1)
+
+                ->where('qp.quotation_properties_status', 1)
+
+                ->where('qpr.quotation_properties_rooms_status', 1)
+
+                ->get()->row();
+
+            $opt['hotel_total'] = $hotelRow ? (float)$hotelRow->total : 0;
+
+
+
+            $opt['cab_amount'] = (float)$opt['quotation_options_cab_amount'];
+
+            $opt['total_cost'] = (float)$opt['quotation_options_total_cost'];
+
+            $opt['margin_value'] = (float)$opt['quotation_options_margin_value'];
+
+            $opt['quote_rate'] = (float)$opt['quotation_options_total_quote_rate'];
+
+            $opt['grand_total'] = $opt['quote_rate'] + $opt['inclusion_total'] + $opt['special_total'];
+
+        }
+
+        unset($opt);
+
+
+
+        return $options;
 
     }
 
@@ -734,11 +827,15 @@ class Quotation_model extends CI_Model{
 
         $days = $this->db
 
-            ->select('qpd.*, s.state_name')
+            ->select('qpd.*, s.state_name, ap.accommodation_date, mp.meal_plan_name')
 
             ->from('quotation_properties_days qpd')
 
             ->join('state s', 's.state_id = qpd.quotation_properties_days_destination_id_fk', 'left')
+
+            ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
+
+            ->join('meal_plan mp', 'mp.meal_plan_id = ap.meal_plan_id_fk', 'left')
 
             ->where('qpd.quotation_id_fk', $quotation_id)
 
@@ -758,11 +855,13 @@ class Quotation_model extends CI_Model{
 
             $properties = $this->db
 
-                ->select('qp.*, p.properties_name')
+                ->select('qp.*, p.properties_name, pc.property_category_name')
 
                 ->from('quotation_properties qp')
 
                 ->join('properties p', 'p.properties_id = qp.properties_id_fk', 'left')
+
+                ->join('property_category pc', 'pc.property_category_id = p.property_category_id_fk', 'left')
 
                 ->where('qp.quotation_properties_days_id_fk', $day['quotation_properties_days_id'])
 
@@ -780,11 +879,17 @@ class Quotation_model extends CI_Model{
 
                 $property['rooms'] = $this->db
 
-                    ->select('qpr.*, prc.properties_room_category_name')
+                    ->select('qpr.*, prc.properties_room_category_name,
+                        qrtd.room_unit_manual_count, qrtd.room_unit_manual_rate, qrtd.room_unit_manual_total_rate,
+                        qrtd.extra_bed_adult_manual_count, qrtd.extra_bed_adult_manual_rate, qrtd.extra_bed_adult_manual_total_rate,
+                        qrtd.extra_bed_child_manual_count, qrtd.extra_bed_child_manual_rate, qrtd.extra_bed_child_manual_total_rate,
+                        qrtd.manual_total_rate')
 
                     ->from('quotation_properties_rooms qpr')
 
                     ->join('properties_room_category prc', 'prc.properties_room_category_id = qpr.quotation_properties_rooms_id_fk', 'left')
+
+                    ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = ' . (int)$quotation_id, 'left')
 
                     ->where('qpr.quotation_properties_id_fk', $property['quotation_properties_id'])
 
