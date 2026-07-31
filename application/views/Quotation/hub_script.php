@@ -3992,6 +3992,7 @@ function hubRenderReservation(res) {
     hubRenderInclusionsDetail(res.inclusions_detail || []);
 
     hubRenderComments(res.comments || []);
+    hubRenderCreditPanels(res);
 }
 
 function hub_money(v) {
@@ -4874,6 +4875,169 @@ function fpReset() {
         $('#fpHotelReservationAmount').text('0.00');
         $('#fpPreQuotedAmount').text('0.00');
         $('#fp_record_id').val('');
+    }
+}
+
+// =====================================================
+// PROPERTY CREDIT DETECTION & APPLICATION (HUB)
+// =====================================================
+
+var hub_available_credits = [];
+var hub_applied_credits   = [];
+
+function hub_escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return $('<div>').text(String(s)).html();
+}
+
+function hubRenderCreditPanels(res) {
+    hub_available_credits = res.available_credits || [];
+    hub_applied_credits   = res.applied_credits   || [];
+
+    // Available credits panel
+    if (hub_available_credits.length > 0) {
+        var totalRemaining = 0;
+        var html = '';
+        hub_available_credits.forEach(function(c) {
+            var rem = parseFloat(c.remaining_amount) || 0;
+            totalRemaining += rem;
+            html += '<div class="d-flex justify-content-between border-bottom py-1">'
+                 +  '<span>Credit #' + c.property_credit_id
+                 +  ' from <strong>' + hub_escapeHtml(c.cancellation_number || '-') + '</strong>'
+                 +  (c.expiry_date && c.expiry_date !== '0000-00-00' ? ' <span class="text-danger small">(expires ' + hub_formatDateDMY(c.expiry_date) + ')</span>' : '')
+                 +  '</span>'
+                 +  '<span class="fw-bold text-warning">\u20B9' + hub_money(rem) + '</span>'
+                 +  '</div>';
+        });
+        $('#hub_creditList').html(html);
+        $('#hub_creditTotalBadge').text('\u20B9' + hub_money(totalRemaining));
+        $('#hub_creditPanel').show();
+    } else {
+        $('#hub_creditPanel').hide();
+    }
+
+    // Applied credits panel
+    if (hub_applied_credits.length > 0) {
+        var totalApplied = 0;
+        var aHtml = '';
+        hub_applied_credits.forEach(function(a) {
+            var amt = parseFloat(a.applied_amount) || 0;
+            totalApplied += amt;
+            aHtml += '<div class="d-flex justify-content-between border-bottom py-1">'
+                  +  '<span>Credit #' + a.property_credit_id_fk
+                  +  ' from <strong>' + hub_escapeHtml(a.cancellation_number || '-') + '</strong>'
+                  +  ' applied on ' + hub_formatDateDMY(String(a.applied_datetime).substr(0, 10))
+                  +  '</span>'
+                  +  '<span class="fw-bold text-success">\u20B9' + hub_money(amt) + '</span>'
+                  +  '</div>';
+        });
+        aHtml += '<div class="d-flex justify-content-between pt-2">'
+              +  '<span class="fw-bold">Total Credit Used</span>'
+              +  '<span class="fw-bold text-success">\u20B9' + hub_money(totalApplied) + '</span>'
+              +  '</div>';
+        $('#hub_appliedCreditsList').html(aHtml);
+        $('#hub_appliedCreditsPanel').show();
+    } else {
+        $('#hub_appliedCreditsPanel').hide();
+    }
+}
+
+function hubOpenCreditModal() {
+    if (hub_available_credits.length === 0) {
+        alert('No available credits for this property.');
+        return;
+    }
+
+    var html = '';
+    hub_available_credits.forEach(function(c) {
+        var rem = parseFloat(c.remaining_amount) || 0;
+        html += '<tr>'
+             +  '<td class="text-center"><input type="checkbox" class="form-check-input hub-credit-check" data-credit-id="' + c.property_credit_id + '" data-remaining="' + rem + '"></td>'
+             +  '<td>' + hub_escapeHtml(c.cancellation_number || '-') + '</td>'
+             +  '<td>' + hub_escapeHtml(c.original_booking_number || '-') + '</td>'
+             +  '<td class="text-end">\u20B9' + hub_money(rem) + '</td>'
+             +  '<td class="text-end"><input type="number" min="0" step="0.01" class="form-control form-control-sm hub-credit-amount" style="width:120px; display:inline-block;" value="' + rem.toFixed(2) + '" data-credit-id="' + c.property_credit_id + '"></td>'
+             +  '<td>' + (c.expiry_date && c.expiry_date !== '0000-00-00' ? hub_formatDateDMY(c.expiry_date) : '-') + '</td>'
+             +  '</tr>';
+    });
+    $('#hubCreditModalBody').html(html);
+    $('#hub_creditApplyTotal').text('\u20B9' + hub_money(0));
+
+    $('.hub-credit-check').on('change', hubUpdateCreditApplyTotal);
+    $('.hub-credit-amount').on('input', hubUpdateCreditApplyTotal);
+
+    $('#hubCreditModal').modal('show');
+}
+
+function hubUpdateCreditApplyTotal() {
+    var total = 0;
+    $('.hub-credit-check:checked').each(function() {
+        var id = $(this).data('credit-id');
+        var remaining = parseFloat($(this).data('remaining')) || 0;
+        var amtInput = $('.hub-credit-amount[data-credit-id="' + id + '"]');
+        var amt = parseFloat(amtInput.val()) || 0;
+        if (amt > remaining) { amtInput.val(remaining.toFixed(2)); amt = remaining; }
+        if (amt < 0) { amtInput.val(0); amt = 0; }
+        total += amt;
+    });
+    $('#hub_creditApplyTotal').text('\u20B9' + hub_money(total));
+}
+
+function hubApplySelectedCredits() {
+    var selected = [];
+    $('.hub-credit-check:checked').each(function() {
+        var id = $(this).data('credit-id');
+        var amt = parseFloat($('.hub-credit-amount[data-credit-id="' + id + '"]').val()) || 0;
+        if (amt > 0) { selected.push({ credit_id: id, amount: amt }); }
+    });
+
+    if (selected.length === 0) {
+        alert('Please select at least one credit and enter an amount.');
+        return;
+    }
+
+    var reservationId = parseInt($('#hub_property_reservation_id').val(), 10) || 0;
+    var done = 0;
+    var errors = [];
+
+    selected.forEach(function(item) {
+        $.ajax({
+            url: '<?php echo base_url(); ?>index.php/Property_credit/ajax_apply_credit',
+            type: 'POST',
+            async: false,
+            data: {
+                property_credit_id: item.credit_id,
+                quotation_id: hub_res_current_quotation_id,
+                property_reservation_id: reservationId,
+                applied_amount: item.amount
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status) { done++; }
+                else { errors.push(res.message || 'Unknown error'); }
+            },
+            error: function() { errors.push('Network error for credit #' + item.credit_id); }
+        });
+    });
+
+    if (errors.length > 0) {
+        alert('Some credits could not be applied:\n' + errors.join('\n'));
+    }
+    if (done > 0) {
+        $('#hubCreditModal').modal('hide');
+        // Reload reservation data
+        $.ajax({
+            url: '<?php echo base_url(); ?>index.php/property_reservation/ajax_get_reservation',
+            type: 'POST',
+            data: {
+                quotation_id: hub_res_current_quotation_id,
+                properties_id: hub_res_current_properties_id
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status) { hubRenderReservation(res); }
+            }
+        });
     }
 }
 

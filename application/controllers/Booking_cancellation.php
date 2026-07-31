@@ -31,6 +31,7 @@ class Booking_cancellation extends MY_Controller {
 
         $this->load->model('General_model');
         $this->load->model('Booking_cancellation_model');
+        $this->load->model('Property_credit_model');
     }
 
     // =========================================================
@@ -1031,7 +1032,7 @@ class Booking_cancellation extends MY_Controller {
 
         $this->db->trans_begin();
 
-        $this->Booking_cancellation_model->insert_property_refund(array(
+        $refund_id = $this->Booking_cancellation_model->insert_property_refund(array(
             'cancellation_property_id_fk'   => $line_id,
             'booking_cancellation_id_fk'    => (int)$line->booking_cancellation_id_fk,
             'properties_id_fk'              => (int)$line->properties_id_fk,
@@ -1049,6 +1050,33 @@ class Booking_cancellation extends MY_Controller {
             'property_refund_status'        => 1,
         ));
 
+        /* When the property keeps the amount as future-booking credit,
+           create a ledger entry so the credit can be tracked and applied. */
+        if ($mode === 'PROPERTY_CREDIT') {
+
+            $expiry = $this->_date($this->input->post('credit_expiry_date'));
+
+            $this->Property_credit_model->create_credit(array(
+                'properties_id_fk'            => (int)$line->properties_id_fk,
+                'booking_cancellation_id_fk'  => (int)$line->booking_cancellation_id_fk,
+                'cancellation_property_id_fk' => $line_id,
+                'property_reservation_id_fk'  => (int)$line->property_reservation_id_fk > 0
+                                                 ? (int)$line->property_reservation_id_fk : null,
+                'quotation_id_fk'             => (int)$header->quotation_id_fk,
+                'credit_amount'               => round($amount, 2),
+                'used_amount'                 => 0.00,
+                'remaining_amount'            => round($amount, 2),
+                'credit_status'               => 'AVAILABLE',
+                'expiry_date'                 => $expiry,
+                'reference_number'            => $ref,
+                'remarks'                     => $remarks,
+                'created_by_userid'           => $this->currentuserid,
+                'created_by_username'         => $this->currentusername,
+                'created_datetime'            => date('Y-m-d H:i:s'),
+                'property_credit_status'      => 1,
+            ));
+        }
+
         $summary = $this->Booking_cancellation_model->recalculate($line->booking_cancellation_id_fk);
 
         if ($this->db->trans_status() === FALSE) {
@@ -1059,7 +1087,11 @@ class Booking_cancellation extends MY_Controller {
 
         $this->db->trans_commit();
 
-        $this->_json(true, 'Supplier refund recorded', array('summary' => $summary));
+        $msg = ($mode === 'PROPERTY_CREDIT')
+             ? 'Property credit recorded'
+             : 'Supplier refund recorded';
+
+        $this->_json(true, $msg, array('summary' => $summary));
     }
 
     public function ajax_reverse_property_refund()
@@ -1115,6 +1147,25 @@ class Booking_cancellation extends MY_Controller {
             'property_refund_created_datetime' => date('Y-m-d H:i:s'),
             'property_refund_status'      => 1,
         ));
+
+        /* If the original refund was a PROPERTY_CREDIT, cancel the
+           corresponding ledger entry (only if not yet used). */
+        if ($refund->refund_mode === 'PROPERTY_CREDIT') {
+            $credits = $this->Property_credit_model->get_credits_for_cancellation(
+                (int)$refund->booking_cancellation_id_fk
+            );
+            foreach ($credits as $cr) {
+                if ((int)$cr->cancellation_property_id_fk === (int)$refund->cancellation_property_id_fk
+                    && (float)$cr->credit_amount === (float)$refund->refund_amount
+                    && (float)$cr->used_amount <= 0.009) {
+                    $this->Property_credit_model->update_credit($cr->property_credit_id, array(
+                        'credit_status' => 'CANCELLED',
+                        'remarks'       => trim($cr->remarks
+                            . "\n[Cancelled: reversal of refund #" . $refund_id . ' — ' . $reason . ']'),
+                    ));
+                }
+            }
+        }
 
         $summary = $this->Booking_cancellation_model->recalculate($refund->booking_cancellation_id_fk);
 
@@ -1648,6 +1699,8 @@ class Booking_cancellation extends MY_Controller {
             'refund_reverse'  => has_permission('BOOKING_CANCELLATION_REFUND_REVERSE'),
             'adjust'          => has_permission('BOOKING_CANCELLATION_ADJUST'),
             'reverse'         => has_permission('BOOKING_CANCELLATION_REVERSE'),
+            'credit_apply'    => has_permission('PROPERTY_CREDIT_APPLY'),
+            'credit_reverse'  => has_permission('PROPERTY_CREDIT_REVERSE'),
         );
     }
 }

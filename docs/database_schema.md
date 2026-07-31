@@ -374,6 +374,65 @@ Append-only audit trail for each payment made to a property owner.
 - `booking_cancellation_property.booking_cancellation_id_fk` → `booking_cancellation` (CASCADE)
 - `booking_cancellation_property.property_reservation_id_fk` → `property_reservation` (RESTRICT)
 
+### Property Credit Ledger FKs
+
+- `property_credit_ledger.properties_id_fk` → `properties.properties_id` (RESTRICT)
+- `property_credit_ledger.booking_cancellation_id_fk` → `booking_cancellation.booking_cancellation_id` (CASCADE)
+- `property_credit_ledger.cancellation_property_id_fk` → `booking_cancellation_property.cancellation_property_id` (CASCADE)
+- `property_credit_ledger.quotation_id_fk` → `quotation.quotation_id` (RESTRICT)
+- `property_credit_ledger.property_reservation_id_fk` → `property_reservation.property_reservation_id` (SET NULL)
+- `property_credit_application.property_credit_id_fk` → `property_credit_ledger.property_credit_id` (CASCADE)
+- `property_credit_application.quotation_id_fk` → `quotation.quotation_id` (RESTRICT)
+- `property_credit_application.property_reservation_id_fk` → `property_reservation.property_reservation_id` (SET NULL)
+- `property_credit_application.properties_id_fk` → `properties.properties_id` (RESTRICT)
+
+## Property Credit Ledger Module
+
+Migration: `db/migration_property_credit.sql`
+
+### `property_credit_ledger` — Credit Header (one per credit)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `property_credit_id` | int(11) PK | Primary key |
+| `properties_id_fk` | int(11) FK | Property that owes the credit |
+| `booking_cancellation_id_fk` | int(11) FK | Source cancellation |
+| `cancellation_property_id_fk` | int(11) FK | Source property line |
+| `property_reservation_id_fk` | int(11) FK nullable | Original reservation (nullable for partial) |
+| `quotation_id_fk` | int(11) FK | The cancelled booking |
+| `credit_amount` | decimal(14,2) | Original credit amount |
+| `used_amount` | decimal(14,2) | Cumulative consumed (recomputed from applications) |
+| `remaining_amount` | decimal(14,2) | credit_amount - used_amount |
+| `credit_status` | enum | AVAILABLE, PARTIALLY_USED, FULLY_UTILIZED, EXPIRED, CANCELLED |
+| `expiry_date` | date nullable | Optional expiry |
+| `reference_number` | varchar(255) | Hotel credit reference |
+| `remarks` | text | Notes |
+| `created_by_userid` | int(11) | Creator |
+| `created_by_username` | varchar(200) | Creator name |
+| `created_datetime` | datetime | Creation timestamp |
+| `property_credit_status` | int(11) | 1=active, 0=deleted |
+
+### `property_credit_application` — Credit Consumption (one per usage)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `credit_application_id` | int(11) PK | Primary key |
+| `property_credit_id_fk` | int(11) FK | Which credit is being consumed |
+| `quotation_id_fk` | int(11) FK | New booking consuming the credit |
+| `property_reservation_id_fk` | int(11) FK nullable | New reservation (nullable until allocated) |
+| `properties_id_fk` | int(11) FK | Denormalised for reports |
+| `applied_amount` | decimal(14,2) | Amount consumed |
+| `application_type` | enum | FULL or PARTIAL |
+| `applied_by_userid` | int(11) | Who applied |
+| `applied_by_username` | varchar(200) | Who applied |
+| `applied_datetime` | datetime | When applied |
+| `reversed` | tinyint(1) | 1=reversed |
+| `reversed_by_userid` | int(11) nullable | Who reversed |
+| `reversed_by_username` | varchar(200) nullable | Who reversed |
+| `reversed_datetime` | datetime nullable | When reversed |
+| `reversal_reason` | varchar(500) nullable | Why reversed |
+| `credit_application_status` | int(11) | 1=active, 0=deleted |
+
 ## Design Patterns
 
 - **Soft deletes**: All tables use a `*_status` column (1=active, 0=deleted) instead of physical deletion

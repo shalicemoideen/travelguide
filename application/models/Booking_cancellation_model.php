@@ -546,6 +546,24 @@ class Booking_cancellation_model extends CI_Model {
             ->row();
     }
 
+    public function get_property_credits($cancellation_id)
+    {
+        if (!$this->db->table_exists('property_credit_ledger')) {
+            return array();
+        }
+
+        return $this->db
+            ->select('pcl.*, p.properties_name, q.quotation_number AS original_booking_number')
+            ->from('property_credit_ledger pcl')
+            ->join('properties p', 'p.properties_id = pcl.properties_id_fk', 'left')
+            ->join('quotation q', 'q.quotation_id = pcl.quotation_id_fk', 'left')
+            ->where('pcl.booking_cancellation_id_fk', (int)$cancellation_id)
+            ->where('pcl.property_credit_status', 1)
+            ->order_by('pcl.property_credit_id', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function get_adjustments($cancellation_id)
     {
         return $this->db
@@ -570,6 +588,7 @@ class Booking_cancellation_model extends CI_Model {
             'services'         => $this->get_service_lines($id),
             'customer_refunds' => $this->get_customer_refunds($id),
             'property_refunds' => $this->get_property_refunds($id),
+            'property_credits' => $this->get_property_credits($id),
             'adjustments'      => $this->get_adjustments($id),
         );
     }

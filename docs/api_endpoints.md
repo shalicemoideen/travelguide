@@ -285,3 +285,21 @@ File uploads are handled within AJAX endpoints using CodeIgniter's file upload l
 | `Property_reservation` | Payment slips | `uploads/Property-payments/` |
 | `Staff` | Profile pictures | `uploads/Profile-pics/` |
 | `Booking_cancellation` | Refund slips | `uploads/Cancellation-refunds/` |
+
+### Property Credit
+
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `Property_credit/index` | GET | Yes | Credit report page |
+| `Property_credit/get` | POST | Yes | DataTables server-side credit list |
+| `Property_credit/ajax_get_available_credits` | POST | Yes | Available credits for a property |
+| `Property_credit/ajax_get_credit_detail` | POST | Yes | Single credit with applications |
+| `Property_credit/ajax_get_credit_history` | POST | Yes | Full credit history for a property |
+| `Property_credit/ajax_get_credit_summary` | POST | Yes | Aggregated credit summary for a property |
+| `Property_credit/ajax_get_applied_credits` | POST | Yes | Credits applied to a quotation |
+| `Property_credit/ajax_apply_credit` | POST | Yes | Apply credit to a booking |
+| `Property_credit/ajax_reverse_credit_application` | POST | Yes | Reverse a credit application |
+| `Property_credit/ajax_expire_credit` | POST | Yes | Mark a credit as expired |
+| `Property_credit/ajax_cancel_credit` | POST | Yes | Cancel a credit (if unused) |
+| `Property_credit/ajax_get_report_totals` | POST | Yes | Aggregated totals for filtered report |
+| `Property_reservation/ajax_get_available_credits` | POST | Yes | Available credits for a property (reservation context) |

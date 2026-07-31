@@ -19,6 +19,7 @@ class Property_reservation extends MY_Controller {
 
         $this->load->model('General_model');
         $this->load->model('Property_reservation_model');
+        $this->load->model('Property_credit_model');
     }
 
     // =========================================================
@@ -107,6 +108,14 @@ class Property_reservation extends MY_Controller {
         $rent_breakdown    = $this->Property_reservation_model->get_property_rent_breakdown($quotation_id, $properties_id);
         $inclusions_detail = $this->Property_reservation_model->get_property_inclusions_detail($quotation_id, $properties_id);
 
+        /* Property credit detection: check for available credits on this property */
+        $available_credits = array();
+        $applied_credits   = array();
+        if ($this->db->table_exists('property_credit_ledger')) {
+            $available_credits = $this->Property_credit_model->get_available_credits($properties_id);
+            $applied_credits   = $this->Property_credit_model->get_applications_for_quotation($quotation_id);
+        }
+
         echo json_encode(array(
             'status'            => true,
             'reservation'       => $reservation,
@@ -116,6 +125,8 @@ class Property_reservation extends MY_Controller {
             'total_amount'      => $total_amount,
             'rent_breakdown'    => $rent_breakdown,
             'inclusions_detail' => $inclusions_detail,
+            'available_credits' => $available_credits,
+            'applied_credits'   => $applied_credits,
         ));
     }
 
@@ -621,6 +632,28 @@ class Property_reservation extends MY_Controller {
             'scheduler'   => $scheduler,
         );
         $this->load->view('Property_reservation/receipt', $data);
+    }
+
+    // =========================================================
+    // PROPERTY CREDIT DETECTION
+    // =========================================================
+
+    public function ajax_get_available_credits()
+    {
+        $properties_id = (int)$this->input->post('properties_id');
+
+        if ($properties_id <= 0) {
+            echo json_encode(array('status' => false, 'message' => 'Property ID is required'));
+            return;
+        }
+
+        if (!$this->db->table_exists('property_credit_ledger')) {
+            echo json_encode(array('status' => true, 'credits' => array()));
+            return;
+        }
+
+        $credits = $this->Property_credit_model->get_available_credits($properties_id);
+        echo json_encode(array('status' => true, 'credits' => $credits));
     }
 
     // =========================================================

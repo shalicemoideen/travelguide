@@ -114,6 +114,7 @@ Permissions are grouped by module and sub-module:
 | PROPERTY | PROPERTY | PROPERTY_VIEW, PROPERTY_CREATE, PROPERTY_EDIT, PROPERTY_DELETE |
 | PROPERTY | RESERVATION | RESERVATION_VIEW, RESERVATION_CREATE, RESERVATION_EDIT |
 | BOOKING CANCELLATION | CANCELLATION | CANCELLATION_VIEW, CANCELLATION_CREATE, CANCELLATION_APPROVE, CANCELLATION_SETTLE |
+| PROPERTY CREDIT | PROPERTY CREDIT | PROPERTY_CREDIT_VIEW, PROPERTY_CREDIT_CREATE, PROPERTY_CREDIT_APPLY, PROPERTY_CREDIT_REVERSE, PROPERTY_CREDIT_REPORT |
 | PAYMENT | RECEIPT_SCHEDULER | PAYMENT_VIEW, PAYMENT_CREATE, PAYMENT_EDIT, PAYMENT_RECORD |
 | PAYMENT | PROPERTY_PAYMENT | PROPERTY_PAYMENT_VIEW, PROPERTY_PAYMENT_RECORD |
 | PACKAGE | PACKAGE | PACKAGE_VIEW, PACKAGE_CREATE, PACKAGE_EDIT, PACKAGE_DELETE |
@@ -171,6 +172,7 @@ Additional permissions are added via SQL migration files:
 - `db/add_quotation_hub_permissions.sql` — Quotation hub permissions
 - `db/add_transporter_report_permission.sql` — Transporter report permission
 - `db/migrations.txt` — Quotation review permission
+- `db/add_property_credit_permissions.sql` — Property credit module permissions
 
 ## Security Notes
 

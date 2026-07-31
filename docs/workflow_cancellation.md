@@ -19,7 +19,9 @@ Manage the full lifecycle of a booking cancellation with complete P&L tracking, 
 | `booking_cancellation_reason` | Master list of cancellation reasons |
 | `booking_cancellation_customer_refund` | Append-only customer refund transactions (with REVERSAL support) |
 | `booking_cancellation_property` | Per-property cancellation details with charge snapshots |
-| `booking_cancellation_property_refund` | Per-property supplier refund transactions |
+| `booking_cancellation_property_refund` | Per-property supplier refund transactions (supports PROPERTY_CREDIT mode) |
+| `property_credit_ledger` | Property credit header (created when refund mode = PROPERTY_CREDIT) |
+| `property_credit_application` | Credit consumption records (applied to new bookings) |
 | `booking_cancellation_service` | Non-property supplier cancellations (transport, visa, guide, etc.) |
 | `booking_cancellation_adjustment` | Write-offs, goodwill, gateway fees, tax adjustments, incentive clawback |
 | `property_reservation` | Linked reservation (FK RESTRICT prevents deletion) |
@@ -39,7 +41,8 @@ Manage the full lifecycle of a booking cancellation with complete P&L tracking, 
   - `ajax_reject()` — Manager rejects cancellation
   - `ajax_record_customer_refund()` — Record customer refund payment
   - `ajax_reverse_customer_refund()` — Reverse a customer refund
-  - `ajax_record_property_refund()` — Record supplier refund
+  - `ajax_add_property_refund()` — Record supplier refund (supports PROPERTY_CREDIT mode → creates ledger entry)
+  - `ajax_reverse_property_refund()` — Reverse supplier refund (cancels linked credit if unused)
   - `ajax_add_service()` — Add non-property service cancellation
   - `ajax_add_adjustment()` — Add financial adjustment
   - `ajax_settle()` — Mark cancellation as settled
@@ -112,7 +115,7 @@ Manage the full lifecycle of a booking cancellation with complete P&L tracking, 
    - `snap_supplier_booked` — Total booked with suppliers
    - `snap_supplier_paid` — Total paid to suppliers
 5. **Customer refund flow**: `customer_refund_due` = `snap_customer_received` - `customer_cancellation_charge`; tracked via append-only `booking_cancellation_customer_refund` table
-6. **Supplier refund flow**: `supplier_refund_expected` = `snap_supplier_booked` - `supplier_cancellation_charge`; tracked via `booking_cancellation_property_refund`
+6. **Supplier refund flow**: `supplier_refund_expected` = `snap_supplier_booked` - `supplier_cancellation_charge`; tracked via `booking_cancellation_property_refund`. When `refund_mode` = `PROPERTY_CREDIT`, a `property_credit_ledger` entry is created automatically, enabling the credit to be applied to future bookings for the same property.
 7. **P&L calculation**: `net_result` = `net_retained_from_customer` + `net_paid_to_suppliers` - `net_other_cost` + `net_adjustment_total`
 8. **Approval workflow**: DRAFT → PENDING_APPROVAL → APPROVED → SETTLED (or REJECTED at approval stage)
 9. **Reversal**: A settled cancellation can be reversed (SETTLED → REVERSED); restores `previous_quotation_status` and reservation states
@@ -218,7 +221,8 @@ Manager Approves (status=APPROVED)
   │
   ├── Property-Level Cancellations
   │    ├── Per property: charge_snapshot, refund_expected, refund_received
-  │    ├── Property Refunds (append-only)
+  │    ├── Property Refunds (append-only, with PROPERTY_CREDIT mode)
+  │    │    └── PROPERTY_CREDIT creates property_credit_ledger entry for future booking use
   │    └── line_status: PENDING → SETTLED
   │
   ├── Non-Property Services (transport, visa, guide, etc.)
@@ -250,3 +254,4 @@ Settled (status=SETTLED)
 - **No-show**: Guest doesn't show up; typically full cancellation charge to customer, supplier refunds depend on agreement
 - **Reversal after settlement**: Restores quotation to its previous status; all financial records remain for audit
 - **Multiple properties, different suppliers**: Each property has its own cancellation line, charge, and refund tracking
+- **Property credit**: When a property retains the refund as future-booking credit (`refund_mode` = `PROPERTY_CREDIT`), a `property_credit_ledger` entry is created. The credit can be applied to new bookings for the same property via the Property Reservation module. Reversing the refund cancels the credit if it hasn't been used.

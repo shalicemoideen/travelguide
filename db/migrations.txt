@@ -308,3 +308,15 @@ INSERT INTO `tr_permissions` (`name`, `display_name`, `module`, `sub_module`, `d
 -- password_hash(PASSWORD_DEFAULT) currently produces 60 chars (bcrypt) but future algorithms
 -- may need more; VARCHAR(255) is the recommended, future-proof length. Existing data is preserved.
 ALTER TABLE `user_details` MODIFY `password` VARCHAR(255) NOT NULL;
+
+-- =========================================================
+-- Property Credit Ledger Module
+-- =========================================================
+-- Creates property_credit_ledger and property_credit_application tables
+-- for tracking supplier refunds taken as future-booking credit.
+-- See: db/migration_property_credit.sql
+-- See: db/add_property_credit_permissions.sql
+--
+-- New permissions: PROPERTY_CREDIT_VIEW, PROPERTY_CREDIT_CREATE,
+-- PROPERTY_CREDIT_APPLY, PROPERTY_CREDIT_REVERSE, PROPERTY_CREDIT_REPORT
+-- Granted to SUPER ADMIN role.

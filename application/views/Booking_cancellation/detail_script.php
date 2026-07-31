@@ -6,7 +6,7 @@ $(function () {
     var CID    = parseInt($('#bcd_id').val(), 10);
 
     var state = { header: null, properties: [], services: [], customer_refunds: [],
-                  property_refunds: [], adjustments: [], summary: null, permissions: {} };
+                  property_refunds: [], property_credits: [], adjustments: [], summary: null, permissions: {} };
 
     // =====================================================
     // Helpers
@@ -147,7 +147,7 @@ $(function () {
         /* Render each section in isolation: a failure in one (e.g. a freshly
            created row with an unexpected field) must never abort the rest,
            otherwise the ledger looks like it "did not reload". */
-        var steps = [renderSummary, renderCustomerRefunds, renderProperties, renderServices, renderAdjustments];
+        var steps = [renderSummary, renderCustomerRefunds, renderProperties, renderCreditLedger, renderServices, renderAdjustments];
         for (var i = 0; i < steps.length; i++) {
             try { steps[i](); }
             catch (e) { if (window.console && console.error) { console.error('Cancellation render step failed:', e); } }
@@ -736,11 +736,14 @@ $(function () {
         $('#pr_amount').val(pending.toFixed(2));
         $('#pr_date').val(todayDmy());
         $('#pr_adjust_wrap').hide();
+        $('#pr_credit_expiry_wrap').hide();
         $('#prModal').modal('show');
     });
 
     $('#pr_mode').on('change', function () {
-        $('#pr_adjust_wrap').toggle($(this).val() === 'ADJUSTED' || $(this).val() === 'CREDIT_NOTE');
+        var val = $(this).val();
+        $('#pr_adjust_wrap').toggle(val === 'ADJUSTED' || val === 'CREDIT_NOTE');
+        $('#pr_credit_expiry_wrap').toggle(val === 'PROPERTY_CREDIT');
     });
 
     $('#prForm').on('submit', function (e) {
@@ -800,6 +803,44 @@ $(function () {
                 }, 'json');
         });
     });
+
+    // =====================================================
+    // Property Credit Ledger
+    // =====================================================
+
+    function creditStatusPill(s) {
+        var m = { AVAILABLE: ['#d1e7dd','#0f5132'], PARTIALLY_USED: ['#ffe5d0','#8a4b0a'],
+                  FULLY_UTILIZED: ['#cfe2ff','#084298'], EXPIRED: ['#f8d7da','#842029'],
+                  CANCELLED: ['#e2d9f3','#432874'] };
+        var c = m[s] || ['#e9ecef','#495057'];
+        return pill(String(s).replace(/_/g, ' '), c[0], c[1]);
+    }
+
+    function renderCreditLedger() {
+        var credits = state.property_credits || [];
+        if (!credits.length) {
+            $('#creditLedgerSection').hide();
+            return;
+        }
+
+        $('#creditLedgerSection').show();
+        var rows = '';
+        $.each(credits, function (i, c) {
+            rows += '<tr>'
+                 +  '<td>' + (i + 1) + '</td>'
+                 +  '<td>' + esc(c.properties_name || c.snap_property_name || '-') + '</td>'
+                 +  '<td>' + esc(c.original_booking_number || '-') + '</td>'
+                 +  '<td class="bcd-money">' + money(c.credit_amount) + '</td>'
+                 +  '<td class="bcd-money">' + money(c.used_amount) + '</td>'
+                 +  '<td class="bcd-money fw-bold">' + money(c.remaining_amount) + '</td>'
+                 +  '<td>' + creditStatusPill(c.credit_status) + '</td>'
+                 +  '<td>' + dmy(c.expiry_date) + '</td>'
+                 +  '<td>' + esc(c.reference_number || '-') + '</td>'
+                 +  '<td>' + dmy(String(c.created_datetime).substr(0, 10)) + '</td>'
+                 +  '</tr>';
+        });
+        $('#creditLedgerTable tbody').html(rows);
+    }
 
     // =====================================================
     // Services

@@ -252,6 +252,30 @@ $money_open = in_array($status, array('APPROVED', 'SETTLED'));
                     <div class="tab-pane fade" id="tabSupplier">
                         <div class="bcd-section-title">Property-wise cancellation charges &amp; refund recovery</div>
                         <div id="propertyCards"></div>
+
+                        <div class="mt-4" id="creditLedgerSection" style="display:none;">
+                            <div class="bcd-section-title">
+                                <i class="la la-wallet me-1"></i> Property Credit Ledger
+                            </div>
+                            <div class="alert alert-secondary py-2 bcd-locked-note mb-2">
+                                Credits created when a property retains the refund amount for future bookings.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered bcd-sub-table mb-0" id="creditLedgerTable">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>Property</th><th>Original Booking</th>
+                                            <th class="bcd-money">Credit Amount</th>
+                                            <th class="bcd-money">Used</th>
+                                            <th class="bcd-money">Remaining</th>
+                                            <th>Status</th><th>Expiry</th>
+                                            <th>Reference</th><th>Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ---------- SERVICES ---------- -->
@@ -598,11 +622,16 @@ $money_open = in_array($status, array('APPROVED', 'SETTLED'));
                             <option value="">Select mode</option>
                             <option>NEFT</option><option>UPI</option><option>CASH</option>
                             <option>CHEQUE</option><option>CREDIT_NOTE</option><option>ADJUSTED</option>
+                            <option value="PROPERTY_CREDIT">PROPERTY CREDIT (Future Booking Credit)</option>
                         </select>
                     </div>
                     <div class="col-6">
                         <label class="form-label">Reference</label>
                         <input type="text" class="form-control" name="refund_reference">
+                    </div>
+                    <div class="col-6" id="pr_credit_expiry_wrap" style="display:none;">
+                        <label class="form-label">Credit Expiry Date (optional)</label>
+                        <input type="text" class="form-control bcd-date" name="credit_expiry_date" id="pr_credit_expiry" placeholder="dd/mm/yyyy">
                     </div>
                     <div class="col-12" id="pr_adjust_wrap" style="display:none;">
                         <label class="form-label">Adjusted against Booking ID</label>

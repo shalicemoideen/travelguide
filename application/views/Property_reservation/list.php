@@ -89,6 +89,27 @@
                         <div class="col-md-4"><div class="pr-info-box"><div class="lbl">Duration</div><div class="val" id="info_duration">-</div></div></div>
                     </div>
 
+                    <!-- Property Credit Detection -->
+                    <div id="creditPanel" class="alert alert-warning border-warning mb-3" style="display:none;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fas fa-wallet text-warning me-1"></i>
+                                <strong>Available Property Credit Detected</strong>
+                                <span id="creditTotalBadge" class="badge bg-warning text-dark ms-2">₹0.00</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="openCreditModal()">
+                                <i class="fas fa-plus me-1"></i> Apply Credit
+                            </button>
+                        </div>
+                        <div id="creditList" class="mt-2 small"></div>
+                    </div>
+
+                    <!-- Applied Credits Summary -->
+                    <div id="appliedCreditsPanel" class="alert alert-success border-success mb-3" style="display:none;">
+                        <strong><i class="fas fa-check-circle me-1"></i> Property Credit Applied to This Booking</strong>
+                        <div id="appliedCreditsList" class="mt-2 small"></div>
+                    </div>
+
                     <input type="hidden" id="property_reservation_id" value="">
 
                     <!-- Property Rent + Property-based Inclusions -->
@@ -430,28 +451,70 @@
     </div>
 </div>
 
-<!-- Receipts Modal -->
-<div class="modal fade" id="prReceiptsModal" tabindex="-1" role="dialog">
+<!-- Property Credit Application Modal -->
+<div class="modal fade" id="prCreditModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Payment Receipts</h5>
+                <h5 class="modal-title"><i class="fas fa-wallet me-1"></i> Apply Property Credit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 small mb-3">
+                    Select one or more credits to apply against this booking. The credit amount will reduce
+                    the supplier payable for this property.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="creditModalTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">Apply</th>
+                                <th>Credit From</th>
+                                <th>Booking</th>
+                                <th class="text-end">Remaining</th>
+                                <th class="text-end">Apply Amount</th>
+                                <th>Expiry</th>
+                            </tr>
+                        </thead>
+                        <tbody id="creditModalBody"></tbody>
+                    </table>
+                </div>
+                <div class="text-end mt-2">
+                    <strong>Total Credit Applied: </strong>
+                    <span id="creditApplyTotal" class="text-success">₹0.00</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="applySelectedCredits()">
+                    <i class="fas fa-check me-1"></i> Apply Selected Credit(s)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Property Credit History Modal -->
+<div class="modal fade" id="prCreditHistoryModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-history me-1"></i> Property Credit History</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm">
+                    <table class="table table-bordered table-sm" id="creditHistoryTable">
                         <thead class="table-light">
                             <tr>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Method</th>
-                                <th>Reference</th>
-                                <th>Received By</th>
-                                <th width="90">Action</th>
+                                <th>#</th><th>Credit From</th><th>Booking</th>
+                                <th class="text-end">Credit</th>
+                                <th class="text-end">Used</th>
+                                <th class="text-end">Remaining</th>
+                                <th>Status</th><th>Expiry</th><th>Created</th>
                             </tr>
                         </thead>
-                        <tbody id="pr_receipts_body"></tbody>
+                        <tbody id="creditHistoryBody"></tbody>
                     </table>
                 </div>
             </div>

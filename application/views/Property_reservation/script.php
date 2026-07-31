@@ -192,6 +192,7 @@ function renderReservation(res) {
     }
 
     renderComments(res.comments || []);
+    renderCreditPanels(res);
     $('#reservation_panel').show();
 }
 
@@ -211,7 +212,7 @@ function renderInclusionsDetail(rows) {
     var html = '';
     rows.forEach(function(row) {
         var amt = parseFloat(row.inclusion_amount) || 0;
-        html += '<div>' + escapeHtml(row.inclusion_name || '-') + ' &mdash; <strong>INR ' + pr_money(amt) + '</strong></div>';
+        html += '<div>' + pr_escapeHtml(row.inclusion_name || '-') + ' &mdash; <strong>INR ' + pr_money(amt) + '</strong></div>';
     });
     if (!html) html = '<span class="text-muted">No property-based inclusions</span>';
     $('#inclusions_detail_list').html(html);
@@ -459,7 +460,7 @@ function renderComments(comments) {
     var html = '';
     comments.forEach(function(c) {
         html += '<li class="list-group-item d-flex justify-content-between align-items-start">';
-        html += '<div><div>' + escapeHtml(c.comment_text) + '</div>';
+        html += '<div><div>' + pr_escapeHtml(c.comment_text) + '</div>';
         html += '<small class="text-muted">' + (c.created_by_name || 'User') + ' · ' + formatDateTime(c.comment_created_date) + '</small></div>';
         html += '</li>';
     });
@@ -504,7 +505,7 @@ function formatDateTime(d) {
     return formatDate(d) + ' ' + String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0');
 }
 
-function escapeHtml(s) {
+function pr_escapeHtml(s) {
     return $('<div>').text(s || '').html();
 }
 
@@ -632,4 +633,160 @@ function prViewReceipts(installmentId) {
 function prPrintReceipt(paymentId) {
     window.open(base_url + 'index.php/property_reservation/print_receipt/' + paymentId, '_blank', 'width=800,height=700');
 }
+
+// =====================================================
+// PROPERTY CREDIT DETECTION & APPLICATION
+// =====================================================
+
+var pr_available_credits = [];
+var pr_applied_credits   = [];
+
+function renderCreditPanels(res) {
+    pr_available_credits = res.available_credits || [];
+    pr_applied_credits   = res.applied_credits   || [];
+
+    // Available credits panel
+    if (pr_available_credits.length > 0) {
+        var totalRemaining = 0;
+        var html = '';
+        pr_available_credits.forEach(function(c) {
+            var rem = parseFloat(c.remaining_amount) || 0;
+            totalRemaining += rem;
+            html += '<div class="d-flex justify-content-between border-bottom py-1">'
+                 +  '<span>Credit #' + c.property_credit_id
+                 +  ' from <strong>' + pr_escapeHtml(c.cancellation_number || '-') + '</strong>'
+                 +  (c.expiry_date && c.expiry_date !== '0000-00-00' ? ' <span class="text-danger small">(expires ' + pr_formatDateDMY(c.expiry_date) + ')</span>' : '')
+                 +  '</span>'
+                 +  '<span class="fw-bold text-warning">\u20B9' + pr_money(rem) + '</span>'
+                 +  '</div>';
+        });
+        $('#creditList').html(html);
+        $('#creditTotalBadge').text('\u20B9' + pr_money(totalRemaining));
+        $('#creditPanel').show();
+    } else {
+        $('#creditPanel').hide();
+    }
+
+    // Applied credits panel
+    if (pr_applied_credits.length > 0) {
+        var totalApplied = 0;
+        var aHtml = '';
+        pr_applied_credits.forEach(function(a) {
+            var amt = parseFloat(a.applied_amount) || 0;
+            totalApplied += amt;
+            aHtml += '<div class="d-flex justify-content-between border-bottom py-1">'
+                  +  '<span>Credit #' + a.property_credit_id_fk
+                  +  ' from <strong>' + pr_escapeHtml(a.cancellation_number || '-') + '</strong>'
+                  +  ' applied on ' + pr_formatDateDMY(String(a.applied_datetime).substr(0, 10))
+                  +  '</span>'
+                  +  '<span class="fw-bold text-success">\u20B9' + pr_money(amt) + '</span>'
+                  +  '</div>';
+        });
+        aHtml += '<div class="d-flex justify-content-between pt-2">'
+              +  '<span class="fw-bold">Total Credit Used</span>'
+              +  '<span class="fw-bold text-success">\u20B9' + pr_money(totalApplied) + '</span>'
+              +  '</div>';
+        $('#appliedCreditsList').html(aHtml);
+        $('#appliedCreditsPanel').show();
+    } else {
+        $('#appliedCreditsPanel').hide();
+    }
+}
+
+function openCreditModal() {
+    if (pr_available_credits.length === 0) {
+        alert('No available credits for this property.');
+        return;
+    }
+
+    var html = '';
+    pr_available_credits.forEach(function(c) {
+        var rem = parseFloat(c.remaining_amount) || 0;
+        html += '<tr>'
+             +  '<td class="text-center"><input type="checkbox" class="form-check-input credit-check" data-credit-id="' + c.property_credit_id + '" data-remaining="' + rem + '"></td>'
+             +  '<td>' + pr_escapeHtml(c.cancellation_number || '-') + '</td>'
+             +  '<td>' + pr_escapeHtml(c.original_booking_number || '-') + '</td>'
+             +  '<td class="text-end">\u20B9' + pr_money(rem) + '</td>'
+             +  '<td class="text-end"><input type="number" min="0" step="0.01" class="form-control form-control-sm credit-amount" style="width:120px; display:inline-block;" value="' + rem.toFixed(2) + '" data-credit-id="' + c.property_credit_id + '"></td>'
+             +  '<td>' + (c.expiry_date && c.expiry_date !== '0000-00-00' ? pr_formatDateDMY(c.expiry_date) : '-') + '</td>'
+             +  '</tr>';
+    });
+    $('#creditModalBody').html(html);
+    $('#creditApplyTotal').text('\u20B9' + pr_money(0));
+
+    // Update total when checkbox or amount changes
+    $('.credit-check').on('change', updateCreditApplyTotal);
+    $('.credit-amount').on('input', updateCreditApplyTotal);
+
+    $('#prCreditModal').modal('show');
+}
+
+function updateCreditApplyTotal() {
+    var total = 0;
+    $('.credit-check:checked').each(function() {
+        var id = $(this).data('credit-id');
+        var remaining = parseFloat($(this).data('remaining')) || 0;
+        var amtInput = $('.credit-amount[data-credit-id="' + id + '"]');
+        var amt = parseFloat(amtInput.val()) || 0;
+        if (amt > remaining) {
+            amtInput.val(remaining.toFixed(2));
+            amt = remaining;
+        }
+        if (amt < 0) {
+            amtInput.val(0);
+            amt = 0;
+        }
+        total += amt;
+    });
+    $('#creditApplyTotal').text('\u20B9' + pr_money(total));
+}
+
+function applySelectedCredits() {
+    var selected = [];
+    $('.credit-check:checked').each(function() {
+        var id = $(this).data('credit-id');
+        var amt = parseFloat($('.credit-amount[data-credit-id="' + id + '"]').val()) || 0;
+        if (amt > 0) {
+            selected.push({ credit_id: id, amount: amt });
+        }
+    });
+
+    if (selected.length === 0) {
+        alert('Please select at least one credit and enter an amount.');
+        return;
+    }
+
+    var reservationId = parseInt($('#property_reservation_id').val(), 10) || 0;
+    var done = 0;
+    var errors = [];
+
+    selected.forEach(function(item) {
+        $.ajax({
+            url: base_url + 'index.php/Property_credit/ajax_apply_credit',
+            type: 'POST',
+            async: false,
+            data: {
+                property_credit_id: item.credit_id,
+                quotation_id: pr_current_quotation_id,
+                property_reservation_id: reservationId,
+                applied_amount: item.amount
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status) { done++; }
+                else { errors.push(res.message || 'Unknown error'); }
+            },
+            error: function() { errors.push('Network error for credit #' + item.credit_id); }
+        });
+    });
+
+    if (errors.length > 0) {
+        alert('Some credits could not be applied:\n' + errors.join('\n'));
+    }
+    if (done > 0) {
+        $('#prCreditModal').modal('hide');
+        reloadCurrent();
+    }
+}
+
 </script>

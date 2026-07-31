@@ -25,6 +25,8 @@ Travels-software-latest/
 │   ├── migrations.txt    # Alter table migration statements
 │   ├── migration_booking_cancellation.sql
 │   ├── migration_property_reservation.sql
+│   ├── migration_property_credit.sql
+│   ├── add_property_credit_permissions.sql
 │   └── travels_software.sql  # Full schema + seed data
 ├── system/               # CodeIgniter 3 system core (do not modify)
 ├── uploads/              # User-uploaded files

@@ -84,6 +84,15 @@ All lead lists use DataTables with:
 | Cancellation List | `Booking_cancellation` | All cancellations with P&L |
 | Cancellation Detail | `Booking_cancellation` | Full P&L breakdown |
 
+### Property Credit Reports
+
+| View | Controller | Description |
+|------|-----------|-------------|
+| Credit Report | `Property_credit` | All property credits with status, usage, expiry, and aging |
+
+Filters: property, credit status, created date range, expiring within N days.
+Summary tiles: total credit, total used, total remaining.
+
 ### Transporter Report
 
 | View | Controller | Description |
