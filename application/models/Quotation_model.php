@@ -7695,9 +7695,11 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		$cust_pay_status_filter  = isset($param['customer_payment_status_filter']) ? $param['customer_payment_status_filter'] : '';
 		$cust_approval_filter    = isset($param['customer_approval_filter']) ? $param['customer_approval_filter'] : '';
 		$prop_pay_status_filter  = isset($param['property_payment_status_filter']) ? $param['property_payment_status_filter'] : '';
+		$travel_date_start       = isset($param['travel_date_start']) ? $param['travel_date_start'] : '';
+		$travel_date_end         = isset($param['travel_date_end']) ? $param['travel_date_end'] : '';
 
 		$this->db
-			->select('q.quotation_id, q.quotation_number, l.guest_name, l.whats_number,
+			->select('q.quotation_id, q.quotation_number, l.guest_name, l.whats_number, l.start_date,
 			          (SELECT COUNT(*) FROM receipt_scheduler rs WHERE rs.quotation_id_fk = q.quotation_id AND rs.receipt_scheduler_status = 1) as has_customer_scheduler,
 			          (SELECT COUNT(*) FROM property_payment_scheduler pps WHERE pps.quotation_id_fk = q.quotation_id AND pps.property_payment_scheduler_status = 1) as has_property_scheduler,
 			          (SELECT GROUP_CONCAT(DISTINCT rsi.payment_status) FROM receipt_scheduler rs2
@@ -7734,6 +7736,12 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		if ($prop_pay_status_filter) {
 			$this->db->having("property_payment_statuses LIKE '%" . $prop_pay_status_filter . "%'");
 		}
+		if ($travel_date_start) {
+			$this->db->where('l.start_date >=', $travel_date_start);
+		}
+		if ($travel_date_end) {
+			$this->db->where('l.start_date <=', $travel_date_end);
+		}
 
 		$this->db->order_by('q.quotation_id', 'DESC');
 
@@ -7756,6 +7764,8 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		$cust_pay_status_filter  = isset($param['customer_payment_status_filter']) ? $param['customer_payment_status_filter'] : '';
 		$cust_approval_filter    = isset($param['customer_approval_filter']) ? $param['customer_approval_filter'] : '';
 		$prop_pay_status_filter  = isset($param['property_payment_status_filter']) ? $param['property_payment_status_filter'] : '';
+		$travel_date_start       = isset($param['travel_date_start']) ? $param['travel_date_start'] : '';
+		$travel_date_end         = isset($param['travel_date_end']) ? $param['travel_date_end'] : '';
 
 		$this->db
 			->select('q.quotation_id,
@@ -7794,6 +7804,12 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		}
 		if ($prop_pay_status_filter) {
 			$this->db->having("property_payment_statuses LIKE '%" . $prop_pay_status_filter . "%'");
+		}
+		if ($travel_date_start) {
+			$this->db->where('l.start_date >=', $travel_date_start);
+		}
+		if ($travel_date_end) {
+			$this->db->where('l.start_date <=', $travel_date_end);
 		}
 
 		$subquery = $this->db->get_compiled_select();

@@ -99,20 +99,77 @@
 
 		<!-- ===== PERIOD FILTER CARDS ===== -->
 		<div class="row mt-3">
-			<div class="col-xl-12 col-sm-12">
+			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%);border:none;border-radius:12px;">
 					<div class="card-body">
 						<div class="d-flex align-items-center justify-content-between">
 							<div>
-								<h2 class="mb-1 font-w600" id="quotations_sent_count" style="color:#fff;font-size:2rem;">
-									<a id="quotations-sent-link" href="<?php echo base_url();?>index.php/Quotation/quotation_report?period=today&status=3" style="color:#fff;">
-										<?php foreach ($quotations_sent as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+								<h2 class="mb-1 font-w600" id="quotations_generated_count" style="color:#fff;font-size:2rem;">
+									<a id="quotations-generated-link" href="<?php echo base_url();?>index.php/Quotation/quotation_report?period=today&status=1" style="color:#fff;">
+										<?php foreach ($quotations_generated as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
 									</a>
 								</h2>
-								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Quotations Sent</p>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Quotation Generated</p>
 							</div>
 							<div style="opacity:0.35;">
-								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM4 0h16v2H4zm0 22h16v2H4z"/></svg>
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);border:none;border-radius:12px;">
+					<div class="card-body">
+						<div class="d-flex align-items-center justify-content-between">
+							<div>
+								<h2 class="mb-1 font-w600" id="quotations_confirmed_count" style="color:#fff;font-size:2rem;">
+									<a id="quotations-confirmed-link" href="<?php echo base_url();?>index.php/Quotation/quotation_report?period=today&status=5" style="color:#fff;">
+										<?php foreach ($quotations_confirmed as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+									</a>
+								</h2>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Confirmed</p>
+							</div>
+							<div style="opacity:0.35;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card" style="background:linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%);border:none;border-radius:12px;">
+					<div class="card-body">
+						<div class="d-flex align-items-center justify-content-between">
+							<div>
+								<h2 class="mb-1 font-w600" id="quotations_reservation_count" style="color:#fff;font-size:2rem;">
+									<a id="quotations-reservation-link" href="<?php echo base_url();?>index.php/Quotation/quotation_report?period=today&status=8" style="color:#fff;">
+										<?php foreach ($quotations_reservation as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+									</a>
+								</h2>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Reservation Completed</p>
+							</div>
+							<div style="opacity:0.35;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card" style="background:linear-gradient(135deg,#f6d365 0%,#fda085 100%);border:none;border-radius:12px;">
+					<div class="card-body">
+						<div class="d-flex align-items-center justify-content-between">
+							<div>
+								<h2 class="mb-1 font-w600" id="quotations_driver_not_assigned_count" style="color:#fff;font-size:2rem;">
+									<a id="quotations-driver-not-assigned-link" href="<?php echo base_url();?>index.php/Quotation/quotation_report?period=today&status=9" style="color:#fff;">
+										<?php foreach ($quotations_driver_not_assigned as $row){ echo ($row->total_count == 0) ? '0' : $row->total_count; } ?>
+									</a>
+								</h2>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Driver Not Assigned</p>
+							</div>
+							<div style="opacity:0.35;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
 							</div>
 						</div>
 					</div>
@@ -120,6 +177,49 @@
 			</div>
 		</div>
 		<!-- ===== END PERIOD FILTER CARDS ===== -->
+
+		<!-- ===== PENDING PAYMENT CARDS ===== -->
+		<div class="row mt-3">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card" style="background:linear-gradient(135deg,#e53935 0%,#ef5350 100%);border:none;border-radius:12px;">
+					<div class="card-body">
+						<div class="d-flex align-items-center justify-content-between">
+							<div>
+								<h2 class="mb-1 font-w600" id="pending_customer_payment_count" style="color:#fff;font-size:2rem;">
+									<a id="pending-customer-payment-link" href="<?php echo base_url();?>index.php/Payment_report?period=today" style="color:#fff;">
+										<?php echo ($pending_customer_payment == 0) ? '0' : $pending_customer_payment; ?>
+									</a>
+								</h2>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Customer Payment Pending</p>
+							</div>
+							<div style="opacity:0.35;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card" style="background:linear-gradient(135deg,#ff7043 0%,#ffab40 100%);border:none;border-radius:12px;">
+					<div class="card-body">
+						<div class="d-flex align-items-center justify-content-between">
+							<div>
+								<h2 class="mb-1 font-w600" id="pending_property_payment_count" style="color:#fff;font-size:2rem;">
+									<a id="pending-property-payment-link" href="<?php echo base_url();?>index.php/Payment_report?period=today" style="color:#fff;">
+										<?php echo ($pending_property_payment == 0) ? '0' : $pending_property_payment; ?>
+									</a>
+								</h2>
+								<p class="mb-1" style="color:rgba(255,255,255,0.9);font-weight:600;">Property Payment Pending</p>
+							</div>
+							<div style="opacity:0.35;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="white" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- ===== END PENDING PAYMENT CARDS ===== -->
 
 		<!-- ===== LEADS ANALYTICS CHARTS ===== -->
 		<div class="row">

@@ -959,10 +959,20 @@ $(document).ready(function(){
         $('#converted_trips_count').find('a').text(data.converted);
         $('#checkin_count').find('a').text(data.checkin);
         $('#checkout_count').find('a').text(data.checkout);
-        $('#quotations_sent_count').find('a').text(data.quotations);
+        $('#quotations_generated_count').find('a').text(data.quotations_generated);
+        $('#quotations_confirmed_count').find('a').text(data.quotations_confirmed);
+        $('#quotations_reservation_count').find('a').text(data.quotations_reservation);
+        $('#quotations_driver_not_assigned_count').find('a').text(data.quotations_driver_not_assigned);
+        $('#pending_customer_payment_count').find('a').text(data.pending_customer_payment);
+        $('#pending_property_payment_count').find('a').text(data.pending_property_payment);
         $('#converted-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period);
         $('#total-leads-link').attr('href', "<?php echo base_url(); ?>index.php/Leads/lead_report?period=" + period);
-        $('#quotations-sent-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=3");
+        $('#quotations-generated-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=1");
+        $('#quotations-confirmed-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=5");
+        $('#quotations-reservation-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=8");
+        $('#quotations-driver-not-assigned-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=9");
+        $('#pending-customer-payment-link').attr('href', "<?php echo base_url(); ?>index.php/Payment_report?period=" + period);
+        $('#pending-property-payment-link').attr('href', "<?php echo base_url(); ?>index.php/Payment_report?period=" + period);
         $('#arrival-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&date_type=arrival");
         $('#departure-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&date_type=departure");
       },

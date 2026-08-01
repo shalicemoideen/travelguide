@@ -23,7 +23,12 @@ class Dashboard extends MY_Controller {
 		$template['converted']     = $this->Dashboard_model->getConvertedTripsCount('today');
 		$template['checkin']       = $this->Dashboard_model->getCheckinCount('today');
 		$template['checkout']      = $this->Dashboard_model->getCheckoutCount('today');
-		$template['quotations_sent'] = $this->Dashboard_model->getQuotationsCount('today');
+		$template['quotations_generated']    = $this->Dashboard_model->getQuotationsCount('today', 1);
+		$template['quotations_confirmed']    = $this->Dashboard_model->getQuotationsCount('today', 5);
+		$template['quotations_reservation']  = $this->Dashboard_model->getQuotationsCount('today', 8);
+		$template['quotations_driver_not_assigned'] = $this->Dashboard_model->getQuotationsCount('today', 9);
+		$template['pending_customer_payment'] = $this->Dashboard_model->getTripsWithPendingCustomerPayment('today');
+		$template['pending_property_payment'] = $this->Dashboard_model->getTripsWithPendingPropertyPayment('today');
 		$template['body'] = 'Dashboard/list';
 		$template['script'] = 'Dashboard/script';
 		$this->load->view('template', $template);
@@ -37,16 +42,26 @@ class Dashboard extends MY_Controller {
 		$converted     = $this->Dashboard_model->getConvertedTripsCount($period);
 		$checkin       = $this->Dashboard_model->getCheckinCount($period);
 		$checkout      = $this->Dashboard_model->getCheckoutCount($period);
-		$quotations    = $this->Dashboard_model->getQuotationsCount($period);
-		$leads         = $this->Dashboard_model->getLeadsCount($period);
+		$quot_generated          = $this->Dashboard_model->getQuotationsCount($period, 1);
+		$quot_confirmed          = $this->Dashboard_model->getQuotationsCount($period, 5);
+		$quot_reservation        = $this->Dashboard_model->getQuotationsCount($period, 8);
+		$quot_driver_not_assigned = $this->Dashboard_model->getQuotationsCount($period, 9);
+		$leads                   = $this->Dashboard_model->getLeadsCount($period);
+		$pending_customer        = $this->Dashboard_model->getTripsWithPendingCustomerPayment($period);
+		$pending_property        = $this->Dashboard_model->getTripsWithPendingPropertyPayment($period);
 
 		$data = array(
-			'allleads'   => $allleads   ? (int)$allleads[0]->total_count   : 0,
-			'converted'  => $converted  ? (int)$converted[0]->total_count  : 0,
-			'checkin'    => $checkin    ? (int)$checkin[0]->total_count    : 0,
-			'checkout'   => $checkout   ? (int)$checkout[0]->total_count   : 0,
-			'quotations' => $quotations ? (int)$quotations[0]->total_count : 0,
-			'leads'      => $leads      ? (int)$leads[0]->total_count      : 0
+			'allleads'              => $allleads              ? (int)$allleads[0]->total_count              : 0,
+			'converted'             => $converted             ? (int)$converted[0]->total_count             : 0,
+			'checkin'               => $checkin               ? (int)$checkin[0]->total_count               : 0,
+			'checkout'              => $checkout              ? (int)$checkout[0]->total_count              : 0,
+			'quotations_generated'  => $quot_generated        ? (int)$quot_generated[0]->total_count        : 0,
+			'quotations_confirmed'  => $quot_confirmed        ? (int)$quot_confirmed[0]->total_count        : 0,
+			'quotations_reservation'=> $quot_reservation      ? (int)$quot_reservation[0]->total_count      : 0,
+			'quotations_driver_not_assigned' => $quot_driver_not_assigned ? (int)$quot_driver_not_assigned[0]->total_count : 0,
+			'pending_customer_payment' => (int)$pending_customer,
+			'pending_property_payment' => (int)$pending_property,
+			'leads'                 => $leads                 ? (int)$leads[0]->total_count                 : 0
 		);
 		echo json_encode($data);
 	}
