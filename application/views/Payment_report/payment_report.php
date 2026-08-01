@@ -42,6 +42,10 @@
                                 </select>
                             </div>
                             <div class="col-md-2 mb-2">
+                                <label class="form-label">Travel Date</label>
+                                <input type="text" class="form-control" id="filter_travel_daterange" placeholder="dd/mm/yyyy - dd/mm/yyyy" autocomplete="off">
+                            </div>
+                            <div class="col-md-2 mb-2">
                                 <label class="form-label">Prop. Payment Status</label>
                                 <select class="form-control form-select" id="filter_property_payment_status">
                                     <option value="">All</option>
@@ -83,6 +87,7 @@
                                         <th>Sl.no</th>
                                         <th>Quotation #</th>
                                         <th>Guest Name</th>
+                                        <th>Travel Date</th>
                                         <th>Phone</th>
                                         <th>Cust. Payment</th>
                                         <th>Cust. Approval</th>

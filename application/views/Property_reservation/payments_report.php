@@ -28,6 +28,10 @@
                                 <input type="text" class="form-control" id="filter_property_name" placeholder="Search...">
                             </div>
                             <div class="col-md-3 mb-2">
+                                <label class="form-label">Travel Date</label>
+                                <input type="text" class="form-control" id="filter_travel_daterange" placeholder="dd/mm/yyyy - dd/mm/yyyy" autocomplete="off">
+                            </div>
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label">Payment Type</label>
                                 <select class="form-control" id="filter_payment_type">
                                     <option value="">All</option>
@@ -67,6 +71,7 @@
                                         <th>Sl.no</th>
                                         <th>Quotation #</th>
                                         <th>Guest Name</th>
+                                        <th>Travel Date</th>
                                         <th>Property</th>
                                         <th>Payment Type</th>
                                         <th>Total Amount</th>

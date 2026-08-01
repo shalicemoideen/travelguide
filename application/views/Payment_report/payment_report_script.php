@@ -13,7 +13,80 @@ var currentHistoryInstallmentId = null;
 var currentPropertyHistoryInstallmentId = null;
 var pendingApprovePaymentId = null;
 
+function getUrlParam(name) {
+    var results = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.href);
+    return results ? decodeURIComponent(results[1]) : null;
+}
+
+function fmtDate(d) {
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var yyyy = d.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
+}
+
+function getPeriodDates(period) {
+    var now   = new Date();
+    var start = new Date(now);
+    var end   = new Date(now);
+    if (period === 'week') {
+        var dow = now.getDay();
+        start   = new Date(now); start.setDate(now.getDate() - dow);
+        end     = new Date(now); end.setDate(now.getDate() + (6 - dow));
+    } else if (period === 'month') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    } else if (period === 'year') {
+        start = new Date(now.getFullYear(), 0, 1);
+        end   = new Date(now.getFullYear(), 11, 31);
+    }
+    return { start: fmtDate(start), end: fmtDate(end) };
+}
+
+function convertDateToYMD(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split('/');
+    if (parts.length === 3) {
+        return parts[2] + '-' + parts[1] + '-' + parts[0];
+    }
+    return dateStr;
+}
+
+var autoReload = false;
+
 $(document).ready(function() {
+    if ($.fn.datepicker) {
+        $('.datepicker').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
+    }
+
+    if ($.fn.daterangepicker) {
+        $('#filter_travel_daterange').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                format: 'DD/MM/YYYY',
+                cancelLabel: 'Clear'
+            }
+        });
+        $('#filter_travel_daterange').on('apply.daterangepicker', function(ev, picker) {
+            $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+        });
+        $('#filter_travel_daterange').on('cancel.daterangepicker', function() {
+            $(this).val('');
+        });
+    }
+
+    var period = getUrlParam('period');
+    if (period && period !== '') {
+        var dates = getPeriodDates(period);
+        $('#filter_travel_daterange').val(dates.start + ' - ' + dates.end);
+        $('#paymentReportFilterSection').show();
+        autoReload = true;
+    }
+
     loadPaymentReportTable();
 
     // Fix: nested modal scrolling - when child modal closes, restore modal-open on body if parent is still visible
@@ -70,6 +143,14 @@ function loadPaymentReportTable() {
                 d.customer_payment_status_filter = $('#filter_customer_payment_status').val();
                 d.customer_approval_filter = $('#filter_customer_approval').val();
                 d.property_payment_status_filter = $('#filter_property_payment_status').val();
+                var dr = $('#filter_travel_daterange').val();
+                if (dr) {
+                    var parts = dr.split(' - ');
+                    if (parts.length === 2) {
+                        d.travel_date_start = convertDateToYMD(parts[0]);
+                        d.travel_date_end = convertDateToYMD(parts[1]);
+                    }
+                }
             }
         },
         "columnDefs": [
@@ -85,6 +166,7 @@ function loadPaymentReportTable() {
             },
             { data: "quotation_number" },
             { data: "guest_name" },
+            { data: "start_date", render: function(data) { return data ? formatDate(data) : '-'; } },
             { data: "whats_number", render: function(data) { return data || '-'; } },
             {
                 data: "customer_payment_statuses",
@@ -162,6 +244,10 @@ function loadPaymentReportTable() {
             }
         ]
     });
+
+    if (autoReload) {
+        paymentReportTable.ajax.reload();
+    }
 }
 
 function togglePaymentReportFilters() {
@@ -178,6 +264,7 @@ function clearPaymentReportFilters() {
     $('#filter_customer_payment_status').val('');
     $('#filter_customer_approval').val('');
     $('#filter_property_payment_status').val('');
+    $('#filter_travel_daterange').val('');
     paymentReportTable.ajax.reload();
 }
 

@@ -534,6 +534,8 @@ class Property_reservation_model extends CI_Model {
         $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
         $property_name_filter    = isset($param['property_name_filter']) ? $param['property_name_filter'] : '';
         $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $travel_date_start       = isset($param['travel_date_start']) ? $param['travel_date_start'] : '';
+        $travel_date_end         = isset($param['travel_date_end']) ? $param['travel_date_end'] : '';
 
         $this->db
             ->select('pps.property_payment_scheduler_id, pps.payment_type, pps.total_amount, pps.discounted_total,
@@ -542,6 +544,7 @@ class Property_reservation_model extends CI_Model {
                       p.properties_name,
                       q.quotation_number,
                       l.guest_name,
+                      l.start_date,
                       COALESCE(SUM(i.paid_amount), 0) as total_paid,
                       ((CASE WHEN pps.discounted_total > 0 THEN pps.discounted_total ELSE pps.total_amount END) - COALESCE(SUM(i.paid_amount), 0)) as pending_amount')
             ->from($this->table_payment . ' pps')
@@ -563,6 +566,12 @@ class Property_reservation_model extends CI_Model {
         }
         if ($payment_type_filter) {
             $this->db->where('pps.payment_type', $payment_type_filter);
+        }
+        if ($travel_date_start) {
+            $this->db->where('l.start_date >=', $travel_date_start);
+        }
+        if ($travel_date_end) {
+            $this->db->where('l.start_date <=', $travel_date_end);
         }
 
         $this->db->group_by('pps.property_payment_scheduler_id');
@@ -586,6 +595,8 @@ class Property_reservation_model extends CI_Model {
         $guest_name_filter       = isset($param['guest_name_filter']) ? $param['guest_name_filter'] : '';
         $property_name_filter    = isset($param['property_name_filter']) ? $param['property_name_filter'] : '';
         $payment_type_filter     = isset($param['payment_type_filter']) ? $param['payment_type_filter'] : '';
+        $travel_date_start       = isset($param['travel_date_start']) ? $param['travel_date_start'] : '';
+        $travel_date_end         = isset($param['travel_date_end']) ? $param['travel_date_end'] : '';
 
         $this->db
             ->from($this->table_payment . ' pps')
@@ -606,6 +617,12 @@ class Property_reservation_model extends CI_Model {
         }
         if ($payment_type_filter) {
             $this->db->where('pps.payment_type', $payment_type_filter);
+        }
+        if ($travel_date_start) {
+            $this->db->where('l.start_date >=', $travel_date_start);
+        }
+        if ($travel_date_end) {
+            $this->db->where('l.start_date <=', $travel_date_end);
         }
 
         return $this->db->count_all_results();

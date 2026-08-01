@@ -418,6 +418,8 @@ class Property_reservation extends MY_Controller {
             'guest_name_filter' => $this->input->post('guest_name_filter'),
             'property_name_filter' => $this->input->post('property_name_filter'),
             'payment_type_filter' => $this->input->post('payment_type_filter'),
+            'travel_date_start' => $this->input->post('travel_date_start'),
+            'travel_date_end' => $this->input->post('travel_date_end'),
             'start' => $this->input->post('start'),
             'length' => $this->input->post('length'),
         );

@@ -1126,7 +1126,9 @@ class Booking_cancellation_model extends CI_Model {
         if ($end_date)        { $this->db->where('bc.cancellation_effective_date <=', $end_date); }
 
         if ($open_only === '1') {
-            $this->db->where('cp.refund_pending >', 0);
+            $this->db->where_not_in('cp.line_status', array(
+                'FULLY_REFUNDED', 'REFUSED', 'WRITTEN_OFF', 'NO_REFUND_DUE'
+            ));
         }
 
         if ($age_bucket !== '') {

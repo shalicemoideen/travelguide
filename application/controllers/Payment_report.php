@@ -45,6 +45,8 @@ class Payment_report extends MY_Controller {
             'customer_payment_status_filter' => $this->input->post('customer_payment_status_filter'),
             'customer_approval_filter' => $this->input->post('customer_approval_filter'),
             'property_payment_status_filter' => $this->input->post('property_payment_status_filter'),
+            'travel_date_start' => $this->input->post('travel_date_start'),
+            'travel_date_end' => $this->input->post('travel_date_end'),
             'start' => $this->input->post('start'),
             'length' => $this->input->post('length'),
         );
