@@ -37,7 +37,8 @@ var statusLabels = {
     6: '<span class="badge badge-danger">Cancelled</span>',
     8: '<span class="badge badge-info">Reservation Completed</span>',
     7: '<span class="badge badge-primary">Ready to Trip</span>',
-    9: '<span class="badge badge-warning">Driver Not Assigned</span>'
+    9: '<span class="badge badge-warning">Driver Not Assigned</span>',
+    10: '<span class="badge badge-success">Trip Completed</span>'
 };
 
 var autoReload = false;

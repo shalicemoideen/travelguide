@@ -5,6 +5,7 @@ var pr_current_quotation_id = 0;
 var pr_current_properties_id = 0;
 var pr_checkin_date = '';
 var pr_current_scheduler_id = 0;
+var pr_has_payments = false;
 
 $(document).ready(function() {
 
@@ -96,7 +97,7 @@ $(document).ready(function() {
             },
             dataType: 'json',
             success: function(res) {
-                if (!res.status) { alert(res.message || 'Unable to load reservation'); return; }
+                if (!res.status) { var n = new notify({ title: '', style: 'error', message: res.message || 'Unable to load reservation', icon: 'fas fa-times' }); n.show(); setTimeout(function(){ n.hide(); }, 3000); return; }
                 renderReservation(res);
             }
         });
@@ -145,17 +146,22 @@ function renderReservation(res) {
     var total = res.total_amount || 0;
     $('#total_amount').val(total);
     $('#payment_total_display').text(parseFloat(total).toLocaleString('en-IN'));
+    var prHasPayments = res.has_payments || false;
+    pr_has_payments = prHasPayments;
     pr_current_scheduler_id = 0;
     $('#btn_view_payments').hide();
     $('#discount_amount').val(0);
     $('#discounted_total').val(total);
     $('#discounted_total_display').hide();
-    $('input[name="payment_type"]').prop('checked', false);
+    $('input[name="payment_type"]').prop('checked', false).prop('disabled', false);
     $('#cutoff_date').val('');
     $('#cutoff_date_display').val('');
     $('#fullSection').hide();
     $('#emiSection').hide();
     $('#emiTableBody').html('');
+    $('#max_emi_count').prop('disabled', false);
+    $('#split_type').prop('disabled', false);
+    $('button[onclick="generateEmiRows()"]').prop('disabled', false);
 
     if (res.payment) {
         var p = res.payment;
@@ -171,9 +177,22 @@ function renderReservation(res) {
             $('#discounted_total_val').text(net.toLocaleString('en-IN'));
             $('#discounted_total_display').show();
         }
+        if (prHasPayments) {
+            $('input[name="payment_type"]').prop('disabled', true);
+            $('#max_emi_count').prop('disabled', true);
+            $('#split_type').prop('disabled', true);
+            $('button[onclick="generateEmiRows()"]').prop('disabled', true);
+            $('#cutoff_date_display').prop('readonly', true);
+            $('#discount_amount').prop('readonly', true);
+        } else {
+            $('#cutoff_date_display').prop('readonly', false);
+            $('#discount_amount').prop('readonly', false);
+        }
         if (p.payment_type === 'FULL') {
             $('#pt_full').prop('checked', true);
             togglePaymentType();
+            var fullNet = pr_getNetTotal();
+            $('#full_total_display').text('₹' + pr_money(fullNet));
             if (res.installments && res.installments.length > 0) {
                 var cd = res.installments[0].due_date || '';
                 $('#cutoff_date').val(cd);
@@ -244,10 +263,14 @@ function togglePaymentType() {
             $('#cutoff_date').val(pr_checkin_date);
             $('#cutoff_date_display').val(pr_formatDateDMY(pr_checkin_date));
         }
+        var fullNet = pr_getNetTotal();
+        $('#full_total_display').text('₹' + pr_money(fullNet));
     } else if (type === 'EMI') {
         $('#fullSection').hide();
         $('#emiSection').show();
         if ($('#emiTableBody tr').length === 0) generateEmiRows();
+        var emiNet = pr_getNetTotal();
+        $('#emi_total_display').text('₹' + pr_money(emiNet));
     } else {
         $('#fullSection').hide();
         $('#emiSection').hide();
@@ -307,6 +330,7 @@ function pr_applyDiscount() {
     }
     var type = $('input[name="payment_type"]:checked').val();
     if (type === 'EMI') generateEmiRows();
+    if (type === 'FULL') $('#full_total_display').text('₹' + pr_money(net));
 }
 
 function generateEmiRows() {
@@ -348,6 +372,7 @@ function pr_buildEmiRows(accDates) {
 
 function renderEmiFromData(installments, split) {
     if (!installments) return;
+    var ro = pr_has_payments ? ' readonly' : '';
     $('#emiValHeader').text(split === 'PERCENTAGE' ? 'Percentage (%)' : 'Amount');
     var html = '';
     for (var i = 0; i < installments.length; i++) {
@@ -356,13 +381,13 @@ function renderEmiFromData(installments, split) {
         html += '<td class="text-center">' + inst.installment_number + '</td>';
         html += '<td>';
         if (split === 'PERCENTAGE') {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-percentage" name="emi_percentage[]" value="' + (inst.installment_percentage || '') + '"' + ro + '>';
         } else {
-            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '">';
+            html += '<input type="number" step="0.01" class="form-control form-control-sm emi-amount" name="emi_amount[]" value="' + (inst.installment_amount || '') + '"' + ro + '>';
         }
         html += '</td>';
         html += '<td>';
-        html += '<input type="text" class="form-control form-control-sm pr-emi-due-date" placeholder="dd/mm/yyyy" value="' + pr_formatDateDMY(inst.due_date || '') + '" required>';
+        html += '<input type="text" class="form-control form-control-sm pr-emi-due-date" placeholder="dd/mm/yyyy" value="' + pr_formatDateDMY(inst.due_date || '') + '" required' + ro + '>';
         html += '<input type="hidden" name="emi_due_date[]" class="pr-emi-due-date-hidden" value="' + (inst.due_date || '') + '">';
         html += '</td>';
         html += '<td class="emi-calc text-end">' + parseFloat(inst.calculated_amount).toFixed(2) + '</td>';
@@ -392,6 +417,7 @@ function calcEmiTotal() {
         });
     }
     $('#emiCalcTotal').text(sum.toFixed(2));
+    $('#emi_total_display').text('₹' + pr_money(sum));
     if (Math.abs(sum - total) > 0.01) {
         $('#emiCalcTotal').addClass('text-danger');
     } else {
@@ -425,7 +451,52 @@ $(document).on('change', '#emiTableBody .pr-emi-due-date', function() {
 
 function saveConfirmation() {
     var type = $('input[name="payment_type"]:checked').val();
-    if (!type) { alert('Please select payment terms'); return; }
+    if (!type) {
+        var n = new notify({ title: '', style: 'error', message: 'Please select Payment Terms.', icon: 'fas fa-exclamation-circle' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        return;
+    }
+    if (type === 'FULL') {
+        if (!$('#cutoff_date').val()) {
+            var n = new notify({ title: '', style: 'error', message: 'Please select Cutoff Date for Full Payment.', icon: 'fas fa-exclamation-circle' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            return;
+        }
+    }
+    if (type === 'EMI') {
+        var emiAmounts = $('#emiTableBody .emi-amount');
+        var emiPercentages = $('#emiTableBody .emi-percentage');
+        var emiDueDates = $('#emiTableBody .pr-emi-due-date-hidden');
+        var hasError = false;
+
+        if (emiAmounts.length === 0 && emiPercentages.length === 0) {
+            var n = new notify({ title: '', style: 'error', message: 'Please generate EMI rows before saving.', icon: 'fas fa-exclamation-circle' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            return;
+        }
+
+        emiAmounts.each(function() {
+            if (!$(this).val() || parseFloat($(this).val()) <= 0) hasError = true;
+        });
+        emiPercentages.each(function() {
+            if (!$(this).val() || parseFloat($(this).val()) <= 0) hasError = true;
+        });
+        if (hasError) {
+            var n = new notify({ title: '', style: 'error', message: 'Please fill all EMI amounts/percentages with valid values.', icon: 'fas fa-exclamation-circle' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            return;
+        }
+
+        var hasDateError = false;
+        emiDueDates.each(function() {
+            if (!$(this).val()) hasDateError = true;
+        });
+        if (hasDateError) {
+            var n = new notify({ title: '', style: 'error', message: 'Please select Due Date for all EMI installments.', icon: 'fas fa-exclamation-circle' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            return;
+        }
+    }
     postForm('property_reservation/save_confirmation', '#confirmForm', function() {
         reloadCurrent();
     });
@@ -449,7 +520,11 @@ function addComment() {
         data: { property_reservation_id: id, comment_text: text },
         dataType: 'json',
         success: function(res) {
-            if (res.error) { alert(res.message); return; }
+            if (res.error) {
+                var n = new notify({ title: '', style: 'error', message: res.message, icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+                return;
+            }
             $('#comment_text').val('');
             renderComments(res.comments || []);
         }
@@ -471,7 +546,11 @@ function renderComments(comments) {
 // ---------------- Shared ----------------
 function postForm(url, formSel, onDone) {
     var id = $('#property_reservation_id').val();
-    if (!id) { alert('Please select a property first'); return; }
+    if (!id) {
+        var n = new notify({ title: '', style: 'error', message: 'Please select a property first.', icon: 'fas fa-exclamation-circle' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        return;
+    }
     var data = $(formSel).serialize() + '&property_reservation_id=' + id;
     $.ajax({
         url: base_url + url,
@@ -479,10 +558,16 @@ function postForm(url, formSel, onDone) {
         data: data,
         dataType: 'json',
         success: function(res) {
-            alert(res.message);
+            var style = res.error ? 'error' : 'success';
+            var icon = res.error ? 'fas fa-times' : 'fas fa-check';
+            var n = new notify({ title: '', style: style, message: res.message, icon: icon });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
             if (!res.error && onDone) onDone();
         },
-        error: function() { alert('An error occurred. Please try again.'); }
+        error: function() {
+            var n = new notify({ title: '', style: 'error', message: 'An error occurred. Please try again.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        }
     });
 }
 
@@ -511,15 +596,24 @@ function pr_escapeHtml(s) {
 
 // -------- Payment Recording --------
 function prViewPaymentSummary() {
-    if (!pr_current_scheduler_id) { alert('No payment schedule found. Save confirmation first.'); return; }
+    if (!pr_current_scheduler_id) { var n = new notify({ title: '', style: 'error', message: 'No payment schedule found. Save confirmation first.', icon: 'fas fa-exclamation-circle' }); n.show(); setTimeout(function(){ n.hide(); }, 3000); return; }
     $.ajax({
         url: base_url + 'index.php/property_reservation/ajax_get_payment_summary',
         type: 'POST',
         data: { scheduler_id: pr_current_scheduler_id },
         dataType: 'json',
         success: function(res) {
-            if (res.error) { alert(res.message); return; }
+            if (res.error) { var n = new notify({ title: '', style: 'error', message: res.message, icon: 'fas fa-times' }); n.show(); setTimeout(function(){ n.hide(); }, 3000); return; }
             var d = res.data;
+            var s = d.scheduler || d.payment || null;
+            if (s) {
+                $('#pr_view_quotation').text(s.quotation_number || '-');
+                $('#pr_view_guest').text(s.guest_name || '-');
+                $('#pr_view_property').text(s.properties_name || '-');
+                $('#pr_view_type').html(s.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>');
+            }
+            var totalAmt = d.net_total || (s ? (s.discounted_total > 0 ? s.discounted_total : s.total_amount) : 0);
+            $('#pr_view_total').text('₹' + parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#pr_view_paid').text('₹' + parseFloat(d.total_paid).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#pr_view_pending').text('₹' + parseFloat(d.pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#pr_view_overdue').text(d.overdue_count);
@@ -579,7 +673,8 @@ function prSavePayment() {
     $date.toggleClass('is-invalid', !dateValid);
     $slip.toggleClass('is-invalid', !$slip.val());
     if (!dateValid || !$slip.val()) {
-        alert('Payment date and payment slip are required.');
+        var n = new notify({ title: '', style: 'error', message: 'Payment date and payment slip are required.', icon: 'fas fa-exclamation-circle' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
 
@@ -592,10 +687,11 @@ function prSavePayment() {
         contentType: false,
         dataType: 'json',
         success: function(res) {
-            if (res.error) { alert(res.message); return; }
+            if (res.error) { var n = new notify({ title: '', style: 'error', message: res.message, icon: 'fas fa-times' }); n.show(); setTimeout(function(){ n.hide(); }, 3000); return; }
             $('#prRecordPaymentModal').modal('hide');
             prViewPaymentSummary();
-            alert(res.message);
+            var n2 = new notify({ title: '', style: 'success', message: res.message, icon: 'fas fa-check' });
+            n2.show(); setTimeout(function(){ n2.hide(); }, 3000);
         }
     });
 }

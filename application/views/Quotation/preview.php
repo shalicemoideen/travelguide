@@ -1820,14 +1820,26 @@ function q_option_display_amount_premium($option)
             <div class="exclusive-section-title">ACCOMMODATION DETAILS</div>
 
             <div class="exclusive-table-wrap">
+              <?php
+                $colCount = ($showRoom ? 1 : 0) + ($showMeal ? 1 : 0);
+                if ($colCount === 2) {
+                    $wDay = 8; $wDest = 14; $wHotel = 28; $wRoom = 25; $wMeal = 25;
+                } elseif ($colCount === 1) {
+                    $wDay = 8; $wDest = 18; $wHotel = 39;
+                    $wRoom = $showRoom ? 35 : 0;
+                    $wMeal = $showMeal ? 35 : 0;
+                } else {
+                    $wDay = 12; $wDest = 18; $wHotel = 70; $wRoom = 0; $wMeal = 0;
+                }
+              ?>
               <table class="exclusive-table">
                 <thead>
                   <tr>
-                    <th style="width:16%;">DAY</th>
-                    <th style="width:17%;">DESTINATION</th>
-                    <th style="width:25%;">HOTEL / STAY</th>
-                    <?php if ($showRoom): ?><th style="width:20%;">ROOM TYPE</th><?php endif; ?>
-                    <?php if ($showMeal): ?><th style="width:22%;">MEAL PLAN</th><?php endif; ?>
+                    <th style="width:<?= $wDay; ?>%;">DAY</th>
+                    <th style="width:<?= $wDest; ?>%;">DESTINATION</th>
+                    <th style="width:<?= $wHotel; ?>%;">HOTEL / STAY</th>
+                    <?php if ($showRoom): ?><th style="width:<?= $wRoom; ?>%;">ROOM TYPE</th><?php endif; ?>
+                    <?php if ($showMeal): ?><th style="width:<?= $wMeal; ?>%;">MEAL PLAN</th><?php endif; ?>
                   </tr>
                 </thead>
                 <tbody>
@@ -1848,8 +1860,8 @@ function q_option_display_amount_premium($option)
                           }
                         }
 
-                        $propertyText = !empty($propertyNames) ? implode(', ', array_unique($propertyNames)) : '-';
-                        $roomText = !empty($roomNames) ? implode(', ', array_unique($roomNames)) : '-';
+                        $propertyText = !empty($propertyNames) ? implode(' / ', array_unique($propertyNames)) : '-';
+                        $roomText = !empty($roomNames) ? implode(' / ', array_unique($roomNames)) : '-';
                       ?>
                       <tr>
                         <td><?= htmlspecialchars($day->quotation_properties_days_day); ?></td>
@@ -2096,14 +2108,26 @@ function q_option_display_amount_standard($option)
               <div class="accommodation-title">ACCOMMODATION DETAILS</div>
             </div>
 
+            <?php
+                $colCountS = ($showRoom ? 1 : 0) + ($showMeal ? 1 : 0);
+                if ($colCountS === 2) {
+                    $wDateS = 8; $wDestS = 14; $wHotelS = 28; $wRoomS = 25; $wMealS = 25;
+                } elseif ($colCountS === 1) {
+                    $wDateS = 8; $wDestS = 18; $wHotelS = 39;
+                    $wRoomS = $showRoom ? 35 : 0;
+                    $wMealS = $showMeal ? 35 : 0;
+                } else {
+                    $wDateS = 12; $wDestS = 18; $wHotelS = 70; $wRoomS = 0; $wMealS = 0;
+                }
+            ?>
             <table class="property-table">
               <thead>
                 <tr>
-                  <th style="width:11%;">Date</th>
-                  <th style="width:16%;">Destination</th>
-                  <th style="width:23%;">Hotel Name</th>
-                  <?php if ($showRoom): ?><th style="width:20%;">Room Category</th><?php endif; ?>
-                  <?php if ($showMeal): ?><th style="width:16%;">Meal Plan</th><?php endif; ?>
+                  <th style="width:<?= $wDateS; ?>%;">Date</th>
+                  <th style="width:<?= $wDestS; ?>%;">Destination</th>
+                  <th style="width:<?= $wHotelS; ?>%;">Hotel Name</th>
+                  <?php if ($showRoom): ?><th style="width:<?= $wRoomS; ?>%;">Room Category</th><?php endif; ?>
+                  <?php if ($showMeal): ?><th style="width:<?= $wMealS; ?>%;">Meal Plan</th><?php endif; ?>
                 </tr>
               </thead>
 
@@ -2125,8 +2149,8 @@ function q_option_display_amount_standard($option)
                         }
                       }
 
-                      $propertyText = !empty($propertyNames) ? implode(', ', array_unique($propertyNames)) : '-';
-                      $roomText = !empty($roomNames) ? implode(', ', array_unique($roomNames)) : '-';
+                      $propertyText = !empty($propertyNames) ? implode(' / ', array_unique($propertyNames)) : '-';
+                      $roomText = !empty($roomNames) ? implode(' / ', array_unique($roomNames)) : '-';
                     ?>
                     <tr>
                       <td><?= htmlspecialchars($day->quotation_properties_days_day); ?></td>

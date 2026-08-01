@@ -56,11 +56,9 @@ class Staff_model extends CI_Model{
         $query = $this->db->get();
 
         $rows = $query->result();
-        // Never send the stored password hash to the browser/DataTable.
+
         foreach ($rows as $row) {
-            if (isset($row->password)) {
-                unset($row->password);
-            }
+            unset($row->password);
         }
 
         $data['data'] = $rows;

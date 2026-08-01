@@ -1390,6 +1390,8 @@
 
                                                                    <option value="7">Ready to Trip</option>
 
+                                                                   <option value="10">Trip Completed</option>
+
 
 
                                                                     

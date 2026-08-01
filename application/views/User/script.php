@@ -241,5 +241,27 @@ $(document).ready(function () {
     });
 });
 ////***File Saving Toggle*****///
-  
+
+////***Hide username/password for staff/company users*****///
+$(document).ready(function () {
+    var userType = '<?php echo $this->session->userdata("user_type"); ?>';
+    if (userType !== 'A') {
+        $('.staff-do-not-show').hide();
+        $('.company-do-not-show').hide();
+    }
+});
+////***Hide username/password for staff/company users*****///
+
+function toggleProfilePwd(btn) {
+    var $input = $(btn).siblings('input');
+    var $icon = $(btn).find('i');
+    if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+        $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    } else {
+        $input.attr('type', 'password');
+        $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    }
+}
+
 </script>

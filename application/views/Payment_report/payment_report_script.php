@@ -45,13 +45,13 @@ $(document).ready(function() {
     $('#propertyPaymentContent').on('show.bs.collapse', '.collapse', function() {
         var $card = $(this).closest('.card');
         $card.find('.toggle-icon').removeClass('fa-chevron-right').addClass('fa-chevron-down');
-        $card.find('.badge').removeClass('bg-secondary').addClass('bg-success').text('Open');
+        $card.find('.card-header .badge').removeClass('bg-secondary').addClass('bg-success').text('Open');
     });
 
     $('#propertyPaymentContent').on('hide.bs.collapse', '.collapse', function() {
         var $card = $(this).closest('.card');
         $card.find('.toggle-icon').removeClass('fa-chevron-down').addClass('fa-chevron-right');
-        $card.find('.badge').removeClass('bg-success').addClass('bg-secondary').text('Closed');
+        $card.find('.card-header .badge').removeClass('bg-success').addClass('bg-secondary').text('Closed');
     });
 });
 
@@ -296,8 +296,7 @@ function loadCustomerPaymentDetails(schedulerId) {
             var html = '';
 
             html += '<div class="row mb-3">';
-            html += '<div class="col-md-6"><strong>Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
-            html += '<div class="col-md-6"><strong>Total:</strong> <span class="fw-bold text-success">₹' + parseFloat(response.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</span></div>';
+            html += '<div class="col-md-12"><strong>Payment Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
             html += '</div>';
 
             html += '<div class="row mb-3">';
@@ -338,7 +337,7 @@ function loadCustomerPaymentDetails(schedulerId) {
                     }
                 }
                 if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
-                    html += '<button class="btn btn-info btn-xs" onclick="viewCustomerPaymentHistory(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-receipt"></i> History</button>';
+                    html += '<button class="btn btn-info btn-xs" onclick="viewCustomerPaymentHistory(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-receipt"></i> Payment History</button>';
                 }
                 html += '</td>';
                 html += '</tr>';
@@ -415,8 +414,7 @@ function loadSinglePropertyPaymentDetails(schedulerId, idx, onSuccess, onError) 
             html += '<div class="card-body">';
 
             html += '<div class="row mb-3">';
-            html += '<div class="col-md-6"><strong>Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
-            html += '<div class="col-md-6"><strong>Total:</strong> <span class="fw-bold text-success">₹' + parseFloat(response.net_total).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</span></div>';
+            html += '<div class="col-md-12"><strong>Payment Type:</strong> ' + (scheduler.payment_type == 'FULL' ? '<span class="badge bg-primary">Full Payment</span>' : '<span class="badge bg-info">EMI</span>') + '</div>';
             html += '</div>';
 
             html += '<div class="row mb-3">';
@@ -456,7 +454,7 @@ function loadSinglePropertyPaymentDetails(schedulerId, idx, onSuccess, onError) 
                     }
                 }
                 if (inst.payment_status == 'PAID' || inst.payment_status == 'PARTIAL') {
-                    html += '<button class="btn btn-info btn-xs" onclick="viewPropertyPaymentHistory(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-receipt"></i> History</button>';
+                    html += '<button class="btn btn-info btn-xs" onclick="viewPropertyPaymentHistory(' + inst.installment_id + ')" title="Payment History"><i class="fas fa-receipt"></i> Payment History</button>';
                 }
                 html += '</td>';
                 html += '</tr>';
@@ -705,7 +703,6 @@ function viewPropertyPaymentHistory(installmentId) {
                         ? '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + payment.payment_slip + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip"><i class="fas fa-file-alt"></i></a>'
                         : '';
                     var actionHtml = '<div class="d-flex">' + slipLink +
-                        '<button class="btn btn-primary shadow btn-xs sharp" onclick="printPropertyReceipt(' + payment.payment_id + ')" title="Print Receipt"><i class="fas fa-print"></i></button>' +
                         '</div>';
                     var row = '<tr>' +
                         '<td>' + (i + 1) + '</td>' +

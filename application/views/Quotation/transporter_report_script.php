@@ -68,6 +68,9 @@ function loadTransporterReportTable() {
                     if (data == 7) {
                         return '<span class="badge bg-primary">Ready to Trip</span>';
                     }
+                    if (data == 10) {
+                        return '<span class="badge bg-success">Trip Completed</span>';
+                    }
                     return '<span class="badge bg-warning">Driver Not Assigned</span>';
                 }
             },
@@ -118,14 +121,53 @@ function openAssignDriverModal(allocationId, quotationId) {
     $('#ad_quotation_id').val(quotationId);
 
     if (rowData) {
+        $('#ad_vehicle_name').text(rowData.confirmed_vehicle_name || '-');
         $('#ad_driver_name').val(rowData.driver_name || '');
         $('#ad_driver_mobile').val(rowData.driver_mobile || '');
         $('#ad_cab_number').val(rowData.cab_number || '');
     } else {
+        $('#ad_vehicle_name').text('-');
         $('#ad_driver_name').val('');
         $('#ad_driver_mobile').val('');
         $('#ad_cab_number').val('');
     }
+
+    // Fetch guest count details
+    $('#ad_guest_count').text('Loading...');
+    $.ajax({
+        url: base_url + 'Quotation/ajax_get_transporter_guest_details',
+        type: 'POST',
+        dataType: 'json',
+        data: { quotation_id: quotationId },
+        success: function(res) {
+            if (res.status && res.data) {
+                var gc = res.data.guest_count || [];
+                var totalAdults = 0, totalChildren = 0;
+                for (var i = 0; i < gc.length; i++) {
+                    totalAdults += parseInt(gc[i].adults || 0);
+                    totalChildren += parseInt(gc[i].children || 0);
+                }
+                // Collect child ages from guest count details (skip entries with count 0)
+                var childAges = [];
+                for (var i = 0; i < gc.length; i++) {
+                    if (gc[i].child_ages) {
+                        for (var j = 0; j < gc[i].child_ages.length; j++) {
+                            if (parseInt(gc[i].child_ages[j].count) > 0) {
+                                childAges.push(gc[i].child_ages[j].age + ' yrs (' + gc[i].child_ages[j].count + ')');
+                            }
+                        }
+                    }
+                }
+                var childAgeStr = childAges.length > 0 ? childAges.join(', ') : '0';
+                $('#ad_guest_count').text(totalAdults + ' Adults, ' + totalChildren + ' Children (' + childAgeStr + ')');
+            } else {
+                $('#ad_guest_count').text('-');
+            }
+        },
+        error: function() {
+            $('#ad_guest_count').text('-');
+        }
+    });
 
     $('#assignDriverModal').modal('show');
 }
@@ -259,7 +301,19 @@ function renderGuestDetails(d) {
     html += '<hr>';
     html += '<h6 class="fw-bold mb-2">Guest Count</h6>';
     if (gc.length > 0) {
-        html += '<p class="mb-3"><strong>Total Guest Count ' + totalGuests + ':</strong> ' + totalAdults + ' Adults, ' + totalChildren + ' Child</p>';
+        // Collect child ages (skip entries with count 0)
+        var childAges = [];
+        for (var i = 0; i < gc.length; i++) {
+            if (gc[i].child_ages) {
+                for (var j = 0; j < gc[i].child_ages.length; j++) {
+                    if (parseInt(gc[i].child_ages[j].count) > 0) {
+                        childAges.push(gc[i].child_ages[j].age + ' yrs (' + gc[i].child_ages[j].count + ')');
+                    }
+                }
+            }
+        }
+        var childAgeStr = childAges.length > 0 ? childAges.join(', ') : '0';
+        html += '<p class="mb-3"><strong>Total Guest Count ' + totalGuests + ':</strong> ' + totalAdults + ' Adults, ' + totalChildren + ' Children (' + escapeHtml(childAgeStr) + ')</p>';
     } else {
         html += '<p class="text-muted mb-3">No guest count data available.</p>';
     }
@@ -325,7 +379,18 @@ function copyGuestDetails() {
     text += 'Departure: ' + (m.departuring_destination || '-') + '\n';
     text += '\n--- Guest Count ---\n';
     if (gc.length > 0) {
-        text += 'Total Guest Count ' + totalGuests + ': ' + totalAdults + ' Adults, ' + totalChildren + ' Child\n';
+        var childAgesCopy = [];
+        for (var i = 0; i < gc.length; i++) {
+            if (gc[i].child_ages) {
+                for (var j = 0; j < gc[i].child_ages.length; j++) {
+                    if (parseInt(gc[i].child_ages[j].count) > 0) {
+                        childAgesCopy.push(gc[i].child_ages[j].age + ' yrs (' + gc[i].child_ages[j].count + ')');
+                    }
+                }
+            }
+        }
+        var childAgeStrCopy = childAgesCopy.length > 0 ? childAgesCopy.join(', ') : '0';
+        text += 'Total Guest Count ' + totalGuests + ': ' + totalAdults + ' Adults, ' + totalChildren + ' Children (' + childAgeStrCopy + ')\n';
     } else {
         text += 'No guest count data.\n';
     }

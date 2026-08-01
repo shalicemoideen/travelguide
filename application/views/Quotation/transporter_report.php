@@ -33,6 +33,7 @@
                                     <option value="">All Statuses</option>
                                     <option value="9">Driver Not Assigned</option>
                                     <option value="7">Ready to Trip</option>
+                                    <option value="10">Trip Completed</option>
                                 </select>
                             </div>
                             <div class="col-md-3 mb-2">
@@ -99,6 +100,14 @@
                     <input type="hidden" id="ad_allocation_id" name="allocation_id">
                     <input type="hidden" id="ad_quotation_id" name="quotation_id">
                     <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Vehicle (from confirmed option)</label>
+                            <div id="ad_vehicle_name" style="font-size:15px;font-weight:600;color:#333;padding:8px 0;">-</div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Guest Count</label>
+                            <div id="ad_guest_count" style="font-size:15px;font-weight:600;color:#333;padding:8px 0;">-</div>
+                        </div>
                         <div class="col-md-12">
                             <label class="form-label">Driver Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="ad_driver_name" name="driver_name" placeholder="Enter driver name">

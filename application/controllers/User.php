@@ -98,17 +98,21 @@ class User extends MY_Controller {
 			
 			$data = array(
 			
-						// 'user_profile_pic' => $file1,
 						'user_address' => $this->input->post('user_address'),
 						'user_email_address' => $this->input->post('user_email_address'),
 						'user_phone_number' => $this->input->post('user_phone_number'),
 						'user_lan_number' => $this->input->post('user_lan_number'),
 						'user_name' => $this->input->post('user_name'),
-						'password' => $this->input->post('password'),
 						'user_description' => $this->input->post('user_description')					
 						// 'updated_date' => $date					
 						);
-					if(isset($file1) && $file1!='') { $data['user_profile_pic'] = $file1; }	
+					if(isset($file1) && $file1!='') { $data['user_profile_pic'] = $file1; }	else { unset($data['user_profile_pic']); }	
+
+					// Only update password if a new one is provided (non-empty)
+					$new_password = $this->input->post('password');
+					if (trim((string)$new_password) !== '') {
+						$data['password'] = password_hash($new_password, PASSWORD_DEFAULT);
+					}
 						//print_r($data); die;
 						$user_id = $this->input->post('user_id');
 				
@@ -117,6 +121,11 @@ class User extends MY_Controller {
                       $data['user_id'] = $user_id;
                       $result = $this->General_model->update($this->table,$data,'user_id',$user_id);
                       $response_text = 'User details updated successfully';
+                      
+                      // Update session profile pic if current user updated their own profile
+                      if ((int)$user_id === (int)$this->currentuserid && isset($file1) && $file1 != '') {
+                          $this->session->set_userdata('user_profile_pic', $file1);
+                      }
                 }
 				else{
                     

@@ -312,6 +312,11 @@ class Staff extends MY_Controller {
 			// print_r($data);exit();
 		$this->Staff_model->update(array('user_id' => $this->input->post('id')), $data);
 
+		// Update session profile pic if the current user updated their own profile
+		if ((int)$this->input->post('id') === (int)$this->currentuserid && !empty($file1)) {
+			$this->session->set_userdata('user_profile_pic', $file1);
+		}
+
 		// Update staff_order_assign table if shift changed
 		if ($old_shift_id != $new_shift_id) {
 			// Get all staff_order_assign entries for this staff

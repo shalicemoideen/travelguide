@@ -195,7 +195,7 @@
                                             <div class="border border-top-0 rounded-bottom p-3">
                                                 <div class="d-flex justify-content-between align-items-start flex-wrap">
                                                     <div>
-                                                        <label class="form-label fw-bold">Select Payment Terms</label>
+                                                        <label class="form-label fw-bold">Select Payment Terms <span class="text-danger">*</span></label>
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="radio" name="payment_type" id="pt_full" value="FULL" onchange="togglePaymentType()">
                                                             <label class="form-check-label" for="pt_full">On Account</label>
@@ -207,7 +207,7 @@
                                                     </div>
                                                     <div class="text-end">
                                                         <div class="text-muted">Total Amount</div>
-                                                        <div class="h4 mb-0">INR <span id="payment_total_display">0</span></div>
+                                                        <div style="background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;padding:8px 16px;border-radius:8px;font-size:20px;font-weight:700;display:inline-block;">INR <span id="payment_total_display">0</span></div>
                                                         <input type="hidden" name="total_amount" id="total_amount" value="0">
                                                         <div class="mt-2 d-flex align-items-center justify-content-end gap-2">
                                                             <label class="form-label mb-0 text-muted">Discount</label>
@@ -220,48 +220,85 @@
 
                                                 <!-- FULL / On Account -->
                                                 <div id="fullSection" class="mt-3" style="display:none;">
-                                                    <div class="row g-3">
-                                                        <div class="col-md-4">
-                                                            <label class="form-label">Payment Cut-off Date</label>
-                                                            <input type="text" class="form-control" id="cutoff_date_display" placeholder="dd/mm/yyyy" autocomplete="off">
-                                                            <input type="hidden" name="cutoff_date" id="cutoff_date">
+                                                    <div class="option-block" style="margin-bottom:0;">
+                                                        <div style="background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;">
+                                                            <i class="fas fa-money-bill-wave me-1"></i> Full Payment Details
+                                                        </div>
+                                                        <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-bordered table-sm mb-0">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="width:50%;background:#e8f5e9;color:#2e7d32;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Description</th>
+                                                                            <th style="width:50%;background:#e8f5e9;color:#2e7d32;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Value</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr style="background:#f1f8f4;">
+                                                                            <td><strong>Total Amount</strong></td>
+                                                                            <td><span id="full_total_display" style="font-size:20px;font-weight:700;color:#2e7d32;">₹0.00</span></td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td><strong>Cutoff Date <span class="text-danger">*</span></strong></td>
+                                                                            <td>
+                                                                                <input type="text" class="form-control form-control-sm" id="cutoff_date_display" placeholder="dd/mm/yyyy" autocomplete="off">
+                                                                                <input type="hidden" name="cutoff_date" id="cutoff_date">
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <!-- EMI / Installments -->
                                                 <div id="emiSection" class="mt-3" style="display:none;">
-                                                    <div class="row g-3 mb-2">
-                                                        <div class="col-md-3">
-                                                            <label class="form-label">No. of Installments</label>
-                                                            <input type="number" min="2" max="24" value="3" class="form-control" id="max_emi_count" name="max_emi_count" onchange="generateEmiRows()">
+                                                    <div class="option-block" style="margin-bottom:0;">
+                                                        <div style="background:linear-gradient(135deg,#e65100,#f57c00);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                                                            <span><i class="fas fa-calendar-check me-1"></i> EMI Configuration</span>
+                                                            <span style="background:rgba(255,255,255,.25);padding:4px 12px;border-radius:6px;font-size:16px;font-weight:700;">Total: <span id="emi_total_display" style="font-size:18px;">₹0.00</span></span>
                                                         </div>
-                                                        <div class="col-md-3">
-                                                            <label class="form-label">Split By</label>
-                                                            <select class="form-control" id="split_type" name="split_type" onchange="generateEmiRows()">
-                                                                <option value="AMOUNT">Fixed Amount</option>
-                                                                <option value="PERCENTAGE">Percentage</option>
-                                                            </select>
+                                                        <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:16px;">
+                                                            <div class="row g-3 mb-2">
+                                                                <div class="col-md-3">
+                                                                    <label class="form-label">No. of Installments <span class="text-danger">*</span></label>
+                                                                    <input type="number" min="2" max="24" value="3" class="form-control" id="max_emi_count" name="max_emi_count" onchange="generateEmiRows()">
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <label class="form-label">Split By <span class="text-danger">*</span></label>
+                                                                    <select class="form-control" id="split_type" name="split_type" onchange="generateEmiRows()">
+                                                                        <option value="AMOUNT">Fixed Amount</option>
+                                                                        <option value="PERCENTAGE">Percentage</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <label class="form-label">&nbsp;</label>
+                                                                    <button type="button" class="btn btn-warning btn-sm d-block" onclick="generateEmiRows()">
+                                                                        <i class="fas fa-redo"></i> Reset
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="table-responsive">
+                                                                <table class="table table-bordered table-sm mb-0" id="emiTable">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th width="80" style="background:#fff3e0;color:#e65100;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th>
+                                                                            <th id="emiValHeader" style="background:#fff3e0;color:#e65100;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                                                            <th width="160" style="background:#fff3e0;color:#e65100;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th>
+                                                                            <th width="140" style="background:#fff3e0;color:#e65100;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Calculated</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="emiTableBody"></tbody>
+                                                                    <tfoot>
+                                                                        <tr style="background:#fff3e0;">
+                                                                            <td colspan="3" style="text-align:right;"><strong>Total</strong></td>
+                                                                            <td id="emiCalcTotal" style="font-size:16px;font-weight:700;color:#e65100;">0.00</td>
+                                                                        </tr>
+                                                                    </tfoot>
+                                                                </table>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered table-sm" id="emiTable">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th width="80">#</th>
-                                                                    <th id="emiValHeader">Amount</th>
-                                                                    <th width="160">Due Date</th>
-                                                                    <th width="140">Calculated</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="emiTableBody"></tbody>
-                                                            <tfoot>
-                                                                <tr class="table-warning">
-                                                                    <td colspan="3" class="text-end"><strong>Total</strong></td>
-                                                                    <td id="emiCalcTotal">0.00</td>
-                                                                </tr>
-                                                            </tfoot>
-                                                        </table>
                                                     </div>
                                                 </div>
                                             </div>
@@ -339,51 +376,81 @@
 <div class="modal fade" id="prPaymentSummaryModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Payment Summary</h5>
+            <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);">
+                <h5 class="modal-title text-white"><i class="fas fa-file-invoice-dollar me-1"></i> Payment Schedule Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center py-2">
-                                <small>Paid</small>
-                                <h5 class="mb-0" id="pr_view_paid">₹0.00</h5>
-                            </div>
+                <!-- Detail Grid -->
+                <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+                    <div class="row g-0">
+                        <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Quotation No.</small>
+                            <span style="font-size:14px;font-weight:600;" id="pr_view_quotation">-</span>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-warning">
-                            <div class="card-body text-center py-2">
-                                <small>Pending</small>
-                                <h5 class="mb-0" id="pr_view_pending">₹0.00</h5>
-                            </div>
+                        <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Guest Name</small>
+                            <span style="font-size:14px;font-weight:600;" id="pr_view_guest">-</span>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-danger text-white">
-                            <div class="card-body text-center py-2">
-                                <small>Overdue</small>
-                                <h5 class="mb-0" id="pr_view_overdue">0</h5>
-                            </div>
+                        <div class="col-md-3" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Property</small>
+                            <span style="font-size:14px;font-weight:600;" id="pr_view_property">-</span>
+                        </div>
+                        <div class="col-md-3" style="padding:12px 16px;">
+                            <small style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;">Payment Type</small>
+                            <span style="font-size:14px;font-weight:600;" id="pr_view_type">-</span>
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Due Date</th>
-                                <th>Amount</th>
-                                <th>Paid</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pr_installments_body"></tbody>
-                    </table>
+                <!-- Summary Cards -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div style="background:#fff;border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e5e7eb;">
+                            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;">Total</div>
+                            <div style="font-size:18px;font-weight:700;color:#64748b;" id="pr_view_total">₹0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="background:linear-gradient(135deg,#2e7d32,#388e3c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Paid</div>
+                            <div style="font-size:18px;font-weight:700;color:#fff;" id="pr_view_paid">₹0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Pending</div>
+                            <div style="font-size:18px;font-weight:700;color:#fff;" id="pr_view_pending">₹0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-bottom:6px;">Overdue</div>
+                            <div style="font-size:18px;font-weight:700;color:#fff;" id="pr_view_overdue">0</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Installments Table -->
+                <div class="option-block" style="margin-bottom:0;">
+                    <div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;">
+                        <i class="fas fa-list me-1"></i> Installments
+                    </div>
+                    <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Due Date</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Paid</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Status</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pr_installments_body"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -516,6 +583,45 @@
                         </thead>
                         <tbody id="creditHistoryBody"></tbody>
                     </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipts Modal -->
+<div class="modal fade" id="prReceiptsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="max-width: 800px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);">
+                <h5 class="modal-title text-white"><i class="fas fa-history me-1"></i> Payment History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="option-block" style="margin-bottom:0;">
+                    <div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;">
+                        <i class="fas fa-receipt me-1"></i> Payment Records
+                    </div>
+                    <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Date</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Method</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Reference</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Received By</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pr_receipts_body"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

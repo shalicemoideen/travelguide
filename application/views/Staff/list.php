@@ -289,7 +289,10 @@
                                     <div class="form-group">
                                         <label class="col-lg-5 col-form-label" for="password">Password <span class="text-danger">*</span>
                                         </label>
-                                            <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" autocomplete="new-password">
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" autocomplete="new-password">
+                                                <span class="input-group-text" style="cursor:pointer;" onclick="toggleStaffPwd(this)"><i class="fa fa-eye"></i></span>
+                                            </div>
                                             <small class="form-text text-muted">Min 8 characters with at least one letter and one number. Leave blank when editing to keep the current password.</small>
                                             <span class="help-block" style="color:red"></span>
                                     </div>
@@ -299,7 +302,10 @@
                                     <div class="form-group">
                                         <label class="col-lg-5 col-form-label" for="confirm_password">Confirm Password <span class="text-danger">*</span>
                                         </label>
-                                            <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Re-enter password" autocomplete="new-password">
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Re-enter password" autocomplete="new-password">
+                                                <span class="input-group-text" style="cursor:pointer;" onclick="toggleStaffPwd(this)"><i class="fa fa-eye"></i></span>
+                                            </div>
                                             <small class="form-text text-muted">Must match the password above.</small>
                                             <span class="help-block" style="color:red"></span>
                                     </div>

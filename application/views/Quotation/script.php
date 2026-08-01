@@ -318,7 +318,7 @@ var table;
                 // Quotation hub button
                 if (hasPermission('QUOTATION_HUB')) {
 
-                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
                 // Costing breakup button
@@ -354,10 +354,10 @@ var table;
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-                // Change status button
-                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                }
+                // Change status button (hidden)
+                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                // }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
@@ -367,7 +367,7 @@ var table;
                 // Quotation hub button
                 if (hasPermission('QUOTATION_HUB')) {
 
-                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
                 // Costing breakup button
@@ -403,10 +403,10 @@ var table;
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-                // Change status button
-                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                }
+                // Change status button (hidden)
+                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                // }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
@@ -416,7 +416,7 @@ var table;
                 // Quotation hub button
                 if (hasPermission('QUOTATION_HUB')) {
 
-                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
                 // Costing breakup button
@@ -442,20 +442,15 @@ var table;
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
-                // Edit button
-                if (hasPermission('QUOTATION_UPDATE')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a>';
-                }
-
                 // Edit itinireary button
                 if (hasPermission('QUOTATION_UPDATE_ITINERARY')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-                // Change status button
-                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                }
+                // Change status button (hidden)
+                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                // }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
@@ -465,7 +460,7 @@ var table;
                 // Quotation hub button
                 if (hasPermission('QUOTATION_HUB')) {
 
-                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
                 // Costing breakup button
@@ -491,11 +486,6 @@ var table;
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
-                // Edit button
-                if (hasPermission('QUOTATION_UPDATE')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a>';
-                }
-
                 // Edit itinireary button
                 if (hasPermission('QUOTATION_UPDATE_ITINERARY')) {
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
@@ -514,7 +504,7 @@ var table;
                 // Quotation hub button
                 if (hasPermission('QUOTATION_HUB')) {
 
-                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
                 // Costing breakup button
@@ -542,7 +532,7 @@ var table;
                     actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
                 if (hasPermission('QUOTATION_HUB')) {
-                    actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml8 += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
                 if (hasPermission('COSTING_BREAKUP')) {
                 actionHtml8 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
@@ -565,7 +555,7 @@ var table;
                     actionHtml7 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
                 if (hasPermission('QUOTATION_HUB')) {
-                    actionHtml7 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml7 += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
                 if (hasPermission('COSTING_BREAKUP')) {
                 actionHtml7 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
@@ -588,7 +578,7 @@ var table;
                     actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
                 }
                 if (hasPermission('QUOTATION_HUB')) {
-                    actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml9 += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
                 if (hasPermission('COSTING_BREAKUP')) {
                 actionHtml9 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
@@ -599,6 +589,29 @@ var table;
 
                 actionHtml9 += '</div></div>';
                 $('td', row).eq(8).html(actionHtml9);
+            }
+            else if($table.cell(node).data() == '10') {
+              $table.cell(node).data('<span class="badge badge-success">Trip Completed</span>');
+
+                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+
+                let actionHtml10 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+
+                if (hasPermission('QUOTATION_PREVIEW')) {
+                    actionHtml10 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a>';
+                }
+                if (hasPermission('QUOTATION_HUB')) {
+                    actionHtml10 += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                }
+                if (hasPermission('COSTING_BREAKUP')) {
+                actionHtml10 += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/costing_breakup/'+data['quotation_id']+'" >Quotation Details</a>';
+                }
+                if (hasPermission('QUOTATION_DELETE')) {
+                    actionHtml10 += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a>';
+                }
+
+                actionHtml10 += '</div></div>';
+                $('td', row).eq(8).html(actionHtml10);
             }
             else if($table.cell(node).data() == '6') {
             // else if(data['quotation_current_status'] == 6){
@@ -619,7 +632,7 @@ var table;
                 // Quotation hub button
                 if (hasPermission('QUOTATION_HUB')) {
 
-                    actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
+                    actionHtml += '<a class="dropdown-item" href="<?php echo base_url();?>index.php/Quotation/quotation_hub/'+data['quotation_id']+'" >Quotation hub</a>';
                 }
 
                 // Costing breakup button

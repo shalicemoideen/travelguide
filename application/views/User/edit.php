@@ -90,7 +90,8 @@ $arAdmintype = array('A'=>'Super admin','C'=>'Company','S'=>'Staff');
 										<label for="birth" class="col-lg-3 col-md-3 col-sm-4 mt-sm-2 text-right">Password </label>
 										<div class="col-lg-4 col-md-9 col-sm-8">
 											<div class="input-group">
-												<input type="text" class="form-control" id="password" placeholder="Enter Password" name="password" value="<?php if(isset($records->password)) { echo $records->password;}  ?>" required>
+												<input type="password" class="form-control" id="password" placeholder="Enter Password" name="password" value="" autocomplete="new-password">
+												<button class="btn btn-outline-secondary" type="button" onclick="toggleProfilePwd(this)"><i class="fa fa-eye"></i></button>
 											</div>
 										</div>
 									</div>

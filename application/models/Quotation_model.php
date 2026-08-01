@@ -112,7 +112,7 @@ class Quotation_model extends CI_Model{
 
         $this->db->where("quotation_status",1);
         if (!empty($param['confirmed_only'])) {
-            $this->db->where_in('quotation_current_status', array(5, 7, 9));
+            $this->db->where_in('quotation_current_status', array(5, 7, 9, 10));
         }
 
 
@@ -773,25 +773,29 @@ class Quotation_model extends CI_Model{
 
             $hotelRow = $this->db
 
-                ->select('COALESCE(SUM(qrtd.manual_total_rate),0) as total')
+                ->select('COALESCE(SUM(day_max.max_rate),0) as total')
 
-                ->from('quotation_properties_days qpd')
+                ->from('(SELECT MAX(qpr.total_room_cost) as max_rate
 
-                ->join('quotation_properties qp', 'qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id', 'inner')
+                    FROM quotation_properties_days qpd
 
-                ->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_id_fk = qp.quotation_properties_id', 'inner')
+                    INNER JOIN quotation_properties qp ON qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id
 
-                ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id', 'left')
+                    INNER JOIN quotation_properties_rooms qpr ON qpr.quotation_properties_id_fk = qp.quotation_properties_id
 
-                ->where('qpd.quotation_id_fk', (int)$quotation_id)
+                    WHERE qpd.quotation_id_fk = ' . (int)$quotation_id . '
 
-                ->where('qpd.quotation_options_id_fk', $optId)
+                    AND qpd.quotation_options_id_fk = ' . $optId . '
 
-                ->where('qpd.quotation_properties_days_status', 1)
+                    AND qpd.quotation_properties_days_status = 1
 
-                ->where('qp.quotation_properties_status', 1)
+                    AND qp.quotation_properties_status = 1
 
-                ->where('qpr.quotation_properties_rooms_status', 1)
+                    AND qpr.quotation_properties_rooms_status = 1
+
+                    GROUP BY qpd.quotation_properties_days_id
+
+                ) as day_max')
 
                 ->get()->row();
 
@@ -7116,6 +7120,17 @@ public function get_quotation_special_requirements_preview($quotation_id)
             $property_id,
             $room_cat_id
         );
+
+        // Fetch property-based inclusions for this property
+        $rows[$key]['property_inclusions'] = $this->db
+            ->select('qpi.inclusion_name, qpi.inclusion_amount')
+            ->from('quotation_property_inclusions qpi')
+            ->where('qpi.quotation_id_fk', (int)$quotation_id)
+            ->where('qpi.inclusion_property_id_fk', $property_id)
+            ->where('qpi.quotation_property_inclusions_status', 1)
+            ->order_by('qpi.inclusion_name', 'ASC')
+            ->get()
+            ->result_array();
     }
 
         return array(
@@ -7460,16 +7475,21 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			qta.driver_name,
 			qta.driver_mobile,
 			qta.cab_number,
-			q.quotation_current_status', FALSE);
+			q.quotation_current_status,
+			v.vehicle_name as confirmed_vehicle_name', FALSE);
 		$this->db->from('quotation_transport_allocation qta');
 		$this->db->join('quotation q', 'q.quotation_id = qta.quotation_id_fk', 'inner');
 		$this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'left');
 		$this->db->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left');
+		$this->db->join('quotation_confirmation qconf', 'qconf.quotation_id_fk = q.quotation_id AND qconf.property_confirmation_status = 1', 'left');
+		$this->db->join('quotation_options qo', 'qo.quotation_options_id = qconf.option_id_fk', 'left');
+		$this->db->join('vehicle v', 'v.vehicle_id = qo.quotation_options_vehicle_id_fk', 'left');
+		$this->db->group_by('qta.id');
 		$this->db->where('q.quotation_status', 1);
 		if ($status_filter) {
 			$this->db->where('q.quotation_current_status', (int)$status_filter);
 		} else {
-			$this->db->where_in('q.quotation_current_status', array(9, 7));
+			$this->db->where_in('q.quotation_current_status', array(9, 7, 10));
 		}
 
 		if ($transporter_id_fk) {
@@ -7531,7 +7551,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		if ($status_filter) {
 			$this->db->where('q.quotation_current_status', (int)$status_filter);
 		} else {
-			$this->db->where_in('q.quotation_current_status', array(9, 7));
+			$this->db->where_in('q.quotation_current_status', array(9, 7, 10));
 		}
 
 		if ($transporter_id_fk) {
@@ -7604,6 +7624,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
 
 		$guest_count = $this->db
 			->select('
+				gcd.guset_count_details_id,
 				gcd.pax_count_plan,
 				gcd.adults,
 				gcd.children,
@@ -7618,6 +7639,21 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			->order_by('gcd.guset_count_details_id', 'ASC')
 			->get()
 			->result_array();
+
+		// Attach child age break up to each guest count detail
+		foreach ($guest_count as &$gc_row) {
+			$gc_row['child_ages'] = array();
+			if (!empty($gc_row['guset_count_details_id'])) {
+				$gc_row['child_ages'] = $this->db
+					->select('age, count')
+					->from('child_age_break_up')
+					->where('guset_count_details_id_fk', $gc_row['guset_count_details_id'])
+					->where('child_age_break_up_status', 1)
+					->get()
+					->result_array();
+			}
+		}
+		unset($gc_row);
 
 		$days = $this->db
 			->select('
@@ -7889,11 +7925,16 @@ public function get_quotation_special_requirements_preview($quotation_id)
 
 			$hotelTotal = 0;
 			foreach ($option->days as $day) {
+				$dayMax = 0;
 				foreach ($day->properties as $prop) {
 					foreach ($prop->rooms as $room) {
-						$hotelTotal += (float)$room->manual_total_rate;
+						$roomCost = (float)$room->total_room_cost;
+						if ($roomCost > $dayMax) {
+							$dayMax = $roomCost;
+						}
 					}
 				}
+				$hotelTotal += $dayMax;
 			}
 
 			$option->hotel_total = $hotelTotal;

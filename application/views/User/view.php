@@ -118,7 +118,7 @@ $flash_response = $this->session->flashdata('response');
                                                         <div class="col-sm-3 col-5">
                                                             <h5 class="f-w-500">Password <span class="pull-end">:</span></h5>
                                                         </div>
-                                                        <div class="col-sm-9 col-7"><span><?php if(isset($admin_data->password)) echo $admin_data->password ?></span>
+                                                        <div class="col-sm-9 col-7"><span>••••••••</span>
                                                         </div>
                                                     </div>
 													<div class="row mb-2">
@@ -169,15 +169,27 @@ $flash_response = $this->session->flashdata('response');
                                                                 </div>
                                                             </div>
 															<div class="row">
-                                                                <div class="mb-3 col-md-6">
-                                                                    <label class="form-label">User name</label>
-                                                                    <input type="text" class="form-control" id="user_name" placeholder="Enter User name" name="user_name" value="<?php if(isset($records->user_name)) { echo $records->user_name;}  ?>">
-                                                                </div>
-                                                                <div class="mb-3 col-md-6">
-                                                                    <label class="form-label">Password</label>
-                                                                    <input type="text" class="form-control" id="password" placeholder="Enter Password" name="password" value="<?php if(isset($records->password)) { echo $records->password;}  ?>">
-                                                                </div>
-                                                            </div>
+																<div class="mb-3 col-md-6">
+																	<label class="form-label">User name</label>
+																	<?php if($this->session->userdata('user_type') == 'A') { ?>
+																	<input type="text" class="form-control" id="user_name" placeholder="Enter User name" name="user_name" value="<?php if(isset($records->user_name)) { echo $records->user_name;}  ?>">
+																	<?php } else { ?>
+																	<input type="text" class="form-control" value="<?php if(isset($records->user_name)) echo $records->user_name; ?>" readonly disabled>
+																	<input type="hidden" name="user_name" value="<?php if(isset($records->user_name)) echo $records->user_name; ?>">
+																	<?php } ?>
+																</div>
+																<div class="mb-3 col-md-6">
+																	<label class="form-label">Password</label>
+																	<?php if($this->session->userdata('user_type') == 'A') { ?>
+																	<div class="input-group">
+																		<input type="password" class="form-control" id="password" placeholder="Enter Password" name="password" value="">
+																		<button class="btn btn-outline-secondary" type="button" onclick="toggleProfilePwd(this)"><i class="fa fa-eye"></i></button>
+																	</div>
+																	<?php } else { ?>
+																	<input type="password" class="form-control" value="••••••••" readonly disabled>
+																	<?php } ?>
+																</div>
+															</div>
                                                             <div class="mb-3">
                                                                 <div class="form-check custom-checkbox">																	
 																	<label class="form-label" for="gridCheck">Description</label>
@@ -217,3 +229,17 @@ $flash_response = $this->session->flashdata('response');
         </div>
     </div>
 </div>
+
+<script>
+function toggleProfilePwd(btn) {
+    var $input = $(btn).siblings('input');
+    var $icon = $(btn).find('i');
+    if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+        $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    } else {
+        $input.attr('type', 'password');
+        $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    }
+}
+</script>

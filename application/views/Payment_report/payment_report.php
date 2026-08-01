@@ -226,29 +226,36 @@
 
 <!-- Customer Payment History Modal -->
 <div class="modal fade" id="viewCustomerPaymentsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 800px;">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Payment History</h5>
+            <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);">
+                <h5 class="modal-title text-white"><i class="fas fa-history me-1"></i> Payment History</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="customerPaymentHistoryTable">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Method</th>
-                                <th>Reference</th>
-                                <th>Received By</th>
-                                <th>Approval Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <div class="option-block" style="margin-bottom:0;">
+                    <div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;">
+                        <i class="fas fa-receipt me-1"></i> Payment Records
+                    </div>
+                    <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0" id="customerPaymentHistoryTable">
+                                <thead>
+                                    <tr>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Date</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Method</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Reference</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Received By</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Approval Status</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -320,28 +327,35 @@
 
 <!-- Property Payment History Modal -->
 <div class="modal fade" id="viewPropertyPaymentsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 800px;">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Payment History</h5>
+            <div class="modal-header" style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);">
+                <h5 class="modal-title text-white"><i class="fas fa-history me-1"></i> Payment History</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="propertyPaymentHistoryTable">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Method</th>
-                                <th>Reference</th>
-                                <th>Paid By</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <div class="option-block" style="margin-bottom:0;">
+                    <div style="background:linear-gradient(135deg,#4a3ee0,#5a4ff0);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;font-size:15px;font-weight:700;">
+                        <i class="fas fa-receipt me-1"></i> Payment Records
+                    </div>
+                    <div style="background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0" id="propertyPaymentHistoryTable">
+                                <thead>
+                                    <tr>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">#</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Amount</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Date</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Method</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Reference</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Paid By</th>
+                                        <th style="background:#eef2ff;color:#4a3ee0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

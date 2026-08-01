@@ -540,6 +540,39 @@ class Quotation extends MY_Controller {
 		}
 	}
 
+	public function ajax_mark_trip_completed()
+	{
+		$quotation_id = (int)$this->input->post('quotation_id');
+
+		if ($quotation_id <= 0) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID missing'));
+			return;
+		}
+
+		$quotation = $this->db->where('quotation_id', $quotation_id)
+							  ->where('quotation_status', 1)
+							  ->get($this->table)
+							  ->row();
+		if (!$quotation) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation not found'));
+			return;
+		}
+
+		if ((int)$quotation->quotation_current_status !== 7) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation must be in Ready to Trip status to mark as Trip Completed.'));
+			return;
+		}
+
+		$this->db->where('quotation_id', $quotation_id);
+		$this->db->update($this->table, array('quotation_current_status' => 10));
+
+		if ($this->db->affected_rows() > 0) {
+			echo json_encode(array('status' => true, 'message' => 'Trip marked as completed successfully.'));
+		} else {
+			echo json_encode(array('status' => false, 'message' => 'No changes made or already completed.'));
+		}
+	}
+
 	public function ajax_get_transporters()
 	{
 		$transporters = $this->db
@@ -1318,6 +1351,23 @@ public function property_reservation_preview($quotation_id)
     }
 
     $this->load->view('Quotation/property_reservation_preview', $data);
+}
+
+public function property_reservation_preview_new($quotation_id)
+{
+    if (!has_permission('PROPERTY_RESERVATION')) {
+        show_error('Permission denied: Property Reservation');
+        return;
+    }
+
+    $data = $this->Quotation_model->get_property_reservation_preview($quotation_id);
+
+    if (empty($data['properties'])) {
+        show_error('No property reservation details found.');
+        return;
+    }
+
+    $this->load->view('Quotation/property_reservation_preview_new', $data);
 }
 
 public function property_voucher_preview($quotation_id)
@@ -8565,6 +8615,519 @@ public function ajax_delete()
 		}
 
 		echo json_encode(array('status' => true, 'data' => $row));
+	}
+
+	public function ajax_edit_hub($id)
+	{
+		$quotation = $this->Quotation_model->get_by_id($id);
+
+		if (!$quotation) {
+			echo json_encode(array(
+				'status' => false,
+				'message' => 'Quotation not found'
+			));
+			return;
+		}
+
+		// Get confirmed option ID from quotation_confirmation
+		$confirmed = $this->db
+			->select('option_id_fk')
+			->from('quotation_confirmation')
+			->where('quotation_id_fk', (int)$id)
+			->where('property_confirmation_status', 1)
+			->group_by('option_id_fk')
+			->order_by('id', 'ASC')
+			->get()
+			->row_array();
+
+		if (!$confirmed || empty($confirmed['option_id_fk'])) {
+			echo json_encode(array(
+				'status' => false,
+				'message' => 'No confirmed option found for this quotation'
+			));
+			return;
+		}
+
+		$confirmed_option_id = (int)$confirmed['option_id_fk'];
+
+		// Fetch only the confirmed option
+		$options = $this->Quotation_model->get_full_quotation_options($id);
+		$confirmed_option = null;
+		foreach ($options as $opt) {
+			if ((int)$opt['quotation_options_id'] === $confirmed_option_id) {
+				$confirmed_option = $opt;
+				break;
+			}
+		}
+
+		// Fetch property inclusions and special requirements
+		$property_inclusions = $this->Quotation_model->get_quotation_property_inclusions($id);
+		$special_requirements = $this->Quotation_model->get_quotation_special_requirements($id);
+
+		// Fetch lead travel dates for reschedule
+		$lead = $this->db
+			->select('l.start_date, l.end_date, l.duration')
+			->from('leads l')
+			->join('quotation q', 'q.leads_id_fk = l.leads_id', 'inner')
+			->where('q.quotation_id', (int)$id)
+			->limit(1)
+			->get()
+			->row_array();
+
+		echo json_encode(array(
+			'status' => true,
+			'quotation' => $quotation,
+			'confirmed_option' => $confirmed_option,
+			'property_inclusions' => $property_inclusions,
+			'special_requirements' => $special_requirements,
+			'lead' => $lead
+		));
+	}
+
+	public function ajax_reschedule_travel_date()
+	{
+		$quotation_id = (int)$this->input->post('quotation_id');
+		$new_start_date = $this->input->post('new_start_date');
+
+		if (!$quotation_id || !$new_start_date) {
+			echo json_encode(array(
+				'status' => false,
+				'message' => 'Quotation ID and new start date are required'
+			));
+			return;
+		}
+
+		$new_start_date = str_replace('/', '-', $new_start_date);
+		$new_start = date('Y-m-d', strtotime($new_start_date));
+
+		// Get lead info
+		$lead = $this->db
+			->select('l.leads_id, l.start_date, l.end_date, l.duration')
+			->from('leads l')
+			->join('quotation q', 'q.leads_id_fk = l.leads_id', 'inner')
+			->where('q.quotation_id', $quotation_id)
+			->limit(1)
+			->get()
+			->row_array();
+
+		if (!$lead) {
+			echo json_encode(array(
+				'status' => false,
+				'message' => 'Lead not found for this quotation'
+			));
+			return;
+		}
+
+		$lead_id = (int)$lead['leads_id'];
+		$old_start = date('Y-m-d', strtotime($lead['start_date']));
+		$duration = (int)$lead['duration'];
+
+		if (!$duration) {
+			// Calculate duration from dates
+			$old_start_dt = new DateTime($old_start);
+			$old_end_dt = new DateTime(date('Y-m-d', strtotime($lead['end_date'])));
+			$diff = $old_start_dt->diff($old_end_dt);
+			$duration = (int)$diff->days;
+		}
+
+		// Calculate new end date = new start + duration days
+		$new_start_dt = new DateTime($new_start);
+		$new_end_dt = clone $new_start_dt;
+		$new_end_dt->modify('+' . $duration . ' days');
+		$new_end = $new_end_dt->format('Y-m-d');
+
+		// Calculate date offset in days
+		$old_start_dt = new DateTime($old_start);
+		$offset_diff = $new_start_dt->diff($old_start_dt);
+		$offset_days = (int)$offset_diff->days;
+		if ($offset_diff->invert) {
+			$offset_days = -$offset_days; // new start is after old start
+		} else {
+			$offset_days = $offset_days; // new start is before old start
+		}
+
+		// Actually: if new_start > old_start, offset is positive (shift forward)
+		// If new_start < old_start, offset is negative (shift backward)
+		$offset_seconds = strtotime($new_start) - strtotime($old_start);
+		$offset_days = (int)round($offset_seconds / 86400);
+
+		$this->db->trans_begin();
+
+		try {
+			// Update leads start_date and end_date
+			$this->db->where('leads_id', $lead_id);
+			$this->db->update('leads', array(
+				'start_date' => $new_start,
+				'end_date' => $new_end
+			));
+
+			// Shift all accommodation_plan dates for this lead
+			$acc_plans = $this->db
+				->select('accommodation_plan_id, accommodation_date, accommodation_day_name')
+				->from('accommodation_plan')
+				->where('lead_id_fk', $lead_id)
+				->where('accommodation_plan_status', 1)
+				->get()
+				->result_array();
+
+			foreach ($acc_plans as $ap) {
+				$ap_id = (int)$ap['accommodation_plan_id'];
+				$old_acc_date = $ap['accommodation_date'];
+
+				if ($old_acc_date && $old_acc_date !== '0000-00-00') {
+					$new_acc_date = date('Y-m-d', strtotime($old_acc_date . ' +' . $offset_days . ' days'));
+					$new_acc_day = date('l', strtotime($new_acc_date));
+
+					$this->db->where('accommodation_plan_id', $ap_id);
+					$this->db->update('accommodation_plan', array(
+						'accommodation_date' => $new_acc_date,
+						'accommodation_day_name' => $new_acc_day
+					));
+				}
+			}
+
+			$this->db->trans_commit();
+
+			echo json_encode(array(
+				'status' => true,
+				'message' => 'Travel dates rescheduled successfully',
+				'new_start_date' => $new_start,
+				'new_end_date' => $new_end,
+				'offset_days' => $offset_days
+			));
+
+		} catch (Exception $e) {
+			$this->db->trans_rollback();
+			echo json_encode(array(
+				'status' => false,
+				'message' => $e->getMessage()
+			));
+		}
+	}
+
+	public function ajax_update_hub()
+	{
+		$quotation_id = (int)$this->input->post('id');
+
+		if (!$quotation_id) {
+			echo json_encode(array(
+				'status' => false,
+				'message' => 'Quotation ID missing'
+			));
+			return;
+		}
+
+		$payload = json_decode($this->input->post('data'), true);
+
+		$this->load->helper('date');
+		if (function_exists('date_default_timezone_set')) {
+			date_default_timezone_set("Asia/Kolkata");
+		}
+		$date1 = date('Y-m-d h:i:s a', time());
+
+		$currentuserid = $this->session->userdata('user_id');
+
+		$this->db->trans_begin();
+
+		try {
+			// Update quotation-level fields
+			$quotationData = array(
+				'quotation_remarks' => $this->input->post('quotation_remarks'),
+				'total_inclusion_amount' => $this->input->post('total_inclusion_amount'),
+				'total_special_requirment_amount' => $this->input->post('total_special_requirment_amount'),
+				'quotation_updatedby_user_id' => $currentuserid,
+				'quotation_updated_at' => $date1,
+			);
+
+			$this->db->where('quotation_id', $quotation_id);
+			$this->db->update('quotation', $quotationData);
+
+			/* ================= DELETE ONLY CONFIRMED OPTION'S OLD DATA ================= */
+
+			// Get confirmed option ID from quotation_confirmation
+			$confirmed = $this->db
+				->select('option_id_fk')
+				->from('quotation_confirmation')
+				->where('quotation_id_fk', $quotation_id)
+				->where('property_confirmation_status', 1)
+				->group_by('option_id_fk')
+				->order_by('id', 'ASC')
+				->get()
+				->row_array();
+
+			if ($confirmed && !empty($confirmed['option_id_fk'])) {
+				$confirmed_option_id = (int)$confirmed['option_id_fk'];
+
+				// Get old days for this option
+				$oldDays = $this->db
+					->select('quotation_properties_days_id')
+					->from($this->quotation_properties_days)
+					->where('quotation_id_fk', $quotation_id)
+					->where('quotation_options_id_fk', $confirmed_option_id)
+					->where('quotation_properties_days_status', 1)
+					->get()
+					->result_array();
+
+				$oldDayIds = array();
+				foreach ($oldDays as $d) {
+					$oldDayIds[] = (int)$d['quotation_properties_days_id'];
+				}
+
+				// Get old properties for those days
+				$oldPropertyIds = array();
+				if (!empty($oldDayIds)) {
+					$oldProperties = $this->db
+						->select('quotation_properties_id')
+						->from($this->quotation_properties)
+						->where_in('quotation_properties_days_id_fk', $oldDayIds)
+						->where('quotation_properties_status', 1)
+						->get()
+						->result_array();
+
+					foreach ($oldProperties as $p) {
+						$oldPropertyIds[] = (int)$p['quotation_properties_id'];
+					}
+				}
+
+				// Disable old rooms
+				if (!empty($oldPropertyIds)) {
+					$this->db->where_in('quotation_properties_id_fk', $oldPropertyIds);
+					$this->db->update($this->quotation_properties_rooms, array(
+						'quotation_properties_rooms_status' => 0
+					));
+				}
+
+				// Disable old properties
+				if (!empty($oldDayIds)) {
+					$this->db->where_in('quotation_properties_days_id_fk', $oldDayIds);
+					$this->db->update($this->quotation_properties, array(
+						'quotation_properties_status' => 0
+					));
+				}
+
+				// Disable old days
+				if (!empty($oldDayIds)) {
+					$this->db->where_in('quotation_properties_days_id', $oldDayIds);
+					$this->db->update($this->quotation_properties_days, array(
+						'quotation_properties_days_status' => 0
+					));
+				}
+
+				// Disable old confirmed option
+				$this->db->where('quotation_options_id', $confirmed_option_id);
+				$this->db->update($this->quotation_options, array(
+					'quotation_options_status' => 0
+				));
+			}
+
+			/* ================= INSERT UPDATED CONFIRMED OPTION ================= */
+
+			if (!empty($payload['options']) && is_array($payload['options'])) {
+
+				foreach ($payload['options'] as $option) {
+
+					$option_id = $this->General_model->add_returnID(
+						$this->quotation_options,
+						array(
+							'quotation_id_fk' => $quotation_id,
+							'packages_properties_common_id_fk' => isset($option['packages_properties_common_id_fk']) ? $option['packages_properties_common_id_fk'] : 0,
+							'quotation_options_title' => isset($option['title']) ? $option['title'] : '',
+							'quotation_options_cab_amount' => isset($option['cab_amount']) ? $option['cab_amount'] : 0,
+							'quotation_options_design_type' => isset($option['quotation_options_design_type']) ? $option['quotation_options_design_type'] : '',
+							'quotation_options_vehicle_id_fk' => isset($option['quotation_options_vehicle_id_fk']) ? $option['quotation_options_vehicle_id_fk'] : 0,
+							'quotation_options_room_category_display' => isset($option['quotation_options_room_category_display']) ? $option['quotation_options_room_category_display'] : 0,
+							'quotation_options_meal_plan_display' => isset($option['quotation_options_meal_plan_display']) ? $option['quotation_options_meal_plan_display'] : 0,
+							'quotation_options_vehicle_display' => isset($option['quotation_options_vehicle_display']) ? $option['quotation_options_vehicle_display'] : 0,
+							'quotation_options_total_cost' => isset($option['quotation_options_total_cost']) ? $option['quotation_options_total_cost'] : 0,
+							'quotation_options_margin_type' => isset($option['quotation_options_margin_type']) ? $option['quotation_options_margin_type'] : 'amount',
+							'quotation_options_margin_value' => isset($option['quotation_options_margin_value']) ? $option['quotation_options_margin_value'] : 0,
+							'quotation_options_total_quote_rate' => isset($option['quotation_options_total_quote_rate']) ? $option['quotation_options_total_quote_rate'] : 0,
+							'quotation_options_amount_type' => isset($option['quotation_options_amount_type']) ? $option['quotation_options_amount_type'] : 'net',
+							'quotation_options_per_amount'  => isset($option['quotation_options_per_amount']) ? (float)$option['quotation_options_per_amount'] : 0,
+							'quotation_options_status' => 1
+						)
+					);
+
+					if (!$option_id) {
+						throw new Exception('Option insert failed');
+					}
+
+					// Update quotation_confirmation to point to new option ID
+					if (isset($confirmed_option_id) && $confirmed_option_id) {
+						$this->db->where('option_id_fk', $confirmed_option_id);
+						$this->db->where('quotation_id_fk', $quotation_id);
+						$this->db->update('quotation_confirmation', array(
+							'option_id_fk' => (int)$option_id
+						));
+					}
+
+					if (!empty($option['days']) && is_array($option['days'])) {
+
+						foreach ($option['days'] as $day) {
+
+							$day_id = $this->General_model->add_returnID(
+								$this->quotation_properties_days,
+								array(
+									'quotation_id_fk' => $quotation_id,
+									'quotation_options_id_fk' => $option_id,
+									'packages_properties_days_id_fk' => isset($day['packages_properties_days_id_fk']) ? $day['packages_properties_days_id_fk'] : 0,
+									'quotation_itinerary_days_id_fk' => $this->Quotation_model->get_quotation_itinerary_day_id_by_package_day($quotation_id, $this->Quotation_model->get_itinerary_days_id_fk_by_properties_day(isset($day['packages_properties_days_id_fk']) ? (int)$day['packages_properties_days_id_fk'] : 0)),
+									'quotation_properties_days_day' => isset($day['day']) ? $day['day'] : '',
+									'quotation_properties_days_destination_id_fk' => isset($day['destination_id']) ? $day['destination_id'] : 0,
+									'accommodation_plan_id_fk' => isset($day['accommodation_plan_id_fk']) ? (int)$day['accommodation_plan_id_fk'] : 0,
+									'quotation_properties_days_status' => 1
+								)
+							);
+
+							if (!$day_id) {
+								throw new Exception('Day insert failed');
+							}
+
+							if (!empty($day['properties']) && is_array($day['properties'])) {
+
+								foreach ($day['properties'] as $property) {
+
+									$property_id = $this->General_model->add_returnID(
+										$this->quotation_properties,
+										array(
+											'quotation_properties_days_id_fk' => $day_id,
+											'packages_properties_id_fk' => isset($property['packages_properties_id_fk']) ? $property['packages_properties_id_fk'] : 0,
+											'properties_id_fk' => isset($property['properties_id_fk']) ? $property['properties_id_fk'] : 0,
+											'quotation_properties_status' => 1
+										)
+									);
+
+									if (!$property_id) {
+										throw new Exception('Property insert failed');
+									}
+
+									if (!empty($property['rooms']) && is_array($property['rooms'])) {
+
+										foreach ($property['rooms'] as $room) {
+
+											$quotation_properties_room_id = $this->General_model->add_returnID(
+												$this->quotation_properties_rooms,
+												array(
+													'quotation_properties_id_fk' => $property_id,
+													'packages_properties_rooms_id_fk' => isset($room['packages_properties_rooms_id_fk']) ? $room['packages_properties_rooms_id_fk'] : 0,
+													'quotation_properties_rooms_id_fk' => isset($room['quotation_properties_rooms_id_fk']) ? $room['quotation_properties_rooms_id_fk'] : 0,
+													'total_room_cost' => isset($room['total_room_cost']) ? (float)$room['total_room_cost'] : 0,
+													'quotation_properties_rooms_status' => 1
+												)
+											);
+
+											if (!$quotation_properties_room_id) {
+												throw new Exception('Room insert failed');
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			/* ================= DISABLE OLD INCLUSIONS & SPECIAL REQUIREMENTS ================= */
+
+			$this->db->where('quotation_id_fk', $quotation_id);
+			$this->db->update('quotation_property_inclusions', array(
+				'quotation_property_inclusions_status' => 0
+			));
+
+			$this->db->where('quotation_id_fk', $quotation_id);
+			$this->db->update('quotation_special_requirements', array(
+				'quotation_special_requirements_status' => 0
+			));
+
+			/* ================= INSERT NEW INCLUSIONS ================= */
+
+			if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
+
+				foreach ($payload['inclusions'] as $inc) {
+
+					$parts = explode('|', $inc['dayKey']);
+
+					$property_day_id = isset($parts[0]) ? (int)$parts[0] : 0;
+
+					$stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
+
+					$acc_date        = isset($parts[2]) ? $parts[2] : null;
+
+					if (!$property_day_id || !$stay_dest_id) {
+						continue;
+					}
+
+					$package_option_id_fk = isset($inc['package_option_id_fk']) ? (int)$inc['package_option_id_fk'] : 0;
+
+					$ok = $this->Quotation_model->add_property_inclusion(array(
+						'quotation_id_fk' => $quotation_id,
+						'quotation_options_id_fk' => isset($option_id) ? (int)$option_id : 0,
+						'package_option_id_fk' => $package_option_id_fk,
+						'packages_properties_days_id_fk' => $property_day_id,
+						'stay_destination_id_fk' => $stay_dest_id,
+						'accommodation_date' => $acc_date,
+						'inclusion_property_id_fk' => isset($inc['property_id_fk']) ? (int)$inc['property_id_fk'] : 0,
+						'property_inclusions_id_fk' => isset($inc['property_inclusions_id_fk']) ? (int)$inc['property_inclusions_id_fk'] : 0,
+						'inclusion_name' => isset($inc['name']) ? $inc['name'] : '',
+						'inclusion_amount' => isset($inc['amount']) ? $inc['amount'] : 0,
+						'quotation_property_inclusions_status' => 1
+					));
+
+					if (!$ok) {
+						throw new Exception('Inclusion insert failed');
+					}
+				}
+			}
+
+			/* ================= INSERT NEW SPECIAL REQUIREMENTS ================= */
+
+			if (!empty($payload['special_requirements']) && is_array($payload['special_requirements'])) {
+
+				foreach ($payload['special_requirements'] as $sr) {
+
+					$parts = explode('|', $sr['dayKey']);
+
+					$property_day_id = isset($parts[0]) ? (int)$parts[0] : 0;
+
+					$stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
+
+					$acc_date        = isset($parts[2]) ? $parts[2] : null;
+
+					if (!$property_day_id || !$stay_dest_id) {
+						continue;
+					}
+
+					$ok = $this->Quotation_model->add_special_requirement(array(
+						'quotation_id_fk' => $quotation_id,
+						'packages_properties_days_id_fk' => $property_day_id,
+						'stay_destination_id_fk' => $stay_dest_id,
+						'accommodation_date' => $acc_date,
+						'quotation_special_requirements_name' => isset($sr['quotation_special_requirements_name']) ? $sr['quotation_special_requirements_name'] : '',
+						'quotation_special_requirements_cost' => isset($sr['cost']) ? $sr['cost'] : 0,
+						'quotation_special_requirements_status' => 1
+					));
+
+					if (!$ok) {
+						throw new Exception('Special requirement insert failed');
+					}
+				}
+			}
+
+			$this->db->trans_commit();
+
+			echo json_encode(array(
+				'status' => true,
+				'message' => 'Quotation updated successfully'
+			));
+
+		} catch (Exception $e) {
+			$this->db->trans_rollback();
+			echo json_encode(array(
+				'status' => false,
+				'message' => $e->getMessage()
+			));
+		}
 	}
 }
 

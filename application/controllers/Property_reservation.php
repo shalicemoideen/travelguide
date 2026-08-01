@@ -103,6 +103,12 @@ class Property_reservation extends MY_Controller {
 
         $payment      = $this->Property_reservation_model->get_payment_by_reservation($reservation->property_reservation_id);
         $installments = $payment ? $this->Property_reservation_model->get_installments($payment->property_payment_scheduler_id) : array();
+        $has_payments = false;
+        if ($installments) {
+            foreach ($installments as $inst) {
+                if (floatval($inst->paid_amount) > 0) { $has_payments = true; break; }
+            }
+        }
         $comments     = $this->Property_reservation_model->get_comments($reservation->property_reservation_id);
         $total_amount = $this->Property_reservation_model->get_property_total_amount($quotation_id, $properties_id);
         $rent_breakdown    = $this->Property_reservation_model->get_property_rent_breakdown($quotation_id, $properties_id);
@@ -121,6 +127,7 @@ class Property_reservation extends MY_Controller {
             'reservation'       => $reservation,
             'payment'           => $payment,
             'installments'      => $installments,
+            'has_payments'      => $has_payments,
             'comments'          => $comments,
             'total_amount'      => $total_amount,
             'rent_breakdown'    => $rent_breakdown,

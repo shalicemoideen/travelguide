@@ -90,9 +90,9 @@ table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:to
 <div class="container">
 
   <?php
-  $statusMap=array(1=>'Generated',2=>'Draft',3=>'Sent',4=>'Rejected',5=>'Confirmed',6=>'Cancelled',7=>'Ready to Trip',8=>'Reservation Completed',9=>'Driver Not Assigned');
+  $statusMap=array(1=>'Generated',2=>'Draft',3=>'Sent',4=>'Rejected',5=>'Confirmed',6=>'Cancelled',7=>'Ready to Trip',8=>'Reservation Completed',9=>'Driver Not Assigned',10=>'Trip Completed');
   $statusText=isset($statusMap[$quotation->quotation_current_status]) ? $statusMap[$quotation->quotation_current_status] : 'Unknown';
-  $statusBadgeClass=array(1=>'badge-secondary',2=>'badge-light',3=>'badge-info',4=>'badge-danger',5=>'badge-success',6=>'badge-danger',7=>'badge-primary',8=>'badge-info',9=>'badge-warning');
+  $statusBadgeClass=array(1=>'badge-secondary',2=>'badge-light',3=>'badge-info',4=>'badge-danger',5=>'badge-success',6=>'badge-danger',7=>'badge-primary',8=>'badge-info',9=>'badge-warning',10=>'badge-success');
   $badgeClass=isset($statusBadgeClass[$quotation->quotation_current_status]) ? $statusBadgeClass[$quotation->quotation_current_status] : 'badge-secondary';
   ?>
   <div class="top-bar">

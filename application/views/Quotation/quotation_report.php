@@ -46,6 +46,7 @@
                                         <option value="6">Cancelled</option>
                                         <option value="9">Driver Not Assigned</option>
                                         <option value="7">Ready to Trip</option>
+                                        <option value="10">Trip Completed</option>
                                     </select>
                                 </div>
                             </div>

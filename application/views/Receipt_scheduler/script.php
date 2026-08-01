@@ -22,6 +22,8 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(response) {
                     $('#total_amount').val(response.total_amount);
+                    var stdAmt = parseFloat(response.total_amount) || 0;
+                    $('#total_amount_display').text('₹' + stdAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
                     window.__schedulerTravelStartDate = response.travel_start_date || '';
                     $('#cutoff_date').val(window.__schedulerTravelStartDate);
                     updateCutoffDateDisplay();
@@ -32,6 +34,8 @@ $(document).ready(function() {
             });
         } else {
             window.__schedulerTravelStartDate = '';
+            $('#total_amount').val('');
+            $('#total_amount_display').text('₹0.00');
             $('#cutoff_date').val('');
             updateCutoffDateDisplay();
         }
@@ -128,6 +132,7 @@ function clearFilters() {
 function add_scheduler() {
     save_method = 'add';
     $('#schedulerForm')[0].reset();
+    $('#total_amount_display').text('₹0.00');
     $('#receipt_scheduler_id').val('');
     $('#quotation_id_fk').prop('disabled', false);
     $('#fullPaymentSection').hide();
@@ -312,6 +317,8 @@ function editScheduler(id) {
             $('#receipt_scheduler_id').val(scheduler.receipt_scheduler_id);
             $('#quotation_id_fk').val(scheduler.quotation_id_fk).prop('disabled', true);
             $('#total_amount').val(scheduler.total_amount);
+            var stdEditAmt = parseFloat(scheduler.total_amount) || 0;
+            $('#total_amount_display').text('₹' + stdEditAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
             $('#payment_type').val(scheduler.payment_type);
             $('#receipt_scheduler_remarks').val(scheduler.receipt_scheduler_remarks);
 

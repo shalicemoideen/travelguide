@@ -212,7 +212,7 @@ var table;
 
             $('td', row).eq(5).html('00-00-0000');
            }
-            
+
            },
 
            "drawCallback": function( settings ) {
@@ -651,6 +651,18 @@ function delete_staff_action()
 }
 
 ////***For delete the staff details from  database *****///
+
+function toggleStaffPwd(el) {
+    var $input = $(el).siblings('input');
+    var $icon = $(el).find('i');
+    if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+        $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    } else {
+        $input.attr('type', 'password');
+        $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    }
+}
 
 
 </script>

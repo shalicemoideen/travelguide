@@ -1892,7 +1892,7 @@ if ($('#quotation_special_requirement_type').is(':checked')) {
 
 
 
-        if (num(amtEl?.value) <= 0)
+        if (amtEl?.value === '' || amtEl?.value === null || amtEl?.value === undefined)
 
             return valid = false, showError('Requirement amount required', amtEl);
 
@@ -9992,6 +9992,34 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
 
 
 
+    // âš ï¸ Confirm if Child Sharing Bed has count > 0 but rate is 0
+
+    var _cnbCountEl = document.querySelector('[name="manual_child_sharing_bed_count"]');
+
+    var _cnbRateEl  = document.querySelector('[name="manual_child_sharing_bed_rate"]');
+
+    var _cnbCount   = _cnbCountEl ? (parseFloat(_cnbCountEl.value) || 0) : 0;
+
+    var _cnbRate    = _cnbRateEl  ? (parseFloat(_cnbRateEl.value) || 0) : 0;
+
+    if (_cnbCount > 0 && _cnbRate === 0) {
+
+        if (!confirm('The Child Sharing Bed amount is set to zero even though the count is ' + _cnbCount + '. Do you want to continue saving with this amount?')) {
+
+            if (window.__autoCalcActive) {
+
+                cancelAutoCalc('Save cancelled by user. Child Sharing Bed amount is zero.');
+
+            }
+
+            return;
+
+        }
+
+    }
+
+
+
     const dayId   = document.getElementById('modal_packages_properties_days_id_fk')?.value || '';
 
     const roomRow = document.getElementById('modal_quotation_properties_rooms_id_fk')?.value || '';
@@ -11380,9 +11408,14 @@ function validateManualRoomingPlan() {
 
         if (count > 0 && rate <= 0) {
 
-            showError(rateEl, `${f.label} rate must be greater than 0`);
+            // Allow zero rate for Child Sharing Bed â€“ confirmation handled later
+            if (f.label !== 'Child Sharing Bed') {
 
-            return false;
+                showError(rateEl, `${f.label} rate must be greater than 0`);
+
+                return false;
+
+            }
 
         }
 
