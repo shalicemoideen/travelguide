@@ -3597,7 +3597,7 @@ private function get_accommodation_date_by_index($start_date, $index)
 	public function lead_report()
 	{
 		if (!has_permission('LEAD_REPORT')) {
-			show_error('Permission denied: Lead Report', 403);
+			show_permission_denied();
 			return;
 		}
 		$template['staff']            = $this->Leads_model->fetch_staff_details();

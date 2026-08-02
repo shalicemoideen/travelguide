@@ -41,7 +41,7 @@ class Booking_cancellation extends MY_Controller {
     public function index($quotation_id = null)
     {
         if (!has_permission('BOOKING_CANCELLATION_VIEW')) {
-            show_error('Permission denied: Booking Cancellation', 403);
+            show_permission_denied();
             return;
         }
 
@@ -58,7 +58,7 @@ class Booking_cancellation extends MY_Controller {
     public function detail($id = null)
     {
         if (!has_permission('BOOKING_CANCELLATION_VIEW')) {
-            show_error('Permission denied: Booking Cancellation', 403);
+            show_permission_denied();
             return;
         }
 
@@ -82,7 +82,7 @@ class Booking_cancellation extends MY_Controller {
     public function tracker()
     {
         if (!has_permission('BOOKING_CANCELLATION_TRACKER')) {
-            show_error('Permission denied: Supplier Refund Tracker', 403);
+            show_permission_denied();
             return;
         }
 
@@ -96,7 +96,7 @@ class Booking_cancellation extends MY_Controller {
     public function customer_refund_register()
     {
         if (!has_permission('BOOKING_CANCELLATION_REPORT')) {
-            show_error('Permission denied: Cancellation Report', 403);
+            show_permission_denied();
             return;
         }
 

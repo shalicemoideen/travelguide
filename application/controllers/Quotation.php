@@ -190,7 +190,7 @@ class Quotation extends MY_Controller {
 
 		if (!has_permission('COSTING_BREAKUP')) {
 
-			show_error('Permission denied: Quotation Details');
+			show_permission_denied();
 
 			return;
 
@@ -620,7 +620,7 @@ class Quotation extends MY_Controller {
 public function client_confirmation_preview($quotation_id)
 {
     if (!has_permission('CLIENT_CONFIRMATION')) {
-        show_error('Permission denied: Client Confirmation');
+        show_permission_denied();
         return;
     }
 
@@ -1339,7 +1339,7 @@ public function ajax_get_applied_plan_context()
 public function property_reservation_preview($quotation_id)
 {
     if (!has_permission('PROPERTY_RESERVATION')) {
-        show_error('Permission denied: Property Reservation');
+        show_permission_denied();
         return;
     }
 
@@ -1356,7 +1356,7 @@ public function property_reservation_preview($quotation_id)
 public function property_reservation_preview_new($quotation_id)
 {
     if (!has_permission('PROPERTY_RESERVATION')) {
-        show_error('Permission denied: Property Reservation');
+        show_permission_denied();
         return;
     }
 
@@ -1373,7 +1373,7 @@ public function property_reservation_preview_new($quotation_id)
 public function property_voucher_preview($quotation_id)
 {
     if (!has_permission('PROPERTY_VOUCHER')) {
-        show_error('Permission denied: Property Voucher');
+        show_permission_denied();
         return;
     }
 
@@ -1398,7 +1398,7 @@ public function property_voucher_preview($quotation_id)
 public function tour_voucher_preview($quotation_id)
 {
     if (!has_permission('TOUR_VOUCHER')) {
-        show_error('Permission denied: Tour Voucher');
+        show_permission_denied();
         return;
     }
 
@@ -1415,7 +1415,7 @@ public function tour_voucher_preview($quotation_id)
 public function driver_itinerary_preview($quotation_id)
 {
     if (!has_permission('DRIVER_ITINERARY')) {
-        show_error('Permission denied: Driver Itinerary');
+        show_permission_denied();
         return;
     }
 
@@ -8350,7 +8350,7 @@ public function ajax_delete()
 	public function converted_trips_report()
 	{
 		if (!has_permission('CONVERTED_TRIPS_REPORT')) {
-			show_error('Permission denied: Converted Trips Report', 403);
+			show_permission_denied();
 			return;
 		}
 		$template['staff']            = $this->Quotation_model->fetch_staff_users();
@@ -8398,7 +8398,7 @@ public function ajax_delete()
 	public function quotation_report()
 	{
 		if (!has_permission('QUOTATION_REPORT')) {
-			show_error('Permission denied: Quotation Report', 403);
+			show_permission_denied();
 			return;
 		}
 		$template['staff']            = $this->Quotation_model->fetch_staff_users();

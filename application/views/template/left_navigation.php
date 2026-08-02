@@ -351,25 +351,7 @@
 						'TRANSPORTER_REPORT',
 						'CUSTOMER_PAYMENT_REPORT',
 						'PROPERTY_PAYMENTS_REPORT',
-						'PAYMENT_REPORT',
-						'CATEGORY_UPDATE',
-						'CATEGORY_DELETE',
-						'INCLUSION_AND_EXCLUSION_VIEW',
-						'INCLUSION_AND_EXCLUSION_CREATE',
-						'INCLUSION_AND_EXCLUSION_UPDATE',
-						'INCLUSION_AND_EXCLUSION_DELETE',
-						'PAYMENT_POLICY_VIEW',
-						'PAYMENT_POLICY_CREATE',
-						'PAYMENT_POLICY_UPDATE',
-						'PAYMENT_POLICY_DELETE',
-						'TERMS_AND_CONDITIONS_VIEW',
-						'TERMS_AND_CONDITIONS_CREATE',
-						'TERMS_AND_CONDITIONS_UPDATE',
-						'TERMS_AND_CONDITIONS_DELETE',
-						'CANCELLATION_AND_POLICY_VIEW',
-						'CANCELLATION_AND_POLICY_CREATE',
-						'CANCELLATION_AND_POLICY_UPDATE',
-						'CANCELLATION_AND_POLICY_DELETE'
+						'PAYMENT_REPORT'
 					])): ?>
 					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(2)=="transporter_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report" || $this->uri->segment(2)=="customer_payment_report" || $this->uri->segment(2)=="property_payments_report" || $this->uri->segment(1)=="Payment_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
 							<i class="bi bi-bar-chart-line-fill"></i>

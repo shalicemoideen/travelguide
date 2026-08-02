@@ -29,3 +29,12 @@ function has_any_permission($permissions = [])
 
     return false; // ❌ none matched
 }
+
+
+function show_permission_denied($feature = '')
+{
+    $CI =& get_instance();
+    $CI->load->view('errors/html/permission_denied');
+    echo $CI->output->get_output();
+    exit;
+}

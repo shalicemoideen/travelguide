@@ -606,7 +606,7 @@ class Receipt_scheduler extends MY_Controller {
     public function customer_payment_report()
     {
         if (!has_permission('CUSTOMER_PAYMENT_REPORT')) {
-            show_error('Permission denied: Customer Payment Report', 403);
+            show_permission_denied();
             return;
         }
 

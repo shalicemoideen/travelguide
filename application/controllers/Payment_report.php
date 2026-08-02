@@ -23,7 +23,7 @@ class Payment_report extends MY_Controller {
     public function index()
     {
         if (!has_permission('PAYMENT_REPORT')) {
-            show_error('Permission denied: Payment Report', 403);
+            show_permission_denied();
             return;
         }
 

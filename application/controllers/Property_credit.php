@@ -36,7 +36,7 @@ class Property_credit extends MY_Controller {
     public function index()
     {
         if (!has_permission('PROPERTY_CREDIT_VIEW')) {
-            show_error('Permission denied: Property Credit', 403);
+            show_permission_denied();
             return;
         }
 

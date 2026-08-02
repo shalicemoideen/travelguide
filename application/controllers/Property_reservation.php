@@ -405,7 +405,7 @@ class Property_reservation extends MY_Controller {
     public function property_payments_report()
     {
         if (!has_permission('PROPERTY_PAYMENTS_REPORT')) {
-            show_error('Permission denied: Property Payments Report', 403);
+            show_permission_denied();
             return;
         }
         $template['body']   = 'Property_reservation/payments_report';
