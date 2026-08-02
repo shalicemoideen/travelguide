@@ -264,14 +264,7 @@
                                 <label class="form-label">Effective Date <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control bc-date" id="bc_effective_date" placeholder="dd/mm/yyyy" autocomplete="off">
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Scope</label>
-                                <select class="form-control" id="bc_scope">
-                                    <option value="FULL">Full cancellation (booking becomes Cancelled)</option>
-                                    <option value="PARTIAL">Partial &mdash; drop selected properties only</option>
-                                </select>
-                                <small class="text-muted">Partial keeps the booking confirmed; it is an amendment.</small>
-                            </div>
+                            <input type="hidden" id="bc_scope" value="FULL">
                         </div>
 
                         <div class="mb-3">
@@ -284,7 +277,6 @@
                             <table class="table table-sm table-bordered mb-0" id="bcPropertyTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width:40px;" class="text-center"><input type="checkbox" id="bcCheckAll" checked></th>
                                         <th>Property</th>
                                         <th>Check In</th>
                                         <th>Check Out</th>

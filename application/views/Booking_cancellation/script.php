@@ -272,11 +272,10 @@ $(function () {
         var rows = '';
 
         if (!worksheet.properties.length) {
-            rows = '<tr><td colspan="9" class="text-center text-muted">No property reservations on this booking</td></tr>';
+            rows = '<tr><td colspan="8" class="text-center text-muted">No property reservations on this booking</td></tr>';
         } else {
             $.each(worksheet.properties, function (i, p) {
                 rows += '<tr>'
-                     +  '<td class="text-center"><input type="checkbox" class="bc-prop" value="' + p.property_reservation_id + '" checked' + (partial ? '' : ' disabled') + '></td>'
                      +  '<td>' + esc(p.properties_name) + (p.confirmation_number ? '<br><small class="text-muted">CNF ' + esc(p.confirmation_number) + '</small>' : '') + '</td>'
                      +  '<td>' + dmy(p.check_in_date) + '</td>'
                      +  '<td>' + dmy(p.check_out_date) + '</td>'
@@ -311,9 +310,11 @@ $(function () {
 
     function selectedProperties() {
         var ids = [];
-        $('#bcPropertyTable tbody input.bc-prop:checked').each(function () {
-            ids.push($(this).val());
-        });
+        if (worksheet && worksheet.properties) {
+            $.each(worksheet.properties, function (i, p) {
+                ids.push(p.property_reservation_id);
+            });
+        }
         return ids;
     }
 

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
@@ -135,25 +135,27 @@ class Quotation_model extends CI_Model{
 
         }
 
-		// $currentuserid = $this->session->userdata('user_id');
+		$currentuserid = $this->session->userdata('user_id');
 
-		// $currentusertype = $this->session->userdata('user_type');
+		$currentusertype = $this->session->userdata('user_type');
 
 			
 
-		// if($currentusertype == 'S'){
+		if($currentusertype == 'S'){
 
-			 // $this->db->where("roles_created_by_userid",$currentuserid);
+			 $this->db->where("quotation_created_by_userid",$currentuserid);
 
-			// }
+			}
 
-		$this->db->select('*,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date');
+		$this->db->select('*,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username');
 
 		$this->db->from('quotation');
 
 		$this->db->join('leads', 'leads.leads_id = quotation.leads_id_fk','left');
 
 		$this->db->join('packages', 'packages.packages_id = quotation.package_id_fk','left');
+
+		$this->db->join('user_details ud', 'ud.user_id = quotation.quotation_created_by_userid', 'left');
 
 		$this->db->order_by('quotation_id', 'DESC');
 
@@ -265,17 +267,17 @@ class Quotation_model extends CI_Model{
 
         }
 
-		// $currentuserid = $this->session->userdata('user_id');
+		$currentuserid = $this->session->userdata('user_id');
 
-		// $currentusertype = $this->session->userdata('user_type');
+		$currentusertype = $this->session->userdata('user_type');
 
 			
 
-		// if($currentusertype == 'S'){
+		if($currentusertype == 'S'){
 
-			 // $this->db->where("roles_created_by_userid",$currentuserid);
+			 $this->db->where("quotation_created_by_userid",$currentuserid);
 
-			// }
+			}
 
 		$this->db->select('*,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date');
 
@@ -4313,17 +4315,23 @@ public function insert_room_tariff_details($data)
 
 
 
-    public function load_properties(){
+    public function load_properties($destination_id = ''){
 
-
-
-        return $this->db
+        $this->db
 
             ->select('properties_id,properties_name')
 
             ->from('properties')
 
-            ->where('properties_status', 1)
+            ->where('properties_status', 1);
+
+        if ($destination_id) {
+
+            $this->db->where('properties_destination_id_fk', $destination_id);
+
+        }
+
+        return $this->db
 
             ->order_by('properties_id ', 'ASC')
 

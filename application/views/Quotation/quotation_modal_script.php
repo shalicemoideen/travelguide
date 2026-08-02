@@ -5345,7 +5345,11 @@ document.addEventListener('click', function (e) {
 
 
 
-    fetch(`<?php echo base_url(); ?>index.php/Quotation/get_properties`)
+    const destId = dayRow.querySelector('[name="quotation_properties_days_destination_id_fk[]"]')?.value || '';
+
+
+
+    fetch(`<?php echo base_url(); ?>index.php/Quotation/get_properties${destId ? '?destination_id=' + encodeURIComponent(destId) : ''}`)
 
         .then(r => r.json())
 

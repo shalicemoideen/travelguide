@@ -1645,7 +1645,9 @@ public function ajax_get_tariff_by_context()
 
 	{
 
-		$data = $this->Quotation_model->load_properties();
+		$destination_id = $this->input->get('destination_id');
+
+		$data = $this->Quotation_model->load_properties($destination_id);
 
 		echo json_encode(['status' => true, 'data' => $data]);
 
