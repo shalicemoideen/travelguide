@@ -10004,9 +10004,8 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
     if (!validateManualRoomingPlan()) {
 
         if (window.__autoCalcActive) {
-
-            cancelAutoCalc('Validation failed for a room. Auto calculation stopped.');
-
+            $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
+            hideAutoCalcLoading();
         }
 
         return;
@@ -10030,9 +10029,8 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
         if (!confirm('The Child Sharing Bed amount is set to zero even though the count is ' + _cnbCount + '. Do you want to continue saving with this amount?')) {
 
             if (window.__autoCalcActive) {
-
-                cancelAutoCalc('Save cancelled by user. Child Sharing Bed amount is zero.');
-
+                $('#roompricingandguestallocationModal').modal('hide');
+                setTimeout(processNextAutoCalcRoom, 300);
             }
 
             return;
@@ -10054,13 +10052,9 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
         console.log({ dayId, roomRow });
 
         if (window.__autoCalcActive) {
-
-            cancelAutoCalc('Missing Day ID or Room Row ID. Auto calculation stopped.');
-
+            setTimeout(processNextAutoCalcRoom, 300);
         } else {
-
             alert('Missing Day ID or Room Row ID');
-
         }
 
         return;
@@ -10340,7 +10334,8 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
 
         if (window.__autoCalcActive) {
 
-            cancelAutoCalc('Save failed. Auto calculation stopped.');
+            $('#roompricingandguestallocationModal').modal('hide');
+            setTimeout(processNextAutoCalcRoom, 300);
 
         } else {
 
