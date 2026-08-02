@@ -49,11 +49,14 @@ class Packages_model extends CI_Model{
         }
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
-			
+
 		if($currentusertype == 'S'){
-			 $this->db->where("packages_createdby_user_id",$currentuserid);
-			}
-		$this->db->select('*');
+			$this->db->group_start();
+			$this->db->where('packages_createdby_user_id', $currentuserid);
+			$this->db->or_where('user_details.user_type', 'A');
+			$this->db->group_end();
+		}
+		$this->db->select('packages.*, package_category.package_category_name, itinerary_category.itinerary_category_name, itineraries.itineraries_name, user_details.user_type as creator_user_type, user_details.admin_name');
 		$this->db->from('packages');
 		$this->db->join('package_category', 'package_category.package_category_id = packages.packages_category_id_fk','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = packages.packages_itinerary_category_id_fk','left');
@@ -102,10 +105,13 @@ class Packages_model extends CI_Model{
         }
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
-			
+
 		if($currentusertype == 'S'){
-			 $this->db->where("packages_createdby_user_id",$currentuserid);
-			}
+			$this->db->group_start();
+			$this->db->where('packages_createdby_user_id', $currentuserid);
+			$this->db->or_where('user_details.user_type', 'A');
+			$this->db->group_end();
+		}
 		$this->db->from('packages');
 		$this->db->join('package_category', 'package_category.package_category_id = packages.packages_category_id_fk','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = packages.packages_itinerary_category_id_fk','left');

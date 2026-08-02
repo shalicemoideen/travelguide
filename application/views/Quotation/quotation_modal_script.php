@@ -4011,13 +4011,17 @@ const optionsContainer = document.getElementById('optionsContainer');
 
 packageSelect.addEventListener('change', () => {
 
-  alert("dd")
+    var packageId = packageSelect.value || document.getElementById('packages_id_hidden')?.value || '';
 
-    addOptionBtn.disabled = !packageSelect.value;
+    addOptionBtn.disabled = !packageId;
 
-    optionsContainer.innerHTML = '';
+    if (!packageId) {
 
-    optionCount = 0;
+        optionsContainer.innerHTML = '';
+
+        optionCount = 0;
+
+    }
 
     // loadDayDestOptionsForInclusionAndReq();
 
@@ -8840,7 +8844,26 @@ fetch(urlTariff)
 
       applyTariffRatesToModal(tariffRes);
 
+      // If auto-calc active and no tariff rates found, show modal for manual entry
+      if (window.__autoCalcActive && (!tariffRes || !tariffRes.status)) {
+          $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
+          hideAutoCalcLoading();
+          refreshAllAmountsAndTotals();
+          return; // Don't auto-save; wait for user to enter rates and click Save
+      }
 
+      // If auto-calc active and tariff rates are all 0, show modal for manual entry
+      if (window.__autoCalcActive && tariffRes && tariffRes.status) {
+          const _d = tariffRes.data || {};
+          const _rates = _d.rates || {};
+          const _roomRate = parseFloat(_rates.room_rate || 0);
+          if (_roomRate === 0) {
+              $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
+              hideAutoCalcLoading();
+              refreshAllAmountsAndTotals();
+              return; // Don't auto-save; wait for user to enter rates and click Save
+          }
+      }
 
       if (savedTariffId) {
 
@@ -10215,6 +10238,11 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
     if (!res.status) {
 
         alert(res.message || 'Save failed');
+
+        if (window.__autoCalcActive) {
+            $('#roompricingandguestallocationModal').modal('hide');
+            setTimeout(processNextAutoCalcRoom, 300);
+        }
 
         return;
 
@@ -13665,6 +13693,8 @@ function processNextAutoCalcRoom() {
 
     updateAutoCalcLoading(window.__autoCalcCurrent, window.__autoCalcTotal);
 
+    showAutoCalcLoading(window.__autoCalcCurrent, window.__autoCalcTotal);
+
     updateAutoCalcStatus('Calculating ' + window.__autoCalcCurrent + ' / ' + window.__autoCalcTotal + ' ...');
 
 
@@ -13823,7 +13853,7 @@ $(document).on('click', '#roompricingandguestallocationModal .btn-close', functi
 
 $('#roompricingandguestallocationModal').on('shown.bs.modal', function () {
 
-    if (window.__autoCalcActive) {
+    if (window.__autoCalcActive && $('#roompricingandguestallocationModal').hasClass('modal-auto-calc-hidden')) {
 
         $('.modal-backdrop').last().css('display', 'none');
 

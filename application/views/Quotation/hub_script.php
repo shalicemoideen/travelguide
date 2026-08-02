@@ -557,7 +557,12 @@ function updateQuotationHubActions(status) {
 
         buttonsHtml += buildVoucherDropdown();
 
-        buttonsHtml += '<button type="button" class="btn btn-success btn-sm ms-2" onclick="markTripCompleted()"><i class="la la-check-circle me-1"></i> Mark as Trip Completed</button>';
+        var hubSummary7 = window._hubSummaryData || {};
+        if (hubSummary7.all_payments_complete == true) {
+            buttonsHtml += '<button type="button" class="btn btn-success btn-sm ms-2" onclick="markTripCompleted()"><i class="la la-check-circle me-1"></i> Mark as Trip Completed</button>';
+        } else {
+            buttonsHtml += '<span title="All payments must be completed before marking trip as completed" data-bs-toggle="tooltip"><button type="button" class="btn btn-success btn-sm ms-2" disabled style="pointer-events:none;"><i class="la la-check-circle me-1"></i> Mark as Trip Completed</button></span>';
+        }
 
         if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
 
@@ -581,15 +586,7 @@ function updateQuotationHubActions(status) {
 
         buttonsHtml = '<span class="badge badge-success p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check-circle me-1"></i> Trip Completed</span> ';
 
-        buttonsHtml += buildEditQuotationButton();
-
         buttonsHtml += buildVoucherDropdown();
-
-        if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
-
-            buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
-
-        }
 
 
 
@@ -624,6 +621,11 @@ function updateQuotationHubActions(status) {
 
 
     $('#quotationActionButtons').html(buttonsHtml);
+
+    // Initialize tooltips for any disabled button wrappers
+    $('#quotationActionButtons [data-bs-toggle="tooltip"]').each(function() {
+        new bootstrap.Tooltip(this);
+    });
 
 
 
@@ -718,16 +720,6 @@ function updateReviewCard(data) {
     // Show review card only when status is 10 (Trip Completed)
 
     if (data.quotation_current_status != 10) {
-
-        reviewCard.hide();
-
-        return;
-
-    }
-
-
-
-    if (!data.all_payments_complete) {
 
         reviewCard.hide();
 

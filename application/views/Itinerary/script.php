@@ -336,23 +336,27 @@ var table;
             
            let actionHtml = '<div class="d-flex">';
 
-            // Edit button
-            if (hasPermission('ITINERARY_UPDATE')) {
+            // Check if itinerary was created by super admin
+            var isSuperAdminCreated = (data['creator_user_type'] == 'A');
+            var isCurrentUserSuperAdmin = ('<?php echo $this->session->userdata("user_type"); ?>' == 'A');
+
+            // Edit button - disabled for super admin created itineraries (unless current user is super admin)
+            if (hasPermission('ITINERARY_UPDATE') && (!isSuperAdminCreated || isCurrentUserSuperAdmin)) {
                 actionHtml += '<a href="javascript:void(0)" title="Edit" onclick="edit_itinerary('+data['itineraries_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>';
             }
 
-             // Duplicate button
+             // Duplicate button - always available based on permission
             if (hasPermission('ITINERARY_DUPLICATE')) {
                 actionHtml += '<a href="javascript:void(0)" title="Duplicate" onclick="duplicate_itinerary('+data['itineraries_id']+')" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-file-alt"></i></a>';
             }
 
-             // Preview button
+             // Preview button - always available based on permission
             if (hasPermission('ITINERARY_PREVIEW')) {
                 actionHtml += '<a class="btn btn-primary shadow btn-xs sharp me-1" target="_blank" title="Preview" href="<?php echo base_url();?>index.php/itinerary/preview/'+data['itineraries_id']+'" ><i class="fa fa-eye"></i></a>';
             }
 
-            // Delete button
-            if (hasPermission('ITINERARY_DELETE')) {
+            // Delete button - disabled for super admin created itineraries (unless current user is super admin)
+            if (hasPermission('ITINERARY_DELETE') && (!isSuperAdminCreated || isCurrentUserSuperAdmin)) {
                 actionHtml += '<a href="javascript:void(0)" title="Delete" onclick="return delete_itinerary('+data['itineraries_id']+')" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></a>';
             }
 

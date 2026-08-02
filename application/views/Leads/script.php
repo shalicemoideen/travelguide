@@ -7136,7 +7136,7 @@ $(document).ready(function () {
 
             let date = new Date(year, month, day);
 
-            date.setDate(date.getDate() + (duration - 1));
+            date.setDate(date.getDate() + duration);
 
             let dbDate = date.getFullYear() + '-' +
                 String(date.getMonth() + 1).padStart(2, '0') + '-' +

@@ -1822,7 +1822,7 @@ function q_preview_amount($value){
                 $exclusiveRows[] = array(
                   'day_no' => !empty($day->day_no) ? $day->day_no : '',
                   'destination' => !empty($day->destination_name) ? $day->destination_name : '-',
-                  'hotel' => !empty($propertyNames) ? implode(', ', array_unique($propertyNames)) : '-',
+                  'hotel' => !empty($propertyNames) ? implode(' / ', array_unique($propertyNames)) : '-',
                   'room' => !empty($roomNames) ? implode(', ', array_unique($roomNames)) : '-',
                   'meal' => '-'
                 );
@@ -1920,7 +1920,7 @@ function q_preview_amount($value){
                       $propertyNames = array_unique($propertyNames);
                       $roomNames     = array_unique($roomNames);
 
-                      $propertyText = !empty($propertyNames) ? implode(', ', $propertyNames) : '-';
+                      $propertyText = !empty($propertyNames) ? implode(' / ', $propertyNames) : '-';
                       $roomText     = !empty($roomNames) ? implode(', ', $roomNames) : '-';
                     ?>
 
@@ -2064,7 +2064,7 @@ function q_preview_amount($value){
                     $propertyNames = array_unique($propertyNames);
                     $roomNames     = array_unique($roomNames);
 
-                    $propertyText = !empty($propertyNames) ? implode(', ', $propertyNames) : '-';
+                    $propertyText = !empty($propertyNames) ? implode(' / ', $propertyNames) : '-';
                     $roomText     = !empty($roomNames) ? implode(', ', $roomNames) : '-';
                   ?>
 

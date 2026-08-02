@@ -6280,16 +6280,8 @@ public function get_guest_total($lead_id)
 
 
 
-    // add 1 day for travel back date
-
-    $end_date_plus_one = date('Y-m-d', strtotime($end_date . ' +1 day'));
-
-
-
     $start = date('d M', strtotime($start_date));
-
-    $end   = date('d M Y', strtotime($end_date_plus_one));
-
+    $end   = date('d M Y', strtotime($end_date));
 
 
     return $start . ' - ' . $end;

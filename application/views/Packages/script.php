@@ -372,23 +372,27 @@ var table;
 
             let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
-            // Edit button
-            if (hasPermission('TEMPLATES_UPDATE')) {
+            // Check if package was created by super admin
+            var isSuperAdminCreated = (data['creator_user_type'] == 'A');
+            var isCurrentUserSuperAdmin = ('<?php echo $this->session->userdata("user_type"); ?>' == 'A');
+
+            // Edit button - disabled for super admin created packages (unless current user is super admin)
+            if (hasPermission('TEMPLATES_UPDATE') && (!isSuperAdminCreated || isCurrentUserSuperAdmin)) {
                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_package('+data['packages_id']+')">Edit</a>';
             }
 
-            // Details button
+            // Duplicate button - always available based on permission
             if (hasPermission('TEMPLATES_DUPLICATE')) {
                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="edit_package('+data['packages_id']+', \'duplicate\')">Duplicate</a>';
             }
 
-            // Property photo dowload button
+            // Preview button - always available based on permission
             if (hasPermission('TEMPLATES_PREVIEW')) {
                 actionHtml += '<a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Packages/preview_direct/'+data['packages_id']+'" >Preview</a>';
             }
 
-            // Delete button
-            if (hasPermission('TEMPLATES_DELETE')) {
+            // Delete button - disabled for super admin created packages (unless current user is super admin)
+            if (hasPermission('TEMPLATES_DELETE') && (!isSuperAdminCreated || isCurrentUserSuperAdmin)) {
                 actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_package('+data['packages_id']+')">Delete</a>';
             }
 

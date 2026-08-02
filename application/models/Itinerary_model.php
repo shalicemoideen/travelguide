@@ -45,11 +45,14 @@ class Itinerary_model extends CI_Model{
         }
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
-			
+
 		if($currentusertype == 'S'){
-			 $this->db->where("itineraries_createdby_user_id",$currentuserid);
-			}
-		$this->db->select('*');
+			$this->db->group_start();
+			$this->db->where('itineraries_createdby_user_id', $currentuserid);
+			$this->db->or_where('user_details.user_type', 'A');
+			$this->db->group_end();
+		}
+		$this->db->select('itineraries.*, itinerary_category.itinerary_category_name, user_details.user_type as creator_user_type, user_details.admin_name');
 		$this->db->from('itineraries');
 		$this->db->join('itineraries_days', 'itineraries_days.itineraries_id_fk = itineraries.itineraries_id','left');
 		$this->db->join('itinerary_category', 'itinerary_category.itinerary_category_id = itineraries.itineraries_category_id_fk','left');
@@ -92,10 +95,13 @@ class Itinerary_model extends CI_Model{
         } 
 		$currentuserid = $this->session->userdata('user_id');
 		$currentusertype = $this->session->userdata('user_type');
-			
+
 		if($currentusertype == 'S'){
-			 $this->db->where("itineraries_createdby_user_id",$currentuserid);
-			}
+			$this->db->group_start();
+			$this->db->where('itineraries_createdby_user_id', $currentuserid);
+			$this->db->or_where('user_details.user_type', 'A');
+			$this->db->group_end();
+		}
 		$this->db->select('*');
 		$this->db->from('itineraries');
 		$this->db->join('itineraries_days', 'itineraries_days.itineraries_id_fk = itineraries.itineraries_id','left');
