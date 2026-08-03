@@ -11004,7 +11004,7 @@ document.addEventListener('input', function (e) {
 
     // Live room count adequacy warning
 
-    if (el.name === 'manual_count') {
+    if (false && el.name === 'manual_count') {
 
         var minRooms = parseInt(document.getElementById('modal_min_rooms_required')?.value || 0);
 
@@ -11058,7 +11058,7 @@ document.addEventListener('input', function (e) {
 
     var _ebSbFields = ['manual_count', 'manual_extra_bed_adult_count', 'manual_extra_bed_child_count', 'manual_child_sharing_bed_count'];
 
-    if (_ebSbFields.includes(el.name)) {
+    if (false && _ebSbFields.includes(el.name)) {
 
         var _rooms    = parseInt(document.querySelector('[name="manual_count"]')?.value || 0);
 
@@ -11264,7 +11264,7 @@ function validateManualRoomingPlan() {
 
 
 
-    if (minRooms > 0 && manualRooms < minRooms) {
+    if (false && minRooms > 0 && manualRooms < minRooms) {
 
         alert(
 
@@ -11298,7 +11298,7 @@ function validateManualRoomingPlan() {
 
     // EB / SB adequacy check
 
-    if (manualRooms > 0 && (appAdults + appChildren + appBaby) > 0) {
+    if (false && manualRooms > 0 && (appAdults + appChildren + appBaby) > 0) {
 
         var req = computeRequiredBedCounts(manualRooms, policyDb, policyEb, policySb, appAdults, appChildren, appBaby);
 

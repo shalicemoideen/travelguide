@@ -84,6 +84,8 @@ if (empty($this->input->post('required_field'))) {
 | `auto_total_rate` | Numeric | Auto-calculated total |
 | `manual_total_rate` | Numeric | Manual override total |
 
+> **Manual room allocation is fully user-controlled.** The system auto-calculates a suggested minimum room allocation (Total Rooms / DB / EB / SB) from the room policy and guest counts and displays it as a suggestion, but it is **not enforced**. Users may enter any values for Total Rooms, Double Bed (DB), Extra Bed (EB), and Child Sharing Bed (SB) — including fewer than the calculated minimum — and the entered values are saved exactly as entered. Numeric, negative-number, required-field, data-type, booking-status, and permission validations still apply.
+
 ### Client Confirmation
 
 | Field | Rule | Notes |
