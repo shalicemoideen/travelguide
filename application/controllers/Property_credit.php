@@ -225,12 +225,60 @@ class Property_credit extends MY_Controller {
         $this->Property_credit_model->recalculate_credit($credit_id);
 
         /* Record a payment transaction against the installment so the
-           credit shows up in the Property Payment Schedule. */
+           credit shows up in the Property Payment Schedule / payment history. */
         if ($reservation_id > 0) {
             $payment = $this->Property_reservation_model->get_payment_by_reservation($reservation_id);
+
+            /* If no payment schedule exists yet (reservation not confirmed),
+               auto-create a FULL schedule with a single installment for the
+               property total so the credit can be saved into the booking and
+               appear in its payment history. */
+            if (!$payment) {
+                $reservation = $this->Property_reservation_model->get_reservation_by_id($reservation_id);
+                if ($reservation) {
+                    $prop_total = (float)$this->Property_reservation_model->get_property_total_amount(
+                        $reservation->quotation_id_fk, $reservation->properties_id_fk);
+                    $inclusions = $this->Property_reservation_model->get_property_inclusions_detail(
+                        $reservation->quotation_id_fk, $reservation->properties_id_fk);
+                    $incl_total = 0;
+                    foreach ($inclusions as $inc) { $incl_total += (float)$inc->inclusion_amount; }
+                    $booking_total = round($prop_total + $incl_total, 2);
+
+                    $scheduler_id = $this->Property_reservation_model->save_payment(array(
+                        'property_reservation_id_fk'         => $reservation_id,
+                        'quotation_id_fk'                    => $reservation->quotation_id_fk,
+                        'payment_type'                       => 'FULL',
+                        'total_amount'                       => $booking_total,
+                        'discount_amount'                    => 0,
+                        'discounted_total'                   => $booking_total,
+                        'max_emi_count'                      => null,
+                        'split_type'                         => null,
+                        'property_payment_scheduler_remarks' => 'Auto-created for property credit application',
+                        'property_payment_scheduler_created_by_userid' => $this->currentuserid,
+                        'property_payment_scheduler_created_datetime'  => date('Y-m-d H:i:s'),
+                        'property_payment_scheduler_status'  => 1,
+                    ));
+
+                    $this->Property_reservation_model->save_installment(array(
+                        'property_payment_scheduler_id_fk' => $scheduler_id,
+                        'installment_number'      => 1,
+                        'installment_amount'      => $booking_total,
+                        'installment_percentage'  => 100,
+                        'calculated_amount'        => $booking_total,
+                        'due_date'                 => $reservation->check_in_date ?: date('Y-m-d'),
+                        'payment_status'           => 'PENDING',
+                        'paid_amount'              => 0,
+                        'installment_status'       => 1,
+                    ));
+
+                    $payment = $this->Property_reservation_model->get_payment_by_reservation($reservation_id);
+                }
+            }
+
             if ($payment) {
                 $installments = $this->Property_reservation_model->get_installments($payment->property_payment_scheduler_id);
                 if ($installments && count($installments) > 0) {
+                    $can_no = $credit->cancellation_number ? $credit->cancellation_number : '-';
                     $inst = $installments[0];
                     $this->Property_reservation_model->save_payment_txn(array(
                         'installment_id_fk'                => $inst->installment_id,
@@ -240,7 +288,7 @@ class Property_credit extends MY_Controller {
                         'payment_method'                   => 'PROPERTY_CREDIT',
                         'payment_reference'                => 'Credit #' . $credit_id,
                         'payment_remarks'                  => 'Property credit applied from Credit #' . $credit_id
-                                                             . ' (CAN ' . ($credit->cancellation_number || '-') . ')',
+                                                             . ' (CAN ' . $can_no . ')',
                         'payment_paid_by_userid'           => $this->currentuserid,
                         'payment_status'                   => 1,
                     ));
@@ -341,7 +389,7 @@ class Property_credit extends MY_Controller {
                         ->where('payment_status', 1)
                         ->get()
                         ->row();
-                    $new_paid = (float)($active_payments->payment_amount ?? 0);
+                    $new_paid = (float)($active_payments && $active_payments->payment_amount ? $active_payments->payment_amount : 0);
                     $new_status = $new_paid >= (float)$inst->calculated_amount ? 'PAID' : ($new_paid > 0 ? 'PARTIAL' : 'PENDING');
                     $this->Property_reservation_model->update_installment($inst->installment_id, array(
                         'paid_amount'    => $new_paid,

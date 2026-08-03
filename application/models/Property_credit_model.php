@@ -202,6 +202,34 @@ class Property_credit_model extends CI_Model {
             ->result();
     }
 
+    /**
+     * Applications for a quotation scoped to a single property. Used so a
+     * property reservation modal only shows the credit applied to that
+     * property, not every property in the booking.
+     */
+    public function get_applications_for_property($quotation_id, $properties_id)
+    {
+        return $this->db
+            ->select('pca.*, pcl.credit_amount, pcl.credit_status,
+                      pcl.booking_cancellation_id_fk,
+                      bc.cancellation_number,
+                      p.properties_name')
+            ->from($this->table_application . ' pca')
+            ->join($this->table_ledger . ' pcl',
+                   'pcl.property_credit_id = pca.property_credit_id_fk', 'inner')
+            ->join('booking_cancellation bc',
+                   'bc.booking_cancellation_id = pcl.booking_cancellation_id_fk', 'left')
+            ->join('properties p',
+                   'p.properties_id = pca.properties_id_fk', 'left')
+            ->where('pca.quotation_id_fk', (int)$quotation_id)
+            ->where('pca.properties_id_fk', (int)$properties_id)
+            ->where('pca.reversed', 0)
+            ->where('pca.credit_application_status', 1)
+            ->order_by('pca.applied_datetime', 'ASC')
+            ->get()
+            ->result();
+    }
+
     public function insert_application($data)
     {
         $this->db->insert($this->table_application, $data);

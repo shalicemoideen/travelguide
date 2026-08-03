@@ -119,7 +119,7 @@ class Property_reservation extends MY_Controller {
         $applied_credits   = array();
         if ($this->db->table_exists('property_credit_ledger')) {
             $available_credits = $this->Property_credit_model->get_available_credits($properties_id);
-            $applied_credits   = $this->Property_credit_model->get_applications_for_quotation($quotation_id);
+            $applied_credits   = $this->Property_credit_model->get_applications_for_property($quotation_id, $properties_id);
         }
 
         echo json_encode(array(
@@ -242,9 +242,70 @@ class Property_reservation extends MY_Controller {
             }
 
             $this->_build_installments($scheduler_id, $payment_type, $discounted_total, $split_type);
+
+            /* Rebuilding installments soft-deletes the previous ones, which
+               orphans any payments already recorded against them (e.g. a
+               property credit applied before confirmation). Re-point those
+               payments to the new installments and recompute paid amounts so
+               they stay in the payment history. */
+            $this->_relink_orphan_payments($scheduler_id);
         }
 
         echo json_encode(array('error' => false, 'message' => 'Reservation confirmation saved successfully'));
+    }
+
+    /**
+     * Re-attach active payment transactions (whose installment was soft-deleted
+     * during an installment rebuild) to the first current installment, then
+     * recompute paid_amount / payment_status for every active installment.
+     */
+    private function _relink_orphan_payments($scheduler_id)
+    {
+        $installments = $this->Property_reservation_model->get_installments($scheduler_id);
+        if (!$installments || count($installments) === 0) { return; }
+
+        $payments = $this->db
+            ->from('property_payment_scheduler_payments')
+            ->where('property_payment_scheduler_id_fk', (int)$scheduler_id)
+            ->where('payment_status', 1)
+            ->get()
+            ->result();
+        if (!$payments) { return; }
+
+        $valid_ids = array();
+        foreach ($installments as $inst) { $valid_ids[$inst->installment_id] = true; }
+
+        $first = $installments[0];
+        foreach ($payments as $p) {
+            if (!isset($valid_ids[$p->installment_id_fk])) {
+                $this->db->where('payment_id', $p->payment_id);
+                $this->db->update('property_payment_scheduler_payments',
+                    array('installment_id_fk' => $first->installment_id));
+            }
+        }
+
+        foreach ($installments as $inst) {
+            $sum = $this->db
+                ->select_sum('payment_amount')
+                ->from('property_payment_scheduler_payments')
+                ->where('installment_id_fk', $inst->installment_id)
+                ->where('payment_status', 1)
+                ->get()
+                ->row();
+            $paid = $sum && $sum->payment_amount ? (float)$sum->payment_amount : 0;
+            if ($paid <= 0) {
+                $status = 'PENDING';
+            } elseif ($paid >= (float)$inst->calculated_amount) {
+                $status = 'PAID';
+            } else {
+                $status = 'PARTIAL';
+            }
+            $this->Property_reservation_model->update_installment($inst->installment_id, array(
+                'paid_amount'    => round($paid, 2),
+                'paid_date'      => $paid > 0 ? date('Y-m-d') : null,
+                'payment_status' => $status,
+            ));
+        }
     }
 
     private function _build_installments($scheduler_id, $payment_type, $total_amount, $split_type)
