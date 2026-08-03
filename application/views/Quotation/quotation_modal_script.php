@@ -4111,6 +4111,21 @@ document.getElementById('addOptionBtn')?.addEventListener('click', function (e) 
 
     reIndexOptions();
 
+    // Copy vehicle and cab amount from first option block
+    var $firstBlock = $('#optionsContainer .optionBlock').first();
+    if ($firstBlock.length && $firstBlock[0] !== optionBlock) {
+        var firstVehicle = $firstBlock.find('[name="quotation_options_vehicle_id_fk[]"]').val();
+        var firstCab = $firstBlock.find('[name="quotation_options_cab_amount[]"]').val();
+        if (firstVehicle) {
+            fetchVehicles(vehicleDropdown, function () {
+                $(vehicleDropdown).val(firstVehicle).trigger('change.select2');
+            });
+        }
+        if (firstCab) {
+            optionBlock.querySelector('[name="quotation_options_cab_amount[]"]').value = firstCab;
+        }
+    }
+
 // clearQuotationOnPackageChange();
 
       // âœ… fix bootstrap scroll recalculation
@@ -4254,8 +4269,6 @@ $(document).on('change', '.propertyDropdown', function () {
 
 
     if (!commonId) return;
-
-
 
     loadItinerary(optionBlock, commonId);
 
@@ -5205,7 +5218,7 @@ function getOptionTemplate(index) {
 
                         name="quotation_options_vehicle_display[]"
 
-                        value="1">
+                        value="1" checked>
 
                     <label class="form-check-label">
 
