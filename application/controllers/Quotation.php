@@ -6213,6 +6213,8 @@ private function delete_quotation_children_except_itinerary($quotation_id)
 
 		$descriptions                       = (array)$this->input->post('quotation_itineraries_days_description');
 
+		$titles                             = (array)$this->input->post('quotation_itineraries_days_title');
+
 		$defaultImages                      = (array)$this->input->post('default_itinerary_day_image');
 
 
@@ -6284,6 +6286,8 @@ private function delete_quotation_children_except_itinerary($quotation_id)
 
 
 			$data = array(
+
+				'quotation_itineraries_days_title'       => isset($titles[$k]) ? $titles[$k] : '',
 
 				'quotation_itineraries_days_description' => isset($descriptions[$k]) ? $descriptions[$k] : '',
 

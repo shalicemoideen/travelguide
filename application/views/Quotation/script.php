@@ -289,7 +289,7 @@ var table;
             // if(data['quotation_current_status'] == 1){
               $table.cell(node).data('<span class="badge badge-secondary">Generated</span>');
               
-            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
+            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
 
                 $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
@@ -297,7 +297,7 @@ var table;
 
                 // Edit button
                 if (hasPermission('QUOTATION_UPDATE')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a>';
+                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a>';
                 }
 
                 // Edit itinireary button
@@ -338,7 +338,7 @@ var table;
             else if($table.cell(node).data() == '2') {
             // else if(data['quotation_current_status'] == 2){
               $table.cell(node).data('<span class="badge badge-light">Draft</span>');
-            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
+            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
             $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
@@ -346,7 +346,7 @@ var table;
 
                 // Edit button
                 if (hasPermission('QUOTATION_UPDATE')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a>';
+                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a>';
                 }
 
                 // Edit itinireary button
@@ -387,7 +387,7 @@ var table;
             else if($table.cell(node).data() == '3') {
             // else if(data['quotation_current_status'] == 3){
               $table.cell(node).data('<span class="badge badge-info">Sent</span>');
-            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
+            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
             $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
@@ -395,7 +395,7 @@ var table;
 
                 // Edit button
                 if (hasPermission('QUOTATION_UPDATE')) {
-                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a>';
+                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a>';
                 }
 
                 // Edit itinireary button
@@ -436,7 +436,7 @@ var table;
             else if($table.cell(node).data() == '4') {
             // else if(data['quotation_current_status'] == 4){
               $table.cell(node).data('<span class="badge badge-danger">Rejected</span>');
-            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
+            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
             $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
@@ -480,7 +480,7 @@ var table;
             else if($table.cell(node).data() == '5') {
             // else if(data['quotation_current_status'] == 5){
               $table.cell(node).data('<span class="badge badge-success">Confirmed</span>');
-            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
+            //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
               
                 $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
@@ -838,11 +838,69 @@ function setInvalid($el, msg) {
   }
 }
 
-function scrollToFirstError() {
-  const $first = $('.is-invalid').first();
-  if ($first.length) {
-    $('html, body').animate({ scrollTop: $first.offset().top - 120 }, 300);
+let $firstValidationError = null;
+
+function markInvalidAndRemember($el, msg) {
+  setInvalid($el, msg);
+  if (!$firstValidationError && $el && $el.length) {
+    $firstValidationError = $el;
   }
+}
+
+function moveToFirstValidationError() {
+  if (!$firstValidationError || !$firstValidationError.length) return;
+
+  let $field = $firstValidationError;
+  let $target = $field;
+
+  // Select2 visible container
+  if ($field.hasClass('select2-hidden-accessible')) {
+    const $s2 = $field.next('.select2');
+    if ($s2.length) {
+      $target = $s2;
+      $s2.find('.select2-selection').css('border', '2px solid #dc3545');
+    }
+  }
+
+  // CKEditor visible container
+  if ($field.hasClass('day-editor')) {
+    const $ck = $field.closest('td').find('.ck-editor');
+    if ($ck.length) {
+      $target = $ck;
+      $ck.css('border', '2px solid #dc3545');
+    } else {
+      $target = $field.closest('tr');
+    }
+  }
+
+  // fallback to closest visible section if target is hidden/invalid
+  if (!$target.length || !$target.is(':visible') || !$target.offset()) {
+    $target = $field.closest('.form-group, .mb-3, tr, div:visible').first();
+  }
+
+  if (!$target.length || !$target.offset()) {
+    return;
+  }
+
+  var $modalBody = $('#QuotationitineraryModal .modal-body');
+  if ($modalBody.length) {
+    var modalTop = $modalBody.offset().top;
+    var targetTop = $target.offset().top;
+    var currentScroll = $modalBody.scrollTop();
+    $modalBody.animate({
+      scrollTop: currentScroll + (targetTop - modalTop) - 20
+    }, 400);
+  } else {
+    $('html, body').animate({
+      scrollTop: $target.offset().top - 140
+    }, 400);
+  }
+
+  setTimeout(function () {
+    if (!$field.hasClass('day-editor') && $field.is(':visible')) {
+      $field.focus();
+    }
+  }, 600);
 }
 
 
@@ -851,6 +909,7 @@ function validateQuoteItineraryForm() {
 
   clearValidationErrors();
   syncDayEditorsToTextarea();
+  $firstValidationError = null;
 
     $('.ck-editor').css('border', '');
     $('textarea.day-editor').css('border', '');
@@ -860,10 +919,19 @@ function validateQuoteItineraryForm() {
      1) MAIN REQUIRED FIELDS
      ========================================================== */
   const $qtnTitle   = $('[name="quotation_title"]');
-  
+
+  if (isEmpty($qtnTitle.val())) { ok = false; markInvalidAndRemember($qtnTitle, 'Quotation title is required'); }
+
     $('#itinerary tr').each(function () {
         const $tr = $(this);
         const rowNum = $tr.data('row-num') || '';
+
+        const $title = $tr.find('input[name="quotation_itineraries_days_title[]"]');
+        if ($title.length && isEmpty($title.val())) {
+            ok = false;
+            markInvalidAndRemember($title, 'Day ' + rowNum + ' title is required');
+        }
+
         const $desc = $tr.find('textarea.day-editor');
 
         if (!$desc.length) return;
@@ -872,12 +940,7 @@ function validateQuoteItineraryForm() {
 
         if (value === '' || value === '<p>&nbsp;</p>' || value === '<p></p>') {
             ok = false;
-
-            alert('Day ' + rowNum + ' description is required');
-
-            $('html, body').animate({
-                scrollTop: $tr.offset().top - 120
-            }, 300);
+            markInvalidAndRemember($desc, 'Day ' + rowNum + ' description is required');
 
             const $editorBox = $tr.find('.ck-editor');
             if ($editorBox.length) {
@@ -885,12 +948,8 @@ function validateQuoteItineraryForm() {
             } else {
                 $desc.css('border', '1px solid #dc3545');
             }
-
-            return false;
         }
     });
-    
-  if (isEmpty($qtnTitle.val())) { ok = false; setInvalid($qtnTitle, 'Template title is required'); }
 
   /* ==========================================================
      2-3) INCLUSIONS / EXCLUSIONS
@@ -906,19 +965,19 @@ function validateQuoteItineraryForm() {
     // Must open at least one in each OR loaded from dropdown
     if ($incAreas.length === 0) {
       ok = false;
-      setInvalid($('#packages_inclusion_exclusion_common_id_fk'), 'Add at least one Inclusion (use +Add new or select a title)');
+      markInvalidAndRemember($('#quotation_inclusion_exclusion_common_id_fk'), 'Add at least one Inclusion (use +Add new or select a title)');
     }
     if ($excAreas.length === 0) {
       ok = false;
-      setInvalid($('#quotation_inclusion_exclusion_common_id_fk'), 'Add at least one Exclusion (use +Add new or select a title)');
+      markInvalidAndRemember($('#quotation_inclusion_exclusion_common_id_fk'), 'Add at least one Exclusion (use +Add new or select a title)');
     }
 
     // Required: any textarea empty => invalid
     $incAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Inclusion cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Inclusion cannot be empty'); }
     });
     $excAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Exclusion cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Exclusion cannot be empty'); }
     });
   }
 
@@ -935,11 +994,11 @@ function validateQuoteItineraryForm() {
 
     if ($optAreas.length === 0) {
       ok = false;
-      setInvalid($optChk, 'Add at least one Optional add on');
+      markInvalidAndRemember($optChk, 'Add at least one Optional add on');
     }
 
     $optAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Optional add on cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Optional add on cannot be empty'); }
     });
   }
 
@@ -980,11 +1039,11 @@ function validateQuoteItineraryForm() {
 
     if ($payAreas.length === 0) {
       ok = false;
-      setInvalid($('#quotation_policies_id_fk'), 'Add at least one Payment policy item (+Add new or select a title)');
+      markInvalidAndRemember($('#quotation_policies_id_fk'), 'Add at least one Payment policy item (+Add new or select a title)');
     }
 
     $payAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Payment policy cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Payment policy cannot be empty'); }
     });
   }
 
@@ -1000,11 +1059,11 @@ function validateQuoteItineraryForm() {
 
     if ($tcAreas.length === 0) {
       ok = false;
-      setInvalid($('#quotation_terms_condition_id_fk'), 'Add at least one Terms & condition item (+Add new or select a title)');
+      markInvalidAndRemember($('#quotation_terms_condition_id_fk'), 'Add at least one Terms & condition item (+Add new or select a title)');
     }
 
     $tcAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Terms & condition cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Terms & condition cannot be empty'); }
     });
   }
 
@@ -1020,11 +1079,11 @@ function validateQuoteItineraryForm() {
 
     if ($canAreas.length === 0) {
       ok = false;
-      setInvalid($('#quotation_cancellation_policies_id_fk'), 'Add at least one Cancellation policy item (+Add new or select a title)');
+      markInvalidAndRemember($('#quotation_cancellation_policies_id_fk'), 'Add at least one Cancellation policy item (+Add new or select a title)');
     }
 
     $canAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Cancellation policy cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Cancellation policy cannot be empty'); }
     });
   }
 
@@ -1040,15 +1099,15 @@ function validateQuoteItineraryForm() {
 
     if ($noteAreas.length === 0) {
       ok = false;
-      setInvalid($notesChk, 'Add at least one Note');
+      markInvalidAndRemember($notesChk, 'Add at least one Note');
     }
 
     $noteAreas.each(function () {
-      if (isEmpty($(this).val())) { ok = false; setInvalid($(this), 'Note cannot be empty'); }
+      if (isEmpty($(this).val())) { ok = false; markInvalidAndRemember($(this), 'Note cannot be empty'); }
     });
   }
 
-  if (!ok) scrollToFirstError();
+  if (!ok) moveToFirstValidationError();
   return ok;
 }
 
@@ -1068,49 +1127,49 @@ function syncDayEditorsToTextarea() {
 
 window.dayEditors = {};   // {rowNum: editorInstance}
 
-function save_quote_itinerary() {
-
-  if (!validateQuoteItineraryForm()) {
-    return;
-  }
-
-  let url = "<?php echo base_url();?>index.php/Quotation/ajax_itinerary_update/";
-
-  $('#btnSave').text('Updating...');
-  $('#btnSave').attr('disabled', true);
-
-  syncDayEditorsToTextarea();
-
-  var form = document.getElementById('form2'); // âœ… correct form id
-  var data = new FormData(form);
-
-  $.ajax({
-    url: url,
-    type: "POST",
-    data: data,
-    dataType: "JSON",
-    processData: false,
-    contentType: false,
-    success: function(res) {
-
-      if (res.status) {
-        $('#QuotationitineraryModal').modal('hide'); // âœ… correct modal
-        resetQuotationItineraryModal();
-        reload_table();
-      } else {
-        alert(res.message || 'Validation failed');
-      }
-
-      $('#btnSave').text('Save');
-      $('#btnSave').attr('disabled', false);
-    },
-    error: function() {
-      alert('Error saving data');
-      $('#btnSave').text('Save');
-      $('#btnSave').attr('disabled', false);
-    }
-  });
-}
+// function save_quote_itinerary() {
+//
+//   if (!validateQuoteItineraryForm()) {
+//     return;
+//   }
+//
+//   let url = "<?php echo base_url();?>index.php/Quotation/ajax_itinerary_update/";
+//
+//   $('#btnSave').text('Updating...');
+//   $('#btnSave').attr('disabled', true);
+//
+//   syncDayEditorsToTextarea();
+//
+//   var form = document.getElementById('form2');
+//   var data = new FormData(form);
+//
+//   $.ajax({
+//     url: url,
+//     type: "POST",
+//     data: data,
+//     dataType: "JSON",
+//     processData: false,
+//     contentType: false,
+//     success: function(res) {
+//
+//       if (res.status) {
+//         $('#QuotationitineraryModal').modal('hide');
+//         resetQuotationItineraryModal();
+//         reload_table();
+//       } else {
+//         alert(res.message || 'Validation failed');
+//       }
+//
+//       $('#btnSave').text('Update');
+//       $('#btnSave').attr('disabled', false);
+//     },
+//     error: function() {
+//       alert('Error saving data');
+//       $('#btnSave').text('Update');
+//       $('#btnSave').attr('disabled', false);
+//     }
+//   });
+// }
 
 // function resetPackageModal() {
 
@@ -1227,6 +1286,23 @@ function save_quote_itinerary() {
     return;
   }
 
+  Swal({
+    title: "Are you sure?",
+    text: "Do you want to update this quotation itinerary?",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#DD6B55",
+    confirmButtonText: "Yes, update it!",
+    cancelButtonText: "No, cancel!"
+  }).then(function(result) {
+    if (result.value) {
+      doSaveQuoteItinerary();
+    }
+  });
+}
+
+function doSaveQuoteItinerary() {
+
   let url = "<?php echo base_url();?>index.php/Quotation/ajax_itinerary_update/";
 
   $('#btnSave').text('Updating...');
@@ -1234,7 +1310,7 @@ function save_quote_itinerary() {
 
   syncDayEditorsToTextarea();
 
-  var form = document.getElementById('form2'); // âœ… correct form id
+  var form = document.getElementById('form2');
   var data = new FormData(form);
 
   $.ajax({
@@ -1246,20 +1322,24 @@ function save_quote_itinerary() {
     contentType: false,
     success: function(res) {
 
+      console.log('ajax_itinerary_update response:', res);
+
       if (res.status) {
-        $('#QuotationitineraryModal').modal('hide'); // âœ… correct modal
-        resetQuotationItineraryModal();
-        reload_table();
+        $('#QuotationitineraryModal').modal('hide');
+        setTimeout(function() {
+          reload_table_itinerary();
+        }, 300);
       } else {
         alert(res.message || 'Validation failed');
       }
 
-      $('#btnSave').text('Save');
+      $('#btnSave').text('Update');
       $('#btnSave').attr('disabled', false);
     },
-    error: function() {
-      alert('Error saving data');
-      $('#btnSave').text('Save');
+    error: function(xhr, status, error) {
+      console.log('ajax_itinerary_update error:', status, error, xhr.responseText);
+      alert('Error saving data: ' + error);
+      $('#btnSave').text('Update');
       $('#btnSave').attr('disabled', false);
     }
   });
@@ -1375,9 +1455,9 @@ function buildItineraryRowsFromSaved(itineraryDays) {
         <td>
           <div>
             <b>${item.quotation_itineraries_days_day || ('Day ' + rowNum)}</b>
-            | ${item.quotation_itineraries_days_title || ''}
-            ${tbBadge}
           </div>
+          <input type="text" name="quotation_itineraries_days_title[]" class="form-control mt-1" value="${item.quotation_itineraries_days_title || ''}" placeholder="Day title">
+          <div>${tbBadge}</div>
 
           <input type="hidden" name="is_travel_back[]" class="is-travel-back" value="${isTB ? '1' : '0'}">
 
@@ -1406,7 +1486,6 @@ function buildItineraryRowsFromSaved(itineraryDays) {
           <input type="hidden" name="quotation_itinerary_days_id[]" value="${item.quotation_itinerary_days_id || ''}">
           <input type="hidden" name="itineraries_days_id_fk[]" value="${item.itineraries_days_id_fk || ''}">
           <input type="hidden" name="quotation_itineraries_days_day[]" value="${item.quotation_itineraries_days_day || ''}">
-          <input type="hidden" name="quotation_itineraries_days_title[]" value="${item.quotation_itineraries_days_title || ''}">
 
           <!-- IMPORTANT: this is the posted destination array -->
           <input type="hidden"
@@ -1457,7 +1536,7 @@ function buildItineraryRowsFromSaved(itineraryDays) {
       width: '100%',
       placeholder: 'Please Select Itinerary',
       allowClear: true,
-      dropdownParent: $('#QuotationitineraryModal'),
+      dropdownParent: $('#QuotationitineraryModal .modal-content'),
       ajax: {
         url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
         dataType: 'json',
@@ -1469,7 +1548,7 @@ function buildItineraryRowsFromSaved(itineraryDays) {
     });
   });
 
-  $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#QuotationitineraryModal') });
+  $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#QuotationitineraryModal .modal-content') });
 
   // âœ… Init CKEditor
   if (typeof initEditorsForDays === 'function') initEditorsForDays();
@@ -2140,7 +2219,7 @@ function select2AjaxSetSelected(selector, id, text) {
 }
 
 function initQuotationItineraryModalSelect2() {
-    var $modal = $('#QuotationitineraryModal');
+    var $modal = $('#QuotationitineraryModal .modal-content');
 
     // Inclusions & Exclusions
     var $inc = $('#quotation_inclusion_exclusion_common_id_fk');
@@ -2233,7 +2312,7 @@ $(document).ready(function () {
         width: '100%',
         placeholder: 'Please Select Days',
         allowClear: true,
-        dropdownAutoWidth: true,
+        dropdownParent: $('#QuotationitineraryModal .modal-content'),
         templateResult: function (data) {
 
             if (!data.id) return data.text;
@@ -3228,64 +3307,19 @@ function reload_table()
     {  
 
         swal("Quotation details updated successfully", "", "success")
-        // var ff = 0;
-        
-        // ff = "Room tariff details updated successfully";
 
-        //  $("#vehicle_update").val(ff);
-        
-         
-        //  var options = {
-
-        // 'title': '',
-
-        // 'style': 'success',
-
-        // 'message': ff,
-
-        // // 'success': 'warning',
-        // 'icon': 'fas fa-check',
-
-        // };
-        
-        // var n1 = new notify(options); 
-
-        // n1.show(); 
-
-        // setTimeout(function(){ n1.hide(); }, 10000);
     }
     else{
         
         swal("Quotation details added successfully", "", "success")
 
-        // var ff = 0;
-        
-        // ff = "Transporter details added successfully";
-
-        //  $("#vehicle_add").val(ff);
-        
-         
-        //  var options = {
-
-        // 'title': '',
-
-        // 'style': 'success',
-
-        // 'message': ff,
-
-        // // 'success': 'warning',
-        // 'icon': 'fas fa-check',
-
-        // };
-        
-        // var n1 = new notify(options); 
-
-        // n1.show(); 
-
-        // setTimeout(function(){ n1.hide(); }, 10000);
     }
-    
-    
+}
+
+function reload_table_itinerary()
+{
+    $table.ajax.reload(null,false); //reload datatable ajax 
+    swal("Quotation itinerary updated successfully", "", "success")
 }
 
 function reload_table_status()

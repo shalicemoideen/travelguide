@@ -3420,7 +3420,7 @@
 
                                             <tr>
 
-                                                <th>Day</th>
+                                                <th style="width:50%; min-width:250px;">Day</th>
 
                                                 <th>Stay Destination</th>
 
@@ -3822,7 +3822,7 @@
 
                         <button type="button" class="btn btn-danger light" onclick="Quotationitinerarymodalclose()" data-bs-dismiss="modal">Close</button>
 
-                        <button type="button" class="btn btn-primary" id="btnSave" onclick="save_quote_itinerary()" >Save</button>
+                        <button type="button" class="btn btn-primary" id="btnSave" onclick="save_quote_itinerary()" >Update</button>
 
                     </div>
 
@@ -4277,6 +4277,55 @@
 
 
 <style>
+
+    #QuotationitineraryModal .modal-content {
+        max-height: calc(100vh - 30px);
+        overflow: hidden;
+    }
+    #QuotationitineraryModal .modal-body {
+        max-height: calc(100vh - 150px);
+        overflow-y: auto !important;
+        overflow-x: hidden;
+    }
+
+    #QuotationitineraryModal .form-control,
+    #QuotationitineraryModal .form-select,
+    #QuotationitineraryModal select.form-control {
+        font-size: 12px;
+        padding: 0.3rem 0.5rem;
+        min-height: 32px;
+    }
+    #QuotationitineraryModal label,
+    #QuotationitineraryModal .col-form-label {
+        font-size: 12px;
+        margin-bottom: 0.2rem;
+        font-weight: 600;
+    }
+    #QuotationitineraryModal .form-group {
+        margin-bottom: 0.5rem;
+    }
+    #QuotationitineraryModal .row {
+        --bs-gutter-y: 0.5rem;
+    }
+    #QuotationitineraryModal h3.modal-title {
+        font-size: 16px;
+    }
+    #QuotationitineraryModal table th,
+    #QuotationitineraryModal table td {
+        font-size: 12px;
+        padding: 0.4rem 0.5rem;
+    }
+    #QuotationitineraryModal .btn {
+        font-size: 12px;
+        padding: 0.3rem 0.6rem;
+    }
+    #QuotationitineraryModal .btn-sm {
+        font-size: 11px;
+        padding: 0.2rem 0.4rem;
+    }
+    #QuotationitineraryModal .form-check-label {
+        font-size: 12px;
+    }
 
     .itinerary-modal-content {
 
