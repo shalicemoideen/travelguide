@@ -54,7 +54,14 @@
                         <div class="col-sm-6 col-md-3">
                             <div class="card">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Date Range" id="quotation_report_daterange" name="quotation_report_daterange" readonly>
+                                    <input type="text" class="form-control" placeholder="Quotation Created Date Range" id="quotation_created_daterange" name="quotation_created_daterange" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="card">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Travel Date Range" id="quotation_report_daterange" name="quotation_report_daterange" readonly>
                                 </div>
                             </div>
                         </div>

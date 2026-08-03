@@ -10,6 +10,24 @@ $('#quotation_status').select2({
     width: '100%'
 });
 
+$('#quotation_created_daterange').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+        format: 'DD/MM/YYYY',
+        cancelLabel: 'Clear'
+    }
+});
+
+$('#quotation_created_daterange').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(
+        picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+    );
+});
+
+$('#quotation_created_daterange').on('cancel.daterangepicker', function() {
+    $(this).val('');
+});
+
 $('#quotation_report_daterange').daterangepicker({
     autoUpdateInput: false,
     locale: {
@@ -88,7 +106,7 @@ $(document).ready(function () {
     var period = getUrlParam('period');
     if (period && period !== '') {
         var dates = getPeriodDates(period);
-        $('#quotation_report_daterange').val(dates.start + ' - ' + dates.end);
+        $('#quotation_created_daterange').val(dates.start + ' - ' + dates.end);
         $('#Create').show();
         autoReload = true;
     }
@@ -102,6 +120,7 @@ $('#reset').click(function () {
     $('#guest_name').val('');
     $('#staff_id').val(null).trigger('change');
     $('#quotation_status').val(null).trigger('change');
+    $('#quotation_created_daterange').val('');
     $('#quotation_report_daterange').val('');
     $table.ajax.reload();
 });
@@ -135,6 +154,15 @@ $(document).ready(function () {
                 d.guest_name       = $("#guest_name").val();
                 d.staff_id         = $("#staff_id").val();
                 d.quotation_status = $("#quotation_status").val();
+                var createdRange = $("#quotation_created_daterange").val();
+                if (createdRange) {
+                    var createdDates = createdRange.split(' - ');
+                    d.created_start_date = createdDates[0];
+                    d.created_end_date   = createdDates[1];
+                } else {
+                    d.created_start_date = '';
+                    d.created_end_date   = '';
+                }
                 var reportRange = $("#quotation_report_daterange").val();
                 if (reportRange) {
                     var reportDates = reportRange.split(' - ');

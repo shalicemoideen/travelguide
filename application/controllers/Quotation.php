@@ -8445,6 +8445,18 @@ public function ajax_delete()
 			$param['end_date'] = date('Y-m-d', strtotime($end_date));
 		}
 
+		$created_start_date = isset($_REQUEST['created_start_date']) ? $_REQUEST['created_start_date'] : '';
+		$created_end_date   = isset($_REQUEST['created_end_date'])   ? $_REQUEST['created_end_date']   : '';
+
+		if ($created_start_date) {
+			$created_start_date = str_replace('/', '-', $created_start_date);
+			$param['created_start_date'] = date('Y-m-d', strtotime($created_start_date));
+		}
+		if ($created_end_date) {
+			$created_end_date = str_replace('/', '-', $created_end_date);
+			$param['created_end_date'] = date('Y-m-d', strtotime($created_end_date));
+		}
+
 		$data = $this->Quotation_model->getQuotationReport($param);
 		echo json_encode($data);
 	}

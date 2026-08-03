@@ -7363,11 +7363,13 @@ public function get_quotation_special_requirements_preview($quotation_id)
 
 	public function getQuotationReport($param)
 	{
-		$staff_id          = isset($param['staff_id'])          ? $param['staff_id']          : '';
-		$guest_name        = isset($param['guest_name'])        ? $param['guest_name']        : '';
-		$quotation_status  = isset($param['quotation_status'])  ? $param['quotation_status']  : '';
-		$start_date        = isset($param['start_date'])        ? $param['start_date']        : '';
-		$end_date          = isset($param['end_date'])          ? $param['end_date']          : '';
+		$staff_id            = isset($param['staff_id'])            ? $param['staff_id']            : '';
+		$guest_name          = isset($param['guest_name'])          ? $param['guest_name']          : '';
+		$quotation_status    = isset($param['quotation_status'])    ? $param['quotation_status']    : '';
+		$start_date          = isset($param['start_date'])          ? $param['start_date']          : '';
+		$end_date            = isset($param['end_date'])            ? $param['end_date']            : '';
+		$created_start_date  = isset($param['created_start_date'])  ? $param['created_start_date']  : '';
+		$created_end_date    = isset($param['created_end_date'])    ? $param['created_end_date']    : '';
 
 		if ($staff_id) {
 			$this->db->where('l.staff_id_fk', $staff_id);
@@ -7383,6 +7385,12 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		}
 		if ($end_date) {
 			$this->db->where('l.start_date <=', $end_date);
+		}
+		if ($created_start_date) {
+			$this->db->where('q.quotation_date >=', $created_start_date);
+		}
+		if ($created_end_date) {
+			$this->db->where('q.quotation_date <=', $created_end_date);
 		}
 
 		if ($param['length'] == -1) {
@@ -7423,11 +7431,13 @@ public function get_quotation_special_requirements_preview($quotation_id)
 
 	public function getQuotationReportCount($param = NULL)
 	{
-		$staff_id          = isset($param['staff_id'])          ? $param['staff_id']          : '';
-		$guest_name        = isset($param['guest_name'])        ? $param['guest_name']        : '';
-		$quotation_status  = isset($param['quotation_status'])  ? $param['quotation_status']  : '';
-		$start_date        = isset($param['start_date'])        ? $param['start_date']        : '';
-		$end_date          = isset($param['end_date'])          ? $param['end_date']          : '';
+		$staff_id            = isset($param['staff_id'])            ? $param['staff_id']            : '';
+		$guest_name          = isset($param['guest_name'])          ? $param['guest_name']          : '';
+		$quotation_status    = isset($param['quotation_status'])    ? $param['quotation_status']    : '';
+		$start_date          = isset($param['start_date'])          ? $param['start_date']          : '';
+		$end_date            = isset($param['end_date'])            ? $param['end_date']            : '';
+		$created_start_date  = isset($param['created_start_date'])  ? $param['created_start_date']  : '';
+		$created_end_date    = isset($param['created_end_date'])    ? $param['created_end_date']    : '';
 
 		if ($staff_id) {
 			$this->db->where('l.staff_id_fk', $staff_id);
@@ -7443,6 +7453,12 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		}
 		if ($end_date) {
 			$this->db->where('l.start_date <=', $end_date);
+		}
+		if ($created_start_date) {
+			$this->db->where('q.quotation_date >=', $created_start_date);
+		}
+		if ($created_end_date) {
+			$this->db->where('q.quotation_date <=', $created_end_date);
 		}
 
 		$this->db->select('q.quotation_id', FALSE);
