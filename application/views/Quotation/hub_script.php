@@ -10273,21 +10273,27 @@ function edit_quotation_hub(id)
                 '</div>' +
                 '<div class="card-body py-2">' +
                 '<div class="row align-items-end">' +
-                '<div class="col-md-3">' +
-                '<label class="form-label small">Current Start Date</label>' +
-                '<input type="text" class="form-control form-control-sm" id="hubCurrentStartDate" value="' + escapeHtml(startDateStr) + '" readonly>' +
+                '<div class="col-md-2">' +
+                '<label class="form-label small">Current Travel Start Date</label>' +
+                '<input type="hidden" id="hubCurrentStartDate" value="' + escapeHtml(startDateStr) + '">' +
+                '<p class="form-control-plaintext fw-bold" id="hubCurrentStartDateDisplay">' + escapeHtml(startDateStr) + '</p>' +
                 '</div>' +
-                '<div class="col-md-3">' +
+                '<div class="col-md-2">' +
                 '<label class="form-label small">Current End Date</label>' +
-                '<input type="text" class="form-control form-control-sm" id="hubCurrentEndDate" value="' + escapeHtml(endDateStr) + '" readonly>' +
+                '<input type="hidden" id="hubCurrentEndDate" value="' + escapeHtml(endDateStr) + '">' +
+                '<p class="form-control-plaintext fw-bold" id="hubCurrentEndDateDisplay">' + escapeHtml(endDateStr) + '</p>' +
+                '</div>' +
+                '<div class="col-md-2">' +
+                '<label class="form-label small">Duration</label>' +
+                '<p class="form-control-plaintext fw-bold" id="hubCurrentDurationDisplay">' + duration + ' Days</p>' +
                 '</div>' +
                 '<div class="col-md-3">' +
-                '<label class="form-label small">New Start Date</label>' +
-                '<input type="date" class="form-control form-control-sm" id="hubNewStartDate">' +
+                '<label class="form-label small">New Travel Date</label>' +
+                '<input type="text" class="form-control form-control-sm" id="hubNewStartDate" placeholder="dd/mm/yyyy">' +
                 '</div>' +
                 '<div class="col-md-3">' +
                 '<label class="form-label small">New End Date</label>' +
-                '<input type="text" class="form-control form-control-sm" id="hubNewEndDate" readonly placeholder="Auto-calculated">' +
+                '<input type="text" class="form-control form-control-sm" id="hubNewEndDate" readonly placeholder="dd/mm/yyyy">' +
                 '</div>' +
                 '</div>' +
                 '<div class="row mt-2">' +
@@ -10303,24 +10309,57 @@ function edit_quotation_hub(id)
             );
 
             // Show/hide reschedule button and auto-calc end date
-            $('#hubNewStartDate').on('change', function() {
-                var newStart = $(this).val();
-                if (newStart && duration > 0) {
-                    var newEnd = new Date(newStart);
-                    newEnd.setDate(newEnd.getDate() + parseInt(duration));
-                    var newEndStr = newEnd.getFullYear() + '-' +
-                        String(newEnd.getMonth() + 1).padStart(2, '0') + '-' +
-                        String(newEnd.getDate()).padStart(2, '0');
-                    $('#hubNewEndDate').val(formatDateForDisplay(newEndStr));
-                    $('#hubRescheduleBtn').show();
+            function onNewStartDateChange() {
+                var raw = $('#hubNewStartDate').val().trim();
+                // Convert dd/mm/yyyy to yyyy-mm-dd for calculation
+                var parts = raw.split(/[\/\-]/);
+                if (parts.length === 3) {
+                    var isoStart = parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0');
+
+                    // Check if same as current start date or current end date
+                    var currentStartIso = $('#hubCurrentStartDate').val();
+                    var currentEndIso = $('#hubCurrentEndDate').val();
+                    // Convert current dates from dd-mm-yyyy to yyyy-mm-dd for comparison
+                    var currentStartParts = currentStartIso.split(/[\/\-]/);
+                    var currentEndParts = currentEndIso.split(/[\/\-]/);
+                    var currentStartNormalized = currentStartParts.length === 3 ? currentStartParts[2] + '-' + currentStartParts[1].padStart(2,'0') + '-' + currentStartParts[0].padStart(2,'0') : '';
+                    var currentEndNormalized = currentEndParts.length === 3 ? currentEndParts[2] + '-' + currentEndParts[1].padStart(2,'0') + '-' + currentEndParts[0].padStart(2,'0') : '';
+
+                    if (isoStart === currentStartNormalized) {
+                        alert('New travel date cannot be the same as current travel start date.');
+                        $('#hubNewStartDate').val('');
+                        $('#hubNewEndDate').val('');
+                        $('#hubRescheduleBtn').hide();
+                        return;
+                    }
+                    if (isoStart === currentEndNormalized) {
+                        alert('New travel date cannot be the same as current end date.');
+                        $('#hubNewStartDate').val('');
+                        $('#hubNewEndDate').val('');
+                        $('#hubRescheduleBtn').hide();
+                        return;
+                    }
+
+                    if (duration > 0) {
+                        var newEnd = new Date(isoStart);
+                        newEnd.setDate(newEnd.getDate() + parseInt(duration));
+                        var newEndDay = String(newEnd.getDate()).padStart(2, '0');
+                        var newEndMonth = String(newEnd.getMonth() + 1).padStart(2, '0');
+                        var newEndYear = newEnd.getFullYear();
+                        $('#hubNewEndDate').val(newEndDay + '/' + newEndMonth + '/' + newEndYear);
+                        $('#hubRescheduleBtn').show();
+                    }
                 } else {
                     $('#hubNewEndDate').val('');
                     $('#hubRescheduleBtn').hide();
                 }
-            });
+            }
 
-            // Hide fields not needed in Hub edit
-            hideHubEditFields();
+            $('#hubNewStartDate').on('change keyup', onNewStartDateChange);
+
+            // Initialize datepicker on New Travel Date
+            $('#hubNewStartDate').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true })
+                .on('changeDate', onNewStartDateChange);
 
             // Hide remarks section for hub edit
             $('#quotation_remarks').closest('.col-md-3').hide();
@@ -10433,6 +10472,13 @@ function saveQuotationHub()
         return;
     }
 
+    // If new travel date is entered but not yet rescheduled, block save
+    var newStartDate = $('#hubNewStartDate').val().trim();
+    if (newStartDate) {
+        alert('Please click "Reschedule & Recalculate Rates" before saving, as you have changed the travel date.');
+        return;
+    }
+
     $('#btnSave').text('saving...').attr('disabled', true);
 
     // ensure latest totals
@@ -10503,7 +10549,13 @@ function formatDateForDisplay(dateStr)
 function rescheduleTravelDate()
 {
     var quotationId = $('[name="id"]').val();
-    var newStartDate = $('#hubNewStartDate').val();
+    var newStartDateRaw = $('#hubNewStartDate').val();
+    // Convert dd/mm/yyyy to yyyy-mm-dd for server
+    var newStartDate = '';
+    var parts = newStartDateRaw.split(/[\/\-]/);
+    if (parts.length === 3) {
+        newStartDate = parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0');
+    }
 
     if (!quotationId) {
         alert('Quotation ID missing');
@@ -10519,7 +10571,7 @@ function rescheduleTravelDate()
 
     if (!confirm('Are you sure you want to reschedule the travel date?\n\n' +
         'Current Start: ' + currentStart + '\n' +
-        'New Start: ' + formatDateForDisplay(newStartDate) + '\n' +
+        'New Start: ' + newStartDateRaw + '\n' +
         'New End: ' + newEnd + '\n\n' +
         'This will update accommodation dates and recalculate room rates based on the new dates.')) {
         return;
@@ -10544,8 +10596,12 @@ function rescheduleTravelDate()
 
             if (res.status) {
                 // Update current date display
-                $('#hubCurrentStartDate').val(formatDateForDisplay(res.new_start_date));
-                $('#hubCurrentEndDate').val(formatDateForDisplay(res.new_end_date));
+                var newStartDisplay = formatDateForDisplay(res.new_start_date);
+                var newEndDisplay = formatDateForDisplay(res.new_end_date);
+                $('#hubCurrentStartDate').val(newStartDisplay);
+                $('#hubCurrentEndDate').val(newEndDisplay);
+                $('#hubCurrentStartDateDisplay').text(newStartDisplay);
+                $('#hubCurrentEndDateDisplay').text(newEndDisplay);
                 $('#hubNewStartDate').val('');
                 $('#hubNewEndDate').val('');
                 $('#hubRescheduleBtn').hide();

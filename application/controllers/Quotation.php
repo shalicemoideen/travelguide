@@ -8804,6 +8804,46 @@ public function ajax_delete()
 				}
 			}
 
+			// Shift quotation_property_inclusions accommodation_date
+			$inclusions = $this->db
+				->select('quotation_property_inclusions_id, accommodation_date')
+				->from('quotation_property_inclusions')
+				->where('quotation_id_fk', $quotation_id)
+				->where('quotation_property_inclusions_status', 1)
+				->get()
+				->result_array();
+
+			foreach ($inclusions as $inc) {
+				$old_inc_date = $inc['accommodation_date'];
+				if ($old_inc_date && $old_inc_date !== '0000-00-00') {
+					$new_inc_date = date('Y-m-d', strtotime($old_inc_date . ' +' . $offset_days . ' days'));
+					$this->db->where('quotation_property_inclusions_id', $inc['quotation_property_inclusions_id']);
+					$this->db->update('quotation_property_inclusions', array(
+						'accommodation_date' => $new_inc_date
+					));
+				}
+			}
+
+			// Shift quotation_special_requirements accommodation_date
+			$special_reqs = $this->db
+				->select('quotation_special_requirements_id, accommodation_date')
+				->from('quotation_special_requirements')
+				->where('quotation_id_fk', $quotation_id)
+				->where('quotation_special_requirements_status', 1)
+				->get()
+				->result_array();
+
+			foreach ($special_reqs as $sr) {
+				$old_sr_date = $sr['accommodation_date'];
+				if ($old_sr_date && $old_sr_date !== '0000-00-00') {
+					$new_sr_date = date('Y-m-d', strtotime($old_sr_date . ' +' . $offset_days . ' days'));
+					$this->db->where('quotation_special_requirements_id', $sr['quotation_special_requirements_id']);
+					$this->db->update('quotation_special_requirements', array(
+						'accommodation_date' => $new_sr_date
+					));
+				}
+			}
+
 			$this->db->trans_commit();
 
 			echo json_encode(array(

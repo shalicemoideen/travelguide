@@ -480,17 +480,6 @@ var save_method; //for save method string
                                         columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'B2C Leads details',
-                                    customize: function ( win ) {
-                                    $(win.document.body)
-                                      .css( 'font-size', '10pt' )
-                                      .prepend(
-                                        // '<img src="http://datatables.net/media/images/logo-fade.png" style="position:absolute; top:0; left:0;" />'
-                                      );
-
-                                    $(win.document.body).find( 'table' )
-                                      .addClass( 'compact' )
-                                      .css( 'font-size', 'inherit' );
-                                    },
                                 },
                                 {
                                     extend: 'pdf',
@@ -498,17 +487,6 @@ var save_method; //for save method string
                                         columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'B2C Leads details',
-                                    customize: function ( win ) {
-                                    $(win.document.body)
-                                      .css( 'font-size', '10pt' )
-                                      .prepend(
-                                        // '<img src="http://datatables.net/media/images/logo-fade.png" style="position:absolute; top:0; left:0;" />'
-                                      );
-
-                                    $(win.document.body).find( 'table' )
-                                      .addClass( 'compact' )
-                                      .css( 'font-size', 'inherit' );
-                                    },
                                 },
                                 {
                                     extend: 'print',
@@ -1893,17 +1871,6 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                                         columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Meta Leads details',
-                                    customize: function ( win ) {
-                                    $(win.document.body)
-                                      .css( 'font-size', '10pt' )
-                                      .prepend(
-                                        // '<img src="http://datatables.net/media/images/logo-fade.png" style="position:absolute; top:0; left:0;" />'
-                                      );
-
-                                    $(win.document.body).find( 'table' )
-                                      .addClass( 'compact' )
-                                      .css( 'font-size', 'inherit' );
-                                    },
                                 },
                                 {
                                     extend: 'pdf',
@@ -1911,17 +1878,6 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                                         columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Meta Leads details',
-                                    customize: function ( win ) {
-                                    $(win.document.body)
-                                      .css( 'font-size', '10pt' )
-                                      .prepend(
-                                        // '<img src="http://datatables.net/media/images/logo-fade.png" style="position:absolute; top:0; left:0;" />'
-                                      );
-
-                                    $(win.document.body).find( 'table' )
-                                      .addClass( 'compact' )
-                                      .css( 'font-size', 'inherit' );
-                                    },
                                 },
                                 {
                                     extend: 'print',
@@ -7044,13 +7000,6 @@ $(document).ready(function () {
                 .val('')
                 .removeClass('is-invalid is-valid');
 
-            // Duration
-            $('#duration')
-                .prop('disabled', true)
-                .prop('required', false)
-                .val('')
-                .removeClass('is-invalid is-valid');
-
         } else if (dateType === 'WITH') {
 
             // Start Date
@@ -7058,14 +7007,9 @@ $(document).ready(function () {
                 .prop('disabled', false)
                 .prop('required', true);
 
-            // Duration
-            $('#duration')
-                .prop('disabled', false)
-                .prop('required', true);
-
         } else {
 
-            $('#start_date1, #duration')
+            $('#start_date1')
                 .prop('disabled', true)
                 .prop('required', false)
                 .val('')
@@ -7826,7 +7770,7 @@ function showEditEndDate(endDate)
     }
 }
 
-$('#start_date1, #duration').on('focus click', function (e) {
+$('#start_date1').on('focus click', function (e) {
 
     let dateType = $('#date_type').val();
 
@@ -7837,7 +7781,7 @@ $('#start_date1, #duration').on('focus click', function (e) {
         Swal.fire({
             icon: 'warning',
             title: 'Select Date Type',
-            text: 'Please select date type to enable travel date and duration.'
+            text: 'Please select date type to enable travel date.'
         });
 
         return false;
