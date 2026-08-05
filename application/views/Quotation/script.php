@@ -77,6 +77,11 @@ $("#quotation_current_status_filter").select2({
   // dropdownParent: $("#LeadsModal"),
   minimumResultsForSearch: 0
 });
+$("#changeStatusForm #quotation_current_status").select2({
+  dropdownParent: $("#ChangeStatusModal"),
+  width: '100%',
+  minimumResultsForSearch: 0
+});
 $("#leads_id").select2({
   dropdownParent: $("#QuotationModal"),
   placeholder: 'Please Select lead',
@@ -305,7 +310,7 @@ var table;
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-               // Change status button
+               // Change status button (only for Draft)
                 // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
                 //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
                 // }
@@ -354,10 +359,10 @@ var table;
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-                // Change status button (hidden)
-                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                // }
+                // Change status button
+                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
@@ -403,10 +408,10 @@ var table;
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-                // Change status button (hidden)
-                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                // }
+                // Change status button
+                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
@@ -447,10 +452,10 @@ var table;
                     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a>';
                 }
 
-                // Change status button (hidden)
-                // if (hasPermission('QUOTATION_CHANGE_STATUS')) {
-                //     actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
-                // }
+                // Change status button
+                if (hasPermission('QUOTATION_CHANGE_STATUS')) {
+                    actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a>';
+                }
 
                 // Quotation preview button
                 if (hasPermission('QUOTATION_PREVIEW')) {
@@ -3330,12 +3335,78 @@ function reload_table_status()
        
     
     
-}
+    }
 
-////***For reload the datatable  *****///
+    function change_status(quotation_id)
+    {
+        $.ajax({
+            url: '<?php echo base_url(); ?>index.php/Quotation/ajax_get_quotation_status',
+            type: 'GET',
+            data: { quotation_id: quotation_id },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status && res.data) {
+                    $('#changeStatusForm #quotation_id').val(res.data.quotation_id);
+                    $('#changeStatusForm #lead_id').val(res.data.lead_id);
 
+                    var $select = $('#changeStatusForm #quotation_current_status');
+                    $select.empty().append('<option value="">Select Status</option>');
 
+                    var currentStatus = parseInt(res.data.quotation_current_status);
+                    var statusOptions = [
+                        { value: 2, text: 'Draft' },
+                        { value: 3, text: 'Sent' },
+                        { value: 4, text: 'Rejected' }
+                    ];
 
+                    $.each(statusOptions, function(_, opt) {
+                        $select.append('<option value="' + opt.value + '">' + opt.text + '</option>');
+                    });
+
+                    $select.val('').trigger('change.select2');
+
+                    $('#ChangeStatusModal').modal('show');
+                } else {
+                    swal('Failed to load quotation status', '', 'error');
+                }
+            },
+            error: function() {
+                swal('Error fetching quotation status', '', 'error');
+            }
+        });
+    }
+
+    function saveChangeStatus()
+    {
+        var quotation_id = $('#changeStatusForm #quotation_id').val();
+        var status = $('#changeStatusForm #quotation_current_status').val();
+
+        if (!quotation_id || !status) {
+            swal('Please select a status', '', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '<?php echo base_url(); ?>index.php/Quotation/ajax_update_quotation_status',
+            type: 'POST',
+            data: {
+                quotation_id: quotation_id,
+                quotation_current_status: status
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status) {
+                    $('#ChangeStatusModal').modal('hide');
+                    reload_table_status();
+                } else {
+                    swal(res.message || 'Failed to update status', '', 'error');
+                }
+            },
+            error: function() {
+                swal('Error updating quotation status', '', 'error');
+            }
+        });
+    }
 
 ////***For convert to trip *****///
 

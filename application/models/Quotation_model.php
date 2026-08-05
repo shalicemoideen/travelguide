@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
@@ -4219,7 +4219,7 @@ public function insert_room_tariff_details($data)
 
         return $this->db
 
-            ->select('packages_properties_common_id, packages_properties_common_category_name, packages_properties_common_design_type')
+            ->select('packages_properties_common_id, packages_properties_common_category_name, packages_properties_common_design_type, packages_properties_common_complimentary_inclusion')
 
             ->from('packages_properties_common')
 

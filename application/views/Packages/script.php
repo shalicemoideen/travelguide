@@ -954,19 +954,39 @@ window.loadRowWiseItineraries = function () {
 function showItineraryAsSelect() {
   $('#itinerary_select_wrap').show();
   $('#itinerary_display_wrap').hide();
-
   $('#packages_itinerary_display').html('');
-
   $('#packages_itinerary_id_fk').prop('disabled', false);
 }
 
 function showItineraryAsDisplay(itineraryName) {
   $('#itinerary_display_wrap').show();
   $('#itinerary_select_wrap').hide();
-
   $('#packages_itinerary_display').html(itineraryName || '-');
-
   $('#packages_itinerary_id_fk').prop('disabled', false);
+}
+
+function showDurationAsSelect() {
+  $('#duration_select_wrap').show();
+  $('#duration_display_wrap').hide();
+  $('#packages_duration_display').html('');
+}
+
+function showDurationAsDisplay(durationVal) {
+  $('#duration_display_wrap').show();
+  $('#duration_select_wrap').hide();
+  $('#packages_duration_display').html(durationVal || '-');
+}
+
+function showItineraryCategoryAsSelect() {
+  $('#itinerary_category_select_wrap').show();
+  $('#itinerary_category_display_wrap').hide();
+  $('#packages_itinerary_category_display').html('');
+}
+
+function showItineraryCategoryAsDisplay(categoryName) {
+  $('#itinerary_category_display_wrap').show();
+  $('#itinerary_category_select_wrap').hide();
+  $('#packages_itinerary_category_display').html(categoryName || '-');
 }
 
 function edit_package(id, mode) {
@@ -1056,6 +1076,8 @@ function edit_package(id, mode) {
     }
 
     showItineraryAsDisplay(itineraryText);
+    showDurationAsDisplay(p.packages_duration_in_nights || '');
+    showItineraryCategoryAsDisplay(p.itinerary_category_name || '');
 
   // } else {
 
@@ -1068,6 +1090,8 @@ function edit_package(id, mode) {
   } else {
 
   showItineraryAsSelect();
+  showDurationAsSelect();
+  showItineraryCategoryAsSelect();
 
   window.suppressPropertyClearConfirm = true;
 
@@ -1681,7 +1705,7 @@ if (isEmpty($itinerary.val())) {
      16) PROPERTIES (dynamic)
      checkbox checked -> validate:
        - at least one section exists
-       - category name required
+       - name of the option required
        - each assignment row: property required
        - each assignment row: rooms must have at least 1 selected
      ========================================================== */
@@ -1704,8 +1728,8 @@ if (isEmpty($itinerary.val())) {
       const $cat = $sec.find('input[name^="property_category_name"]');
       if ($cat.length && isEmpty($cat.val())) {
         ok = false;
-        // setInvalid($cat, 'Category name is required');
-        markInvalidAndRemember($cat, 'Category name is required');
+        // setInvalid($cat, 'Name of the option is required');
+        markInvalidAndRemember($cat, 'Name of the option is required');
       }
 
       const $designType = $sec.find('select[name^="packages_properties_common_design_type"]');
@@ -2021,7 +2045,11 @@ function resetPackageModal() {
 
   // reset itinerary display/select mode
   showItineraryAsSelect();
+  showDurationAsSelect();
+  showItineraryCategoryAsSelect();
   $('#packages_itinerary_display').html('');
+  $('#packages_duration_display').html('');
+  $('#packages_itinerary_category_display').html('');
 
   // reset select2 properly
   $modal.find('select').each(function () {
@@ -4133,11 +4161,11 @@ function $roomsSelectHasValue($select, val) {
                 </div>
 
                 <div style="width:260px;">
-                  <label><b>Category Name</b></label>
+                  <label><b>Name of the Option</b></label>
                   <input type="text"
                         name="property_category_name[${sectionId}]"
                         class="form-control property-category-name"
-                        placeholder="Enter category name"
+                        placeholder="Enter name of the option"
                         required>
                 </div>
 
@@ -4150,6 +4178,14 @@ function $roomsSelectHasValue($select, val) {
                     <option value="Standard">Standard</option>
                     <option value="Exclusive">Exclusive</option>
                   </select>
+                </div>
+
+                <div style="flex:1; min-width:300px;">
+                  <label><b>Complimentary Inclusions</b></label>
+                  <textarea name="packages_properties_common_complimentary_inclusion[${sectionId}]"
+                            class="form-control complimentary-inclusion-textarea"
+                            rows="2"
+                            placeholder="Enter complimentary inclusions"></textarea>
                 </div>
 
                 <div>
@@ -4274,7 +4310,7 @@ function $roomsSelectHasValue($select, val) {
       const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: true });
     }
 
-    // Focus category name input for better UX
+    // Focus name of the option input for better UX
     setTimeout(function() {
       $section.find('input[name^="property_category_name"]').focus();
     }, 300);
@@ -4372,6 +4408,10 @@ window.buildSavedPropertyUI = function(propertyData) {
 
     const $design = $section.find('select[name^="packages_properties_common_design_type"]');
     $design.val(sec.packages_properties_common_design_type || '').trigger('change.select2');
+
+    $section.find('textarea[name^="packages_properties_common_complimentary_inclusion"]').val(
+      sec.packages_properties_common_complimentary_inclusion || ''
+    );
 
     const templateMasterId = sec.packages_properties_common_template_master_id_fk || '';
     console.log('buildSavedPropertyUI: section #' + sectionId + ' templateMasterId=' + templateMasterId);
@@ -4724,7 +4764,7 @@ function refreshPropertyDestinationNames() {
       // Store template data on section for destination change re-match
       $section.data('template-master-data', master);
 
-      // Set category name
+      // Set name of the option
       $section.find('.property-category-name').val(master.template_master_category_name || '');
 
       // Set design type

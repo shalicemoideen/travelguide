@@ -435,7 +435,7 @@ public function get_properties_grouped($package_id)
     $result = array();
 
     $commons = $this->db
-        ->select('packages_properties_common_id, packages_properties_common_category_name, packages_properties_common_design_type')
+        ->select('packages_properties_common_id, packages_properties_common_category_name, packages_properties_common_design_type, packages_properties_common_complimentary_inclusion')
         ->from('packages_properties_common')
         ->where('packages_properties_common_packages_id_fk', $package_id)
         ->order_by('packages_properties_common_id', 'ASC')
@@ -448,6 +448,7 @@ public function get_properties_grouped($package_id)
         $cat->packages_properties_common_id = $common->packages_properties_common_id;
         $cat->packages_properties_common_category_name = $common->packages_properties_common_category_name;
         $cat->packages_properties_common_design_type = $common->packages_properties_common_design_type;
+        $cat->packages_properties_common_complimentary_inclusion = $common->packages_properties_common_complimentary_inclusion;
         $cat->days = array();
 
         $days = $this->db
@@ -870,7 +871,8 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
     $sections = $this->db->select('
             packages_properties_common_id,
             packages_properties_common_category_name,
-            packages_properties_common_design_type
+            packages_properties_common_design_type,
+            packages_properties_common_complimentary_inclusion
         ')
         ->from('packages_properties_common')
         ->where('packages_properties_common_packages_id_fk', $package_id)
@@ -948,6 +950,7 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
         $out[] = array(
             'packages_properties_common_category_name' => $sec['packages_properties_common_category_name'],
             'packages_properties_common_design_type'   => $sec['packages_properties_common_design_type'],
+            'packages_properties_common_complimentary_inclusion' => $sec['packages_properties_common_complimentary_inclusion'],
             'days'                                     => $daysOut
         );
     }
@@ -960,6 +963,7 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
 				packages_properties_common_id,
 				packages_properties_common_category_name,
 				packages_properties_common_design_type,
+				packages_properties_common_complimentary_inclusion,
 				packages_properties_common_template_master_id_fk
 			')
 			->from('packages_properties_common')
@@ -1040,6 +1044,7 @@ ON cancellation_policies.cancellation_policies_id = cancellation_policies_item.c
 			$out[] = array(
 				'packages_properties_common_category_name' => $sec['packages_properties_common_category_name'],
 				'packages_properties_common_design_type'   => $sec['packages_properties_common_design_type'],
+				'packages_properties_common_complimentary_inclusion' => $sec['packages_properties_common_complimentary_inclusion'],
 				'packages_properties_common_template_master_id_fk' => $sec['packages_properties_common_template_master_id_fk'],
 				'days'                                     => $daysOut
 			);

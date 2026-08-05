@@ -3076,6 +3076,8 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 			$optionMap = array();
 
+			$optionUidMap = array();
+
 			if (!empty($payload['options']) && is_array($payload['options'])) {
 
 
@@ -3098,23 +3100,27 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 							'quotation_options_cab_amount' => $option['cab_amount'],
 
+							'quotation_options_cab_amount_not_required' => isset($option['quotation_options_cab_amount_not_required']) ? $option['quotation_options_cab_amount_not_required'] : 0,
+
 							'quotation_options_design_type' => $option['quotation_options_design_type'],
 
-							'quotation_options_vehicle_id_fk' => $option['quotation_options_vehicle_id_fk'],
+                'quotation_options_complimentary_inclusion' => isset($option['quotation_options_complimentary_inclusion']) ? $option['quotation_options_complimentary_inclusion'] : '',
 
-							'quotation_options_room_category_display' => $option['quotation_options_room_category_display'],
+                'quotation_options_vehicle_id_fk' => $option['quotation_options_vehicle_id_fk'],
 
-							'quotation_options_meal_plan_display' => $option['quotation_options_meal_plan_display'],
+                'quotation_options_room_category_display' => $option['quotation_options_room_category_display'],
 
-							'quotation_options_vehicle_display' => $option['quotation_options_vehicle_display'],
+                'quotation_options_meal_plan_display' => $option['quotation_options_meal_plan_display'],
 
-							'quotation_options_total_cost' => $option['quotation_options_total_cost'],
+                'quotation_options_vehicle_display' => $option['quotation_options_vehicle_display'],
 
-							'quotation_options_margin_type' => $option['quotation_options_margin_type'],
+                'quotation_options_total_cost' => $option['quotation_options_total_cost'],
 
-							'quotation_options_margin_value' => $option['quotation_options_margin_value'],
+                'quotation_options_margin_type' => $option['quotation_options_margin_type'],
 
-							'quotation_options_total_quote_rate' => $option['quotation_options_total_quote_rate'],
+                'quotation_options_margin_value' => $option['quotation_options_margin_value'],
+
+                'quotation_options_total_quote_rate' => $option['quotation_options_total_quote_rate'],
 
 							'quotation_options_amount_type' => isset($option['quotation_options_amount_type']) ? $option['quotation_options_amount_type'] : 'net',
 
@@ -3144,7 +3150,13 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 					}
 
+					$opt_uid = isset($option['option_uid']) ? $option['option_uid'] : '';
 
+					if ($opt_uid !== '') {
+
+						$optionUidMap[$opt_uid] = (int)$option_id;
+
+					}
 
 					/* ================= DAYS ================= */
 
@@ -3414,11 +3426,21 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
 
 
-        $quotation_options_id_fk = isset($optionMap[$package_option_id_fk])
+        $quotation_options_id_fk = 0;
 
-            ? (int)$optionMap[$package_option_id_fk]
+        if (isset($inc['option_uid']) && isset($optionUidMap[$inc['option_uid']])) {
 
-            : 0;
+            $quotation_options_id_fk = (int)$optionUidMap[$inc['option_uid']];
+
+        } elseif (isset($inc['quotation_options_id_fk']) && (int)$inc['quotation_options_id_fk'] > 0) {
+
+            $quotation_options_id_fk = (int)$inc['quotation_options_id_fk'];
+
+        } elseif (isset($optionMap[$package_option_id_fk])) {
+
+            $quotation_options_id_fk = (int)$optionMap[$package_option_id_fk];
+
+        }
 
 
 
@@ -4097,6 +4119,8 @@ if (!empty($accommodationPlanIds)) {
 
 		$optionMap = array();
 
+		$optionUidMap = array();
+
         if (!empty($payload['options']) && is_array($payload['options'])) {
 
 
@@ -4119,7 +4143,11 @@ if (!empty($accommodationPlanIds)) {
 
                         'quotation_options_cab_amount' => isset($option['cab_amount']) ? $option['cab_amount'] : 0,
 
+                        'quotation_options_cab_amount_not_required' => isset($option['quotation_options_cab_amount_not_required']) ? $option['quotation_options_cab_amount_not_required'] : 0,
+
                         'quotation_options_design_type' => isset($option['quotation_options_design_type']) ? $option['quotation_options_design_type'] : '',
+
+                        'quotation_options_complimentary_inclusion' => isset($option['quotation_options_complimentary_inclusion']) ? $option['quotation_options_complimentary_inclusion'] : '',
 
                         'quotation_options_vehicle_id_fk' => isset($option['quotation_options_vehicle_id_fk']) ? $option['quotation_options_vehicle_id_fk'] : 0,
 
@@ -4166,6 +4194,14 @@ if (!empty($accommodationPlanIds)) {
 				if ($package_option_id > 0) {
 
 					$optionMap[$package_option_id] = (int)$option_id;
+
+				}
+
+				$option_uid = isset($option['option_uid']) ? $option['option_uid'] : '';
+
+				if ($option_uid !== '') {
+
+					$optionUidMap[$option_uid] = (int)$option_id;
 
 				}
 
@@ -4441,11 +4477,21 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
 
 
-        $quotation_options_id_fk = isset($optionMap[$package_option_id_fk])
+        $quotation_options_id_fk = 0;
 
-            ? (int)$optionMap[$package_option_id_fk]
+        if (isset($inc['option_uid']) && isset($optionUidMap[$inc['option_uid']])) {
 
-            : 0;
+            $quotation_options_id_fk = (int)$optionUidMap[$inc['option_uid']];
+
+        } elseif (isset($inc['quotation_options_id_fk']) && (int)$inc['quotation_options_id_fk'] > 0) {
+
+            $quotation_options_id_fk = (int)$inc['quotation_options_id_fk'];
+
+        } elseif (isset($optionMap[$package_option_id_fk])) {
+
+            $quotation_options_id_fk = (int)$optionMap[$package_option_id_fk];
+
+        }
 
 
 
@@ -8980,6 +9026,8 @@ public function ajax_delete()
 
 			/* ================= INSERT UPDATED CONFIRMED OPTION ================= */
 
+			$optionUidMap = array();
+
 			if (!empty($payload['options']) && is_array($payload['options'])) {
 
 				foreach ($payload['options'] as $option) {
@@ -9008,6 +9056,11 @@ public function ajax_delete()
 
 					if (!$option_id) {
 						throw new Exception('Option insert failed');
+					}
+
+					$edit_opt_uid = isset($option['option_uid']) ? $option['option_uid'] : '';
+					if ($edit_opt_uid !== '') {
+						$optionUidMap[$edit_opt_uid] = (int)$option_id;
 					}
 
 					// Update quotation_confirmation to point to new option ID
@@ -9118,9 +9171,16 @@ public function ajax_delete()
 
 					$package_option_id_fk = isset($inc['package_option_id_fk']) ? (int)$inc['package_option_id_fk'] : 0;
 
+					$inc_option_id = 0;
+					if (isset($inc['option_uid']) && isset($optionUidMap[$inc['option_uid']])) {
+						$inc_option_id = (int)$optionUidMap[$inc['option_uid']];
+					} elseif (isset($inc['quotation_options_id_fk']) && (int)$inc['quotation_options_id_fk'] > 0) {
+						$inc_option_id = (int)$inc['quotation_options_id_fk'];
+					}
+
 					$ok = $this->Quotation_model->add_property_inclusion(array(
 						'quotation_id_fk' => $quotation_id,
-						'quotation_options_id_fk' => isset($option_id) ? (int)$option_id : 0,
+						'quotation_options_id_fk' => $inc_option_id,
 						'package_option_id_fk' => $package_option_id_fk,
 						'packages_properties_days_id_fk' => $property_day_id,
 						'stay_destination_id_fk' => $stay_dest_id,

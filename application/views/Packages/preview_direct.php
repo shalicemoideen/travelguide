@@ -689,6 +689,48 @@ button:hover{background:#172554;}
   color:#ff2a1f;
 }
 
+/* ===== COMPLIMENTARY INCLUSIONS ===== */
+.complimentary-box{
+  margin-top:14px;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+.complimentary-title{
+  color:#d32f2f;
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:8px;
+  text-transform:uppercase;
+}
+.complimentary-text{
+  font-size:16px;
+  line-height:1.55;
+  color:#d32f2f;
+  font-weight:600;
+}
+
+/* ===== COMPLIMENTARY INCLUSIONS (EXCLUSIVE) ===== */
+.complimentary-box-exclusive{
+  margin-top:8mm;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+.complimentary-title-exclusive{
+  color:#d32f2f;
+  font-family:Georgia, "Times New Roman", serif;
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:6px;
+  text-transform:uppercase;
+}
+.complimentary-text-exclusive{
+  font-family:Georgia, "Times New Roman", serif;
+  font-size:15px;
+  line-height:1.5;
+  color:#d32f2f;
+  font-weight:600;
+}
+
 /* ===== EXCLUSIVE ===== */
 .exclusive-page{
   width:var(--pdf-width);
@@ -1938,6 +1980,13 @@ function q_preview_amount($value){
               </table>
             </div>
 
+            <?php if (!empty($cat->packages_properties_common_complimentary_inclusion)): ?>
+            <div class="complimentary-box-exclusive">
+              <div class="complimentary-title-exclusive">Complimentary Inclusions</div>
+              <div class="complimentary-text-exclusive"><?= nl2br(htmlspecialchars($cat->packages_properties_common_complimentary_inclusion)); ?></div>
+            </div>
+            <?php endif; ?>
+
           </div>
 
           <div class="exclusive-footer-band">
@@ -2080,6 +2129,13 @@ function q_preview_amount($value){
               <?php endif; ?>
               </tbody>
             </table>
+
+            <?php if (!empty($cat->packages_properties_common_complimentary_inclusion)): ?>
+            <div class="complimentary-box">
+              <div class="complimentary-title">Complimentary Inclusions</div>
+              <div class="complimentary-text"><?= nl2br(htmlspecialchars($cat->packages_properties_common_complimentary_inclusion)); ?></div>
+            </div>
+            <?php endif; ?>
 
           </div>
         </div>
@@ -2862,6 +2918,7 @@ function buildOptionExtraPages() {
 function splitStandardOptionPage(page) {
   const table = page.querySelector('.property-table');
   const extra = page.querySelector('.standard-extra-section');
+  const compBox = page.querySelector('.complimentary-box');
 
   if (!table) return;
 
@@ -2892,6 +2949,13 @@ function splitStandardOptionPage(page) {
       block.remove();
     }
   });
+
+  if (compBox && compBox.parentNode) {
+    if (compBox.getBoundingClientRect().bottom > limitBottom) {
+      overflowItems.push({ type: 'complimentary', node: compBox });
+      compBox.remove();
+    }
+  }
 
   if (!overflowItems.length) return;
 
@@ -2957,12 +3021,28 @@ function splitStandardOptionPage(page) {
         currentExtra.appendChild(item.node);
       }
     }
+
+    if (item.type === 'complimentary') {
+      content.appendChild(item.node);
+
+      if (content.scrollHeight > content.clientHeight) {
+        item.node.remove();
+
+        contPage = createStandardContinuationPage();
+        insertAfter.parentNode.insertBefore(contPage, insertAfter.nextSibling);
+        insertAfter = contPage;
+
+        content = contPage.querySelector('.standard-split-content');
+        content.appendChild(item.node);
+      }
+    }
   });
 }
 
 function splitExclusiveOptionPage(page) {
   const table = page.querySelector('.exclusive-table');
   const extra = page.querySelector('.exclusive-bottom-grid');
+  const compBox = page.querySelector('.complimentary-box-exclusive');
 
   if (!table) return;
 
@@ -2995,6 +3075,13 @@ function splitExclusiveOptionPage(page) {
       block.remove();
     }
   });
+
+  if (compBox && compBox.parentNode) {
+    if (compBox.getBoundingClientRect().bottom > limitBottom) {
+      overflowItems.push({ type: 'complimentary', node: compBox });
+      compBox.remove();
+    }
+  }
 
   if (!overflowItems.length) return;
 
@@ -3058,6 +3145,20 @@ function splitExclusiveOptionPage(page) {
         currentExtra.className = 'exclusive-bottom-grid';
         content.appendChild(currentExtra);
         currentExtra.appendChild(item.node);
+      }
+    }
+    if (item.type === 'complimentary') {
+      content.appendChild(item.node);
+
+      if (content.scrollHeight > content.clientHeight) {
+        item.node.remove();
+
+        contPage = createExclusiveContinuationPage();
+        insertAfter.parentNode.insertBefore(contPage, insertAfter.nextSibling);
+        insertAfter = contPage;
+
+        content = contPage.querySelector('.exclusive-split-content');
+        content.appendChild(item.node);
       }
     }
   });

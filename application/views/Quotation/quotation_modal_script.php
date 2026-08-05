@@ -596,7 +596,7 @@ $('.specialReqDaySelect, .inclusionDaySelect, .inclusionPropertySelect, .inclusi
 
 
 
-function isValidOpenedPackageOption(optionId) {
+function isValidOpenedPackageOption(optionUid) {
 
     let found = false;
 
@@ -604,9 +604,9 @@ function isValidOpenedPackageOption(optionId) {
 
     $('.optionBlock').each(function () {
 
-        const val = $(this).find('.propertyDropdown').val() || '';
+        const uid = $(this).attr('data-option-uid') || '';
 
-        if (val == optionId) {
+        if (uid == optionUid) {
 
             found = true;
 
@@ -794,7 +794,7 @@ function validateUniquePropertyDropdowns() {
 
 //         if (!optionSel?.value)
 
-//             return valid = false, showError('Select Template Option', optionSel);
+//             return valid = false, showError('Select Option Name', optionSel);
 
 
 
@@ -1280,7 +1280,14 @@ $('.is-invalid').removeClass('is-invalid');
 
     let valid = true;
 
-
+    function expandOptionBlock(optionBlock) {
+        const collapseEl = optionBlock.querySelector('.collapse');
+        if (collapseEl && !collapseEl.classList.contains('show')) {
+            collapseEl.classList.add('show');
+            const btn = optionBlock.querySelector('.optionTitle');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        }
+    }
 
     document.querySelectorAll('.optionBlock').forEach(optionBlock => {
 
@@ -1295,6 +1302,8 @@ $('.is-invalid').removeClass('is-invalid');
         const titleEl   = optionBlock.querySelector('[name="quotation_options_title[]"]');
 
         const cabEl     = optionBlock.querySelector('[name="quotation_options_cab_amount[]"]');
+
+        const cabNotReqEl = optionBlock.querySelector('.cab-not-required-checkbox');
 
         const designEl  = optionBlock.querySelector('[name="quotation_options_design_type[]"]');
 
@@ -1346,6 +1355,8 @@ if (amountTypeEl) {
 
         valid = false;
 
+        expandOptionBlock(optionBlock);
+
         showError('Amount is required', perAmountEl);
 
         return;
@@ -1366,27 +1377,31 @@ if (amountTypeEl) {
 
 // }
 
-        if (!optionSel?.value)
+        if (!optionSel?.value) {
+            expandOptionBlock(optionBlock);
+            return valid = false, showError('Select Option Name', optionSel);
+        }
 
-            return valid = false, showError('Select Template Option', optionSel);
 
 
-
-        if (!titleEl?.value.trim())
-
+        if (!titleEl?.value.trim()) {
+            expandOptionBlock(optionBlock);
             return valid = false, showError('Option title is required', titleEl);
+        }
 
 
 
-        if (num(cabEl?.value) <= 0)
-
+        if (!cabNotReqEl?.checked && num(cabEl?.value) <= 0) {
+            expandOptionBlock(optionBlock);
             return valid = false, showError('Cab amount is required', cabEl);
+        }
 
 
 
-        if (!designEl || !designEl.value)
-
+        if (!designEl || !designEl.value) {
+            expandOptionBlock(optionBlock);
             return valid = false, showError('Design type is required', designEl);
+        }
 
 
 
@@ -1397,6 +1412,8 @@ if (amountTypeEl) {
         
 
         if (!vehicleEl || !vehicleEl.value) {
+
+            expandOptionBlock(optionBlock);
 
             return valid = false,
 
@@ -1430,7 +1447,7 @@ if (amountTypeEl) {
 
                 valid = false;
 
-
+                expandOptionBlock(optionBlock);
 
                 if (row) {
 
@@ -1474,15 +1491,27 @@ if (amountTypeEl) {
 
         if (!valid) return false;
 
-        
 
 
+        // Check per-day: each day must have at least one property block
 
         optionBlock.querySelectorAll('.itineraryDayRow').forEach(dayRow => {
 
 
 
             if (!valid) return;
+
+
+
+            const dayPropertyGroups = dayRow.querySelectorAll('.property-group');
+
+            if (dayPropertyGroups.length === 0) {
+
+                expandOptionBlock(optionBlock);
+
+                return valid = false, showError('Please add at least one property for each day', dayRow);
+
+            }
 
 
 
@@ -1493,6 +1522,8 @@ if (amountTypeEl) {
                 const propDropdown = openPropertySelector.querySelector('.propertySelectDropdown');
 
                 if (propDropdown && !propDropdown.value) {
+
+                    expandOptionBlock(optionBlock);
 
                     return valid = false, showError('Please select property or remove the empty property block', propDropdown);
 
@@ -1513,6 +1544,8 @@ if (amountTypeEl) {
                 if (!propertyGroup.dataset.propertyId) {
 
                     valid = false;
+
+                    expandOptionBlock(optionBlock);
 
                     showError('Property not selected', propertyGroup);
 
@@ -1564,6 +1597,8 @@ if (amountTypeEl) {
 
                         valid = false;
 
+                        expandOptionBlock(optionBlock);
+
                         showError('Please select room or remove the empty room row', roomSelect);
 
                         return;
@@ -1577,6 +1612,8 @@ if (amountTypeEl) {
                     if (!roomRow.dataset.roomId) {
 
                         valid = false;
+
+                        expandOptionBlock(optionBlock);
 
                         showError('Room not selected', roomSelect);
 
@@ -1628,6 +1665,8 @@ if (amountTypeEl) {
 
                     valid = false;
 
+                    expandOptionBlock(optionBlock);
+
                     showError('Please add at least one room', propertyGroup);
 
                     return;
@@ -1641,6 +1680,8 @@ if (amountTypeEl) {
                 // rows exist but still no selected room
 
                 valid = false;
+
+                expandOptionBlock(optionBlock);
 
                 showError('Please select at least one room', propertyGroup);
 
@@ -1677,6 +1718,8 @@ if (amountTypeEl) {
         if (!marginValue || $.trim($(marginValue).val()) === '' || num($(marginValue).val()) <= 0) {
 
             valid = false;
+
+            expandOptionBlock(this);
 
             showError('Margin amount/percentage is required', marginValue);
 
@@ -2525,7 +2568,7 @@ function formatDateDMY(dateStr) {
 
 function makeDayKey(row) {
 
-    return row.day_id_fk + '|' + row.stay_destination_id_fk + '|' + row.accommodation_date;
+    return makeNormalizedDayKey(row.day_id_fk, row.stay_destination_id_fk, row.accommodation_date);
 
 }
 
@@ -2855,6 +2898,8 @@ function loadInclusionAndRequirementDropdownData(callback) {
 
         document.querySelectorAll('.inclusionDaySelect').forEach(function (el) {
 
+            if (window.isQuotationEditLoading) return;
+
             fillDaySelect(el);
 
         });
@@ -3103,7 +3148,7 @@ function createInclusionRow() {
 
                 <select class="form-select form-select-sm inclusionPackageOptionSelect" name="package_option_id_fk[]">
 
-                    <option value="">Select Template Option</option>
+                    <option value="">Select Option Name</option>
 
                 </select>
 
@@ -3175,11 +3220,13 @@ function fillInclusionPackageOptionSelect(selectEl, selectedValue) {
 
     var currentValue = selectedValue || $(selectEl).val() || '';
 
-    var html = '<option value="">Select Template Option</option>';
+    var html = '<option value="">Select Option Name</option>';
 
 
 
-    $('.optionBlock').each(function () {
+    $('.optionBlock').each(function (i) {
+
+        var uid  = $(this).attr('data-option-uid') || '';
 
         var val  = $(this).find('.propertyDropdown').val() || '';
 
@@ -3187,9 +3234,11 @@ function fillInclusionPackageOptionSelect(selectEl, selectedValue) {
 
 
 
-        if (val) {
+        if (val && uid) {
 
-            html += '<option value="' + val + '">' + text + '</option>';
+            var label = 'Option ' + (i + 1) + ' - ' + text;
+
+            html += '<option value="' + uid + '">' + label + '</option>';
 
         }
 
@@ -3209,9 +3258,23 @@ function fillInclusionPackageOptionSelect(selectEl, selectedValue) {
 
 
 
-    initSelect2(selectEl, 'Select Template Option');
+    initSelect2(selectEl, 'Select Option Name');
 
     $(selectEl).trigger('change.select2');
+
+}
+
+
+
+function refreshAllInclusionOptionDropdowns() {
+
+    $('.inclusionPackageOptionSelect').each(function () {
+
+        var currentVal = $(this).val() || '';
+
+        fillInclusionPackageOptionSelect(this, currentVal);
+
+    });
 
 }
 
@@ -3543,17 +3606,9 @@ $(document).on('change', '.inclusionDaySelect', function () {
 
     if (!row) return;
 
-
-
     var dayKey = $(this).val() || '';
 
-    var leadId = $('#leads_id_hidden').val() || $('#leads_id').val() || '';
-
-    var packageId = $('#packages_id_hidden').val() || $('#packages_id_fk').val() || '';
-
     var packageOptionId = $(row).find('.inclusionPackageOptionSelect').val() || '';
-
-
 
     var propSel = row.querySelector('.inclusionPropertySelect');
 
@@ -3561,21 +3616,11 @@ $(document).on('change', '.inclusionDaySelect', function () {
 
     var amtEl = row.querySelector('.inclusionAmountInput');
 
-
-
     if (amtEl) amtEl.value = '';
-
-
-
-    // lock property and inclusion first
 
     setSelect2Empty(incSel, 'Select Inclusion');
 
-    setSelect2Loading(propSel, 'Loading Property...');
-
-
-
-    if (!dayKey || !leadId || !packageId || !packageOptionId) {
+    if (!dayKey || !packageOptionId) {
 
         setSelect2Empty(propSel, 'Select Property');
 
@@ -3587,59 +3632,31 @@ $(document).on('change', '.inclusionDaySelect', function () {
 
     }
 
+    // Get properties only from the DOM (option blocks)
 
+    var localProps = getLocalPropertiesForOptionAndDay(packageOptionId, dayKey);
 
-    fetch(
+    var html = '<option value="">Select Property</option>';
 
-        `<?php echo base_url(); ?>index.php/Quotation/ajax_get_daywise_properties_for_inclusion?lead_id=${encodeURIComponent(leadId)}&package_id=${encodeURIComponent(packageId)}&day_key=${encodeURIComponent(dayKey)}&packages_properties_common_id_fk=${encodeURIComponent(packageOptionId)}`
+    if (localProps.length > 0) {
 
-    )
+        localProps.forEach(function (p) {
 
-    .then(function (r) { return r.json(); })
+            html += '<option value="' + p.property_id + '">' + p.property_name + '</option>';
 
-    .then(function (res) {
+        });
 
-        var html = '<option value="">Select Property</option>';
+        setSelect2Ready(propSel, html, 'Select Property');
 
+    } else {
 
+        setSelect2Empty(propSel, 'No Property Found');
 
-        if (res && res.status && Array.isArray(res.data) && res.data.length > 0) {
+    }
 
-            res.data.forEach(function (p) {
+    setSelect2Empty(incSel, 'Select Inclusion');
 
-                html += '<option value="' + p.property_id + '">' + p.property_name + '</option>';
-
-            });
-
-
-
-            setSelect2Ready(propSel, html, 'Select Property');
-
-        } else {
-
-            setSelect2Empty(propSel, 'No Property Found');
-
-        }
-
-
-
-        setSelect2Empty(incSel, 'Select Inclusion');
-
-        refreshQuotationModalScroll(true);
-
-    })
-
-    .catch(function (err) {
-
-        console.error(err);
-
-        setSelect2Empty(propSel, 'Failed to load Property');
-
-        setSelect2Empty(incSel, 'Select Inclusion');
-
-        refreshQuotationModalScroll(true);
-
-    });
+    refreshQuotationModalScroll(true);
 
 });
 
@@ -4097,7 +4114,7 @@ document.getElementById('addOptionBtn')?.addEventListener('click', function (e) 
 
             width: '100%',
 
-            placeholder: 'Select template option',
+            placeholder: 'Select Option Name',
 
             allowClear: true,
 
@@ -4110,6 +4127,8 @@ document.getElementById('addOptionBtn')?.addEventListener('click', function (e) 
 
 
     reIndexOptions();
+
+    refreshAllInclusionOptionDropdowns();
 
     // Copy vehicle and cab amount from first option block
     var $firstBlock = $('#optionsContainer .optionBlock').first();
@@ -4238,15 +4257,29 @@ $(document).on('change', '.propertyDropdown', function () {
 
     const optionText = selectedOption ? (selectedOption.textContent || '').trim() : '';
 
+    const complimentaryInclusion = selectedOption ? (selectedOption.getAttribute('data-complimentary-inclusion') || '') : '';
+
 
 
     // Auto-fill option title from selected template option
 
     const titleInput = optionBlock.querySelector('[name="quotation_options_title[]"]');
 
-    if (titleInput && optionText && optionText !== 'Select template option') {
+    if (titleInput && optionText && optionText !== 'Select Option Name') {
 
         titleInput.value = optionText;
+
+    }
+
+
+
+    // Auto-fill complimentary inclusion from selected template option
+
+    const compInput = optionBlock.querySelector('.complimentary-inclusion-textarea');
+
+    if (compInput) {
+
+        compInput.value = complimentaryInclusion;
 
     }
 
@@ -4272,6 +4305,8 @@ $(document).on('change', '.propertyDropdown', function () {
 
     loadItinerary(optionBlock, commonId);
 
+    refreshAllInclusionOptionDropdowns();
+
 });
 
 
@@ -4279,6 +4314,42 @@ $(document).on('change', '.propertyDropdown', function () {
 $(document).on('select2:select', '.propertyDropdown', function () {
 
     $(this).trigger('change');
+
+});
+
+/* ================= CAB AMOUNT NOT REQUIRED ================= */
+
+$(document).on('change', '.cab-not-required-checkbox', function () {
+
+    const optionBlock = this.closest('.optionBlock');
+
+    if (!optionBlock) return;
+
+    const cabInput = optionBlock.querySelector('.cab-amount-input');
+
+    if (!cabInput) return;
+
+    if (this.checked) {
+
+        cabInput.disabled = true;
+
+        cabInput.value = '';
+
+        cabInput.removeAttribute('required');
+
+        cabInput.classList.add('bg-light', 'text-muted');
+
+    } else {
+
+        cabInput.disabled = false;
+
+        cabInput.setAttribute('required', 'required');
+
+        cabInput.classList.remove('bg-light', 'text-muted');
+
+    }
+
+    recalcOptionTotals(optionBlock);
 
 });
 
@@ -4310,15 +4381,91 @@ document.addEventListener('click', function (e) {
 
     const block = document.querySelector('.optionBlock[data-option-uid="' + uid + '"]');
 
-    if (block) {
+    if (!block) return;
 
-        block.remove();
+
+
+    // Check if this option is selected in any property-based inclusion row
+
+    var isSelectedInInclusion = false;
+
+    var optionLabel = '';
+
+    var $propDropdown = $(block).find('.propertyDropdown');
+
+    if ($propDropdown.length) {
+
+        optionLabel = $propDropdown.find('option:selected').text() || '';
+
+    }
+
+
+
+    $('#inclusionTable tbody tr').each(function () {
+
+        var rowOptionId = $(this).find('.inclusionPackageOptionSelect').val() || '';
+
+        if (String(rowOptionId) === String(uid)) {
+
+            isSelectedInInclusion = true;
+
+            return false;
+
+        }
+
+    });
+
+
+
+    if (isSelectedInInclusion) {
+
+        if (!confirm('Option "' + optionLabel + '" is selected in Property Based Inclusion. Are you sure you want to remove this option?')) {
+
+            return;
+
+        }
+
+    }
+
+
+
+    block.remove();
+
+
+
+    // Clear dependent dropdowns in matching inclusion rows
+
+    if (isSelectedInInclusion) {
+
+        $('#inclusionTable tbody tr').each(function () {
+
+            var $row = $(this);
+
+            var rowOptionId = $row.find('.inclusionPackageOptionSelect').val() || '';
+
+            if (String(rowOptionId) === String(uid)) {
+
+                $row.find('.inclusionPackageOptionSelect').val('').trigger('change.select2');
+
+                $row.find('.inclusionDaySelect').val('').trigger('change.select2');
+
+                $row.find('.inclusionPropertySelect').val('').trigger('change.select2');
+
+                $row.find('.inclusionNameSelect').val('').trigger('change.select2');
+
+            }
+
+        });
 
     }
 
 
 
     reIndexOptions();
+
+    refreshAllInclusionOptionDropdowns();
+
+    refreshQuoteSummaryTotals();
 
 });
 
@@ -4406,7 +4553,7 @@ function fetchPropertyCategories(dropdown) {
 
         .then(res => {
 
-            dropdown.innerHTML = '<option value="">Select template option</option>';
+            dropdown.innerHTML = '<option value="">Select Option Name</option>';
 
             if (!res.status) return;
 
@@ -4436,6 +4583,8 @@ function fetchPropertyCategories(dropdown) {
 
                 opt.setAttribute('data-design-type', item.packages_properties_common_design_type || '');
 
+                opt.setAttribute('data-complimentary-inclusion', item.packages_properties_common_complimentary_inclusion || '');
+
                 dropdown.appendChild(opt);
 
             });
@@ -4448,7 +4597,7 @@ function fetchPropertyCategories(dropdown) {
 
                     width: '100%',
 
-                    placeholder: 'Select template option',
+                    placeholder: 'Select Option Name',
 
                     allowClear: true,
 
@@ -4794,7 +4943,7 @@ function loadItinerary(optionBlock, commonId) {
 
                 html += `
 
-                    <tr class="itineraryDayRow" data-itinerary-day-id="${day.packages_itinerary_days_id_fk || 0}">
+                    <tr class="itineraryDayRow" data-itinerary-day-id="${day.packages_itinerary_days_id_fk || 0}" data-accommodation-date="${day.accommodation_date || ''}">
 
                         <td>
 
@@ -5076,11 +5225,11 @@ function getOptionTemplate(index) {
 
             <div class="col-md-2">
 
-                <label>Select template option</label>
+                <label>Select Option Name</label>
 
                 <select name="packages_properties_common_id_fk[]" class="form-select form-select-sm propertyDropdown">
 
-                    <option value="">Select template option</option>
+                    <option value="">Select Option Name</option>
 
                 </select>
 
@@ -5100,9 +5249,15 @@ function getOptionTemplate(index) {
 
             <div class="col-md-2">
 
-                <label>Cab amount</label>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="mb-0">Cab amount</label>
+                    <div class="form-check">
+                        <input class="form-check-input cab-not-required-checkbox" type="checkbox" name="quotation_options_cab_amount_not_required[]" value="1">
+                        <label class="form-check-label" style="font-size:11px;">N/A</label>
+                    </div>
+                </div>
 
-                <input type="number" name="quotation_options_cab_amount[]" class="form-control form-control-sm">
+                <input type="number" name="quotation_options_cab_amount[]" class="form-control form-control-sm cab-amount-input">
 
             </div>
 
@@ -5151,6 +5306,20 @@ function getOptionTemplate(index) {
                     <i class="bi bi-trash"></i>
 
                 </button>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="row mb-3">
+
+            <div class="col-md-6">
+
+                <label>Complimentary Inclusions</label>
+
+                <textarea name="quotation_options_complimentary_inclusion[]" class="form-control form-control-sm complimentary-inclusion-textarea" rows="2" placeholder="Enter complimentary inclusions"></textarea>
 
             </div>
 
@@ -5516,6 +5685,30 @@ $(document).on('change', '.propertySelectDropdown', function () {
 
     dropdown.closest('.propertySelector').classList.add('d-none');
 
+
+
+    // Refresh inclusion property dropdowns for this option + day
+
+    var optionBlock = dropdown.closest('.optionBlock');
+
+    var optionUid = optionBlock ? (optionBlock.getAttribute('data-option-uid') || '') : '';
+
+    var itineraryDayId = $(dayRow).find('input[name="packages_itinerary_days_id_fk[]"]').val() || '';
+
+    var propertiesDayId = $(dayRow).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+
+    var destId = $(dayRow).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+
+    var accDate = $(dayRow).attr('data-accommodation-date') || '';
+
+    var dayKey1 = makeNormalizedDayKey(itineraryDayId, destId, accDate);
+
+    var dayKey2 = makeNormalizedDayKey(propertiesDayId, destId, accDate);
+
+    refreshInclusionPropertyDropdownsForOptionAndDay(optionUid, dayKey1);
+
+    if (dayKey2 !== dayKey1) refreshInclusionPropertyDropdownsForOptionAndDay(optionUid, dayKey2);
+
 });
 
 
@@ -5532,11 +5725,144 @@ document.addEventListener('click', function (e) {
 
     if (propertyGroup) {
 
+        const removedPropertyId = propertyGroup.getAttribute('data-property-id') || '';
+
+        const removedPropertyName = propertyGroup.querySelector('.property-name-cell') ? propertyGroup.querySelector('.property-name-cell').textContent.trim() : '';
+
+        const optionBlock = propertyGroup.closest('.optionBlock');
+
+        const dayRow = propertyGroup.closest('.itineraryDayRow');
+
+
+
+        // Check if this property is selected in any property-based inclusion row
+
+        var isSelectedInInclusion = false;
+
+        if (removedPropertyId && optionBlock && dayRow) {
+
+            var optionUid = optionBlock.getAttribute('data-option-uid') || '';
+
+            var itineraryDayId = $(dayRow).find('input[name="packages_itinerary_days_id_fk[]"]').val() || '';
+
+            var propertiesDayId = $(dayRow).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+
+            var destId = $(dayRow).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+
+            var accDate = $(dayRow).attr('data-accommodation-date') || '';
+
+            var dayKey1 = makeNormalizedDayKey(itineraryDayId, destId, accDate);
+
+            var dayKey2 = makeNormalizedDayKey(propertiesDayId, destId, accDate);
+
+
+
+            $('#inclusionTable tbody tr').each(function () {
+
+                var $row = $(this);
+
+                var rowOptionId = $row.find('.inclusionPackageOptionSelect').val() || '';
+
+                var rowDayKey = $row.find('.inclusionDaySelect').val() || '';
+
+                var rowPropId = $row.find('.inclusionPropertySelect').val() || '';
+
+
+                if (String(rowOptionId) === String(optionUid) && String(rowPropId) === String(removedPropertyId)) {
+
+                    if (String(rowDayKey) === String(dayKey1) || String(rowDayKey) === String(dayKey2)) {
+
+                        isSelectedInInclusion = true;
+
+                        return false;
+
+                    }
+
+                }
+
+            });
+
+        }
+
+
+
+        if (isSelectedInInclusion) {
+
+            if (!confirm('"' + removedPropertyName + '" is selected in Property Based Inclusion. Are you sure you want to remove this property?')) {
+
+                return;
+
+            }
+
+        }
+
+
+
         propertyGroup.remove();
+
+        if (optionBlock) {
+
+            recalcOptionTotals(optionBlock);
+
+            refreshQuoteSummaryTotals();
+
+        }
+
+
+
+        // Refresh inclusion property dropdowns
+
+        if (optionBlock && dayRow && removedPropertyId) {
+
+            var optionUid = optionBlock.getAttribute('data-option-uid') || '';
+
+            var itineraryDayId = $(dayRow).find('input[name="packages_itinerary_days_id_fk[]"]').val() || '';
+
+            var propertiesDayId = $(dayRow).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+
+            var destId = $(dayRow).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+
+            var accDate = $(dayRow).attr('data-accommodation-date') || '';
+
+            var dayKey1 = makeNormalizedDayKey(itineraryDayId, destId, accDate);
+
+            var dayKey2 = makeNormalizedDayKey(propertiesDayId, destId, accDate);
+
+            refreshInclusionPropertyDropdownsForOptionAndDay(optionUid, dayKey1, removedPropertyId);
+
+            if (dayKey2 !== dayKey1) refreshInclusionPropertyDropdownsForOptionAndDay(optionUid, dayKey2, removedPropertyId);
+
+        }
+
+
+
+        // Clear inclusion property dropdown if the removed property was selected
+
+        if (isSelectedInInclusion && removedPropertyId) {
+
+            $('#inclusionTable tbody tr').each(function () {
+
+                var $row = $(this);
+
+                var rowPropId = $row.find('.inclusionPropertySelect').val() || '';
+
+                if (String(rowPropId) === String(removedPropertyId)) {
+
+                    $row.find('.inclusionPropertySelect').val('').trigger('change.select2');
+
+                    $row.find('.inclusionNameSelect').val('').trigger('change.select2');
+
+                }
+
+            });
+
+        }
 
     }
 
 });
+
+
 
 
 
@@ -6342,7 +6668,14 @@ document.addEventListener('click', function (e) {
 
 
 
+    const optionBlock = btn.closest('.optionBlock');
+
     btn.closest('tr').remove();
+
+    if (optionBlock) {
+        recalcOptionTotals(optionBlock);
+        refreshQuoteSummaryTotals();
+    }
 
 });
 
@@ -6386,6 +6719,10 @@ function buildQuotationPayload() {
 
         const option = {
 
+            option_uid: optionBlock.getAttribute('data-option-uid') || '',
+
+            quotation_options_id: optionBlock.getAttribute('data-option-id') || '',
+
             packages_properties_common_id_fk:
 
                 optionBlock.querySelector('.propertyDropdown')?.value || '',
@@ -6398,11 +6735,21 @@ function buildQuotationPayload() {
 
                 optionBlock.querySelector('[name="quotation_options_cab_amount[]"]')?.value || '',
 
+            quotation_options_cab_amount_not_required:
+
+                optionBlock.querySelector('.cab-not-required-checkbox')?.checked ? 1 : 0,
+
 
 
             quotation_options_design_type:
 
                 optionBlock.querySelector('[name="quotation_options_design_type[]"]')?.value || '',
+
+
+
+            quotation_options_complimentary_inclusion:
+
+                optionBlock.querySelector('.complimentary-inclusion-textarea')?.value || '',
 
 
 
@@ -6658,7 +7005,16 @@ function buildQuotationPayload() {
 
 
 
-        var packageOptionId = $tr.find('.inclusionPackageOptionSelect').val() || '';
+        var packageOptionUid = $tr.find('.inclusionPackageOptionSelect').val() || '';
+
+        // Convert UID back to actual option ID from the option block
+        var packageOptionId = '';
+        if (packageOptionUid) {
+            var $matchedBlock = $('.optionBlock[data-option-uid="' + packageOptionUid + '"]');
+            if ($matchedBlock.length) {
+                packageOptionId = $matchedBlock.find('.propertyDropdown').val() || '';
+            }
+        }
 
         var dayKey = $tr.find('.inclusionDaySelect').val() || '';
 
@@ -6704,9 +7060,11 @@ function buildQuotationPayload() {
 
       payload.inclusions.push({
 
+            option_uid: packageOptionUid,
+
             package_option_id_fk: packageOptionId,
 
-            quotation_options_id_fk: $(this).closest('.optionBlock').data('option-id') || '', // âœ… ADD THIS
+            quotation_options_id_fk: (packageOptionUid ? ($('.optionBlock[data-option-uid="' + packageOptionUid + '"]').data('option-id') || '') : ''),
 
             dayKey: dayKey,
 
@@ -10418,7 +10776,9 @@ function getCabCost() {
 
   if (!optionBlock) return 0;
 
+  const cabNotReqEl = optionBlock.querySelector('.cab-not-required-checkbox');
 
+  if (cabNotReqEl && cabNotReqEl.checked) return 0;
 
   const cabEl = optionBlock.querySelector('[name="quotation_options_cab_amount[]"]');
 
@@ -10704,7 +11064,9 @@ function recalcOptionTotals(optionBlock) {
 
   const cabInput = optionBlock.querySelector('[name="quotation_options_cab_amount[]"]');
 
-  const cabAmount = num(cabInput?.value);
+  const cabNotReqEl = optionBlock.querySelector('.cab-not-required-checkbox');
+
+  const cabAmount = (cabNotReqEl && cabNotReqEl.checked) ? 0 : num(cabInput?.value);
 
 
 
@@ -11745,7 +12107,7 @@ function edit_quotation(id)
 
 
 
-function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callback) {
+function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callback, fallbackLabel) {
 
     if (!$select || !$select.length) return;
 
@@ -11767,7 +12129,7 @@ function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callb
 
             var rows = (res && res.status && res.data) ? res.data : [];
 
-            var html = '<option value="">Select Template Option</option>';
+            var html = '<option value="">Select Option Name</option>';
 
 
 
@@ -11786,6 +12148,12 @@ function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callb
             $select.html(html);
 
 
+
+            // If saved option no longer exists in package (deleted), append fallback
+            if (selectedValue && $select.find('option[value="' + selectedValue + '"]').length === 0) {
+                var label = fallbackLabel || ('Deleted Option (ID: ' + selectedValue + ')');
+                $select.append('<option value="' + selectedValue + '">' + label + ' (Deleted)</option>');
+            }
 
             if (selectedValue) {
 
@@ -11809,7 +12177,7 @@ function loadPackageOptionsIntoDropdown($select, packageId, selectedValue, callb
 
                     width: '100%',
 
-                    placeholder: 'Select Template Option',
+                    placeholder: 'Select Option Name',
 
                     allowClear: true,
 
@@ -11897,7 +12265,19 @@ function rebuildQuotationOptionBlocks(options, packageId, doneCallback)
 
         $block.find('[name="quotation_options_title[]"]').val(opt.quotation_options_title || '');
 
+        $block.find('.complimentary-inclusion-textarea').val(opt.quotation_options_complimentary_inclusion || '');
+
         $block.find('[name="quotation_options_cab_amount[]"]').val(opt.quotation_options_cab_amount || '');
+
+        var cabNotReq = parseInt(opt.quotation_options_cab_amount_not_required || 0);
+        var $cabNotReqCb = $block.find('.cab-not-required-checkbox');
+        var $cabInput = $block.find('.cab-amount-input');
+        $cabNotReqCb.prop('checked', cabNotReq === 1);
+        if (cabNotReq === 1) {
+            $cabInput.prop('disabled', true).val('').addClass('bg-light text-muted');
+        } else {
+            $cabInput.prop('disabled', false).removeClass('bg-light text-muted');
+        }
 
         // $block.find('[name="quotation_options_design_type[]"]').val(opt.quotation_options_design_type || '').trigger('change');
 
@@ -12017,7 +12397,9 @@ function rebuildQuotationOptionBlocks(options, packageId, doneCallback)
 
                 }
 
-            }
+            },
+
+            opt.quotation_options_title
 
         );
 
@@ -12565,7 +12947,9 @@ function refillSavedPropertyInclusions(rows)
 
         const packageOptionId = String(row.package_option_id_fk || '');
 
-        const dayKey = [
+        const quotationOptionsId = String(row.quotation_options_id_fk || '');
+
+        const dayKey = makeNormalizedDayKey(
 
             row.packages_properties_days_id_fk || '',
 
@@ -12573,7 +12957,7 @@ function refillSavedPropertyInclusions(rows)
 
             row.accommodation_date || ''
 
-        ].join('|');
+        );
 
 
 
@@ -12587,21 +12971,26 @@ function refillSavedPropertyInclusions(rows)
 
         fillInclusionPackageOptionSelect($tr.find('.inclusionPackageOptionSelect')[0]);
 
-        setSelectValueSafe($tr.find('.inclusionPackageOptionSelect'), packageOptionId, 'Selected Template Option');
-
-
-
-        // Ã¢Å“â€¦ same as special requirement day dropdown
-
-        fillDaySelect($tr.find('.inclusionDaySelect')[0]);
-
-        setSelectValueSafe($tr.find('.inclusionDaySelect'), dayKey, buildSavedDayLabel(row));
-
-
-
-        // load property based on selected day + package option
-
-        // loadInclusionPropertiesForRow($tr, function () {
+        // Find the option block UID by matching quotation_options_id_fk against data-option-id
+        var matchedUid = '';
+        $('.optionBlock').each(function () {
+            var blockOptionId = $(this).attr('data-option-id') || '';
+            if (String(blockOptionId) === String(quotationOptionsId) && quotationOptionsId !== '' && quotationOptionsId !== '0') {
+                matchedUid = $(this).attr('data-option-uid') || '';
+                return false;
+            }
+        });
+        // Fallback: match by package_option_id_fk against propertyDropdown value
+        if (!matchedUid && packageOptionId) {
+            $('.optionBlock').each(function () {
+                var blockPkgOptId = $(this).find('.propertyDropdown').val() || '';
+                if (String(blockPkgOptId) === String(packageOptionId)) {
+                    matchedUid = $(this).attr('data-option-uid') || '';
+                    return false;
+                }
+            });
+        }
+        setSelectValueSafe($tr.find('.inclusionPackageOptionSelect'), matchedUid, 'Selected Option Name');
 
 
 
@@ -12645,7 +13034,7 @@ function refillSavedPropertyInclusions(rows)
 
 $tr.find('.inclusionPackageOptionSelect')
 
-   .val(row.package_option_id_fk || '')
+   .val(matchedUid || '')
 
    .trigger('change.select2');
 
@@ -12653,7 +13042,7 @@ $tr.find('.inclusionPackageOptionSelect')
 
 // 2. load days
 
-loadInclusionDaysForRow($tr, row.package_option_id_fk, dayKey, function () {
+loadInclusionDaysForRow($tr, quotationOptionsId, dayKey, function () {
 
 
 
@@ -12841,7 +13230,7 @@ loadInclusionDaysForRow($tr, row.package_option_id_fk, dayKey, function () {
 
     });
 
-});
+}, packageOptionId);
 
 });
 
@@ -12919,7 +13308,7 @@ function buildSavedDayLabelByKey(dayId, destinationId, accDate)
 
 
 
-            var dateText = rowDate ? formatItineraryDayDate(rowDate) : (accDate ? formatItineraryDayDate(accDate) : '');
+            var dateText = rowDate ? formatDateDMY(rowDate) : (accDate ? formatDateDMY(accDate) : '');
 
 
 
@@ -12957,7 +13346,25 @@ function buildSavedDayLabelByKey(dayId, destinationId, accDate)
 
 
 
-function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
+function normalizeDayKeyPart(val) {
+
+    if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
+
+    if (val === '0000-00-00') return '';
+
+    return String(val);
+
+}
+
+function makeNormalizedDayKey(dayId, destId, accDate) {
+
+    return normalizeDayKeyPart(dayId) + '|' + normalizeDayKeyPart(destId) + '|' + normalizeDayKeyPart(accDate);
+
+}
+
+
+
+function loadInclusionDaysForRow($tr, quotationOptionsId, savedDayKey, callback, packageOptionIdFallback)
 
 {
 
@@ -12967,73 +13374,81 @@ function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
 
 
 
-    $('.optionBlock').each(function () {
+    // Use __dayOptions as primary source (same as fillDaySelect) to ensure dayKeys match saved data
 
-        var selectedOptionId = $(this).find('.propertyDropdown').val() || '';
+    if (typeof __dayOptions !== 'undefined' && __dayOptions.length) {
 
+        __dayOptions.forEach(function (r) {
 
+            var key = makeDayKey(r);
 
-        if (String(selectedOptionId) === String(packageOptionId)) {
+            html += '<option value="' + key + '">' + buildDayOptionLabel(r) + '</option>';
 
+        });
 
+    } else {
 
-            $(this).find('.itineraryDayRow').each(function () {
+        // Fallback to DOM-based generation if __dayOptions not available
 
+        $('.optionBlock').each(function () {
 
+            var blockOptionId = $(this).attr('data-option-id') || '';
 
-                var dayText = $(this).find('td:eq(0) strong').text().trim();
-
-                var destinationText = $(this).find('td:eq(1)').clone().children().remove().end().text().trim();
-
-
-
-                var packagesPropertiesDaysId =
-
-                    $(this).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+            var blockMatches = (String(blockOptionId) === String(quotationOptionsId) && quotationOptionsId !== '' && quotationOptionsId !== '0');
 
 
 
-                var destinationId =
+            if (!blockMatches && packageOptionIdFallback) {
 
-                    $(this).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+                var blockPkgOptId = $(this).find('.propertyDropdown').val() || '';
 
+                if (String(blockPkgOptId) === String(packageOptionIdFallback)) {
 
-
-                var accommodationDate =
-
-                    $(this).attr('data-accommodation-date') || '';
-
-
-
-                if (packagesPropertiesDaysId) {
-
-                    var dayKey = packagesPropertiesDaysId + '|' + destinationId + '|' + accommodationDate;
-
-                    // html += '<option value="' + dayKey + '">' + dayText + ' | ' + destinationText + '</option>';
-
-
-
-                    var dateText = accommodationDate ? formatItineraryDayDate(accommodationDate) : '';
-
-
-
-                    var label = dayText;
-
-                    if (dateText) label += ' | ' + dateText;
-
-                    if (destinationText) label += ' | ' + destinationText;
-
-
-
-                    html += '<option value="' + dayKey + '">' + label + '</option>';
+                    blockMatches = true;
 
                 }
 
-            });
+            }
 
-        }
 
-    });
+
+            if (blockMatches) {
+
+                $(this).find('.itineraryDayRow').each(function () {
+
+                    var dayText = $(this).find('td:eq(0) strong').text().trim();
+
+                    var destinationText = $(this).find('td:eq(1)').clone().children().remove().end().text().trim();
+
+                    var packagesPropertiesDaysId = $(this).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+
+                    var destinationId = $(this).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+
+                    var accommodationDate = $(this).attr('data-accommodation-date') || '';
+
+                    if (packagesPropertiesDaysId) {
+
+                        var dayKey = makeNormalizedDayKey(packagesPropertiesDaysId, destinationId, accommodationDate);
+
+                        var dateText = accommodationDate ? formatDateDMY(accommodationDate) : '';
+
+                        var label = dayText;
+
+                        if (dateText) label += ' | ' + dateText;
+
+                        if (destinationText) label += ' | ' + destinationText;
+
+                        html += '<option value="' + dayKey + '">' + label + '</option>';
+
+                    }
+
+                });
+
+            }
+
+        });
+
+    }
 
 
 
@@ -13043,33 +13458,39 @@ function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
 
 
 
-    // if (savedDayKey && $(daySel).find('option[value="' + savedDayKey + '"]').length === 0) {
-
-    //     $(daySel).append('<option value="' + savedDayKey + '">Saved Day</option>');
-
-    // }
-
-
-
     if (savedDayKey && $(daySel).find('option[value="' + savedDayKey + '"]').length === 0) {
 
+        var savedLabel = '';
 
+        if (typeof __dayOptions !== 'undefined' && __dayOptions.length) {
 
-        var savedParts = savedDayKey.split('|');
+            for (var i = 0; i < __dayOptions.length; i++) {
 
+                if (makeDayKey(__dayOptions[i]) === savedDayKey) {
 
+                    savedLabel = buildDayOptionLabel(__dayOptions[i]);
 
-        var savedDayId = savedParts[0] || '';
+                    break;
 
-        var savedDestinationId = savedParts[1] || '';
+                }
 
-        var savedDate = savedParts[2] || '';
+            }
 
+        }
 
+        if (!savedLabel) {
 
-        var savedLabel = buildSavedDayLabelByKey(savedDayId, savedDestinationId, savedDate);
+            var savedParts = savedDayKey.split('|');
 
+            var savedDayId = savedParts[0] || '';
 
+            var savedDestinationId = savedParts[1] || '';
+
+            var savedDate = savedParts[2] || '';
+
+            savedLabel = buildSavedDayLabelByKey(savedDayId, savedDestinationId, savedDate);
+
+        }
 
         $(daySel).append(
 
@@ -13085,15 +13506,136 @@ function loadInclusionDaysForRow($tr, packageOptionId, savedDayKey, callback)
 
 }
 
+function getLocalPropertiesForOptionAndDay(optionUid, dayKey) {
+
+    var result = [];
+
+    if (!optionUid || !dayKey) return result;
+
+    var keyParts = dayKey.split('|');
+
+    var dayId = keyParts[0] || '';
+
+    var destId = keyParts[1] || '';
+
+    var accDate = keyParts[2] || '';
+
+    $('.optionBlock').each(function () {
+
+        var blockUid = $(this).attr('data-option-uid') || '';
+
+        if (String(blockUid) !== String(optionUid)) return;
+
+        $(this).find('.itineraryDayRow').each(function () {
+
+            var rowItineraryDayId = $(this).find('input[name="packages_itinerary_days_id_fk[]"]').val() || '';
+
+            var rowPropertiesDayId = $(this).find('input[name="packages_properties_days_id_fk[]"]').val() || '';
+
+            var rowDestId = $(this).find('input[name="quotation_properties_days_destination_id_fk[]"]').val() || '';
+
+            var rowAccDate = $(this).attr('data-accommodation-date') || '';
+
+            var dayIdMatches = (String(rowItineraryDayId) === String(dayId)) || (String(rowPropertiesDayId) === String(dayId));
+
+            if (dayIdMatches &&
+
+                String(rowDestId) === String(destId) &&
+
+                String(rowAccDate) === String(accDate)) {
+
+                $(this).find('.property-group').each(function () {
+
+                    var propId = $(this).attr('data-property-id') || '';
+
+                    var propName = $(this).find('.property-name-cell').text().trim() || '';
+
+                    if (propId) {
+
+                        var exists = result.some(function (p) { return String(p.property_id) === String(propId); });
+
+                        if (!exists) {
+
+                            result.push({ property_id: propId, property_name: propName });
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+        });
+
+    });
+
+    return result;
+
+}
+
+function refreshInclusionPropertyDropdownsForOptionAndDay(optionId, dayKey, removedPropertyId) {
+
+    if (!optionId || !dayKey) return;
+
+    $('#inclusionTable tbody tr').each(function () {
+
+        var $row = $(this);
+
+        var rowOptionId = $row.find('.inclusionPackageOptionSelect').val() || '';
+
+        var rowDayKey = $row.find('.inclusionDaySelect').val() || '';
+
+        if (String(rowOptionId) === String(optionId) && String(rowDayKey) === String(dayKey)) {
+
+            // Save current selection before refresh
+            var currentPropVal = $row.find('.inclusionPropertySelect').val() || '';
+
+            // If removedPropertyId is specified, skip only if the removed property was NOT selected
+            // (we still refresh to update the dropdown options, but preserve current selection)
+            if (removedPropertyId && String(currentPropVal) !== String(removedPropertyId)) {
+                // Removed property was not selected - just refresh options silently
+                loadInclusionPropertiesForRow($row, function () {
+                    var propSel = $row.find('.inclusionPropertySelect')[0];
+                    if (propSel && currentPropVal) {
+                        // Restore previous selection if it still exists
+                        if ($(propSel).find('option[value="' + currentPropVal + '"]').length) {
+                            $(propSel).val(currentPropVal).trigger('change.select2');
+                        }
+                    }
+                });
+                return;
+            }
+
+            // Refresh dropdown and preserve current selection
+            loadInclusionPropertiesForRow($row, function () {
+
+                var propSel = $row.find('.inclusionPropertySelect')[0];
+
+                if (propSel && currentPropVal) {
+
+                    // Restore previous selection if it still exists in the new options
+                    if ($(propSel).find('option[value="' + currentPropVal + '"]').length) {
+
+                        $(propSel).val(currentPropVal).trigger('change.select2');
+
+                    }
+
+                }
+
+            });
+
+        }
+
+    });
+
+}
+
 function loadInclusionPropertiesForRow($tr, callback)
 
 {
 
     var dayKey = $tr.find('.inclusionDaySelect').val() || '';
-
-    var leadId = $('#leads_id_hidden').val() || $('#leads_id').val() || '';
-
-    var packageId = $('#packages_id_hidden').val() || $('#packages_id_fk').val() || '';
 
     var packageOptionId = $tr.find('.inclusionPackageOptionSelect').val() || '';
 
@@ -13105,19 +13647,14 @@ function loadInclusionPropertiesForRow($tr, callback)
 
 
 
-    // disable while loading
-
-    setSelect2Loading(propSel, 'Loading Property...');
-
     setSelect2Empty(incSel, 'Select Inclusion');
 
 
 
-    if (!dayKey || !leadId || !packageId || !packageOptionId) {
+
+    if (!dayKey || !packageOptionId) {
 
         setSelect2Empty(propSel, 'Select Property');
-
-
 
         if (typeof callback === 'function') callback();
 
@@ -13127,72 +13664,37 @@ function loadInclusionPropertiesForRow($tr, callback)
 
 
 
-    fetch(
+    // Get properties only from the DOM (option blocks)
 
-        `<?php echo base_url(); ?>index.php/Quotation/ajax_get_daywise_properties_for_inclusion?lead_id=${encodeURIComponent(leadId)}&package_id=${encodeURIComponent(packageId)}&day_key=${encodeURIComponent(dayKey)}&packages_properties_common_id_fk=${encodeURIComponent(packageOptionId)}`
+    var localProps = getLocalPropertiesForOptionAndDay(packageOptionId, dayKey);
 
-    )
-
-    .then(function (r) { return r.json(); })
-
-    .then(function (res) {
-
-        var html = '<option value="">Select Property</option>';
+    var html = '<option value="">Select Property</option>';
 
 
 
-        if (res && res.status && Array.isArray(res.data) && res.data.length > 0) {
+    if (localProps.length > 0) {
 
-            res.data.forEach(function (p) {
+        localProps.forEach(function (p) {
 
-                html += '<option value="' + p.property_id + '">' + p.property_name + '</option>';
+            html += '<option value="' + p.property_id + '">' + p.property_name + '</option>';
 
-            });
+        });
 
+        setSelect2Ready(propSel, html, 'Select Property');
 
+    } else {
 
-            // enable after data loaded
+        setSelect2Empty(propSel, 'No Property Found');
 
-            setSelect2Ready(propSel, html, 'Select Property');
-
-        } else {
-
-            setSelect2Empty(propSel, 'No Property Found');
-
-        }
+    }
 
 
 
-        if (typeof callback === 'function') callback();
+    if (typeof callback === 'function') callback();
 
-
-
-        refreshQuotationModalScroll(true);
-
-    })
-
-    .catch(function (err) {
-
-        console.error(err);
-
-
-
-        setSelect2Empty(propSel, 'Failed to load Property');
-
-
-
-        if (typeof callback === 'function') callback();
-
-
-
-        refreshQuotationModalScroll(true);
-
-    });
+    refreshQuotationModalScroll(true);
 
 }
-
-
-
 // function loadInclusionNamesForRow($tr, callback)
 
 // {
@@ -13383,7 +13885,9 @@ function refillSavedSpecialRequirements(rows)
 
 
 
-    $('#quotation_special_requirement_type').prop('checked', true).trigger('change');
+    $('#quotation_special_requirement_type').prop('checked', true);
+
+    $('#specialReqBox').show();
 
 
 
@@ -13409,7 +13913,7 @@ function refillSavedSpecialRequirements(rows)
 
 
 
-        const dayKey = [
+        const dayKey = makeNormalizedDayKey(
 
             row.packages_properties_days_id_fk || '',
 
@@ -13417,7 +13921,7 @@ function refillSavedSpecialRequirements(rows)
 
             row.accommodation_date || ''
 
-        ].join('|');
+        );
 
 
 

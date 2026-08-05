@@ -318,12 +318,21 @@
                                         
                                     </div>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-2" id="duration_select_wrap">
                                     <div class="form-group">
                                         <label class="col-lg-9 col-form-label" for="packages_duration_in_nights"><b>Duration in nights</b> <span class="text-danger">*</span>
                                         </label>
                                             <input type="number" class="form-control" name="packages_duration_in_nights" id="packages_duration_in_nights" placeholder="Enter Duration in nights" required>
                                             <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2" id="duration_display_wrap" style="display:none;">
+                                    <div class="form-group">
+                                        <label class="col-lg-9 col-form-label">
+                                            <b>Duration in nights</b>
+                                        </label>
+                                            <div id="packages_duration_display" class="form-control" style="min-height:38px;font-weight:bold;border:none;"></div>
                                     </div>
                                 </div>
 
@@ -336,12 +345,21 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3" id="itinerary_category_select_wrap">
                                     <div class="form-group">
                                         <label class="col-lg-7 col-form-label" for="packages_itinerary_category_id_fk"><b>Itinerary category</b> <span class="text-danger">*</span>
                                         </label>
                                             <select name="packages_itinerary_category_id_fk" id="packages_itinerary_category_id_fk" class="form-control" required></select>
                                             <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3" id="itinerary_category_display_wrap" style="display:none;">
+                                    <div class="form-group">
+                                        <label class="col-lg-7 col-form-label">
+                                            <b>Itinerary category</b>
+                                        </label>
+                                            <div id="packages_itinerary_category_display" class="form-control" style="min-height:38px;font-weight:bold;border:none;"></div>
                                     </div>
                                 </div>
 
@@ -373,8 +391,7 @@
                                         <label class="col-lg-7 col-form-label">
                                             <b>Itinerary</b>
                                         </label>
-                                        <!-- <input type="text" id="packages_itinerary_display" class="form-control" readonly> -->
-                                        <div id="packages_itinerary_display" class="form-control bg-light" style="min-height:38px;"></div>
+                                            <div id="packages_itinerary_display" class="form-control" style="min-height:38px;font-weight:bold;border:none;"></div>
                                     </div>
                                 </div>
                             </div>

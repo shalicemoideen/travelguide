@@ -1886,7 +1886,7 @@
 
                                                 <th style="width:10%" class="text-center">Action</th>-->
 
-                                                <th style="width:25%">Template Option</th>
+                                                <th style="width:25%">Select Option Name</th>
 
 <th style="width:25%">Day | Date | Destination</th>
 
@@ -1912,7 +1912,7 @@
 
                                                     <select class="form-select form-select-sm inclusionPackageOptionSelect" name="package_option_id_fk[]">
 
-                                                        <option value="">Select Template Option</option>
+                                                        <option value="">Select Option Name</option>
 
                                                     </select>
 

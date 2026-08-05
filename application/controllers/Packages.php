@@ -2353,6 +2353,7 @@ $refMaps['itinerary']['main'] = $packages_itinerary_id;
 
         $category_names      = (array)$this->input->post('property_category_name');
         $design_types        = (array)$this->input->post('packages_properties_common_design_type');
+        $complimentary_inclusions = (array)$this->input->post('packages_properties_common_complimentary_inclusion');
         $template_masters    = (array)$this->input->post('packages_properties_common_template_master_id_fk');
         $destinations_by_sec = (array)$this->input->post('property_destination_id');
         $properties_by_sec   = (array)$this->input->post('properties_id');
@@ -2369,6 +2370,7 @@ $commonIndex = 0;
             }
 
             $designType = isset($design_types[$secIndex]) ? trim((string)$design_types[$secIndex]) : '';
+            $complimentaryInclusion = isset($complimentary_inclusions[$secIndex]) ? trim((string)$complimentary_inclusions[$secIndex]) : '';
             $templateMasterId = isset($template_masters[$secIndex]) ? (int)$template_masters[$secIndex] : 0;
             if (!$templateMasterId) $templateMasterId = null;
 
@@ -2380,6 +2382,7 @@ $commonIndex = 0;
                     'packages_properties_common_packages_id_fk' => $package_id,
                     'packages_properties_common_category_name'  => $categoryName,
                     'packages_properties_common_design_type'    => $designType,
+                    'packages_properties_common_complimentary_inclusion' => $complimentaryInclusion,
                     'packages_properties_common_template_master_id_fk' => $templateMasterId,
                     'packages_properties_common_status'         => 1
                 )
@@ -2668,7 +2671,7 @@ foreach ($properties_by_sec[$secIndex][$itinDayId] as $rowKey => $propertyId) {
 		PROPERTIES (FULL TREE)
 		========================= */
 		$properties = $this->db
-			->select('packages_properties_common_id, packages_properties_common_packages_id_fk, packages_properties_common_category_name, packages_properties_common_design_type, packages_properties_common_template_master_id_fk, packages_properties_common_status')
+			->select('packages_properties_common_id, packages_properties_common_packages_id_fk, packages_properties_common_category_name, packages_properties_common_design_type, packages_properties_common_complimentary_inclusion, packages_properties_common_template_master_id_fk, packages_properties_common_status')
 			->where('packages_properties_common_packages_id_fk', $id)
 			->get('packages_properties_common')
 			->result_array();
