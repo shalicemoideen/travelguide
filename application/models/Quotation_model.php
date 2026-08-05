@@ -7381,16 +7381,16 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			$this->db->where('q.quotation_current_status', $quotation_status);
 		}
 		if ($start_date) {
-			$this->db->where('l.start_date >=', $start_date);
+			$this->db->where('DATE(l.start_date) >=', $start_date);
 		}
 		if ($end_date) {
-			$this->db->where('l.start_date <=', $end_date);
+			$this->db->where('DATE(l.start_date) <=', $end_date);
 		}
 		if ($created_start_date) {
-			$this->db->where('q.quotation_date >=', $created_start_date);
+			$this->db->where('DATE(q.quotation_date) >=', $created_start_date);
 		}
 		if ($created_end_date) {
-			$this->db->where('q.quotation_date <=', $created_end_date);
+			$this->db->where('DATE(q.quotation_date) <=', $created_end_date);
 		}
 
 		if ($param['length'] == -1) {
@@ -7449,16 +7449,16 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			$this->db->where('q.quotation_current_status', $quotation_status);
 		}
 		if ($start_date) {
-			$this->db->where('l.start_date >=', $start_date);
+			$this->db->where('DATE(l.start_date) >=', $start_date);
 		}
 		if ($end_date) {
-			$this->db->where('l.start_date <=', $end_date);
+			$this->db->where('DATE(l.start_date) <=', $end_date);
 		}
 		if ($created_start_date) {
-			$this->db->where('q.quotation_date >=', $created_start_date);
+			$this->db->where('DATE(q.quotation_date) >=', $created_start_date);
 		}
 		if ($created_end_date) {
-			$this->db->where('q.quotation_date <=', $created_end_date);
+			$this->db->where('DATE(q.quotation_date) <=', $created_end_date);
 		}
 
 		$this->db->select('q.quotation_id', FALSE);

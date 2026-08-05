@@ -318,19 +318,21 @@ class Dashboard_model extends CI_Model{
 
         $currentuserid   = $this->session->userdata('user_id');
         $currentusertype = $this->session->userdata('user_type');
-        $this->db->select('COUNT(quotation_id) as total_count');
-        $this->db->from('quotation');
-        $this->db->where('quotation_status', 1);
+        $this->db->select('COUNT(q.quotation_id) as total_count');
+        $this->db->from('quotation q');
+        $this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'inner');
+        $this->db->where('q.quotation_status', 1);
+        $this->db->where('l.leads_status', 1);
         if($status_code !== null){
-            $this->db->where('quotation_current_status', $status_code);
+            $this->db->where('q.quotation_current_status', $status_code);
         }
         if($currentusertype == 'S'){
-            $this->db->where('quotation_created_by_userid', $currentuserid);
+            $this->db->where('l.staff_id_fk', $currentuserid);
         }
         if($range['start']){
-            $this->db->where('quotation_date >=', $range['start']);
+            $this->db->where('DATE(q.quotation_date) >=', $range['start']);
         }
-        $this->db->where('quotation_date <=', $range['end']);
+        $this->db->where('DATE(q.quotation_date) <=', $range['end']);
         $query = $this->db->get();
         return $query->result();
     }
