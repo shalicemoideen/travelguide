@@ -4,9 +4,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * Booking Cancellation
  *
- * The only existing table this controller writes to is `quotation`
- * (quotation_current_status -> 6) at the moment of approval. Everything else
- * lives in the booking_cancellation_* tables.
+ * Existing tables written to at approval time:
+ * - `quotation` (quotation_current_status -> 6)
+ * - `leads` (leads_quotation_status -> 2)
+ * Everything else lives in the booking_cancellation_* tables.
  *
  * Refund rows are append-only: corrections are contra rows, never UPDATE/DELETE.
  */
@@ -498,6 +499,12 @@ class Booking_cancellation extends MY_Controller {
         $this->db->where('quotation_id', $cancellation->quotation_id_fk);
         $this->db->update('quotation', array('quotation_current_status' => 6));
 
+        /* Update the linked lead's quotation status to cancelled. */
+        if (!empty($cancellation->leads_id_fk)) {
+            $this->db->where('leads_id', (int)$cancellation->leads_id_fk);
+            $this->db->update('leads', array('leads_quotation_status' => 2));
+        }
+
         $this->Booking_cancellation_model->recalculate($id);
 
         if ($this->db->trans_status() === FALSE) {
@@ -604,6 +611,12 @@ class Booking_cancellation extends MY_Controller {
 
         $this->db->where('quotation_id', $cancellation->quotation_id_fk);
         $this->db->update('quotation', array('quotation_current_status' => $restore_to));
+
+        /* Restore the linked lead's quotation status when a cancellation is reversed. */
+        if (!empty($cancellation->leads_id_fk)) {
+            $this->db->where('leads_id', (int)$cancellation->leads_id_fk);
+            $this->db->update('leads', array('leads_quotation_status' => 1));
+        }
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
