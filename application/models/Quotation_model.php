@@ -5844,7 +5844,7 @@ public function insert_room_tariff_details($data)
 
                 s.state_name, ap.accommodation_date,
 
-                ppd.packages_itinerary_days_id_fk as packages_itinerary_days_id_fk
+                COALESCE(ppd.packages_itinerary_days_id_fk, ap.day_id_fk) as packages_itinerary_days_id_fk
 
             ')
 
@@ -5952,9 +5952,13 @@ public function insert_room_tariff_details($data)
 
         return $this->db
 
-            ->select('qpi.*')
+            ->select('qpi.*, p.properties_name as property_name, pi.property_inclusions_name as inclusion_name_label')
 
             ->from('quotation_property_inclusions qpi')
+
+            ->join('properties p', 'p.properties_id = qpi.inclusion_property_id_fk', 'left')
+
+            ->join('property_inclusions pi', 'pi.property_inclusions_id = qpi.property_inclusions_id_fk', 'left')
 
             ->where('qpi.quotation_id_fk', $quotation_id)
 
