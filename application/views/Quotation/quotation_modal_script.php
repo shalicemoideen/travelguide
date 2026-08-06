@@ -13122,6 +13122,14 @@ loadInclusionDaysForRow($tr, quotationOptionsId, dayKey, function () {
 
 
 
+    if (savedPropertyId && $(propSel).prop('disabled')) {
+
+        setSelect2Ready(propSel, '<option value="">Select Property</option>', 'Select Property');
+
+    }
+
+
+
     setSelectValueSafe(
 
         $(propSel),
@@ -13194,13 +13202,21 @@ loadInclusionDaysForRow($tr, quotationOptionsId, dayKey, function () {
 
         // Ã¢Å“â€¦ if saved inclusion exists but not in loaded dropdown, add it
 
+        if (savedInclusionId && $(incSel).prop('disabled')) {
+
+            setSelect2Ready(incSel, '<option value="">Select Inclusion</option>', 'Select Inclusion');
+
+        }
+
+
+
         if (savedInclusionId && $(incSel).find('option[value="' + savedInclusionId + '"]').length === 0) {
 
             $(incSel).append(
 
                 '<option value="' + savedInclusionId + '">' +
 
-                (row.inclusion_name || row.property_inclusions_name || 'Selected Inclusion') +
+                (row.inclusion_name_label || row.inclusion_name || row.property_inclusions_name || 'Selected Inclusion') +
 
                 '</option>'
 
