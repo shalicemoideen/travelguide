@@ -1893,7 +1893,7 @@ public function get_quotation_room_tariff_details_by_id($id)
 
 
 
-public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id, $property_id, $room_cat_id)
+public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id, $property_id, $room_cat_id, $override_date = null)
 
 {
 
@@ -1962,6 +1962,12 @@ public function get_tariff_by_context($lead_id, $day_id_fk, $stay_destination_id
     $acc_date = $apRow['accommodation_date'];
 
     $acc_day  = $apRow['accommodation_day_name'];
+
+    // Rescheduling: use the new travel date for tariff lookups instead of the stored accommodation_date
+    if ($override_date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $override_date)) {
+        $acc_date = $override_date;
+        $acc_day  = date('l', strtotime($override_date));
+    }
 
     $meal_id  = (int)$apRow['meal_plan_id_fk'];
 
@@ -6011,11 +6017,11 @@ public function insert_room_tariff_details($data)
 
 
 
-    public function get_quotation_property_inclusions($quotation_id)
+    public function get_quotation_property_inclusions($quotation_id, $option_id = null)
 
     {
 
-        return $this->db
+        $this->db
 
             ->select('qpi.*, p.properties_name as property_name, pi.property_inclusions_name as inclusion_name_label')
 
@@ -6027,9 +6033,17 @@ public function insert_room_tariff_details($data)
 
             ->where('qpi.quotation_id_fk', $quotation_id)
 
-            ->where('qpi.quotation_property_inclusions_status', 1)
+            ->where('qpi.quotation_property_inclusions_status', 1);
 
-            ->order_by('qpi.quotation_property_inclusions_id', 'ASC')
+        if ($option_id !== null && (int)$option_id > 0) {
+
+            $this->db->where('qpi.quotation_options_id_fk', (int)$option_id);
+
+        }
+
+        $this->db->order_by('qpi.quotation_property_inclusions_id', 'ASC');
+
+        return $this->db
 
             ->get()
 

@@ -1452,6 +1452,12 @@ public function ajax_get_tariff_by_context()
 
     $room_cat_id  = (int)$this->input->get('room_category_id');
 
+    $override_date = trim((string)$this->input->get('override_date'));
+
+    if ($override_date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $override_date)) {
+        $override_date = null;
+    }
+
 
 
     if (!$lead_id || !$day_id_fk || !$stay_dest || !$property_id || !$room_cat_id) {
@@ -1498,7 +1504,9 @@ public function ajax_get_tariff_by_context()
 
         $property_id,
 
-        $room_cat_id
+        $room_cat_id,
+
+        $override_date
 
     );
 
@@ -9002,8 +9010,8 @@ public function ajax_delete()
 			}
 		}
 
-		// Fetch property inclusions and special requirements
-		$property_inclusions = $this->Quotation_model->get_quotation_property_inclusions($id);
+		// Fetch property inclusions and special requirements (only for confirmed option)
+		$property_inclusions = $this->Quotation_model->get_quotation_property_inclusions($id, $confirmed_option_id);
 		$special_requirements = $this->Quotation_model->get_quotation_special_requirements($id);
 
 		// Fetch lead travel dates for reschedule
@@ -9024,167 +9032,6 @@ public function ajax_delete()
 			'special_requirements' => $special_requirements,
 			'lead' => $lead
 		));
-	}
-
-	public function ajax_reschedule_travel_date()
-	{
-		$quotation_id = (int)$this->input->post('quotation_id');
-		$new_start_date = $this->input->post('new_start_date');
-
-		if (!$quotation_id || !$new_start_date) {
-			echo json_encode(array(
-				'status' => false,
-				'message' => 'Quotation ID and new start date are required'
-			));
-			return;
-		}
-
-		$new_start_date = str_replace('/', '-', $new_start_date);
-		$new_start = date('Y-m-d', strtotime($new_start_date));
-
-		// Get lead info
-		$lead = $this->db
-			->select('l.leads_id, l.start_date, l.end_date, l.duration')
-			->from('leads l')
-			->join('quotation q', 'q.leads_id_fk = l.leads_id', 'inner')
-			->where('q.quotation_id', $quotation_id)
-			->limit(1)
-			->get()
-			->row_array();
-
-		if (!$lead) {
-			echo json_encode(array(
-				'status' => false,
-				'message' => 'Lead not found for this quotation'
-			));
-			return;
-		}
-
-		$lead_id = (int)$lead['leads_id'];
-		$old_start = date('Y-m-d', strtotime($lead['start_date']));
-		$duration = (int)$lead['duration'];
-
-		if (!$duration) {
-			// Calculate duration from dates
-			$old_start_dt = new DateTime($old_start);
-			$old_end_dt = new DateTime(date('Y-m-d', strtotime($lead['end_date'])));
-			$diff = $old_start_dt->diff($old_end_dt);
-			$duration = (int)$diff->days;
-		}
-
-		// Calculate new end date = new start + duration days
-		$new_start_dt = new DateTime($new_start);
-		$new_end_dt = clone $new_start_dt;
-		$new_end_dt->modify('+' . $duration . ' days');
-		$new_end = $new_end_dt->format('Y-m-d');
-
-		// Calculate date offset in days
-		$old_start_dt = new DateTime($old_start);
-		$offset_diff = $new_start_dt->diff($old_start_dt);
-		$offset_days = (int)$offset_diff->days;
-		if ($offset_diff->invert) {
-			$offset_days = -$offset_days; // new start is after old start
-		} else {
-			$offset_days = $offset_days; // new start is before old start
-		}
-
-		// Actually: if new_start > old_start, offset is positive (shift forward)
-		// If new_start < old_start, offset is negative (shift backward)
-		$offset_seconds = strtotime($new_start) - strtotime($old_start);
-		$offset_days = (int)round($offset_seconds / 86400);
-
-		$this->db->trans_begin();
-
-		try {
-			// Update leads start_date and end_date
-			$this->db->where('leads_id', $lead_id);
-			$this->db->update('leads', array(
-				'start_date' => $new_start,
-				'end_date' => $new_end
-			));
-
-			// Shift all accommodation_plan dates for this lead
-			$acc_plans = $this->db
-				->select('accommodation_plan_id, accommodation_date, accommodation_day_name')
-				->from('accommodation_plan')
-				->where('lead_id_fk', $lead_id)
-				->where('accommodation_plan_status', 1)
-				->get()
-				->result_array();
-
-			foreach ($acc_plans as $ap) {
-				$ap_id = (int)$ap['accommodation_plan_id'];
-				$old_acc_date = $ap['accommodation_date'];
-
-				if ($old_acc_date && $old_acc_date !== '0000-00-00') {
-					$new_acc_date = date('Y-m-d', strtotime($old_acc_date . ' +' . $offset_days . ' days'));
-					$new_acc_day = date('l', strtotime($new_acc_date));
-
-					$this->db->where('accommodation_plan_id', $ap_id);
-					$this->db->update('accommodation_plan', array(
-						'accommodation_date' => $new_acc_date,
-						'accommodation_day_name' => $new_acc_day
-					));
-				}
-			}
-
-			// Shift quotation_property_inclusions accommodation_date
-			$inclusions = $this->db
-				->select('quotation_property_inclusions_id, accommodation_date')
-				->from('quotation_property_inclusions')
-				->where('quotation_id_fk', $quotation_id)
-				->where('quotation_property_inclusions_status', 1)
-				->get()
-				->result_array();
-
-			foreach ($inclusions as $inc) {
-				$old_inc_date = $inc['accommodation_date'];
-				if ($old_inc_date && $old_inc_date !== '0000-00-00') {
-					$new_inc_date = date('Y-m-d', strtotime($old_inc_date . ' +' . $offset_days . ' days'));
-					$this->db->where('quotation_property_inclusions_id', $inc['quotation_property_inclusions_id']);
-					$this->db->update('quotation_property_inclusions', array(
-						'accommodation_date' => $new_inc_date
-					));
-				}
-			}
-
-			// Shift quotation_special_requirements accommodation_date
-			$special_reqs = $this->db
-				->select('quotation_special_requirements_id, accommodation_date')
-				->from('quotation_special_requirements')
-				->where('quotation_id_fk', $quotation_id)
-				->where('quotation_special_requirements_status', 1)
-				->get()
-				->result_array();
-
-			foreach ($special_reqs as $sr) {
-				$old_sr_date = $sr['accommodation_date'];
-				if ($old_sr_date && $old_sr_date !== '0000-00-00') {
-					$new_sr_date = date('Y-m-d', strtotime($old_sr_date . ' +' . $offset_days . ' days'));
-					$this->db->where('quotation_special_requirements_id', $sr['quotation_special_requirements_id']);
-					$this->db->update('quotation_special_requirements', array(
-						'accommodation_date' => $new_sr_date
-					));
-				}
-			}
-
-			$this->db->trans_commit();
-
-			echo json_encode(array(
-				'status' => true,
-				'message' => 'Travel dates rescheduled successfully',
-				'new_start_date' => $new_start,
-				'new_end_date' => $new_end,
-				'offset_days' => $offset_days
-			));
-
-		} catch (Exception $e) {
-			$this->db->trans_rollback();
-			echo json_encode(array(
-				'status' => false,
-				'message' => $e->getMessage()
-			));
-		}
 	}
 
 	public function ajax_update_hub()
@@ -9212,6 +9059,98 @@ public function ajax_delete()
 		$this->db->trans_begin();
 
 		try {
+			// Update travel dates first if rescheduled
+			$new_start_raw = $this->input->post('hub_new_start_date');
+			$new_end_raw = $this->input->post('hub_new_end_date');
+			$offset_days = 0;
+			if ($new_start_raw && $new_end_raw) {
+				$new_start = date('Y-m-d', strtotime(str_replace('/', '-', $new_start_raw)));
+				$new_end = date('Y-m-d', strtotime(str_replace('/', '-', $new_end_raw)));
+
+				$lead = $this->db
+					->select('l.leads_id, l.start_date, l.end_date')
+					->from('leads l')
+					->join('quotation q', 'q.leads_id_fk = l.leads_id', 'inner')
+					->where('q.quotation_id', $quotation_id)
+					->limit(1)
+					->get()
+					->row_array();
+
+				if ($lead) {
+					$lead_id = (int)$lead['leads_id'];
+					$old_start = date('Y-m-d', strtotime($lead['start_date']));
+					$offset_seconds = strtotime($new_start) - strtotime($old_start);
+					$offset_days = (int)round($offset_seconds / 86400);
+
+					// Update leads travel dates
+					$this->db->where('leads_id', $lead_id);
+					$this->db->update('leads', array(
+						'start_date' => $new_start,
+						'end_date' => $new_end
+					));
+
+					// Shift accommodation_plan dates
+					$acc_plans = $this->db
+						->select('accommodation_plan_id, accommodation_date, accommodation_day_name')
+						->from('accommodation_plan')
+						->where('lead_id_fk', $lead_id)
+						->where('accommodation_plan_status', 1)
+						->get()
+						->result_array();
+					foreach ($acc_plans as $ap) {
+						$ap_id = (int)$ap['accommodation_plan_id'];
+						$old_acc_date = $ap['accommodation_date'];
+						if ($old_acc_date && $old_acc_date !== '0000-00-00') {
+							$new_acc_date = date('Y-m-d', strtotime($old_acc_date . ' +' . $offset_days . ' days'));
+							$new_acc_day = date('l', strtotime($new_acc_date));
+							$this->db->where('accommodation_plan_id', $ap_id);
+							$this->db->update('accommodation_plan', array(
+								'accommodation_date' => $new_acc_date,
+								'accommodation_day_name' => $new_acc_day
+							));
+						}
+					}
+
+					// Shift quotation_property_inclusions dates
+					$inclusions = $this->db
+						->select('quotation_property_inclusions_id, accommodation_date')
+						->from('quotation_property_inclusions')
+						->where('quotation_id_fk', $quotation_id)
+						->where('quotation_property_inclusions_status', 1)
+						->get()
+						->result_array();
+					foreach ($inclusions as $inc) {
+						$old_inc_date = $inc['accommodation_date'];
+						if ($old_inc_date && $old_inc_date !== '0000-00-00') {
+							$new_inc_date = date('Y-m-d', strtotime($old_inc_date . ' +' . $offset_days . ' days'));
+							$this->db->where('quotation_property_inclusions_id', $inc['quotation_property_inclusions_id']);
+							$this->db->update('quotation_property_inclusions', array(
+								'accommodation_date' => $new_inc_date
+							));
+						}
+					}
+
+					// Shift quotation_special_requirements dates
+					$special_reqs = $this->db
+						->select('quotation_special_requirements_id, accommodation_date')
+						->from('quotation_special_requirements')
+						->where('quotation_id_fk', $quotation_id)
+						->where('quotation_special_requirements_status', 1)
+						->get()
+						->result_array();
+					foreach ($special_reqs as $sr) {
+						$old_sr_date = $sr['accommodation_date'];
+						if ($old_sr_date && $old_sr_date !== '0000-00-00') {
+							$new_sr_date = date('Y-m-d', strtotime($old_sr_date . ' +' . $offset_days . ' days'));
+							$this->db->where('quotation_special_requirements_id', $sr['quotation_special_requirements_id']);
+							$this->db->update('quotation_special_requirements', array(
+								'accommodation_date' => $new_sr_date
+							));
+						}
+					}
+				}
+			}
+
 			// Update quotation-level fields
 			$quotationData = array(
 				'quotation_remarks' => $this->input->post('quotation_remarks'),
@@ -9220,6 +9159,11 @@ public function ajax_delete()
 				'quotation_updatedby_user_id' => $currentuserid,
 				'quotation_updated_at' => $date1,
 			);
+
+			// Keep quotation_date in sync with the new travel start date if it changed
+			if ($new_start_raw) {
+				$quotationData['quotation_date'] = date('Y-m-d h:i:s a', strtotime(str_replace('/', '-', $new_start_raw)));
+			}
 
 			$this->db->where('quotation_id', $quotation_id);
 			$this->db->update('quotation', $quotationData);
@@ -9506,6 +9450,11 @@ public function ajax_delete()
 
 					$acc_date        = isset($parts[2]) ? $parts[2] : null;
 
+					// Shift accommodation_date by offset_days if rescheduling
+					if ($acc_date && $offset_days != 0) {
+						$acc_date = date('Y-m-d', strtotime($acc_date . ' +' . $offset_days . ' days'));
+					}
+
 					if (!$property_day_id || !$stay_dest_id) {
 						continue;
 					}
@@ -9552,6 +9501,11 @@ public function ajax_delete()
 					$stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
 
 					$acc_date        = isset($parts[2]) ? $parts[2] : null;
+
+					// Shift accommodation_date by offset_days if rescheduling
+					if ($acc_date && $offset_days != 0) {
+						$acc_date = date('Y-m-d', strtotime($acc_date . ' +' . $offset_days . ' days'));
+					}
 
 					if (!$property_day_id || !$stay_dest_id) {
 						continue;

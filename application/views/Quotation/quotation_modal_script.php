@@ -9256,6 +9256,23 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
 
 
 
+    // Hub reschedule: fetch tariff based on the new travel dates
+    // (day index offset from the new start date) instead of accommodation_date
+    var rescheduleOverrideDate = '';
+    if (window.isHubEdit && window.hubRescheduleNewStartISO && dayRow) {
+        var _optBlock = dayRow.closest('.optionBlock');
+        if (_optBlock) {
+            var _dayIdx = Array.prototype.indexOf.call(_optBlock.querySelectorAll('.itineraryDayRow'), dayRow);
+            if (_dayIdx >= 0) {
+                var _od = new Date(window.hubRescheduleNewStartISO);
+                if (!isNaN(_od.getTime())) {
+                    _od.setDate(_od.getDate() + _dayIdx);
+                    rescheduleOverrideDate = _od.getFullYear() + '-' + String(_od.getMonth() + 1).padStart(2, '0') + '-' + String(_od.getDate()).padStart(2, '0');
+                }
+            }
+        }
+    }
+
     const urlTariff =
 
     `<?php echo base_url(); ?>index.php/Quotation/ajax_get_tariff_by_context` +
@@ -9268,7 +9285,9 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
 
     `&property_id=${encodeURIComponent(propertyId)}` +
 
-    `&room_category_id=${encodeURIComponent(roomCategoryId)}`;
+    `&room_category_id=${encodeURIComponent(roomCategoryId)}` +
+
+    (rescheduleOverrideDate ? `&override_date=${encodeURIComponent(rescheduleOverrideDate)}` : '');
 
 
 
@@ -14131,7 +14150,7 @@ $(document).on('change', '.auto-calc-all-properties', function () {
 
 
 
-    if (!confirm('This will calculate and save room tariffs for ' + $buttons.length + ' room(s). Continue?')) {
+    if (!window.isHubEdit && !confirm('This will calculate and save room tariffs for ' + $buttons.length + ' room(s). Continue?')) {
 
         $checkbox.prop('checked', false);
 
@@ -14299,6 +14318,10 @@ function finishAutoCalc() {
 
     window.__autoCalcCountsCaptured = false;
 
+    if (window.isHubEdit && window.hubRescheduleNewStartISO) {
+        window.hubDatesRecalculated = true;
+    }
+
 }
 
 
@@ -14342,6 +14365,10 @@ function cancelAutoCalc(message) {
     window.__autoCalcCapturedCounts = null;
 
     window.__autoCalcCountsCaptured = false;
+
+    if (window.isHubEdit && window.hubRescheduleNewStartISO) {
+        window.hubDatesRecalculated = false;
+    }
 
 }
 

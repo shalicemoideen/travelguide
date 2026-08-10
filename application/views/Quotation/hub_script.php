@@ -10298,21 +10298,20 @@ function edit_quotation_hub(id)
                 '</div>' +
                 '<div class="row mt-2">' +
                 '<div class="col-md-12">' +
-                '<button type="button" class="btn btn-warning btn-sm" id="hubRescheduleBtn" onclick="rescheduleTravelDate()" style="display:none;">' +
-                '<i class="la la-refresh me-1"></i> Reschedule & Recalculate Rates' +
-                '</button>' +
-                '<small class="text-muted ms-2" id="hubRescheduleHint">Changing the travel date will recalculate room rates based on new dates.</small>' +
                 '</div>' +
                 '</div>' +
                 '</div>' +
                 '</div>'
             );
 
-            // Show/hide reschedule button and auto-calc end date
+            // Auto-calc end date and trigger room-rate recalculation on date change
             function onNewStartDateChange() {
+                window.hubDatesRecalculated = false;
+                window.__hubAutoCalcTriggered = false;
+
                 var raw = $('#hubNewStartDate').val().trim();
                 // Convert dd/mm/yyyy to yyyy-mm-dd for calculation
-                var parts = raw.split(/[\/\-]/);
+                var parts = raw.split(/[\/-]/);
                 if (parts.length === 3) {
                     var isoStart = parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0');
 
@@ -10320,8 +10319,8 @@ function edit_quotation_hub(id)
                     var currentStartIso = $('#hubCurrentStartDate').val();
                     var currentEndIso = $('#hubCurrentEndDate').val();
                     // Convert current dates from dd-mm-yyyy to yyyy-mm-dd for comparison
-                    var currentStartParts = currentStartIso.split(/[\/\-]/);
-                    var currentEndParts = currentEndIso.split(/[\/\-]/);
+                    var currentStartParts = currentStartIso.split(/[\/-]/);
+                    var currentEndParts = currentEndIso.split(/[\/-]/);
                     var currentStartNormalized = currentStartParts.length === 3 ? currentStartParts[2] + '-' + currentStartParts[1].padStart(2,'0') + '-' + currentStartParts[0].padStart(2,'0') : '';
                     var currentEndNormalized = currentEndParts.length === 3 ? currentEndParts[2] + '-' + currentEndParts[1].padStart(2,'0') + '-' + currentEndParts[0].padStart(2,'0') : '';
 
@@ -10329,14 +10328,12 @@ function edit_quotation_hub(id)
                         alert('New travel date cannot be the same as current travel start date.');
                         $('#hubNewStartDate').val('');
                         $('#hubNewEndDate').val('');
-                        $('#hubRescheduleBtn').hide();
                         return;
                     }
                     if (isoStart === currentEndNormalized) {
                         alert('New travel date cannot be the same as current end date.');
                         $('#hubNewStartDate').val('');
                         $('#hubNewEndDate').val('');
-                        $('#hubRescheduleBtn').hide();
                         return;
                     }
 
@@ -10347,15 +10344,33 @@ function edit_quotation_hub(id)
                         var newEndMonth = String(newEnd.getMonth() + 1).padStart(2, '0');
                         var newEndYear = newEnd.getFullYear();
                         $('#hubNewEndDate').val(newEndDay + '/' + newEndMonth + '/' + newEndYear);
-                        $('#hubRescheduleBtn').show();
+
+                        // Store the new start date (ISO) so tariff fetches use the new travel dates
+                        window.hubRescheduleNewStartISO = isoStart;
+
+                        // Clear all room calculated rates — user must recalculate based on the new dates
+                        var $optionBlock = $('#optionsContainer .optionBlock').first();
+                        if ($optionBlock.length) {
+                            $optionBlock.find('.autoCalcRateInput').val('0.00');
+                            $optionBlock.find('.autoCalcRateText').text('0.00');
+                            // Drop stale in-memory tariff data so rooms re-fetch rates on edit
+                            $optionBlock.find('.quotationRoomTariffDetailsIdInput').each(function () {
+                                if (this.value && typeof removePendingTariffData === 'function') {
+                                    removePendingTariffData(this.value);
+                                }
+                            });
+                            if (typeof recalcOptionTotals === 'function') {
+                                recalcOptionTotals($optionBlock[0]);
+                            }
+                        }
                     }
                 } else {
                     $('#hubNewEndDate').val('');
-                    $('#hubRescheduleBtn').hide();
+                    window.hubRescheduleNewStartISO = null;
                 }
             }
 
-            $('#hubNewStartDate').on('change keyup', onNewStartDateChange);
+            $('#hubNewStartDate').on('change', onNewStartDateChange);
 
             // Initialize datepicker on New Travel Date
             $('#hubNewStartDate').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true })
@@ -10472,11 +10487,24 @@ function saveQuotationHub()
         return;
     }
 
-    // If new travel date is entered but not yet rescheduled, block save
+    // If travel dates were changed, ensure all room rates were recalculated for the new dates
     var newStartDate = $('#hubNewStartDate').val().trim();
     if (newStartDate) {
-        alert('Please click "Reschedule & Recalculate Rates" before saving, as you have changed the travel date.');
-        return;
+        if (window.__autoCalcActive) {
+            alert('Room-rate recalculation is in progress. Please wait for it to complete before updating.');
+            return;
+        }
+        var pendingRecalc = false;
+        $('#optionsContainer .optionBlock').first().find('.autoCalcRateInput').each(function () {
+            if (parseFloat(this.value) <= 0) {
+                pendingRecalc = true;
+                return false;
+            }
+        });
+        if (pendingRecalc) {
+            alert('Please recalculate room rates for the new travel dates before updating (use Auto Calculate or edit each room).');
+            return;
+        }
     }
 
     $('#btnSave').text('saving...').attr('disabled', true);
@@ -10493,6 +10521,12 @@ function saveQuotationHub()
     data.set('quotation_remarks', $('[name="quotation_remarks"]').val() || '');
     data.set('total_inclusion_amount', $('#total_inclusion_amount').val() || 0);
     data.set('total_special_requirment_amount', $('#total_special_requirment_amount').val() || 0);
+
+    // Pass new travel dates to the server so they are saved together with the recalculated rates
+    if (newStartDate) {
+        data.append('hub_new_start_date', newStartDate);
+        data.append('hub_new_end_date', $('#hubNewEndDate').val().trim());
+    }
 
     // JSON payload with options/days/properties/rooms
     data.append('data', JSON.stringify(buildQuotationPayload()));
@@ -10546,89 +10580,6 @@ function formatDateForDisplay(dateStr)
     return day + '-' + month + '-' + year;
 }
 
-function rescheduleTravelDate()
-{
-    var quotationId = $('[name="id"]').val();
-    var newStartDateRaw = $('#hubNewStartDate').val();
-    // Convert dd/mm/yyyy to yyyy-mm-dd for server
-    var newStartDate = '';
-    var parts = newStartDateRaw.split(/[\/\-]/);
-    if (parts.length === 3) {
-        newStartDate = parts[2] + '-' + parts[1].padStart(2,'0') + '-' + parts[0].padStart(2,'0');
-    }
-
-    if (!quotationId) {
-        alert('Quotation ID missing');
-        return;
-    }
-    if (!newStartDate) {
-        alert('Please select a new start date');
-        return;
-    }
-
-    var currentStart = $('#hubCurrentStartDate').val();
-    var newEnd = $('#hubNewEndDate').val();
-
-    if (!confirm('Are you sure you want to reschedule the travel date?\n\n' +
-        'Current Start: ' + currentStart + '\n' +
-        'New Start: ' + newStartDateRaw + '\n' +
-        'New End: ' + newEnd + '\n\n' +
-        'This will update accommodation dates and recalculate room rates based on the new dates.')) {
-        return;
-    }
-
-    $('#hubRescheduleBtn').prop('disabled', true).html(
-        '<i class="la la-spinner la-spin me-1"></i> Rescheduling...'
-    );
-
-    $.ajax({
-        url: "<?php echo base_url();?>index.php/Quotation/ajax_reschedule_travel_date",
-        type: "POST",
-        data: {
-            quotation_id: quotationId,
-            new_start_date: newStartDate
-        },
-        dataType: "JSON",
-        success: function(res) {
-            $('#hubRescheduleBtn').prop('disabled', false).html(
-                '<i class="la la-refresh me-1"></i> Reschedule & Recalculate Rates'
-            );
-
-            if (res.status) {
-                // Update current date display
-                var newStartDisplay = formatDateForDisplay(res.new_start_date);
-                var newEndDisplay = formatDateForDisplay(res.new_end_date);
-                $('#hubCurrentStartDate').val(newStartDisplay);
-                $('#hubCurrentEndDate').val(newEndDisplay);
-                $('#hubCurrentStartDateDisplay').text(newStartDisplay);
-                $('#hubCurrentEndDateDisplay').text(newEndDisplay);
-                $('#hubNewStartDate').val('');
-                $('#hubNewEndDate').val('');
-                $('#hubRescheduleBtn').hide();
-
-                alert('Travel dates rescheduled successfully. Now recalculating room rates...');
-
-                // Trigger auto-calc for all rooms in the option block
-                var $optionBlock = $('#optionsContainer .optionBlock').first();
-                if ($optionBlock.length) {
-                    var $checkbox = $optionBlock.find('.auto-calc-all-properties');
-                    if ($checkbox.length) {
-                        $checkbox.prop('checked', true).trigger('change');
-                    }
-                }
-            } else {
-                alert(res.message || 'Failed to reschedule travel date');
-            }
-        },
-        error: function() {
-            $('#hubRescheduleBtn').prop('disabled', false).html(
-                '<i class="la la-refresh me-1"></i> Reschedule & Recalculate Rates'
-            );
-            alert('Error rescheduling travel date');
-        }
-    });
-}
-
 // Clean up hub edit state when modal is closed
 $(document).on('hidden.bs.modal', '#QuotationModal', function () {
     if (window.isHubEdit) {
@@ -10638,6 +10589,10 @@ $(document).on('hidden.bs.modal', '#QuotationModal', function () {
         // Remove reschedule section
         $('#hubRescheduleSection').remove();
         window.hubLeadData = null;
+        // Reset date-change tracking flags so unsaved date changes are discarded
+        window.hubDatesRecalculated = false;
+        window.__hubAutoCalcTriggered = false;
+        window.hubRescheduleNewStartISO = null;
         // Restore modal title
         $('#QuotationModal .modal-title').text('');
         // Restore hidden fields
