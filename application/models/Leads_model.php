@@ -95,6 +95,14 @@ class Leads_model extends CI_Model{
 				$this->db->where('leads_quotation_status', 2);
 
 			}
+
+			// Rejected
+			else if($leads_accomodation_status1 == 'quotation_rejected'){
+
+				$this->db->where('leads_accomodation_status', 2);
+				$this->db->where('leads_quotation_status', 3);
+
+			}
 		}
         if($guest_name_filter1){
             $this->db->like('guest_name', $guest_name_filter1); 
@@ -239,6 +247,14 @@ class Leads_model extends CI_Model{
 				$this->db->where('leads_quotation_status', 2);
 
 			}
+
+			// Rejected
+			else if($leads_accomodation_status1 == 'quotation_rejected'){
+
+				$this->db->where('leads_accomodation_status', 2);
+				$this->db->where('leads_quotation_status', 3);
+
+			}
 		}
         if($guest_name_filter1){
             $this->db->like('guest_name', $guest_name_filter1); 
@@ -368,6 +384,14 @@ class Leads_model extends CI_Model{
 
 				$this->db->where('leads_accomodation_status', 2);
 				$this->db->where('leads_quotation_status', 2);
+
+			}
+
+			// Rejected
+			else if($leads_accomodation_status2 == 'quotation_rejected'){
+
+				$this->db->where('leads_accomodation_status', 2);
+				$this->db->where('leads_quotation_status', 3);
 
 			}
 		}
@@ -517,6 +541,14 @@ class Leads_model extends CI_Model{
 
 				$this->db->where('leads_accomodation_status', 2);
 				$this->db->where('leads_quotation_status', 2);
+
+			}
+
+			// Rejected
+			else if($leads_accomodation_status2 == 'quotation_rejected'){
+
+				$this->db->where('leads_accomodation_status', 2);
+				$this->db->where('leads_quotation_status', 3);
 
 			}
 		}

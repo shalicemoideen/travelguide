@@ -1,5 +1,31 @@
 ﻿///////////////////////////////////////////////////**************** Quotation ***************////////////////////////////
 
+// Global in-memory storage for pending room tariff details
+// Keyed by temp_id, stores all tariff form data until quotation save/update
+window.__pendingTariffData = {};
+window.__pendingTariffNextId = 1;
+
+function getPendingTariffKey() {
+    return 'temp_' + (window.__pendingTariffNextId++);
+}
+
+function storePendingTariffData(tempKey, data) {
+    window.__pendingTariffData[tempKey] = data;
+}
+
+function getPendingTariffData(tempKey) {
+    return window.__pendingTariffData[tempKey] || null;
+}
+
+function removePendingTariffData(tempKey) {
+    delete window.__pendingTariffData[tempKey];
+}
+
+function clearAllPendingTariffData() {
+    window.__pendingTariffData = {};
+    window.__pendingTariffNextId = 1;
+}
+
 
 
 $('#quotation_date').datepicker({
@@ -16,7 +42,7 @@ $('#quotation_date').datepicker({
 
 function resetQuotationModalForm() {
 
-
+    clearAllPendingTariffData();
 
     var form = document.getElementById('form');
 
@@ -4429,6 +4455,11 @@ document.addEventListener('click', function (e) {
 
 
 
+    // Clean up pending tariff data for all rooms in this option block
+    block.querySelectorAll('.quotationRoomTariffDetailsIdInput').forEach(function(inp) {
+        if (inp.value) removePendingTariffData(inp.value);
+    });
+
     block.remove();
 
 
@@ -5407,19 +5438,39 @@ function getOptionTemplate(index) {
 
             <div class="col-md-12">
 
-                <div class="form-check">
+                <div class="d-flex align-items-center gap-3">
 
-                    <input class="form-check-input auto-calc-all-properties"
+                    <div class="form-check mb-0">
 
-                           type="checkbox"
+                        <input class="form-check-input auto-calc-all-properties"
 
-                           value="1">
+                               type="checkbox"
 
-                    <label class="form-check-label fw-bold text-primary">
+                               value="1">
 
-                        Calculate room tariff for all properties
+                        <label class="form-check-label fw-bold text-primary">
 
-                    </label>
+                            Calculate room tariff for all properties
+
+                        </label>
+
+                    </div>
+
+                    <div class="form-check mb-0">
+
+                        <input class="form-check-input copy-guestcount-all-rooms"
+
+                               type="checkbox"
+
+                               value="1">
+
+                        <label class="form-check-label fw-bold text-info">
+
+                            Copy first room guest count to all rooms
+
+                        </label>
+
+                    </div>
 
                 </div>
 
@@ -5798,6 +5849,11 @@ document.addEventListener('click', function (e) {
 
 
 
+        // Clean up pending tariff data for all rooms in this property group
+        propertyGroup.querySelectorAll('.quotationRoomTariffDetailsIdInput').forEach(function(inp) {
+            if (inp.value) removePendingTariffData(inp.value);
+        });
+
         propertyGroup.remove();
 
         if (optionBlock) {
@@ -5966,7 +6022,7 @@ function getRoomRowTemplate(propertyId, rooms, leadId, propertyDayId, stayDestId
 
     return `
 
-        <tr class="room-row" data-room-id="" data-packages-room-id="" data-day-id="${propertyDayId || ''}">
+        <tr class="room-row" data-room-id="" data-qp-room-id="" data-packages-room-id="" data-day-id="${propertyDayId || ''}">
 
             <td class="property-ref-cell text-muted" style="border-left:3px solid #0d6efd;"></td>
 
@@ -6670,6 +6726,13 @@ document.addEventListener('click', function (e) {
 
     const optionBlock = btn.closest('.optionBlock');
 
+    // Clean up pending tariff data for this room
+    const roomRow = btn.closest('tr');
+    const tariffKey = roomRow?.querySelector('.quotationRoomTariffDetailsIdInput')?.value || '';
+    if (tariffKey) {
+        removePendingTariffData(tariffKey);
+    }
+
     btn.closest('tr').remove();
 
     if (optionBlock) {
@@ -6905,7 +6968,9 @@ function buildQuotationPayload() {
 
                             total_room_cost: totalRoomCost,
 
-                            quotation_room_tariff_details_id: roomRow.querySelector('.quotationRoomTariffDetailsIdInput')?.value || 0
+                            quotation_room_tariff_details_id: roomRow.querySelector('.quotationRoomTariffDetailsIdInput')?.value || 0,
+
+                            tariff_data: getPendingTariffData(roomRow.querySelector('.quotationRoomTariffDetailsIdInput')?.value || '') || null
 
                         });
 
@@ -8196,6 +8261,10 @@ $(document).on('input change', '#roompricingandguestallocationModal input', func
 
 $(document).on('click', '.editRoomBtn', function () {
 
+    // Reset flag — will be set to true if pending tariff data is loaded from memory
+    window.__pendingTariffLoaded = false;
+    window.__pendingTariffDataToApply = null;
+
     if (window.__autoCalcActive) {
 
         // Let the main modal flow handle auto-calculation
@@ -8215,11 +8284,31 @@ clearRoomPricingWarnings();
 
 
 
-    let day_id_fk = row.find('[name="packages_properties_days_id_fk[]"]').val();
+    let day_id_fk = row.attr('data-day-id') || row.closest('.itineraryDayRow').find('[name="packages_properties_days_id_fk[]"]').val() || '';
 
-    let room_row_fk = row.find('[name="quotation_properties_rooms_id_fk[]"]').val();
+    let room_row_fk = row.find('.qpRoomIdPkInput').val() || row.find('[name="quotation_properties_rooms_id_fk[]"]').val();
 
+    let packages_room_id = row.attr('data-packages-room-id') || 0;
 
+    // Check if room has pending in-memory tariff data (temp_ key or numeric DB ID)
+    var existingTariffKey = row.find('.quotationRoomTariffDetailsIdInput').val() || '';
+
+    if (existingTariffKey) {
+        // Load from in-memory pending data if available — no server fetch needed
+        var pendingData = getPendingTariffData(existingTariffKey);
+        if (pendingData) {
+            // Set flag so native handler skips syncAutoToManual and tariff fetch
+            window.__pendingTariffLoaded = true;
+            // Store pending data for native handler to apply AFTER its reset
+            window.__pendingTariffDataToApply = pendingData;
+
+            // Set modal hidden input
+            document.getElementById('modal_quotation_room_tariff_details_id').value = existingTariffKey;
+            document.getElementById('modal_packages_properties_days_id_fk').value = day_id_fk;
+            document.getElementById('modal_quotation_properties_rooms_id_fk').value = room_row_fk;
+            return;
+        }
+    }
 
     $.ajax({
 
@@ -8233,7 +8322,9 @@ clearRoomPricingWarnings();
 
             packages_properties_days_id_fk: day_id_fk,
 
-            quotation_properties_rooms_id_fk: room_row_fk
+            quotation_properties_rooms_id_fk: room_row_fk,
+
+            packages_properties_rooms_id_fk: packages_room_id
 
         },
 
@@ -8362,6 +8453,12 @@ clearRoomPricingWarnings();
         $('[name="adult_supplement_cost"]').val(d.adult_supplement_cost || 0);
 
         $('[name="child_supplement_cost"]').val(d.child_supplement_cost || 0);
+
+
+
+        // Fill all manual section fields (counts + rates + supplement) from saved data
+
+        fillSavedManualSection(d);
 
 
 
@@ -8623,7 +8720,7 @@ window.__lastRoomEditBtn = btn;
 
 const roomTr = btn.closest('tr');
 
-const qpRoomId = roomTr?.querySelector('[name="packages_properties_rooms_id_fk[]"]')?.value || '';
+const qpRoomId = roomTr?.querySelector('.qpRoomIdPkInput')?.value || roomTr?.querySelector('[name="quotation_properties_rooms_id_fk[]"]')?.value || '';
 
 
 
@@ -9120,8 +9217,16 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
 
 
             // 1) copy auto -> manual so manual starts same
-
-            syncAutoToManualCountsAndRates();
+            //    Skip if pending tariff data was already loaded from memory
+            if (!window.__pendingTariffLoaded) {
+                syncAutoToManualCountsAndRates();
+            } else {
+                // applyAutoAllocationToModal already overwrote manual fields with auto values
+                // Re-apply saved pending data to restore manual counts
+                if (window.__pendingTariffDataToApply) {
+                    fillSavedManualSection(window.__pendingTariffDataToApply);
+                }
+            }
 
 
 
@@ -9211,6 +9316,18 @@ $('#roompricingandguestallocationModal').modal('show'); // show bootstrap modal
 
 
 
+// Skip tariff fetch if pending tariff data was already loaded from memory
+if (window.__pendingTariffLoaded) {
+    // Pending data already loaded by jQuery handler — apply it now after reset
+    if (window.__pendingTariffDataToApply) {
+        fillSavedManualSection(window.__pendingTariffDataToApply);
+    }
+    refreshAllAmountsAndTotals();
+    setTimeout(function () { checkRoomPricingWarnings(); }, 200);
+    // Note: do NOT clear __pendingTariffDataToApply here —
+    // Promise.all callback below still needs it to re-apply after applyAutoAllocationToModal
+} else {
+
 fetch(urlTariff)
 
   .then(r => r.json())
@@ -9242,7 +9359,14 @@ fetch(urlTariff)
 
       if (savedTariffId) {
 
-          fetch(`<?php echo base_url(); ?>index.php/Quotation/ajax_get_saved_quotation_room_tariff_details_by_id?quotation_room_tariff_details_id=${encodeURIComponent(savedTariffId)}`)
+          // Check in-memory pending data first (covers both temp_ and numeric DB IDs)
+          var pendingData = getPendingTariffData(savedTariffId);
+          if (pendingData) {
+              fillSavedManualSection(pendingData);
+              applyCopyGuestCountIfNeeded();
+              maybeAutoSaveRoomTariff();
+          } else {
+              fetch(`<?php echo base_url(); ?>index.php/Quotation/ajax_get_saved_quotation_room_tariff_details_by_id?quotation_room_tariff_details_id=${encodeURIComponent(savedTariffId)}`)
 
             .then(r => r.json())
 
@@ -9252,11 +9376,15 @@ fetch(urlTariff)
 
                     fillSavedManualSection(savedRes.data);
 
+                    applyCopyGuestCountIfNeeded();
+
                     maybeAutoSaveRoomTariff();
 
                 } else {
 
                     refreshAllAmountsAndTotals();
+
+                    applyCopyGuestCountIfNeeded();
 
                     maybeAutoSaveRoomTariff();
 
@@ -9270,13 +9398,19 @@ fetch(urlTariff)
 
                 refreshAllAmountsAndTotals();
 
+                applyCopyGuestCountIfNeeded();
+
                 maybeAutoSaveRoomTariff();
 
             });
 
+          }
+
       } else {
 
           refreshAllAmountsAndTotals();
+
+          applyCopyGuestCountIfNeeded();
 
           maybeAutoSaveRoomTariff();
 
@@ -9294,11 +9428,11 @@ fetch(urlTariff)
 
       }
 
-  });
 
 
+    })
 
-
+} // end else (not pendingTariffLoaded)
 
     })
 
@@ -10433,300 +10567,124 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
         }
 
         return;
-
     }
-
-
-
-    const fd = new FormData();
-
-    fd.append('packages_properties_days_id_fk', dayId);
-
-    fd.append('quotation_properties_rooms_id_fk', roomRow);
-
-
 
     const spanNum = (sel) => (document.querySelector(sel)?.textContent || '0').trim();
 
     const inputVal = (sel, def='0') => (document.querySelector(sel)?.value ?? def);
 
-
-
-    const quotationRoomTariffDetailsId =
-
-    document.getElementById('modal_quotation_room_tariff_details_id')?.value || '';
-
-
-
-    fd.append('quotation_room_tariff_details_id', quotationRoomTariffDetailsId);
-
-    // pax wise
-
-    fd.append('pax_wise_bed_adult_db_count', spanNum('[data-role="adult-db"]'));
-
-    fd.append('pax_wise_bed_adult_eb_count', spanNum('[data-role="adult-eb"]'));
-
-    fd.append('pax_wise_bed_adult_sgl_count', spanNum('[data-role="adult-sb"]'));
-
-
-
-    fd.append('pax_wise_bed_child_db_count', spanNum('[data-role="child-db"]'));
-
-    fd.append('pax_wise_bed_child_eb_count', spanNum('[data-role="child-eb"]'));
-
-    fd.append('pax_wise_bed_child_sb_count', spanNum('[data-role="child-sb"]'));
-
-
-
-    fd.append('pax_wise_bed_baby_db_count', spanNum('[data-role="baby-db"]'));
-
-    fd.append('pax_wise_bed_baby_eb_count', spanNum('[data-role="baby-eb"]'));
-
-    fd.append('pax_wise_bed_baby_sb_count', spanNum('[data-role="baby-sb"]'));
-
-
-
-    // Auto inputs
-
-    fd.append('room_unit_auto_count', inputVal('[name="auto_room_member_count"]'));
-
-    fd.append('room_unit_auto_rate', inputVal('[name="auto_room_member_rate"]'));
-
-    fd.append('room_unit_auto_total_rate', (document.querySelector('[data-role="amount-auto-rooms"]')?.textContent || '0'));
-
-
-
-    fd.append('extra_bed_adult_auto_count', inputVal('[name="auto_extra_bed_adult_count"]'));
-
-    fd.append('extra_bed_adult_auto_rate', inputVal('[name="auto_extra_bed_adult_rate"]'));
-
-    fd.append('extra_bed_adult_auto_total_rate', (document.querySelector('[data-role="amount-auto-eb_adult"]')?.textContent || '0'));
-
-
-
-    fd.append('extra_bed_child_auto_count', inputVal('[name="auto_extra_bed_child_count"]'));
-
-    fd.append('extra_bed_child_auto_rate', inputVal('[name="auto_extra_bed_child_rate"]'));
-
-    fd.append('extra_bed_child_auto_total_rate', (document.querySelector('[data-role="amount-auto-eb_child"]')?.textContent || '0'));
-
-
-
-    fd.append('child_sharing_bed_auto_count', inputVal('[name="auto_child_sharing_bed_count"]'));
-
-    fd.append('child_sharing_bed_auto_rate', inputVal('[name="auto_child_sharing_bed_rate"]'));
-
-    fd.append('child_sharing_bed_auto_total_rate', (document.querySelector('[data-role="amount-auto-sb_child"]')?.textContent || '0'));
-
-
-
-    fd.append('single_occupancy_auto_count', inputVal('[name="auto_single_occupancy_count"]'));
-
-    fd.append('single_occupancy_auto_rate', inputVal('[name="auto_single_occupancy_rate"]'));
-
-    fd.append('single_occupancy_auto_total_rate', (document.querySelector('[data-role="amount-auto-sgl"]')?.textContent || '0'));
-
-
-
-    fd.append('supplyment_auto_cost', inputVal('[name="auto_supplment_cost"]'));
-
-    fd.append('supplyment_auto_total_cost', (document.querySelector('[data-role="amount-auto-supplement"]')?.textContent || '0'));
-
-
-
-    // Manual inputs
-
-    fd.append('room_unit_manual_count', inputVal('[name="manual_count"]'));
-
-    fd.append('room_unit_manual_rate', inputVal('[name="manual_rate"]'));
-
-    fd.append('room_unit_manual_total_rate', (document.querySelector('[data-role="amount-manual-rooms"]')?.textContent || '0'));
-
-
-
-    fd.append('extra_bed_adult_manual_count', inputVal('[name="manual_extra_bed_adult_count"]'));
-
-    fd.append('extra_bed_adult_manual_rate', inputVal('[name="manual_extra_bed_adult_rate"]'));
-
-    fd.append('extra_bed_adult_manual_total_rate', (document.querySelector('[data-role="amount-manual-eb_adult"]')?.textContent || '0'));
-
-
-
-    fd.append('extra_bed_child_manual_count', inputVal('[name="manual_extra_bed_child_count"]'));
-
-    fd.append('extra_bed_child_manual_rate', inputVal('[name="manual_extra_bed_child_rate"]'));
-
-    fd.append('extra_bed_child_manual_total_rate', (document.querySelector('[data-role="amount-manual-eb_child"]')?.textContent || '0'));
-
-
-
-    fd.append('child_sharing_bed_manual_count', inputVal('[name="manual_child_sharing_bed_count"]'));
-
-    fd.append('child_sharing_bed_manual_rate', inputVal('[name="manual_child_sharing_bed_rate"]'));
-
-    fd.append('child_sharing_bed_manual_total_rate', (document.querySelector('[data-role="amount-manual-sb_child"]')?.textContent || '0'));
-
-
-
-    fd.append('single_occupancy_manual_count', inputVal('[name="manual_single_occupancy_count"]'));
-
-    fd.append('single_occupancy_manual_rate', inputVal('[name="manual_single_occupancy_rate"]'));
-
-    fd.append('single_occupancy_manual_total_rate', (document.querySelector('[data-role="amount-manual-sgl"]')?.textContent || '0'));
-
-
-
-    fd.append('supplyment_manual_cost', inputVal('[name="manual_supplment_cost"]'));
-
-    fd.append('supplyment_manual_total_cost', (document.querySelector('[data-role="amount-manual-supplement"]')?.textContent || '0'));
-
-
-
-    // totals
-
-    fd.append('auto_total_rate', (document.querySelector('[data-role="total-auto"]')?.textContent || '0'));
-
-    fd.append('manual_total_rate', (document.querySelector('[data-role="total-manual"]')?.textContent || '0'));
-
-
-
-    fetch(`<?php echo base_url(); ?>index.php/Quotation/ajax_add_quotation_room_tariff_details`, {
-
-        method: 'POST',
-
-        body: fd
-
-    })
-
-    .then(r => r.json())
-
-
-
-    .then(res => {
-
-    if (!res.status) {
-
-        alert(res.message || 'Save failed');
-
-        if (window.__autoCalcActive) {
-            $('#roompricingandguestallocationModal').modal('hide');
-            setTimeout(processNextAutoCalcRoom, 300);
-        }
-
-        return;
-
+    const existingTariffId = document.getElementById('modal_quotation_room_tariff_details_id')?.value || '';
+
+    // Build tariff data object for in-memory storage
+    var tariffDataObj = {
+        packages_properties_days_id_fk: dayId,
+        quotation_properties_rooms_id_fk: roomRow,
+
+        // pax wise
+        pax_wise_bed_adult_db_count: spanNum('[data-role="adult-db"]'),
+        pax_wise_bed_adult_eb_count: spanNum('[data-role="adult-eb"]'),
+        pax_wise_bed_adult_sgl_count: spanNum('[data-role="adult-sb"]'),
+        pax_wise_bed_child_db_count: spanNum('[data-role="child-db"]'),
+        pax_wise_bed_child_eb_count: spanNum('[data-role="child-eb"]'),
+        pax_wise_bed_child_sb_count: spanNum('[data-role="child-sb"]'),
+        pax_wise_bed_baby_db_count: spanNum('[data-role="baby-db"]'),
+        pax_wise_bed_baby_eb_count: spanNum('[data-role="baby-eb"]'),
+        pax_wise_bed_baby_sb_count: spanNum('[data-role="baby-sb"]'),
+
+        // Auto inputs
+        room_unit_auto_count: inputVal('[name="auto_room_member_count"]'),
+        room_unit_auto_rate: inputVal('[name="auto_room_member_rate"]'),
+        room_unit_auto_total_rate: (document.querySelector('[data-role="amount-auto-rooms"]')?.textContent || '0'),
+        extra_bed_adult_auto_count: inputVal('[name="auto_extra_bed_adult_count"]'),
+        extra_bed_adult_auto_rate: inputVal('[name="auto_extra_bed_adult_rate"]'),
+        extra_bed_adult_auto_total_rate: (document.querySelector('[data-role="amount-auto-eb_adult"]')?.textContent || '0'),
+        extra_bed_child_auto_count: inputVal('[name="auto_extra_bed_child_count"]'),
+        extra_bed_child_auto_rate: inputVal('[name="auto_extra_bed_child_rate"]'),
+        extra_bed_child_auto_total_rate: (document.querySelector('[data-role="amount-auto-eb_child"]')?.textContent || '0'),
+        child_sharing_bed_auto_count: inputVal('[name="auto_child_sharing_bed_count"]'),
+        child_sharing_bed_auto_rate: inputVal('[name="auto_child_sharing_bed_rate"]'),
+        child_sharing_bed_auto_total_rate: (document.querySelector('[data-role="amount-auto-sb_child"]')?.textContent || '0'),
+        single_occupancy_auto_count: inputVal('[name="auto_single_occupancy_count"]'),
+        single_occupancy_auto_rate: inputVal('[name="auto_single_occupancy_rate"]'),
+        single_occupancy_auto_total_rate: (document.querySelector('[data-role="amount-auto-sgl"]')?.textContent || '0'),
+        supplyment_auto_cost: inputVal('[name="auto_supplment_cost"]'),
+        supplyment_auto_total_cost: (document.querySelector('[data-role="amount-auto-supplement"]')?.textContent || '0'),
+
+        // Manual inputs
+        room_unit_manual_count: inputVal('[name="manual_count"]'),
+        room_unit_manual_rate: inputVal('[name="manual_rate"]'),
+        room_unit_manual_total_rate: (document.querySelector('[data-role="amount-manual-rooms"]')?.textContent || '0'),
+        extra_bed_adult_manual_count: inputVal('[name="manual_extra_bed_adult_count"]'),
+        extra_bed_adult_manual_rate: inputVal('[name="manual_extra_bed_adult_rate"]'),
+        extra_bed_adult_manual_total_rate: (document.querySelector('[data-role="amount-manual-eb_adult"]')?.textContent || '0'),
+        extra_bed_child_manual_count: inputVal('[name="manual_extra_bed_child_count"]'),
+        extra_bed_child_manual_rate: inputVal('[name="manual_extra_bed_child_rate"]'),
+        extra_bed_child_manual_total_rate: (document.querySelector('[data-role="amount-manual-eb_child"]')?.textContent || '0'),
+        child_sharing_bed_manual_count: inputVal('[name="manual_child_sharing_bed_count"]'),
+        child_sharing_bed_manual_rate: inputVal('[name="manual_child_sharing_bed_rate"]'),
+        child_sharing_bed_manual_total_rate: (document.querySelector('[data-role="amount-manual-sb_child"]')?.textContent || '0'),
+        single_occupancy_manual_count: inputVal('[name="manual_single_occupancy_count"]'),
+        single_occupancy_manual_rate: inputVal('[name="manual_single_occupancy_rate"]'),
+        single_occupancy_manual_total_rate: (document.querySelector('[data-role="amount-manual-sgl"]')?.textContent || '0'),
+        supplyment_manual_cost: inputVal('[name="manual_supplment_cost"]'),
+        supplyment_manual_total_cost: (document.querySelector('[data-role="amount-manual-supplement"]')?.textContent || '0'),
+
+        // totals
+        auto_total_rate: (document.querySelector('[data-role="total-auto"]')?.textContent || '0'),
+        manual_total_rate: (document.querySelector('[data-role="total-manual"]')?.textContent || '0'),
+
+        quotation_room_tariff_details_status: 1
+    };
+
+    // Determine storage key: reuse existing temp key, or create new
+    // If existingTariffId starts with 'temp_', it's a pending key — reuse it
+    // If it's a numeric DB ID (edit mode), keep it as db_id for update
+    var storageKey;
+    if (existingTariffId && existingTariffId.indexOf('temp_') === 0) {
+        // Reuse existing temp key (editing previously saved pending data)
+        storageKey = existingTariffId;
+    } else if (existingTariffId && parseInt(existingTariffId) > 0) {
+        // Existing DB record (edit mode) — keep DB id for update
+        storageKey = existingTariffId;
+        tariffDataObj.quotation_room_tariff_details_id = parseInt(existingTariffId);
+    } else {
+        // New entry — create temp key
+        storageKey = getPendingTariffKey();
     }
 
+    storePendingTariffData(storageKey, tariffDataObj);
 
-
-    const savedId = res.quotation_room_tariff_details_id || '';
-
-
-
-    // modal hidden
-
+    // Update hidden inputs with storage key
     const modalIdEl = document.getElementById('modal_quotation_room_tariff_details_id');
+    if (modalIdEl) modalIdEl.value = storageKey;
 
-    if (modalIdEl) modalIdEl.value = savedId;
-
-
-
-    // row hidden
-
+    // Update row hidden input and rate display
     if (window.__lastRoomEditBtn) {
-
         const tr = window.__lastRoomEditBtn.closest('tr');
-
-
-
         const tariffIdInput = tr?.querySelector('.quotationRoomTariffDetailsIdInput');
-
-        if (tariffIdInput) tariffIdInput.value = savedId;
-
-
+        if (tariffIdInput) tariffIdInput.value = storageKey;
 
         const rateText  = tr?.querySelector('.autoCalcRateText');
-
         const rateInput = tr?.querySelector('.autoCalcRateInput');
 
-
-
         const manualTotal = num(document.querySelector('#manual_total_rate')?.value || 0);
-
         const finalTotal  = manualTotal > 0 ? manualTotal : num(document.querySelector('#auto_total_rate')?.value || 0);
-
         const val = finalTotal.toFixed(2);
 
-
-
         if (rateText)  rateText.textContent = val;
-
         if (rateInput) rateInput.value = val;
 
-
-
         const optionBlock = window.__lastRoomEditBtn.closest('.optionBlock');
-
         if (optionBlock) recalcOptionTotals(optionBlock);
-
-    }
-
-
-
-    if (window.__lastRoomEditBtn) {
-
-        const tr = window.__lastRoomEditBtn.closest('tr');
-
-        const tariffHidden = tr ? tr.querySelector('.quotationRoomTariffDetailsIdInput') : null;
-
-
-
-        if (tariffHidden && res.quotation_room_tariff_details_id) {
-
-            tariffHidden.value = res.quotation_room_tariff_details_id;
-
-        }
-
     }
 
     $('#roompricingandguestallocationModal').modal('hide');
 
-
-
     if (window.__autoCalcActive) {
-
         setTimeout(processNextAutoCalcRoom, 300);
-
     }
 
-})
-
-    .catch(err => {
-
-        console.error(err);
-
-
-
-        if (window.__autoCalcActive) {
-
-            $('#roompricingandguestallocationModal').modal('hide');
-            setTimeout(processNextAutoCalcRoom, 300);
-
-        } else {
-
-            alert('Server error');
-
-        }
-
-    });
-
-
-
 });
-
-
-
-
 
 
 
@@ -11178,11 +11136,39 @@ function setManualField(name, value) {
 
 
 
+function fillSavedAutoSection(data) {
+
+    if (!data) return;
+
+    // Auto counts
+    setInputSafe('#roompricingandguestallocationModal [name="auto_room_member_count"]', data.room_unit_auto_count || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_extra_bed_adult_count"]', data.extra_bed_adult_auto_count || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_extra_bed_child_count"]', data.extra_bed_child_auto_count || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_child_sharing_bed_count"]', data.child_sharing_bed_auto_count || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_single_occupancy_count"]', data.single_occupancy_auto_count || 0);
+
+    // Auto rates
+    setInputSafe('#roompricingandguestallocationModal [name="auto_room_member_rate"]', data.room_unit_auto_rate || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_extra_bed_adult_rate"]', data.extra_bed_adult_auto_rate || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_extra_bed_child_rate"]', data.extra_bed_child_auto_rate || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_child_sharing_bed_rate"]', data.child_sharing_bed_auto_rate || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_single_occupancy_rate"]', data.single_occupancy_auto_rate || 0);
+    setInputSafe('#roompricingandguestallocationModal [name="auto_supplment_cost"]', data.supplyment_auto_cost || 0);
+
+    // Auto total hidden
+    var autoTotalHidden = document.getElementById('auto_total_rate');
+    if (autoTotalHidden) autoTotalHidden.value = data.auto_total_rate || 0;
+
+}
+
 function fillSavedManualSection(data) {
 
     if (!data) return;
 
-
+    // Also fill auto section rates/counts from saved data
+    if (typeof fillSavedAutoSection === 'function') {
+        fillSavedAutoSection(data);
+    }
 
     setManualField('manual_count', data.room_unit_manual_count || 0);
 
@@ -12503,6 +12489,8 @@ function buildSavedOptionItinerary($block, optionData)
 
                     <tr class="room-row" data-room-id="${room.quotation_properties_rooms_id_fk || ''}"
 
+                        data-qp-room-id="${room.quotation_properties_rooms_id || 0}"
+
                         data-packages-room-id="${room.packages_properties_rooms_id_fk || 0}"
 
                         data-day-id="${day.packages_properties_days_id_fk || 0}">
@@ -12516,6 +12504,8 @@ function buildSavedOptionItinerary($block, optionData)
                             <input type="hidden" name="packages_properties_rooms_id_fk[]" value="${room.packages_properties_rooms_id_fk || 0}">
 
                             <input type="hidden" name="quotation_properties_rooms_id_fk[]" value="${room.quotation_properties_rooms_id_fk || 0}">
+
+                            <input type="hidden" name="quotation_properties_rooms_id_pk[]" class="qpRoomIdPkInput" value="${room.quotation_properties_rooms_id || 0}">
 
                             <input type="hidden" name="quotation_room_tariff_details_id[]" class="quotationRoomTariffDetailsIdInput" value="${room.quotation_room_tariff_details_id || ''}">
 
@@ -14161,6 +14151,12 @@ $(document).on('change', '.auto-calc-all-properties', function () {
 
     window.__autoCalcActive = true;
 
+    window.__autoCalcCopyGuestCount = $optionBlock.find('.copy-guestcount-all-rooms').is(':checked');
+
+    window.__autoCalcCapturedCounts = null;
+
+    window.__autoCalcCountsCaptured = false;
+
 
 
     showAutoCalcLoading(0, window.__autoCalcTotal);
@@ -14265,6 +14261,8 @@ function finishAutoCalc() {
 
         $cb.prop('disabled', false).prop('checked', false);
 
+        $(optionBlock).find('.copy-guestcount-all-rooms').prop('checked', false);
+
     }
 
 
@@ -14295,6 +14293,12 @@ function finishAutoCalc() {
 
     window.__autoCalcCurrent = 0;
 
+    window.__autoCalcCopyGuestCount = false;
+
+    window.__autoCalcCapturedCounts = null;
+
+    window.__autoCalcCountsCaptured = false;
+
 }
 
 
@@ -14317,6 +14321,8 @@ function cancelAutoCalc(message) {
 
         $cb.prop('disabled', false).prop('checked', false);
 
+        $(optionBlock).find('.copy-guestcount-all-rooms').prop('checked', false);
+
     }
 
 
@@ -14330,6 +14336,12 @@ function cancelAutoCalc(message) {
     window.__autoCalcOptionBlock = null;
 
     window.__autoCalcActive = false;
+
+    window.__autoCalcCopyGuestCount = false;
+
+    window.__autoCalcCapturedCounts = null;
+
+    window.__autoCalcCountsCaptured = false;
 
 }
 
@@ -14362,6 +14374,64 @@ function maybeAutoSaveRoomTariff() {
         }
 
     }, 150);
+
+}
+
+
+
+function applyCopyGuestCountIfNeeded() {
+
+    if (!window.__autoCalcActive || !window.__autoCalcCopyGuestCount) return;
+
+
+
+    var _cgLines = ['rooms', 'eb_adult', 'eb_child', 'sb_child', 'sgl'];
+
+
+
+    if (!window.__autoCalcCountsCaptured) {
+
+        // First room: capture manual counts (after fillSavedManualSection or syncAutoToManual)
+
+        window.__autoCalcCapturedCounts = {};
+
+        _cgLines.forEach(function (line) {
+
+            var mc = getPlanInput('manual', line, 'count');
+
+            window.__autoCalcCapturedCounts[line] = mc ? mc.value : '';
+
+        });
+
+        window.__autoCalcCountsCaptured = true;
+
+    } else {
+
+        // Subsequent rooms: override manual counts with captured values (counts only, NOT rates)
+
+        _cgLines.forEach(function (line) {
+
+            var mc = getPlanInput('manual', line, 'count');
+
+            if (mc && window.__autoCalcCapturedCounts[line] !== undefined) {
+
+                mc.value = window.__autoCalcCapturedCounts[line];
+
+            }
+
+        });
+
+        // Recalculate amounts for the overridden manual counts
+
+        _cgLines.forEach(function (line) {
+
+            calcLineAmount('manual', line);
+
+        });
+
+        calcTotal('manual');
+
+    }
 
 }
 

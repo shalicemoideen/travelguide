@@ -1626,6 +1626,8 @@ a.leads-number-link:hover {
 
                                                       <option value="quotation_cancelled">Cancelled / Quotation Not Created</option>
 
+                                                      <option value="quotation_rejected">Rejected / Quotation Not Created</option>
+
                                                 </select>
 
                                             </div>
@@ -1997,6 +1999,8 @@ a.leads-number-link:hover {
                                                       <option value="quotation_created">Quotation Created</option>
 
                                                       <option value="quotation_cancelled">Cancelled / Quotation Not Created</option>
+
+                                                      <option value="quotation_rejected">Rejected / Quotation Not Created</option>
 
                                                 </select>
 

@@ -1,6 +1,60 @@
 ﻿<script>
     ////***Latest dropdown select2*****///
 
+function renderRejectedQuotationRow(data, row) {
+    if((data['leads_accomodation_status'] == 2 || data['leads_accomodation_status'] == 1) && data['leads_quotation_status'] == 3){
+        $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-danger">Rejected/Quotation not created</span>');
+        let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+        if (hasPermission('LEADS_UPDATE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a>'; }
+        if (hasPermission('LEADS_CHANGE_STATUS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a>'; }
+        if (hasPermission('LEADS_SHOW_STATUS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a>'; }
+        if (hasPermission('LEADS_CHANGE_STAGE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a>'; }
+        if (hasPermission('LEADS_SHOW_STAGE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a>'; }
+        if (hasPermission('LEADS_GUEST_COUNT')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="open_guest_count_checked('+data['leads_id']+')">Guest count</a>'; }
+        if (hasPermission('LEADS_ACCOMODATION_PLAN')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="open_accommodation_checked('+data['leads_id']+')">Accomodation plan</a>'; }
+        if (hasPermission('LEADS_QUOTATION')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a>'; }
+        if (hasPermission('LEADS_DETAILS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a>'; }
+        if (hasPermission('LEADS_DELETE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a>'; }
+        actionHtml += '</div></div>';
+        $('td', row).eq(11).html(actionHtml);
+    }
+}
+
+function renderQuotationCreatedRow(data, row) {
+    if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 1){
+        $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-success">Quotation created</span>');
+        let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+        if (hasPermission('LEADS_UPDATE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a>'; }
+        if (hasPermission('LEADS_CHANGE_STATUS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a>'; }
+        if (hasPermission('LEADS_SHOW_STATUS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a>'; }
+        if (hasPermission('LEADS_CHANGE_STAGE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a>'; }
+        if (hasPermission('LEADS_SHOW_STAGE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a>'; }
+        if (hasPermission('LEADS_DETAILS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a>'; }
+        if (hasPermission('LEADS_DELETE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a>'; }
+        actionHtml += '</div></div>';
+        $('td', row).eq(11).html(actionHtml);
+    }
+}
+
+function renderCancelledQuotationRow(data, row) {
+    if(data['leads_accomodation_status'] == 1 && data['leads_quotation_status'] == 2){
+        $('td', row).eq(1).html('<a class="leads-number-link" href="javascript:void(0)" onclick="view_lead_details('+data['leads_id']+')">'+data['leads_number']+'</a><br><span class="badge badge-xs badge badge-danger">Cancelled/Quotation not created</span>');
+        let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
+        if (hasPermission('LEADS_UPDATE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a>'; }
+        if (hasPermission('LEADS_CHANGE_STATUS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a>'; }
+        if (hasPermission('LEADS_SHOW_STATUS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a>'; }
+        if (hasPermission('LEADS_CHANGE_STAGE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a>'; }
+        if (hasPermission('LEADS_SHOW_STAGE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a>'; }
+        if (hasPermission('LEADS_GUEST_COUNT')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="open_guest_count_checked('+data['leads_id']+')">Guest count</a>'; }
+        if (hasPermission('LEADS_ACCOMODATION_PLAN')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt"  onclick="open_accommodation_checked('+data['leads_id']+')">Accomodation plan</a>'; }
+        if (hasPermission('LEADS_QUOTATION')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="open_quotation('+data['leads_id']+')">Quotation</a>'; }
+        if (hasPermission('LEADS_DETAILS')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a>'; }
+        if (hasPermission('LEADS_DELETE')) { actionHtml += '<a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a>'; }
+        actionHtml += '</div></div>';
+        $('td', row).eq(11).html(actionHtml);
+    }
+}
+
 function initCommonSelect2(scope) {
 
     scope = scope || document;
@@ -746,6 +800,9 @@ var save_method; //for save method string
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -855,6 +912,7 @@ var save_method; //for save method string
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
             else if($table1.cell(node).data() == '2') {
 					    $table1.cell(node).data('<center><span class="badge badge-sm light btn-secondary">Qualified</span></center>');
@@ -1035,6 +1093,9 @@ var save_method; //for save method string
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -1144,6 +1205,7 @@ var save_method; //for save method string
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
              else if($table1.cell(node).data() == '3') {
 					    $table1.cell(node).data('<center><span class="badge badge-sm light btn-success">Converted to trip</span></center>');
@@ -1379,6 +1441,9 @@ var save_method; //for save method string
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -1488,6 +1553,7 @@ var save_method; //for save method string
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
             else if($table1.cell(node).data() == '5') {
 					    $table1.cell(node).data('<center><span class="badge badge-sm light btn-danger">Lost</span></center>');
@@ -1669,6 +1735,9 @@ var save_method; //for save method string
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -1778,6 +1847,7 @@ var save_method; //for save method string
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
         
           });
@@ -2136,6 +2206,9 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -2245,6 +2318,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
             else if($table2.cell(node).data() == '2') {
 					    $table2.cell(node).data('<center><span class="badge badge-sm light btn-secondary">Qualified</span></center>');
@@ -2425,6 +2499,9 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -2534,6 +2611,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
              else if($table2.cell(node).data() == '3') {
 					    $table2.cell(node).data('<center><span class="badge badge-sm light btn-success">Converted to trip</span></center>');
@@ -2769,6 +2847,9 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -2878,6 +2959,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
             else if($table2.cell(node).data() == '5') {
 				$table2.cell(node).data('<center><span class="badge badge-sm light btn-danger">Lost</span></center>');
@@ -3059,6 +3141,9 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                 $('td', row).eq(11).html(actionHtml);
 
               }
+              renderRejectedQuotationRow(data, row);
+              renderQuotationCreatedRow(data, row);
+              renderCancelledQuotationRow(data, row);
               if(data['leads_accomodation_status'] == 2 && data['leads_quotation_status'] == 1){
 
                     // $('td', row).eq(11).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatusModal('+data['leads_id']+')">Change stage</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatusModal('+data['leads_id']+')">Show stages</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="openChangeStatus1Modal('+data['leads_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="showStatus1Modal('+data['leads_id']+')">Status history</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_leads('+data['leads_id']+')">Edit</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['leads_id']+')">view</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_leads('+data['leads_id']+')">Delete</a></div></div>');
@@ -3168,6 +3253,7 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
 
                 $('td', row).eq(11).html(actionHtml);
               }
+              renderRejectedQuotationRow(data, row);
             }
         
           });

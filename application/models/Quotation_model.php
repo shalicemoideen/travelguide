@@ -111,9 +111,6 @@ class Quotation_model extends CI_Model{
         }
 
         $this->db->where("quotation_status",1);
-        if (!empty($param['confirmed_only'])) {
-            $this->db->where_in('quotation_current_status', array(5, 7, 9, 10));
-        }
 
 
 
@@ -141,12 +138,6 @@ class Quotation_model extends CI_Model{
 
 			
 
-		if($currentusertype == 'S'){
-
-			 $this->db->where("quotation_created_by_userid",$currentuserid);
-
-			}
-
 		$this->db->select('*,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username');
 
 		$this->db->from('quotation');
@@ -156,6 +147,21 @@ class Quotation_model extends CI_Model{
 		$this->db->join('packages', 'packages.packages_id = quotation.package_id_fk','left');
 
 		$this->db->join('user_details ud', 'ud.user_id = quotation.quotation_created_by_userid', 'left');
+
+        if (!empty($param['confirmed_only'])) {
+            if ($currentusertype == 'S') {
+                $this->db->group_start();
+                $this->db->where_in('quotation_current_status', array(5, 7, 8, 9, 10));
+                $this->db->or_where('quotation_created_by_userid', $currentuserid);
+                $this->db->group_end();
+            } else {
+                $this->db->where_in('quotation_current_status', array(5, 7, 8, 9, 10));
+            }
+        } else {
+            if($currentusertype == 'S'){
+                $this->db->where("quotation_created_by_userid",$currentuserid);
+            }
+        }
 
 		$this->db->order_by('quotation_id', 'DESC');
 
@@ -267,17 +273,11 @@ class Quotation_model extends CI_Model{
 
         }
 
+        $this->db->where("quotation_status",1);
+
 		$currentuserid = $this->session->userdata('user_id');
 
 		$currentusertype = $this->session->userdata('user_type');
-
-			
-
-		if($currentusertype == 'S'){
-
-			 $this->db->where("quotation_created_by_userid",$currentuserid);
-
-			}
 
 		$this->db->select('*,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date');
 
@@ -287,7 +287,20 @@ class Quotation_model extends CI_Model{
 
 		$this->db->join('packages', 'packages.packages_id = quotation.package_id_fk','left');
 
-        $this->db->where("quotation_status",1);
+        if (!empty($param['confirmed_only'])) {
+            if ($currentusertype == 'S') {
+                $this->db->group_start();
+                $this->db->where_in('quotation_current_status', array(5, 7, 8, 9, 10));
+                $this->db->or_where('quotation_created_by_userid', $currentuserid);
+                $this->db->group_end();
+            } else {
+                $this->db->where_in('quotation_current_status', array(5, 7, 8, 9, 10));
+            }
+        } else {
+            if($currentusertype == 'S'){
+                $this->db->where("quotation_created_by_userid",$currentuserid);
+            }
+        }
 
 		$this->db->order_by('quotation_id', 'DESC');
 
@@ -658,7 +671,7 @@ class Quotation_model extends CI_Model{
 
             ->where('ap.quotation_id_fk', $quotation_id)
 
-            ->where('ap.accommodation_plan_status', 1)
+            // ->where('ap.accommodation_plan_status', 1)
 
             ->order_by('ap.accommodation_date', 'ASC')
 
@@ -895,7 +908,7 @@ class Quotation_model extends CI_Model{
 
                     ->join('properties_room_category prc', 'prc.properties_room_category_id = qpr.quotation_properties_rooms_id_fk', 'left')
 
-                    ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = ' . (int)$quotation_id, 'left')
+                    ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = ' . (int)$quotation_id . ' AND qrtd.quotation_room_tariff_details_status = 1', 'left')
 
                     ->where('qpr.quotation_properties_id_fk', $property['quotation_properties_id'])
 
@@ -1869,8 +1882,6 @@ public function get_quotation_room_tariff_details_by_id($id)
         ->from('quotation_room_tariff_details')
 
         ->where('quotation_room_tariff_details_id', (int)$id)
-
-        ->where('quotation_room_tariff_details_status', 1)
 
         ->limit(1)
 
@@ -5900,15 +5911,11 @@ public function insert_room_tariff_details($data)
 
                     $rooms = $this->db
 
-                        ->select('qpr.*, prc.properties_room_category_name, qrtd.quotation_room_tariff_details_id,
-
-                                qrtd.auto_total_rate, qrtd.manual_total_rate')
+                        ->select('qpr.*, prc.properties_room_category_name')
 
                         ->from('quotation_properties_rooms qpr')
 
                         ->join('properties_room_category prc', 'prc.properties_room_category_id = qpr.quotation_properties_rooms_id_fk', 'left')
-
-                        ->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = '.$this->db->escape($quotation_id), 'left')
 
                         ->where('qpr.quotation_properties_id_fk', $property['quotation_properties_id'])
 
@@ -5919,6 +5926,64 @@ public function insert_room_tariff_details($data)
                         ->get()
 
                         ->result_array();
+
+
+
+                    // For each room, find the most recent tariff by matching room category
+
+                    // (packages_properties_rooms_id_fk), since the tariff's room FK may point
+
+                    // to an old room row PK after update
+
+                    foreach ($rooms as &$room) {
+
+                        $tariff = $this->db
+
+                            ->select('qrtd.quotation_room_tariff_details_id, qrtd.auto_total_rate, qrtd.manual_total_rate')
+
+                            ->from('quotation_room_tariff_details qrtd')
+
+                            ->join('quotation_properties_rooms qpr2', 'qpr2.quotation_properties_rooms_id = qrtd.quotation_properties_rooms_id_fk', 'inner')
+
+                            ->join('quotation_properties qp2', 'qp2.quotation_properties_id = qpr2.quotation_properties_id_fk', 'inner')
+
+                            ->join('quotation_properties_days qpd2', 'qpd2.quotation_properties_days_id = qp2.quotation_properties_days_id_fk', 'inner')
+
+                            ->where('qrtd.quotation_id_fk', (int)$quotation_id)
+
+                            ->where('qpr2.packages_properties_rooms_id_fk', (int)$room['packages_properties_rooms_id_fk'])
+
+                            ->where('qpd2.quotation_options_id_fk', (int)$option['quotation_options_id'])
+
+                            ->order_by('qrtd.quotation_room_tariff_details_status', 'DESC')
+
+                            ->order_by('qrtd.quotation_room_tariff_details_id', 'DESC')
+
+                            ->limit(1)
+
+                            ->get()
+
+                            ->row_array();
+
+                        if ($tariff) {
+
+                            $room['quotation_room_tariff_details_id'] = $tariff['quotation_room_tariff_details_id'];
+
+                            $room['auto_total_rate'] = $tariff['auto_total_rate'];
+
+                            $room['manual_total_rate'] = $tariff['manual_total_rate'];
+
+                        } else {
+
+                            $room['quotation_room_tariff_details_id'] = null;
+
+                            $room['auto_total_rate'] = 0;
+
+                            $room['manual_total_rate'] = 0;
+
+                        }
+
+                    }
 
 
 
@@ -6366,19 +6431,19 @@ public function get_guest_total($lead_id)
 
         $option->days = $this->db
 
-            ->select('qpd.*, s.state_name')
+            ->select('qid.*, qpd.quotation_properties_days_id, qpd.quotation_properties_days_day, qpd.packages_properties_days_id_fk, qpd.accommodation_plan_id_fk, qpd.quotation_properties_days_destination_id_fk, qpd.quotation_properties_days_status, s.state_name')
 
-            ->from('quotation_properties_days qpd')
+            ->from('quotation_itinerary_days qid')
 
-            ->join('state s', 's.state_id = qpd.quotation_properties_days_destination_id_fk', 'left')
+            ->join('quotation_properties_days qpd', 'qpd.quotation_itinerary_days_id_fk = qid.quotation_itinerary_days_id AND qpd.quotation_options_id_fk = ' . (int)$option->quotation_options_id . ' AND qpd.quotation_properties_days_status = 1', 'left')
 
-            ->where('qpd.quotation_id_fk', $quotation_id)
+            ->join('state s', 's.state_id = COALESCE(qpd.quotation_properties_days_destination_id_fk, qid.quotation_itineraries_days_destination_id_fk)', 'left')
 
-            ->where('qpd.quotation_options_id_fk', $option->quotation_options_id)
+            ->where('qid.quotation_id_fk', $quotation_id)
 
-            ->where('qpd.quotation_properties_days_status', 1)
+            ->where('qid.quotation_itinerary_days_status', 1)
 
-            ->order_by('qpd.quotation_properties_days_id', 'ASC')
+            ->order_by('qid.quotation_itinerary_days_id', 'ASC')
 
             ->get()
 
@@ -6389,6 +6454,8 @@ public function get_guest_total($lead_id)
         foreach ($option->days as &$day) {
 
 
+
+            if (!empty($day->quotation_properties_days_id)) {
 
             $day->rows = $this->db
 
@@ -6441,6 +6508,14 @@ public function get_guest_total($lead_id)
 
 
             $day->meal_plan = $this->get_day_meal_plan_from_accommodation($quotation_id, $day->packages_properties_days_id_fk);
+
+            } else {
+
+                $day->rows = array();
+
+                $day->meal_plan = '';
+
+            }
 
         }
 
@@ -7932,7 +8007,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
 							qrtd.auto_total_rate, qrtd.manual_total_rate')
 						->from('quotation_properties_rooms qpr')
 						->join('properties_room_category prc', 'prc.properties_room_category_id = qpr.quotation_properties_rooms_id_fk', 'left')
-						->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = ' . (int)$quotation_id, 'left')
+						->join('quotation_room_tariff_details qrtd', 'qrtd.quotation_properties_rooms_id_fk = qpr.quotation_properties_rooms_id AND qrtd.quotation_id_fk = ' . (int)$quotation_id . ' AND qrtd.quotation_room_tariff_details_status = 1', 'left')
 						->where('qpr.quotation_properties_id_fk', $prop->quotation_properties_id)
 						->where('qpr.quotation_properties_rooms_status', 1)
 						->order_by('qpr.quotation_properties_rooms_id', 'ASC')

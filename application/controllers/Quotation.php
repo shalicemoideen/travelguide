@@ -1001,9 +1001,14 @@ public function client_confirmation_preview($quotation_id)
 
 	    }
 
-		// Reservation team: restrict to confirmed statuses only (5=Confirmed, 7=Ready to Trip, 9=Driver Not Assigned)
-		if (!has_permission('QUOTATION_VIEW') && has_permission('QUOTATION_VIEW_CONFIRMED')) {
-			$param['confirmed_only'] = true;
+		// Staff with QUOTATION_VIEW_CONFIRMED: show all confirmed + own created
+		// Staff with only QUOTATION_VIEW: show own created only
+		// Non-staff with QUOTATION_VIEW: show all
+		// Non-staff with QUOTATION_VIEW_CONFIRMED only: show confirmed only
+		if (has_permission('QUOTATION_VIEW_CONFIRMED')) {
+			if (!has_permission('QUOTATION_VIEW') || $this->session->userdata('user_type') == 'S') {
+				$param['confirmed_only'] = true;
+			}
 		}
 
     	$data = $this->Quotation_model->getQuotationTable($param);
@@ -1587,9 +1592,11 @@ public function ajax_get_tariff_by_context()
 
 		$room_row_fk = (int)$this->input->get('quotation_properties_rooms_id_fk');
 
+		$packages_room_id = (int)$this->input->get('packages_properties_rooms_id_fk');
 
 
-		if (!$day_id_fk || !$room_row_fk) {
+
+		if (!$day_id_fk || !$packages_room_id) {
 
 			echo json_encode([
 
@@ -1605,17 +1612,23 @@ public function ajax_get_tariff_by_context()
 
 
 
-		$this->db->where('packages_properties_days_id_fk', $day_id_fk);
+		// Find tariff by matching room category through the room row.
+		// The tariff's quotation_properties_rooms_id_fk may point to an old room row PK
+		// after update, so we match by packages_properties_rooms_id_fk (room category) instead.
+		$this->db->select('qrtd.*');
+		$this->db->from('quotation_room_tariff_details qrtd');
+		$this->db->join('quotation_properties_rooms qpr', 'qpr.quotation_properties_rooms_id = qrtd.quotation_properties_rooms_id_fk', 'inner');
+		$this->db->where('qrtd.packages_properties_days_id_fk', $day_id_fk);
+		$this->db->where('qpr.packages_properties_rooms_id_fk', $packages_room_id);
+		$this->db->order_by('qrtd.quotation_room_tariff_details_status', 'DESC');
+		$this->db->order_by('qrtd.quotation_room_tariff_details_id', 'DESC');
+		$this->db->limit(1);
 
-		$this->db->where('quotation_properties_rooms_id_fk', $room_row_fk);
+		$row = $this->db->get()->row();
 
-		$this->db->where('quotation_room_tariff_details_status', 1);
+// echo $this->db->last_query();
 
-
-
-		$row = $this->db->get('quotation_room_tariff_details')->row();
-
-
+// 		exit();
 
 		if ($row) {
 
@@ -2984,37 +2997,8 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 
 
-			$room_tariff_detail_ids = $this->input->post('quotation_room_tariff_details_id');
-
-
-
-			if (!empty($room_tariff_detail_ids) && is_array($room_tariff_detail_ids)) {
-
-				$clean_ids = array();
-
-
-
-				foreach ($room_tariff_detail_ids as $rid) {
-
-					$rid = (int)$rid;
-
-					if ($rid > 0) {
-
-						$clean_ids[] = $rid;
-
-					}
-
-				}
-
-
-
-				if (!empty($clean_ids)) {
-
-					$this->Quotation_model->update_room_tariff_details_quotation_id($clean_ids, $quotation_id);
-
-				}
-
-			}
+			// Room tariff details are now saved from payload room data (tariff_data field)
+			// No longer collected from POST quotation_room_tariff_details_id[]
 
 
 
@@ -3294,28 +3278,77 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 
 
-								// ✅ update real quotation_properties_rooms_id into quotation_room_tariff_details
+								// ✅ Save tariff data from payload (in-memory stored data)
+								$tariff_data = isset($room['tariff_data']) ? $room['tariff_data'] : null;
+								$tariff_id = isset($room['quotation_room_tariff_details_id']) ? $room['quotation_room_tariff_details_id'] : 0;
 
-								$quotation_room_tariff_details_id = isset($room['quotation_room_tariff_details_id'])
-
-									? (int)$room['quotation_room_tariff_details_id']
-
-									: 0;
-
-
-
-								if ($quotation_room_tariff_details_id > 0) {
-
-									$this->Quotation_model->update_room_tariff_room_fk(
-
-										$quotation_room_tariff_details_id,
-
-										$quotation_properties_room_id,
-
-										$quotation_id
-
+								if ($tariff_data && is_array($tariff_data)) {
+									// Prepare data for DB insert/update
+									$db_tariff_data = array(
+										'packages_properties_days_id_fk'   => (int)$tariff_data['packages_properties_days_id_fk'],
+										'quotation_properties_rooms_id_fk' => (int)$quotation_properties_room_id,
+										'quotation_id_fk'                  => (int)$quotation_id,
+										'pax_wise_bed_adult_db_count' => (int)$tariff_data['pax_wise_bed_adult_db_count'],
+										'pax_wise_bed_adult_eb_count' => (int)$tariff_data['pax_wise_bed_adult_eb_count'],
+										'pax_wise_bed_adult_sgl_count'=> (int)$tariff_data['pax_wise_bed_adult_sgl_count'],
+										'pax_wise_bed_child_db_count' => (int)$tariff_data['pax_wise_bed_child_db_count'],
+										'pax_wise_bed_child_eb_count' => (int)$tariff_data['pax_wise_bed_child_eb_count'],
+										'pax_wise_bed_child_sb_count' => (int)$tariff_data['pax_wise_bed_child_sb_count'],
+										'pax_wise_bed_baby_db_count'  => (int)$tariff_data['pax_wise_bed_baby_db_count'],
+										'pax_wise_bed_baby_eb_count'  => (int)$tariff_data['pax_wise_bed_baby_eb_count'],
+										'pax_wise_bed_baby_sb_count'  => (int)$tariff_data['pax_wise_bed_baby_sb_count'],
+										'room_unit_auto_count'        => (int)$tariff_data['room_unit_auto_count'],
+										'room_unit_auto_rate'         => (float)$tariff_data['room_unit_auto_rate'],
+										'room_unit_auto_total_rate'   => (float)$tariff_data['room_unit_auto_total_rate'],
+										'extra_bed_adult_auto_count'        => (int)$tariff_data['extra_bed_adult_auto_count'],
+										'extra_bed_adult_auto_rate'         => (float)$tariff_data['extra_bed_adult_auto_rate'],
+										'extra_bed_adult_auto_total_rate'   => (float)$tariff_data['extra_bed_adult_auto_total_rate'],
+										'extra_bed_child_auto_count'        => (int)$tariff_data['extra_bed_child_auto_count'],
+										'extra_bed_child_auto_rate'         => (float)$tariff_data['extra_bed_child_auto_rate'],
+										'extra_bed_child_auto_total_rate'   => (float)$tariff_data['extra_bed_child_auto_total_rate'],
+										'child_sharing_bed_auto_count'        => (int)$tariff_data['child_sharing_bed_auto_count'],
+										'child_sharing_bed_auto_rate'         => (float)$tariff_data['child_sharing_bed_auto_rate'],
+										'child_sharing_bed_auto_total_rate'   => (float)$tariff_data['child_sharing_bed_auto_total_rate'],
+										'single_occupancy_auto_count'        => (int)$tariff_data['single_occupancy_auto_count'],
+										'single_occupancy_auto_rate'         => (float)$tariff_data['single_occupancy_auto_rate'],
+										'single_occupancy_auto_total_rate'   => (float)$tariff_data['single_occupancy_auto_total_rate'],
+										'supplyment_auto_cost'        => (float)$tariff_data['supplyment_auto_cost'],
+										'supplyment_auto_total_cost'  => (float)$tariff_data['supplyment_auto_total_cost'],
+										'room_unit_manual_count'      => (int)$tariff_data['room_unit_manual_count'],
+										'room_unit_manual_rate'       => (float)$tariff_data['room_unit_manual_rate'],
+										'room_unit_manual_total_rate' => (float)$tariff_data['room_unit_manual_total_rate'],
+										'extra_bed_adult_manual_count'      => (int)$tariff_data['extra_bed_adult_manual_count'],
+										'extra_bed_adult_manual_rate'       => (float)$tariff_data['extra_bed_adult_manual_rate'],
+										'extra_bed_adult_manual_total_rate' => (float)$tariff_data['extra_bed_adult_manual_total_rate'],
+										'extra_bed_child_manual_count'      => (int)$tariff_data['extra_bed_child_manual_count'],
+										'extra_bed_child_manual_rate'       => (float)$tariff_data['extra_bed_child_manual_rate'],
+										'extra_bed_child_manual_total_rate' => (float)$tariff_data['extra_bed_child_manual_total_rate'],
+										'child_sharing_bed_manual_count'      => (int)$tariff_data['child_sharing_bed_manual_count'],
+										'child_sharing_bed_manual_rate'       => (float)$tariff_data['child_sharing_bed_manual_rate'],
+										'child_sharing_bed_manual_total_rate' => (float)$tariff_data['child_sharing_bed_manual_total_rate'],
+										'single_occupancy_manual_count'      => (int)$tariff_data['single_occupancy_manual_count'],
+										'single_occupancy_manual_rate'       => (float)$tariff_data['single_occupancy_manual_rate'],
+										'single_occupancy_manual_total_rate' => (float)$tariff_data['single_occupancy_manual_total_rate'],
+										'supplyment_manual_cost'      => (float)$tariff_data['supplyment_manual_cost'],
+										'supplyment_manual_total_cost'=> (float)$tariff_data['supplyment_manual_total_cost'],
+										'auto_total_rate'   => (float)$tariff_data['auto_total_rate'],
+										'manual_total_rate' => (float)$tariff_data['manual_total_rate'],
+										'quotation_room_tariff_details_status' => 1
 									);
 
+									// Check if tariff_id is a real DB ID (numeric, not temp_)
+									$real_tariff_id = 0;
+									if ($tariff_id && is_numeric($tariff_id) && (int)$tariff_id > 0) {
+										$real_tariff_id = (int)$tariff_id;
+									}
+
+									if ($real_tariff_id > 0) {
+										// Update existing record
+										$this->Quotation_model->update_quotation_room_tariff_details($real_tariff_id, $db_tariff_data);
+									} else {
+										// Insert new record
+										$this->Quotation_model->add_quotation_room_tariff_details($db_tariff_data);
+									}
 								}
 
 							}
@@ -4323,36 +4356,73 @@ if (!empty($accommodationPlanIds)) {
 
 
 
-                                        /*
+                                        // ✅ Save tariff data from payload (in-memory stored data)
+                                        $tariff_data = isset($room['tariff_data']) ? $room['tariff_data'] : null;
+                                        $tariff_id = isset($room['quotation_room_tariff_details_id']) ? $room['quotation_room_tariff_details_id'] : 0;
 
-                                         * IMPORTANT:
-
-                                         * quotation_room_tariff_details.quotation_properties_rooms_id_fk
-
-                                         * must be updated with NEW quotation_properties_rooms.quotation_properties_rooms_id
-
-                                         */
-
-                                        $quotation_room_tariff_details_id = isset($room['quotation_room_tariff_details_id'])
-
-                                            ? (int)$room['quotation_room_tariff_details_id']
-
-                                            : 0;
-
-
-
-                                        if ($quotation_room_tariff_details_id > 0) {
-
-                                            $this->Quotation_model->update_room_tariff_room_fk(
-
-                                                $quotation_room_tariff_details_id,
-
-                                                $quotation_properties_room_id,
-
-                                                $quotation_id
-
+                                        if ($tariff_data && is_array($tariff_data)) {
+                                            $db_tariff_data = array(
+                                                'packages_properties_days_id_fk'   => (int)$tariff_data['packages_properties_days_id_fk'],
+                                                'quotation_properties_rooms_id_fk' => (int)$quotation_properties_room_id,
+                                                'quotation_id_fk'                  => (int)$quotation_id,
+                                                'pax_wise_bed_adult_db_count' => (int)$tariff_data['pax_wise_bed_adult_db_count'],
+                                                'pax_wise_bed_adult_eb_count' => (int)$tariff_data['pax_wise_bed_adult_eb_count'],
+                                                'pax_wise_bed_adult_sgl_count'=> (int)$tariff_data['pax_wise_bed_adult_sgl_count'],
+                                                'pax_wise_bed_child_db_count' => (int)$tariff_data['pax_wise_bed_child_db_count'],
+                                                'pax_wise_bed_child_eb_count' => (int)$tariff_data['pax_wise_bed_child_eb_count'],
+                                                'pax_wise_bed_child_sb_count' => (int)$tariff_data['pax_wise_bed_child_sb_count'],
+                                                'pax_wise_bed_baby_db_count'  => (int)$tariff_data['pax_wise_bed_baby_db_count'],
+                                                'pax_wise_bed_baby_eb_count'  => (int)$tariff_data['pax_wise_bed_baby_eb_count'],
+                                                'pax_wise_bed_baby_sb_count'  => (int)$tariff_data['pax_wise_bed_baby_sb_count'],
+                                                'room_unit_auto_count'        => (int)$tariff_data['room_unit_auto_count'],
+                                                'room_unit_auto_rate'         => (float)$tariff_data['room_unit_auto_rate'],
+                                                'room_unit_auto_total_rate'   => (float)$tariff_data['room_unit_auto_total_rate'],
+                                                'extra_bed_adult_auto_count'        => (int)$tariff_data['extra_bed_adult_auto_count'],
+                                                'extra_bed_adult_auto_rate'         => (float)$tariff_data['extra_bed_adult_auto_rate'],
+                                                'extra_bed_adult_auto_total_rate'   => (float)$tariff_data['extra_bed_adult_auto_total_rate'],
+                                                'extra_bed_child_auto_count'        => (int)$tariff_data['extra_bed_child_auto_count'],
+                                                'extra_bed_child_auto_rate'         => (float)$tariff_data['extra_bed_child_auto_rate'],
+                                                'extra_bed_child_auto_total_rate'   => (float)$tariff_data['extra_bed_child_auto_total_rate'],
+                                                'child_sharing_bed_auto_count'        => (int)$tariff_data['child_sharing_bed_auto_count'],
+                                                'child_sharing_bed_auto_rate'         => (float)$tariff_data['child_sharing_bed_auto_rate'],
+                                                'child_sharing_bed_auto_total_rate'   => (float)$tariff_data['child_sharing_bed_auto_total_rate'],
+                                                'single_occupancy_auto_count'        => (int)$tariff_data['single_occupancy_auto_count'],
+                                                'single_occupancy_auto_rate'         => (float)$tariff_data['single_occupancy_auto_rate'],
+                                                'single_occupancy_auto_total_rate'   => (float)$tariff_data['single_occupancy_auto_total_rate'],
+                                                'supplyment_auto_cost'        => (float)$tariff_data['supplyment_auto_cost'],
+                                                'supplyment_auto_total_cost'  => (float)$tariff_data['supplyment_auto_total_cost'],
+                                                'room_unit_manual_count'      => (int)$tariff_data['room_unit_manual_count'],
+                                                'room_unit_manual_rate'       => (float)$tariff_data['room_unit_manual_rate'],
+                                                'room_unit_manual_total_rate' => (float)$tariff_data['room_unit_manual_total_rate'],
+                                                'extra_bed_adult_manual_count'      => (int)$tariff_data['extra_bed_adult_manual_count'],
+                                                'extra_bed_adult_manual_rate'       => (float)$tariff_data['extra_bed_adult_manual_rate'],
+                                                'extra_bed_adult_manual_total_rate' => (float)$tariff_data['extra_bed_adult_manual_total_rate'],
+                                                'extra_bed_child_manual_count'      => (int)$tariff_data['extra_bed_child_manual_count'],
+                                                'extra_bed_child_manual_rate'       => (float)$tariff_data['extra_bed_child_manual_rate'],
+                                                'extra_bed_child_manual_total_rate' => (float)$tariff_data['extra_bed_child_manual_total_rate'],
+                                                'child_sharing_bed_manual_count'      => (int)$tariff_data['child_sharing_bed_manual_count'],
+                                                'child_sharing_bed_manual_rate'       => (float)$tariff_data['child_sharing_bed_manual_rate'],
+                                                'child_sharing_bed_manual_total_rate' => (float)$tariff_data['child_sharing_bed_manual_total_rate'],
+                                                'single_occupancy_manual_count'      => (int)$tariff_data['single_occupancy_manual_count'],
+                                                'single_occupancy_manual_rate'       => (float)$tariff_data['single_occupancy_manual_rate'],
+                                                'single_occupancy_manual_total_rate' => (float)$tariff_data['single_occupancy_manual_total_rate'],
+                                                'supplyment_manual_cost'      => (float)$tariff_data['supplyment_manual_cost'],
+                                                'supplyment_manual_total_cost'=> (float)$tariff_data['supplyment_manual_total_cost'],
+                                                'auto_total_rate'   => (float)$tariff_data['auto_total_rate'],
+                                                'manual_total_rate' => (float)$tariff_data['manual_total_rate'],
+                                                'quotation_room_tariff_details_status' => 1
                                             );
 
+                                            $real_tariff_id = 0;
+                                            if ($tariff_id && is_numeric($tariff_id) && (int)$tariff_id > 0) {
+                                                $real_tariff_id = (int)$tariff_id;
+                                            }
+
+                                            if ($real_tariff_id > 0) {
+                                                $this->Quotation_model->update_quotation_room_tariff_details($real_tariff_id, $db_tariff_data);
+                                            } else {
+                                                $this->Quotation_model->add_quotation_room_tariff_details($db_tariff_data);
+                                            }
                                         }
 
                                     }
@@ -5041,6 +5111,196 @@ public function ajax_update_quotation_status()
 
 
 
+    // Draft duplicate check: if changing to Draft (2), ensure no other quotation
+    // on the same lead is already in Draft status
+
+    if ($status == 2) {
+
+        $current = $this->db
+
+            ->select('quotation_id, leads_id_fk, quotation_current_status')
+
+            ->where('quotation_id', $id)
+
+            ->get('quotation')
+
+            ->row();
+
+        if ($current && !empty($current->leads_id_fk)) {
+
+            // If current quotation is Rejected, check if any other quotation
+            // on the same lead is already in Draft or Sent status
+            if ($current->quotation_current_status == 4) {
+
+                $existingActive = $this->db
+
+                    ->select('quotation_id, quotation_number, quotation_current_status')
+
+                    ->where('leads_id_fk', $current->leads_id_fk)
+
+                    ->where('quotation_id !=', $id)
+
+                    ->where_in('quotation_current_status', [2, 3])
+
+                    ->where('quotation_status', 1)
+
+                    ->get('quotation')
+
+                    ->row();
+
+                if ($existingActive) {
+
+                    $qNum = $existingActive->quotation_number ? $existingActive->quotation_number : ('Quot-' . $existingActive->quotation_id);
+
+                    $statusLabel = $existingActive->quotation_current_status == 2 ? 'Draft' : 'Sent';
+
+                    echo json_encode([
+
+                        'status'  => false,
+
+                        'message' => 'Could not change status from Rejected into Draft due to ' . $qNum . ' is already on ' . $statusLabel . ' for this lead. Please change that quotation status into Rejected and come back to update here.'
+
+                    ]);
+
+                    return;
+
+                }
+
+            }
+
+            $existing = $this->db
+
+                ->select('quotation_id, quotation_number')
+
+                ->where('leads_id_fk', $current->leads_id_fk)
+
+                ->where('quotation_current_status', 2)
+
+                ->where('quotation_id !=', $id)
+
+                ->where('quotation_status', 1)
+
+                ->get('quotation')
+
+                ->row();
+
+            if ($existing) {
+
+                $qNum = $existing->quotation_number ? $existing->quotation_number : ('Quot-' . $existing->quotation_id);
+
+                echo json_encode([
+
+                    'status'  => false,
+
+                    'message' => 'Could not change status into Draft due to ' . $qNum . ' is already on Draft for this lead. Please change that quotation status into Rejected and come back to update here.'
+
+                ]);
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+
+    // Sent duplicate check: if changing to Sent (3), ensure no other quotation
+    // on the same lead is already in Sent status
+
+    if ($status == 3) {
+
+        $current = $this->db
+
+            ->select('quotation_id, leads_id_fk, quotation_current_status')
+
+            ->where('quotation_id', $id)
+
+            ->get('quotation')
+
+            ->row();
+
+        if ($current && !empty($current->leads_id_fk)) {
+
+            // If current quotation is Rejected, check if any other quotation
+            // on the same lead is already in Draft or Sent status
+            if ($current->quotation_current_status == 4) {
+
+                $existingActive = $this->db
+
+                    ->select('quotation_id, quotation_number, quotation_current_status')
+
+                    ->where('leads_id_fk', $current->leads_id_fk)
+
+                    ->where('quotation_id !=', $id)
+
+                    ->where_in('quotation_current_status', [2, 3])
+
+                    ->where('quotation_status', 1)
+
+                    ->get('quotation')
+
+                    ->row();
+
+                if ($existingActive) {
+
+                    $qNum = $existingActive->quotation_number ? $existingActive->quotation_number : ('Quot-' . $existingActive->quotation_id);
+
+                    $statusLabel = $existingActive->quotation_current_status == 2 ? 'Draft' : 'Sent';
+
+                    echo json_encode([
+
+                        'status'  => false,
+
+                        'message' => 'Could not change status from Rejected into Sent due to ' . $qNum . ' is already on ' . $statusLabel . ' for this lead. Please change that quotation status into Rejected and come back to update here.'
+
+                    ]);
+
+                    return;
+
+                }
+
+            }
+
+            $existing = $this->db
+
+                ->select('quotation_id, quotation_number')
+
+                ->where('leads_id_fk', $current->leads_id_fk)
+
+                ->where('quotation_current_status', 3)
+
+                ->where('quotation_id !=', $id)
+
+                ->where('quotation_status', 1)
+
+                ->get('quotation')
+
+                ->row();
+
+            if ($existing) {
+
+                $qNum = $existing->quotation_number ? $existing->quotation_number : ('Quot-' . $existing->quotation_id);
+
+                echo json_encode([
+
+                    'status'  => false,
+
+                    'message' => 'Could not change status into Sent due to ' . $qNum . ' is already on Sent for this lead. Please change that quotation status into Rejected and come back to update here.'
+
+                ]);
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+
     $this->db->where('quotation_id', $id)
 
              ->update('quotation', [
@@ -5071,15 +5331,33 @@ public function ajax_update_quotation_status()
 
 // print_r($lead_id);die;
 
-		// 3. Update both status fields in the array
+		// 3. Update leads_quotation_status based on quotation status
+
+		//    Rejected (4) -> leads_quotation_status = 3
+
+		//    Draft (2) / Sent (3) -> leads_quotation_status = 1 (quotation still active)
+
+		//    Other -> leads_quotation_status = 2
+
+		if ($status == 4) {
+
+			$leadQuotationStatus = '3';
+
+		} elseif ($status == 2 || $status == 3) {
+
+			$leadQuotationStatus = '1';
+
+		} else {
+
+			$leadQuotationStatus = '2';
+
+		}
 
 		$this->db->where('leads_id', $lead_id)
 
 				->update('leads', [
 
-					// 'leads_accomodation_status' => '1',
-
-					'leads_quotation_status'    => '2' // Update this to '0' (or your desired value)
+					'leads_quotation_status'    => $leadQuotationStatus
 
 				]);
 
@@ -9022,6 +9300,12 @@ public function ajax_delete()
 				$this->db->update($this->quotation_options, array(
 					'quotation_options_status' => 0
 				));
+
+				// Disable old tariff records for this quotation
+				$this->db->where('quotation_id_fk', $quotation_id);
+				$this->db->update('quotation_room_tariff_details', array(
+					'quotation_room_tariff_details_status' => 0
+				));
 			}
 
 			/* ================= INSERT UPDATED CONFIRMED OPTION ================= */
@@ -9129,6 +9413,63 @@ public function ajax_delete()
 
 											if (!$quotation_properties_room_id) {
 												throw new Exception('Room insert failed');
+											}
+
+											// Insert tariff data if available in payload
+											if (!empty($room['tariff_data']) && is_array($room['tariff_data'])) {
+												$td = $room['tariff_data'];
+												$tariff_insert = array(
+													'quotation_id_fk' => $quotation_id,
+													'packages_properties_days_id_fk' => isset($td['packages_properties_days_id_fk']) ? (int)$td['packages_properties_days_id_fk'] : 0,
+													'quotation_properties_rooms_id_fk' => $quotation_properties_room_id,
+													'pax_wise_bed_adult_db_count' => isset($td['pax_wise_bed_adult_db_count']) ? (int)$td['pax_wise_bed_adult_db_count'] : 0,
+													'pax_wise_bed_adult_eb_count' => isset($td['pax_wise_bed_adult_eb_count']) ? (int)$td['pax_wise_bed_adult_eb_count'] : 0,
+													'pax_wise_bed_adult_sgl_count' => isset($td['pax_wise_bed_adult_sgl_count']) ? (int)$td['pax_wise_bed_adult_sgl_count'] : 0,
+													'pax_wise_bed_child_db_count' => isset($td['pax_wise_bed_child_db_count']) ? (int)$td['pax_wise_bed_child_db_count'] : 0,
+													'pax_wise_bed_child_eb_count' => isset($td['pax_wise_bed_child_eb_count']) ? (int)$td['pax_wise_bed_child_eb_count'] : 0,
+													'pax_wise_bed_child_sb_count' => isset($td['pax_wise_bed_child_sb_count']) ? (int)$td['pax_wise_bed_child_sb_count'] : 0,
+													'pax_wise_bed_baby_db_count' => isset($td['pax_wise_bed_baby_db_count']) ? (int)$td['pax_wise_bed_baby_db_count'] : 0,
+													'pax_wise_bed_baby_eb_count' => isset($td['pax_wise_bed_baby_eb_count']) ? (int)$td['pax_wise_bed_baby_eb_count'] : 0,
+													'pax_wise_bed_baby_sb_count' => isset($td['pax_wise_bed_baby_sb_count']) ? (int)$td['pax_wise_bed_baby_sb_count'] : 0,
+													'room_unit_auto_count' => isset($td['room_unit_auto_count']) ? (int)$td['room_unit_auto_count'] : 0,
+													'room_unit_auto_rate' => isset($td['room_unit_auto_rate']) ? (float)$td['room_unit_auto_rate'] : 0,
+													'room_unit_auto_total_rate' => isset($td['room_unit_auto_total_rate']) ? (float)$td['room_unit_auto_total_rate'] : 0,
+													'room_unit_manual_count' => isset($td['room_unit_manual_count']) ? (int)$td['room_unit_manual_count'] : 0,
+													'room_unit_manual_rate' => isset($td['room_unit_manual_rate']) ? (float)$td['room_unit_manual_rate'] : 0,
+													'room_unit_manual_total_rate' => isset($td['room_unit_manual_total_rate']) ? (float)$td['room_unit_manual_total_rate'] : 0,
+													'extra_bed_adult_auto_count' => isset($td['extra_bed_adult_auto_count']) ? (int)$td['extra_bed_adult_auto_count'] : 0,
+													'extra_bed_adult_auto_rate' => isset($td['extra_bed_adult_auto_rate']) ? (float)$td['extra_bed_adult_auto_rate'] : 0,
+													'extra_bed_adult_auto_total_rate' => isset($td['extra_bed_adult_auto_total_rate']) ? (float)$td['extra_bed_adult_auto_total_rate'] : 0,
+													'extra_bed_adult_manual_count' => isset($td['extra_bed_adult_manual_count']) ? (int)$td['extra_bed_adult_manual_count'] : 0,
+													'extra_bed_adult_manual_rate' => isset($td['extra_bed_adult_manual_rate']) ? (float)$td['extra_bed_adult_manual_rate'] : 0,
+													'extra_bed_adult_manual_total_rate' => isset($td['extra_bed_adult_manual_total_rate']) ? (float)$td['extra_bed_adult_manual_total_rate'] : 0,
+													'extra_bed_child_auto_count' => isset($td['extra_bed_child_auto_count']) ? (int)$td['extra_bed_child_auto_count'] : 0,
+													'extra_bed_child_auto_rate' => isset($td['extra_bed_child_auto_rate']) ? (float)$td['extra_bed_child_auto_rate'] : 0,
+													'extra_bed_child_auto_total_rate' => isset($td['extra_bed_child_auto_total_rate']) ? (float)$td['extra_bed_child_auto_total_rate'] : 0,
+													'extra_bed_child_manual_count' => isset($td['extra_bed_child_manual_count']) ? (int)$td['extra_bed_child_manual_count'] : 0,
+													'extra_bed_child_manual_rate' => isset($td['extra_bed_child_manual_rate']) ? (float)$td['extra_bed_child_manual_rate'] : 0,
+													'extra_bed_child_manual_total_rate' => isset($td['extra_bed_child_manual_total_rate']) ? (float)$td['extra_bed_child_manual_total_rate'] : 0,
+													'child_sharing_bed_auto_count' => isset($td['child_sharing_bed_auto_count']) ? (int)$td['child_sharing_bed_auto_count'] : 0,
+													'child_sharing_bed_auto_rate' => isset($td['child_sharing_bed_auto_rate']) ? (float)$td['child_sharing_bed_auto_rate'] : 0,
+													'child_sharing_bed_auto_total_rate' => isset($td['child_sharing_bed_auto_total_rate']) ? (float)$td['child_sharing_bed_auto_total_rate'] : 0,
+													'child_sharing_bed_manual_count' => isset($td['child_sharing_bed_manual_count']) ? (int)$td['child_sharing_bed_manual_count'] : 0,
+													'child_sharing_bed_manual_rate' => isset($td['child_sharing_bed_manual_rate']) ? (float)$td['child_sharing_bed_manual_rate'] : 0,
+													'child_sharing_bed_manual_total_rate' => isset($td['child_sharing_bed_manual_total_rate']) ? (float)$td['child_sharing_bed_manual_total_rate'] : 0,
+													'single_occupancy_auto_count' => isset($td['single_occupancy_auto_count']) ? (int)$td['single_occupancy_auto_count'] : 0,
+													'single_occupancy_auto_rate' => isset($td['single_occupancy_auto_rate']) ? (float)$td['single_occupancy_auto_rate'] : 0,
+													'single_occupancy_auto_total_rate' => isset($td['single_occupancy_auto_total_rate']) ? (float)$td['single_occupancy_auto_total_rate'] : 0,
+													'single_occupancy_manual_count' => isset($td['single_occupancy_manual_count']) ? (int)$td['single_occupancy_manual_count'] : 0,
+													'single_occupancy_manual_rate' => isset($td['single_occupancy_manual_rate']) ? (float)$td['single_occupancy_manual_rate'] : 0,
+													'single_occupancy_manual_total_rate' => isset($td['single_occupancy_manual_total_rate']) ? (float)$td['single_occupancy_manual_total_rate'] : 0,
+													'supplyment_auto_cost' => isset($td['supplyment_auto_cost']) ? (float)$td['supplyment_auto_cost'] : 0,
+													'supplyment_auto_total_cost' => isset($td['supplyment_auto_total_cost']) ? (float)$td['supplyment_auto_total_cost'] : 0,
+													'supplyment_manual_cost' => isset($td['supplyment_manual_cost']) ? (float)$td['supplyment_manual_cost'] : 0,
+													'supplyment_manual_total_cost' => isset($td['supplyment_manual_total_cost']) ? (float)$td['supplyment_manual_total_cost'] : 0,
+													'auto_total_rate' => isset($td['auto_total_rate']) ? (float)$td['auto_total_rate'] : 0,
+													'manual_total_rate' => isset($td['manual_total_rate']) ? (float)$td['manual_total_rate'] : 0,
+													'quotation_room_tariff_details_status' => 1
+												);
+												$this->db->insert('quotation_room_tariff_details', $tariff_insert);
 											}
 										}
 									}

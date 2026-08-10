@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Package Preview</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -21,7 +21,7 @@
 
 body{
   margin:0;
-  font-family:'Poppins',sans-serif;
+  font-family:'Open Sans',sans-serif;
   background:#fff;
   color:var(--text);
   -webkit-print-color-adjust: exact;
@@ -449,7 +449,7 @@ button:hover{background:#172554;}
   object-fit:contain;
 }
 .contact-value{
-  font-size:20px;
+  font-size:14px;
   font-weight:700;
   color:#111;
   line-height:1.2;
@@ -489,7 +489,7 @@ button:hover{background:#172554;}
   gap:10px;
   background:#cfcfcf;
   color:#000;
-  font-size:22px;
+  font-size:16px;
   font-weight:800;
   padding:12px 14px;
   margin:0 0 10px 0;
@@ -510,7 +510,7 @@ button:hover{background:#172554;}
 }
 .standard-package-star{
   color:#facc15;
-  font-size:24px;
+  font-size:18px;
   font-weight:800;
   line-height:1;
   margin-left:2px;
@@ -525,10 +525,10 @@ button:hover{background:#172554;}
   display:flex;
   align-items:center;
   gap:10px;
-  font-size:18px;
+  font-size:14px;
   color:#111;
   font-weight:700;
-  margin-bottom:10px;
+  margin-bottom:8px;
   line-height:1.25;
 }
 .standard-info-icon-img{
@@ -544,7 +544,7 @@ button:hover{background:#172554;}
 }
 .standard-cost-title{
   text-align:center;
-  font-size:20px;
+  font-size:13px;
   font-weight:800;
   color:#334155;
   padding:14px 10px 12px 10px;
@@ -555,7 +555,7 @@ button:hover{background:#172554;}
 }
 .standard-cost-value{
   text-align:center;
-  font-size:34px;
+  font-size:24px;
   font-weight:900;
   color:#334155;
   padding:18px 10px 20px 10px;
@@ -569,7 +569,7 @@ button:hover{background:#172554;}
   padding:10px 12px;
 }
 .accommodation-title{
-  font-size:25px;
+  font-size:18px;
   font-weight:600;
   color:#b4b4b4;
   letter-spacing:.3px;
@@ -612,13 +612,13 @@ button:hover{background:#172554;}
   background:#bfbfbf;
   padding:10px 8px;
   font-weight:700;
-  font-size:20px;
+  font-size:14px;
   color:#000;
   text-align:center;
 }
 .property-table td{
-  padding:8px 8px;
-  font-size:16px;
+  padding:5px 6px;
+  font-size:12px;
   line-height:1.4;
   color:#111;
   text-align:center;
@@ -658,7 +658,7 @@ button:hover{background:#172554;}
 .standard-extra-title{
   background:transparent;
   color:#b4b4b4;
-  font-size:20px;
+  font-size:14px;
   font-weight:700;
   padding:0;
   margin:0;
@@ -669,7 +669,7 @@ button:hover{background:#172554;}
   min-width:0;
 }
 .standard-extra-text{
-  font-size:16px;
+  font-size:12px;
   font-weight:700;
   color:#111;
   line-height:1.45;
@@ -680,7 +680,7 @@ button:hover{background:#172554;}
 }
 .standard-extra-red-list li{
   color:#ff2a1f;
-  font-size:16px;
+  font-size:12px;
   font-weight:700;
   line-height:1.45;
   margin-bottom:4px;
@@ -689,46 +689,45 @@ button:hover{background:#172554;}
   color:#ff2a1f;
 }
 
-/* ===== COMPLIMENTARY INCLUSIONS ===== */
+/* ===== COMPLIMENTARY INCLUSIONS (STANDARD) ===== */
 .complimentary-box{
   margin-top:14px;
   page-break-inside:avoid;
   break-inside:avoid;
-}
-.complimentary-title{
-  color:#d32f2f;
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:8px;
-  text-transform:uppercase;
+  background:linear-gradient(135deg, #f5f5f5, #e8e8e8);
+  border:2px solid #999;
+  border-radius:12px;
+  padding:16px 24px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
 }
 .complimentary-text{
-  font-size:16px;
-  line-height:1.55;
-  color:#d32f2f;
+  font-size:13px;
+  line-height:1.6;
+  color:#333;
   font-weight:600;
+  white-space:pre-line;
 }
 
 /* ===== COMPLIMENTARY INCLUSIONS (EXCLUSIVE) ===== */
 .complimentary-box-exclusive{
-  margin-top:8mm;
+  margin-top:4mm;
   page-break-inside:avoid;
   break-inside:avoid;
-}
-.complimentary-title-exclusive{
-  color:#d32f2f;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:18px;
-  font-weight:700;
-  margin-bottom:6px;
-  text-transform:uppercase;
+  background:linear-gradient(135deg, #f7efe8, #ecd9c8);
+  border:2px solid #c9a45c;
+  border-radius:10px;
+  padding:10px 20px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(201,164,92,0.15);
 }
 .complimentary-text-exclusive{
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:15px;
-  line-height:1.5;
-  color:#d32f2f;
+  font-family:'Open Sans',sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  color:#5c4a3a;
   font-weight:600;
+  white-space:pre-line;
 }
 
 /* ===== EXCLUSIVE ===== */
@@ -739,7 +738,7 @@ button:hover{background:#172554;}
   position:relative;
   overflow:hidden;
   box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
+  font-family:'Open Sans',sans-serif;
   background:#f7efe8;
 }
 .exclusive-page::before{
@@ -781,8 +780,8 @@ button:hover{background:#172554;}
 .exclusive-package-title{
   margin:6px 0 6px 0;
   text-align:center;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:27px;
+  font-family:'Open Sans',sans-serif;
+  font-size:20px;
   line-height:1.25;
   font-weight:400;
   color:#2f231c;
@@ -810,8 +809,8 @@ button:hover{background:#172554;}
   text-align:center;
 }
 .exclusive-summary-title{
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:18px;
+  font-family:'Open Sans',sans-serif;
+  font-size:13px;
   font-weight:700;
   text-transform:uppercase;
   color:#241b14;
@@ -825,7 +824,7 @@ button:hover{background:#172554;}
   gap:10px;
 }
 .exclusive-summary-price .amount{
-  font-size:28px;
+  font-size:20px;
   font-weight:800;
   color:#000;
   line-height:1;
@@ -833,15 +832,15 @@ button:hover{background:#172554;}
 .exclusive-section-title{
   text-align:center;
   margin:7mm 0 6mm 0;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:20px;
+  font-family:'Open Sans',sans-serif;
+  font-size:14px;
   font-weight:700;
   color:#231a14;
   text-transform:uppercase;
   letter-spacing:.4px;
 }
 .exclusive-table-wrap{
-  margin:0 0 9mm 0;
+  margin:0 0 2mm 0;
 }
 .exclusive-table{
   width:100%;
@@ -854,14 +853,14 @@ button:hover{background:#172554;}
   color:#fff;
   padding:8px 6px;
   text-align:center;
-  font-size:15px;
+  font-size:12px;
   font-weight:700;
   line-height:1.2;
   text-transform:uppercase;
 }
 .exclusive-table td{
   text-align:center;
-  font-size:15px;
+  font-size:12px;
   line-height:1.3;
   color:#1f1b16;
   font-weight:600;
@@ -907,8 +906,8 @@ button:hover{background:#172554;}
   gap:10px;
   margin-bottom:8px;
   color:#0f5e38;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:19px;
+  font-family:'Open Sans',sans-serif;
+  font-size:14px;
   font-weight:700;
   text-transform:uppercase;
 }
@@ -926,10 +925,10 @@ button:hover{background:#172554;}
   position:relative;
   padding-left:22px;
   margin-bottom:6px;
-  font-size:16px;
+  font-size:13px;
   line-height:1.45;
   color:#3f3023;
-  font-family:Georgia, "Times New Roman", serif;
+  font-family:'Open Sans',sans-serif;
 }
 .exclusive-feature-list.transport li::before{
   content:"✔";
@@ -1246,7 +1245,7 @@ button:hover{background:#172554;}
 }
 
 .payment-account-title{
-  font-family:Georgia, serif;
+  font-family:'Open Sans',sans-serif;
   font-size:24px;
   font-weight:700;
   color:#222;
@@ -1287,7 +1286,7 @@ button:hover{background:#172554;}
 }
 
 .payment-bank-lines{
-  font-family:Georgia, serif;
+  font-family:'Open Sans',sans-serif;
   font-size:15px;
   line-height:1.5;
   color:#111;
@@ -1519,7 +1518,7 @@ button:hover{background:#172554;}
 
 .exclusive-cont-page .exclusive-cont-title{
   text-align:center;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family:'Open Sans',sans-serif;
   font-size:20px;
   font-weight:700;
   color:#231a14;
@@ -1571,6 +1570,109 @@ button:hover{background:#172554;}
   width:48mm;
   text-align:right;
 }
+
+/* ===== FONT SIZE LEVELS (auto-fitted by JS) ===== */
+/* Standard levels */
+.font-xs .standard-package-type { font-size:14px !important; }
+.font-xs .standard-package-star { font-size:16px !important; }
+.font-xs .standard-info-row { font-size:12px !important; }
+.font-xs .standard-cost-title { font-size:11px !important; }
+.font-xs .standard-cost-value { font-size:20px !important; }
+.font-xs .standard-cost-suffix { font-size:10px !important; }
+.font-xs .accommodation-title { font-size:16px !important; }
+.font-xs .property-table th { font-size:11px !important; }
+.font-xs .property-table td { font-size:10px !important; }
+.font-xs .standard-extra-title { font-size:12px !important; }
+.font-xs .standard-extra-text { font-size:10px !important; }
+.font-xs .standard-extra-red-list li { font-size:10px !important; }
+.font-xs .complimentary-text { font-size:11px !important; }
+.font-xs .contact-value { font-size:12px !important; }
+
+.font-sm .standard-package-type { font-size:15px !important; }
+.font-sm .standard-package-star { font-size:17px !important; }
+.font-sm .standard-info-row { font-size:13px !important; }
+.font-sm .standard-cost-title { font-size:12px !important; }
+.font-sm .standard-cost-value { font-size:22px !important; }
+.font-sm .standard-cost-suffix { font-size:10px !important; }
+.font-sm .accommodation-title { font-size:17px !important; }
+.font-sm .property-table th { font-size:12px !important; }
+.font-sm .property-table td { font-size:11px !important; }
+.font-sm .standard-extra-title { font-size:13px !important; }
+.font-sm .standard-extra-text { font-size:11px !important; }
+.font-sm .standard-extra-red-list li { font-size:11px !important; }
+.font-sm .complimentary-text { font-size:12px !important; }
+.font-sm .contact-value { font-size:13px !important; }
+
+.font-lg .standard-package-type { font-size:18px !important; }
+.font-lg .standard-package-star { font-size:20px !important; }
+.font-lg .standard-info-row { font-size:15px !important; }
+.font-lg .standard-cost-title { font-size:15px !important; }
+.font-lg .standard-cost-value { font-size:28px !important; }
+.font-lg .standard-cost-suffix { font-size:12px !important; }
+.font-lg .accommodation-title { font-size:20px !important; }
+.font-lg .property-table th { font-size:16px !important; }
+.font-lg .property-table td { font-size:14px !important; }
+.font-lg .standard-extra-title { font-size:16px !important; }
+.font-lg .standard-extra-text { font-size:14px !important; }
+.font-lg .standard-extra-red-list li { font-size:14px !important; }
+.font-lg .complimentary-text { font-size:15px !important; }
+.font-lg .contact-value { font-size:16px !important; }
+
+.font-xl .standard-package-type { font-size:19px !important; }
+.font-xl .standard-package-star { font-size:21px !important; }
+.font-xl .standard-info-row { font-size:16px !important; }
+.font-xl .standard-cost-title { font-size:16px !important; }
+.font-xl .standard-cost-value { font-size:30px !important; }
+.font-xl .standard-cost-suffix { font-size:13px !important; }
+.font-xl .accommodation-title { font-size:21px !important; }
+.font-xl .property-table th { font-size:17px !important; }
+.font-xl .property-table td { font-size:15px !important; }
+.font-xl .standard-extra-title { font-size:17px !important; }
+.font-xl .standard-extra-text { font-size:15px !important; }
+.font-xl .standard-extra-red-list li { font-size:15px !important; }
+.font-xl .complimentary-text { font-size:16px !important; }
+.font-xl .contact-value { font-size:17px !important; }
+
+/* Exclusive levels */
+.font-xs .exclusive-package-title { font-size:17px !important; }
+.font-xs .exclusive-summary-title { font-size:11px !important; }
+.font-xs .exclusive-summary-price .amount { font-size:17px !important; }
+.font-xs .exclusive-section-title { font-size:12px !important; }
+.font-xs .exclusive-table th { font-size:10px !important; }
+.font-xs .exclusive-table td { font-size:10px !important; }
+.font-xs .exclusive-feature-title { font-size:12px !important; }
+.font-xs .exclusive-feature-list li { font-size:11px !important; }
+.font-xs .complimentary-text-exclusive { font-size:11px !important; }
+
+.font-sm .exclusive-package-title { font-size:18px !important; }
+.font-sm .exclusive-summary-title { font-size:12px !important; }
+.font-sm .exclusive-summary-price .amount { font-size:18px !important; }
+.font-sm .exclusive-section-title { font-size:13px !important; }
+.font-sm .exclusive-table th { font-size:11px !important; }
+.font-sm .exclusive-table td { font-size:11px !important; }
+.font-sm .exclusive-feature-title { font-size:13px !important; }
+.font-sm .exclusive-feature-list li { font-size:12px !important; }
+.font-sm .complimentary-text-exclusive { font-size:12px !important; }
+
+.font-lg .exclusive-package-title { font-size:22px !important; }
+.font-lg .exclusive-summary-title { font-size:15px !important; }
+.font-lg .exclusive-summary-price .amount { font-size:22px !important; }
+.font-lg .exclusive-section-title { font-size:16px !important; }
+.font-lg .exclusive-table th { font-size:14px !important; }
+.font-lg .exclusive-table td { font-size:14px !important; }
+.font-lg .exclusive-feature-title { font-size:16px !important; }
+.font-lg .exclusive-feature-list li { font-size:14px !important; }
+.font-lg .complimentary-text-exclusive { font-size:15px !important; }
+
+.font-xl .exclusive-package-title { font-size:24px !important; }
+.font-xl .exclusive-summary-title { font-size:16px !important; }
+.font-xl .exclusive-summary-price .amount { font-size:24px !important; }
+.font-xl .exclusive-section-title { font-size:17px !important; }
+.font-xl .exclusive-table th { font-size:15px !important; }
+.font-xl .exclusive-table td { font-size:15px !important; }
+.font-xl .exclusive-feature-title { font-size:17px !important; }
+.font-xl .exclusive-feature-list li { font-size:15px !important; }
+.font-xl .complimentary-text-exclusive { font-size:16px !important; }
 </style>
 <style>
 #pdfLoadingOverlay{
@@ -1589,7 +1691,7 @@ button:hover{background:#172554;}
   border-radius:12px;
   box-shadow:0 8px 25px rgba(0,0,0,0.15);
   text-align:center;
-  font-family:'Poppins',sans-serif;
+  font-family:'Open Sans',sans-serif;
 }
 
 .pdf-spinner{
@@ -1982,7 +2084,6 @@ function q_preview_amount($value){
 
             <?php if (!empty($cat->packages_properties_common_complimentary_inclusion)): ?>
             <div class="complimentary-box-exclusive">
-              <div class="complimentary-title-exclusive">Complimentary Inclusions</div>
               <div class="complimentary-text-exclusive"><?= nl2br(htmlspecialchars($cat->packages_properties_common_complimentary_inclusion)); ?></div>
             </div>
             <?php endif; ?>
@@ -2132,7 +2233,6 @@ function q_preview_amount($value){
 
             <?php if (!empty($cat->packages_properties_common_complimentary_inclusion)): ?>
             <div class="complimentary-box">
-              <div class="complimentary-title">Complimentary Inclusions</div>
               <div class="complimentary-text"><?= nl2br(htmlspecialchars($cat->packages_properties_common_complimentary_inclusion)); ?></div>
             </div>
             <?php endif; ?>
@@ -2841,7 +2941,6 @@ function createStandardContinuationPage() {
         </div>
       </div>
 
-      <div class="standard-cont-title">PACKAGE COST &amp; ACCOMMODATION SUMMARY</div>
       <div class="standard-split-content"></div>
     </div>
   `;
@@ -2867,7 +2966,6 @@ function createExclusiveContinuationPage() {
         <img src="<?= base_url('assets/images/exclusive-ornament-bottom.png'); ?>">
       </div>
 
-      <div class="exclusive-cont-title">ACCOMMODATION DETAILS</div>
       <div class="exclusive-split-content"></div>
     </div>
 
@@ -2897,6 +2995,44 @@ function createExclusiveContinuationPage() {
   return page;
 }
 
+function fitOptionPageFontSize(page, type) {
+  const contentSelector = type === 'standard' ? '.standard-full-wrap' : '.exclusive-inner';
+  const content = page.querySelector(contentSelector);
+  if (!content) return;
+
+  const fontClasses = ['font-xs', 'font-sm', 'font-normal', 'font-lg', 'font-xl'];
+  fontClasses.forEach(function(cls) { page.classList.remove(cls); });
+
+  const targetHeight = page.clientHeight;
+  const originalHeight = page.style.height;
+  const originalOverflow = page.style.overflow;
+  const originalContentMinHeight = content.style.minHeight;
+
+  page.style.height = 'auto';
+  page.style.overflow = 'visible';
+  content.style.minHeight = '0';
+
+  const tryOrder = ['font-xl', 'font-lg', 'font-normal', 'font-sm', 'font-xs'];
+  let chosenClass = 'font-xs';
+
+  for (let i = 0; i < tryOrder.length; i++) {
+    const cls = tryOrder[i];
+    page.classList.remove(...fontClasses);
+    page.classList.add(cls);
+    void content.offsetHeight;
+    if (content.scrollHeight <= targetHeight + 2) {
+      chosenClass = cls;
+      break;
+    }
+  }
+
+  page.classList.remove(...fontClasses);
+  page.classList.add(chosenClass);
+  page.style.height = originalHeight;
+  page.style.overflow = originalOverflow;
+  content.style.minHeight = originalContentMinHeight;
+}
+
 function buildOptionExtraPages() {
   // document.querySelectorAll('.generated-option-page').forEach(function(el) {
   //   el.remove();
@@ -2907,11 +3043,51 @@ function buildOptionExtraPages() {
 }
 
   document.querySelectorAll('.property-page:not(.generated-option-page)').forEach(function(page) {
+    fitOptionPageFontSize(page, 'standard');
     splitStandardOptionPage(page);
   });
 
   document.querySelectorAll('.exclusive-page:not(.generated-option-page):not(#lastCoverPage)').forEach(function(page) {
+    fitOptionPageFontSize(page, 'exclusive');
     splitExclusiveOptionPage(page);
+  });
+
+  removeEmptyContinuationPages();
+}
+
+function removeEmptyContinuationPages() {
+  document.querySelectorAll('.standard-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.standard-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('standard-extra-section')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
+  });
+
+  document.querySelectorAll('.exclusive-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.exclusive-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('exclusive-bottom-grid')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
   });
 }
 
@@ -3037,6 +3213,23 @@ function splitStandardOptionPage(page) {
       }
     }
   });
+
+  document.querySelectorAll('.standard-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.standard-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('standard-extra-section')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
+  });
 }
 
 function splitExclusiveOptionPage(page) {
@@ -3161,6 +3354,23 @@ function splitExclusiveOptionPage(page) {
         content.appendChild(item.node);
       }
     }
+  });
+
+  document.querySelectorAll('.exclusive-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.exclusive-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('exclusive-bottom-grid')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
   });
 }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Quotation Preview</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -21,7 +21,7 @@
 
 body{
   margin:0;
-  font-family:'Poppins',sans-serif;
+  font-family:'Open Sans',sans-serif;
   background:#fff;
   color:var(--text);
   -webkit-print-color-adjust: exact;
@@ -245,7 +245,7 @@ button:hover{background:#172554;}
   background:#fff;
   color:#3a8553;
   border-radius:20px;
-  min-width:27mm;
+  min-width:38mm;
   height:11mm;
   display:flex;
   align-items:center;
@@ -254,6 +254,14 @@ button:hover{background:#172554;}
   font-weight:601;
   margin-right:12mm;
   white-space:nowrap;
+}
+.brief-date{
+  color:#fff;
+  font-size:14px;
+  font-weight:400;
+  margin-right:10mm;
+  white-space:nowrap;
+  opacity:0.9;
 }
 .brief-route{
   color:#fff;
@@ -449,7 +457,7 @@ button:hover{background:#172554;}
   object-fit:contain;
 }
 .contact-value{
-  font-size:20px;
+  font-size:14px;
   font-weight:700;
   color:#111;
   line-height:1.2;
@@ -475,8 +483,8 @@ button:hover{background:#172554;}
 }
 .standard-summary-row{
   display:grid;
-  grid-template-columns:58% 42%;
-  gap:12px;
+  grid-template-columns:62% 38%;
+  gap:8px;
   margin-bottom:12px;
 }
 .standard-left-summary,
@@ -489,7 +497,7 @@ button:hover{background:#172554;}
   gap:10px;
   background:#cfcfcf;
   color:#000;
-  font-size:22px;
+  font-size:16px;
   font-weight:800;
   padding:12px 14px;
   margin:0 0 10px 0;
@@ -510,7 +518,7 @@ button:hover{background:#172554;}
 }
 .standard-package-star{
   color:#facc15;
-  font-size:24px;
+  font-size:18px;
   font-weight:800;
   line-height:1;
   margin-left:2px;
@@ -525,10 +533,10 @@ button:hover{background:#172554;}
   display:flex;
   align-items:center;
   gap:10px;
-  font-size:18px;
+  font-size:14px;
   color:#111;
   font-weight:700;
-  margin-bottom:10px;
+  margin-bottom:8px;
   line-height:1.25;
 }
 .standard-info-icon-img{
@@ -540,26 +548,36 @@ button:hover{background:#172554;}
 .standard-right-summary{
   display:flex;
   flex-direction:column;
-  justify-content:flex-start;
+  justify-content:center;
+  align-items:center;
 }
 .standard-cost-title{
   text-align:center;
-  font-size:20px;
+  font-size:13px;
   font-weight:800;
   color:#334155;
-  padding:14px 10px 12px 10px;
+  padding:10px 8px 8px 8px;
   letter-spacing:.4px;
   text-transform:uppercase;
   border-bottom:2px solid #e5e5e5;
   box-shadow:0 1px 0 #dcdcdc;
+  width:100%;
 }
 .standard-cost-value{
   text-align:center;
-  font-size:28px;
+  font-size:24px;
   font-weight:900;
   color:#334155;
-  padding:18px 10px 20px 10px;
+  padding:10px 8px 12px 8px;
   line-height:1.1;
+}
+.standard-cost-suffix{
+  text-align:center;
+  font-size:11px;
+  font-weight:600;
+  color:#666;
+  padding:0 8px 12px 8px;
+  line-height:1.2;
 }
 .accommodation-heading{
   display:flex;
@@ -569,7 +587,7 @@ button:hover{background:#172554;}
   padding:10px 12px;
 }
 .accommodation-title{
-  font-size:25px;
+  font-size:18px;
   font-weight:600;
   color:#b4b4b4;
   letter-spacing:.3px;
@@ -612,13 +630,13 @@ button:hover{background:#172554;}
   background:#bfbfbf;
   padding:10px 8px;
   font-weight:700;
-  font-size:20px;
+  font-size:14px;
   color:#000;
   text-align:center;
 }
 .property-table td{
-  padding:8px 8px;
-  font-size:16px;
+  padding:5px 6px;
+  font-size:12px;
   line-height:1.4;
   color:#111;
   text-align:center;
@@ -658,7 +676,7 @@ button:hover{background:#172554;}
 .standard-extra-title{
   background:transparent;
   color:#b4b4b4;
-  font-size:20px;
+  font-size:14px;
   font-weight:700;
   padding:0;
   margin:0;
@@ -669,7 +687,7 @@ button:hover{background:#172554;}
   min-width:0;
 }
 .standard-extra-text{
-  font-size:16px;
+  font-size:12px;
   font-weight:700;
   color:#111;
   line-height:1.45;
@@ -680,7 +698,7 @@ button:hover{background:#172554;}
 }
 .standard-extra-red-list li{
   color:#ff2a1f;
-  font-size:16px;
+  font-size:12px;
   font-weight:700;
   line-height:1.45;
   margin-bottom:4px;
@@ -689,46 +707,45 @@ button:hover{background:#172554;}
   color:#ff2a1f;
 }
 
-/* ===== COMPLIMENTARY INCLUSIONS ===== */
+/* ===== COMPLIMENTARY INCLUSIONS (STANDARD) ===== */
 .complimentary-box{
   margin-top:14px;
   page-break-inside:avoid;
   break-inside:avoid;
-}
-.complimentary-title{
-  color:#d32f2f;
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:8px;
-  text-transform:uppercase;
+  background:linear-gradient(135deg, #f5f5f5, #e8e8e8);
+  border:2px solid #999;
+  border-radius:12px;
+  padding:16px 24px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
 }
 .complimentary-text{
-  font-size:16px;
-  line-height:1.55;
-  color:#d32f2f;
+  font-size:13px;
+  line-height:1.6;
+  color:#333;
   font-weight:600;
+  white-space:pre-line;
 }
 
 /* ===== COMPLIMENTARY INCLUSIONS (EXCLUSIVE) ===== */
 .complimentary-box-exclusive{
-  margin-top:8mm;
+  margin-top:4mm;
   page-break-inside:avoid;
   break-inside:avoid;
-}
-.complimentary-title-exclusive{
-  color:#d32f2f;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:18px;
-  font-weight:700;
-  margin-bottom:6px;
-  text-transform:uppercase;
+  background:linear-gradient(135deg, #f7efe8, #ecd9c8);
+  border:2px solid #c9a45c;
+  border-radius:10px;
+  padding:10px 20px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(201,164,92,0.15);
 }
 .complimentary-text-exclusive{
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:15px;
-  line-height:1.5;
-  color:#d32f2f;
+  font-family:'Open Sans',sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  color:#5c4a3a;
   font-weight:600;
+  white-space:pre-line;
 }
 
 /* ===== EXCLUSIVE ===== */
@@ -739,7 +756,7 @@ button:hover{background:#172554;}
   position:relative;
   overflow:hidden;
   box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
+  font-family:'Open Sans',sans-serif;
   background:#f7efe8;
 }
 .exclusive-page::before{
@@ -781,8 +798,8 @@ button:hover{background:#172554;}
 .exclusive-package-title{
   margin:6px 0 6px 0;
   text-align:center;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:27px;
+  font-family:'Open Sans',sans-serif;
+  font-size:20px;
   line-height:1.25;
   font-weight:400;
   color:#2f231c;
@@ -810,8 +827,8 @@ button:hover{background:#172554;}
   text-align:center;
 }
 .exclusive-summary-title{
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:18px;
+  font-family:'Open Sans',sans-serif;
+  font-size:13px;
   font-weight:700;
   text-transform:uppercase;
   color:#241b14;
@@ -825,23 +842,29 @@ button:hover{background:#172554;}
   gap:10px;
 }
 .exclusive-summary-price .amount{
-  font-size:28px;
+  font-size:20px;
   font-weight:800;
   color:#000;
   line-height:1;
 }
+.exclusive-summary-price .amount-suffix{
+  font-size:11px;
+  font-weight:600;
+  color:#5c4a3a;
+  margin-left:4px;
+}
 .exclusive-section-title{
   text-align:center;
   margin:7mm 0 6mm 0;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:20px;
+  font-family:'Open Sans',sans-serif;
+  font-size:14px;
   font-weight:700;
   color:#231a14;
   text-transform:uppercase;
   letter-spacing:.4px;
 }
 .exclusive-table-wrap{
-  margin:0 0 9mm 0;
+  margin:0 0 2mm 0;
 }
 .exclusive-table{
   width:100%;
@@ -854,14 +877,14 @@ button:hover{background:#172554;}
   color:#fff;
   padding:8px 6px;
   text-align:center;
-  font-size:15px;
+  font-size:12px;
   font-weight:700;
   line-height:1.2;
   text-transform:uppercase;
 }
 .exclusive-table td{
   text-align:center;
-  font-size:15px;
+  font-size:12px;
   line-height:1.3;
   color:#1f1b16;
   font-weight:600;
@@ -907,8 +930,8 @@ button:hover{background:#172554;}
   gap:10px;
   margin-bottom:8px;
   color:#0f5e38;
-  font-family:Georgia, "Times New Roman", serif;
-  font-size:19px;
+  font-family:'Open Sans',sans-serif;
+  font-size:14px;
   font-weight:700;
   text-transform:uppercase;
 }
@@ -926,10 +949,10 @@ button:hover{background:#172554;}
   position:relative;
   padding-left:22px;
   margin-bottom:6px;
-  font-size:16px;
+  font-size:13px;
   line-height:1.45;
   color:#3f3023;
-  font-family:Georgia, "Times New Roman", serif;
+  font-family:'Open Sans',sans-serif;
 }
 .exclusive-feature-list.transport li::before{
   content:"✔";
@@ -1187,7 +1210,7 @@ button:hover{background:#172554;}
 }
 
 .payment-account-title{
-  font-family:Georgia, serif;
+  font-family:'Open Sans',sans-serif;
   font-size:24px;
   font-weight:700;
   color:#222;
@@ -1228,7 +1251,7 @@ button:hover{background:#172554;}
 }
 
 .payment-bank-lines{
-  font-family:Georgia, serif;
+  font-family:'Open Sans',sans-serif;
   font-size:15px;
   line-height:1.5;
   color:#111;
@@ -1459,7 +1482,7 @@ button:hover{background:#172554;}
 
 .exclusive-cont-page .exclusive-cont-title{
   text-align:center;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family:'Open Sans',sans-serif;
   font-size:20px;
   font-weight:700;
   color:#231a14;
@@ -1511,6 +1534,109 @@ button:hover{background:#172554;}
   width:48mm;
   text-align:right;
 }
+
+/* ===== FONT SIZE LEVELS (auto-fitted by JS) ===== */
+/* Standard levels */
+.font-xs .standard-package-type { font-size:14px !important; }
+.font-xs .standard-package-star { font-size:16px !important; }
+.font-xs .standard-info-row { font-size:12px !important; }
+.font-xs .standard-cost-title { font-size:11px !important; }
+.font-xs .standard-cost-value { font-size:20px !important; }
+.font-xs .standard-cost-suffix { font-size:10px !important; }
+.font-xs .accommodation-title { font-size:16px !important; }
+.font-xs .property-table th { font-size:11px !important; }
+.font-xs .property-table td { font-size:10px !important; }
+.font-xs .standard-extra-title { font-size:12px !important; }
+.font-xs .standard-extra-text { font-size:10px !important; }
+.font-xs .standard-extra-red-list li { font-size:10px !important; }
+.font-xs .complimentary-text { font-size:11px !important; }
+.font-xs .contact-value { font-size:12px !important; }
+
+.font-sm .standard-package-type { font-size:15px !important; }
+.font-sm .standard-package-star { font-size:17px !important; }
+.font-sm .standard-info-row { font-size:13px !important; }
+.font-sm .standard-cost-title { font-size:12px !important; }
+.font-sm .standard-cost-value { font-size:22px !important; }
+.font-sm .standard-cost-suffix { font-size:10px !important; }
+.font-sm .accommodation-title { font-size:17px !important; }
+.font-sm .property-table th { font-size:12px !important; }
+.font-sm .property-table td { font-size:11px !important; }
+.font-sm .standard-extra-title { font-size:13px !important; }
+.font-sm .standard-extra-text { font-size:11px !important; }
+.font-sm .standard-extra-red-list li { font-size:11px !important; }
+.font-sm .complimentary-text { font-size:12px !important; }
+.font-sm .contact-value { font-size:13px !important; }
+
+.font-lg .standard-package-type { font-size:18px !important; }
+.font-lg .standard-package-star { font-size:20px !important; }
+.font-lg .standard-info-row { font-size:15px !important; }
+.font-lg .standard-cost-title { font-size:15px !important; }
+.font-lg .standard-cost-value { font-size:28px !important; }
+.font-lg .standard-cost-suffix { font-size:12px !important; }
+.font-lg .accommodation-title { font-size:20px !important; }
+.font-lg .property-table th { font-size:16px !important; }
+.font-lg .property-table td { font-size:14px !important; }
+.font-lg .standard-extra-title { font-size:16px !important; }
+.font-lg .standard-extra-text { font-size:14px !important; }
+.font-lg .standard-extra-red-list li { font-size:14px !important; }
+.font-lg .complimentary-text { font-size:15px !important; }
+.font-lg .contact-value { font-size:16px !important; }
+
+.font-xl .standard-package-type { font-size:19px !important; }
+.font-xl .standard-package-star { font-size:21px !important; }
+.font-xl .standard-info-row { font-size:16px !important; }
+.font-xl .standard-cost-title { font-size:16px !important; }
+.font-xl .standard-cost-value { font-size:30px !important; }
+.font-xl .standard-cost-suffix { font-size:13px !important; }
+.font-xl .accommodation-title { font-size:21px !important; }
+.font-xl .property-table th { font-size:17px !important; }
+.font-xl .property-table td { font-size:15px !important; }
+.font-xl .standard-extra-title { font-size:17px !important; }
+.font-xl .standard-extra-text { font-size:15px !important; }
+.font-xl .standard-extra-red-list li { font-size:15px !important; }
+.font-xl .complimentary-text { font-size:16px !important; }
+.font-xl .contact-value { font-size:17px !important; }
+
+/* Exclusive levels */
+.font-xs .exclusive-package-title { font-size:17px !important; }
+.font-xs .exclusive-summary-title { font-size:11px !important; }
+.font-xs .exclusive-summary-price .amount { font-size:17px !important; }
+.font-xs .exclusive-section-title { font-size:12px !important; }
+.font-xs .exclusive-table th { font-size:10px !important; }
+.font-xs .exclusive-table td { font-size:10px !important; }
+.font-xs .exclusive-feature-title { font-size:12px !important; }
+.font-xs .exclusive-feature-list li { font-size:11px !important; }
+.font-xs .complimentary-text-exclusive { font-size:11px !important; }
+
+.font-sm .exclusive-package-title { font-size:18px !important; }
+.font-sm .exclusive-summary-title { font-size:12px !important; }
+.font-sm .exclusive-summary-price .amount { font-size:18px !important; }
+.font-sm .exclusive-section-title { font-size:13px !important; }
+.font-sm .exclusive-table th { font-size:11px !important; }
+.font-sm .exclusive-table td { font-size:11px !important; }
+.font-sm .exclusive-feature-title { font-size:13px !important; }
+.font-sm .exclusive-feature-list li { font-size:12px !important; }
+.font-sm .complimentary-text-exclusive { font-size:12px !important; }
+
+.font-lg .exclusive-package-title { font-size:22px !important; }
+.font-lg .exclusive-summary-title { font-size:15px !important; }
+.font-lg .exclusive-summary-price .amount { font-size:22px !important; }
+.font-lg .exclusive-section-title { font-size:16px !important; }
+.font-lg .exclusive-table th { font-size:14px !important; }
+.font-lg .exclusive-table td { font-size:14px !important; }
+.font-lg .exclusive-feature-title { font-size:16px !important; }
+.font-lg .exclusive-feature-list li { font-size:14px !important; }
+.font-lg .complimentary-text-exclusive { font-size:15px !important; }
+
+.font-xl .exclusive-package-title { font-size:24px !important; }
+.font-xl .exclusive-summary-title { font-size:16px !important; }
+.font-xl .exclusive-summary-price .amount { font-size:24px !important; }
+.font-xl .exclusive-section-title { font-size:17px !important; }
+.font-xl .exclusive-table th { font-size:15px !important; }
+.font-xl .exclusive-table td { font-size:15px !important; }
+.font-xl .exclusive-feature-title { font-size:17px !important; }
+.font-xl .exclusive-feature-list li { font-size:15px !important; }
+.font-xl .complimentary-text-exclusive { font-size:16px !important; }
 </style>
 <style>
 #pdfLoadingOverlay{
@@ -1529,7 +1655,7 @@ button:hover{background:#172554;}
   border-radius:12px;
   box-shadow:0 8px 25px rgba(0,0,0,0.15);
   text-align:center;
-  font-family:'Poppins',sans-serif;
+  font-family:'Open Sans',sans-serif;
 }
 
 .pdf-spinner{
@@ -1663,9 +1789,20 @@ if (!function_exists('q_preview_amount')) {
 
     <div class="brief-list">
       <?php if (!empty($brief_itinerary)): ?>
+        <?php
+          $brief_start_date = isset($quotation->start_date) ? $quotation->start_date : null;
+          $brief_start_ts = $brief_start_date ? strtotime($brief_start_date) : 0;
+        ?>
         <?php foreach ($brief_itinerary as $index => $day): ?>
+          <?php
+            $brief_date_text = '';
+            if ($brief_start_ts) {
+              $brief_day_ts = strtotime('+' . $index . ' days', $brief_start_ts);
+              $brief_date_text = date('d M Y', $brief_day_ts);
+            }
+          ?>
           <div class="brief-row">
-            <div class="brief-day">Day <?php echo str_pad(($index + 1), 2, '0', STR_PAD_LEFT); ?></div>
+            <div class="brief-day"><?php echo $brief_date_text ? htmlspecialchars($brief_date_text) : 'Day ' . str_pad(($index + 1), 2, '0', STR_PAD_LEFT); ?></div>
             <div class="brief-route"><?php echo strtoupper(htmlspecialchars($day->quotation_itineraries_days_title)); ?></div>
           </div>
         <?php endforeach; ?>
@@ -1688,7 +1825,14 @@ if (!function_exists('q_preview_amount')) {
         </div>
 
         <div class="daypage-top">
-          <div class="day-pill">Day <?php echo str_pad(($index + 1), 2, '0', STR_PAD_LEFT); ?></div>
+          <?php
+            $day_date_text = '';
+            if (isset($quotation->start_date) && $quotation->start_date) {
+              $day_start_ts = strtotime($quotation->start_date);
+              $day_date_text = date('d M Y', strtotime('+' . $index . ' days', $day_start_ts));
+            }
+          ?>
+          <div class="day-pill"><?php echo $day_date_text ? htmlspecialchars($day_date_text) : 'Day ' . str_pad(($index + 1), 2, '0', STR_PAD_LEFT); ?></div>
           <div class="route-title"><?php echo htmlspecialchars($day->quotation_itineraries_days_title); ?></div>
         </div>
 
@@ -1837,25 +1981,30 @@ function q_option_display_amount_premium($option)
         : 'net';
 
     if ($type === 'person') {
-        return ' ' . q_preview_amount($option->quotation_options_per_amount) . '/- Per Person';
+        return array(q_preview_amount($option->quotation_options_per_amount), 'Per Person');
     }
 
     if ($type === 'adult') {
-        return ' ' . q_preview_amount($option->quotation_options_per_amount) . '/- Per Adult';
+        return array(q_preview_amount($option->quotation_options_per_amount), 'Per Adult');
     }
 
     if ($type === 'couple') {
-        return ' ' . q_preview_amount($option->quotation_options_per_amount) . '/- Per Couple';
+        return array(q_preview_amount($option->quotation_options_per_amount), 'Per Couple');
     }
 
-    return ' ' . q_preview_amount($option->preview_total_amount) . ' /- NET';
+    return array(q_preview_amount($option->preview_total_amount), 'NET');
 }
 } // end function_exists q_option_display_amount_premium
 ?>
   <!-- PRICE -->
   <div class="exclusive-summary-price">
-    <!-- <span class="amount"><?= q_preview_amount($totalAmount); ?></span> -->
-    <span class="amount"><span class="amount"><?= q_option_display_amount_premium($cat); ?></span></span>
+    <?php
+      $exc_cost = q_option_display_amount_premium($cat);
+      $exc_amount = $exc_cost[0];
+      $exc_suffix = $exc_cost[1];
+    ?>
+    <span class="amount"><?= htmlspecialchars($exc_amount); ?>/-</span>
+    <span class="amount-suffix"><?= htmlspecialchars($exc_suffix); ?></span>
   </div>
 
 </div>
@@ -1877,7 +2026,7 @@ function q_option_display_amount_premium($option)
               <table class="exclusive-table">
                 <thead>
                   <tr>
-                    <th style="width:<?= $wDay; ?>%;">DAY</th>
+                    <th style="width:<?= $wDay; ?>%;">DATE</th>
                     <th style="width:<?= $wDest; ?>%;">DESTINATION</th>
                     <th style="width:<?= $wHotel; ?>%;">HOTEL / STAY</th>
                     <?php if ($showRoom): ?><th style="width:<?= $wRoom; ?>%;">ROOM TYPE</th><?php endif; ?>
@@ -1905,12 +2054,28 @@ function q_option_display_amount_premium($option)
                         $propertyText = !empty($propertyNames) ? implode(' / ', array_unique($propertyNames)) : '-';
                         $roomText = !empty($roomNames) ? implode(' / ', array_unique($roomNames)) : '-';
                       ?>
+                      <?php
+                        $exc_day_date_text = '';
+                        $exc_day_num = 0;
+                        if (!empty($day->quotation_properties_days_day)) {
+                          $exc_day_num = (int)preg_replace('/[^0-9]/', '', $day->quotation_properties_days_day);
+                        } elseif (!empty($day->quotation_itineraries_days_day)) {
+                          $exc_day_num = (int)preg_replace('/[^0-9]/', '', $day->quotation_itineraries_days_day);
+                        }
+                        if (isset($quotation->start_date) && $quotation->start_date && $exc_day_num > 0) {
+                          $exc_day_date_text = date('d M Y', strtotime('+' . ($exc_day_num - 1) . ' days', strtotime($quotation->start_date)));
+                        }
+                      ?>
                       <tr>
-                        <td><?= htmlspecialchars($day->quotation_properties_days_day); ?></td>
+                        <td><?= $exc_day_date_text ? htmlspecialchars($exc_day_date_text) : 'Day ' . str_pad($exc_day_num, 2, '0', STR_PAD_LEFT); ?></td>
                         <td><?= htmlspecialchars($day->state_name); ?></td>
-                        <td><?= htmlspecialchars($propertyText); ?></td>
-                        <?php if ($showRoom): ?><td><?= htmlspecialchars($roomText); ?></td><?php endif; ?>
-                        <?php if ($showMeal): ?><td><?= htmlspecialchars(!empty($day->meal_plan) ? $day->meal_plan : '-'); ?></td><?php endif; ?>
+                        <?php if (!empty($day->quotation_itineraries_days_travel_back)): ?>
+                          <td colspan="<?= $colCount + 1; ?>"><?= htmlspecialchars($day->state_name); ?> sightseeing and dropping</td>
+                        <?php else: ?>
+                          <td><?= htmlspecialchars($propertyText); ?></td>
+                          <?php if ($showRoom): ?><td><?= htmlspecialchars($roomText); ?></td><?php endif; ?>
+                          <?php if ($showMeal): ?><td><?= htmlspecialchars(!empty($day->meal_plan) ? $day->meal_plan : '-'); ?></td><?php endif; ?>
+                        <?php endif; ?>
                       </tr>
                     <?php endforeach; ?>
                   <?php endif; ?>
@@ -1918,10 +2083,18 @@ function q_option_display_amount_premium($option)
               </table>
             </div>
 
-            <?php if (!empty($cat->quotation_options_complimentary_inclusion)): ?>
+            <?php if (!empty($cat->quotation_options_complimentary_inclusion) || !empty($cat->special_requirements)): ?>
             <div class="complimentary-box-exclusive">
-              <div class="complimentary-title-exclusive">Complimentary Inclusions</div>
-              <div class="complimentary-text-exclusive"><?= nl2br(htmlspecialchars($cat->quotation_options_complimentary_inclusion)); ?></div>
+              <div class="complimentary-text-exclusive"><?php
+                $parts = [];
+                if (!empty($cat->quotation_options_complimentary_inclusion)) {
+                  $parts[] = htmlspecialchars($cat->quotation_options_complimentary_inclusion);
+                }
+                if (!empty($cat->special_requirements)) {
+                  $parts[] = implode(', ', array_map(function($sr) { return htmlspecialchars($sr->special_requirements_name); }, $cat->special_requirements));
+                }
+                echo nl2br(implode(', ', $parts));
+              ?></div>
             </div>
             <?php endif; ?>
 
@@ -2003,6 +2176,7 @@ function q_option_display_amount_premium($option)
 
 
 <?php if (!empty($cat->special_requirements)): ?>
+<div style="display:none;">
 <div class="exclusive-feature-box">
   <div class="exclusive-feature-title">
     <img src="<?= base_url('assets/images/exclusive-heart.png'); ?>" alt="">
@@ -2016,6 +2190,7 @@ function q_option_display_amount_premium($option)
       </li>
     <?php endforeach; ?>
   </ul>
+</div>
 </div>
 <?php endif; ?>
             </div>
@@ -2136,12 +2311,28 @@ function q_option_display_amount_standard($option)
 ?>
               <div class="standard-right-summary">
                 <div class="standard-cost-title">TOTAL PACKAGE COST</div>
-                <!-- <div class="standard-cost-value">
-                  <?= '*'.q_preview_amount($totalAmount).'/- NET'; ?>
-                </div> -->
-                 <div class="standard-cost-value">
-                  <?= q_option_display_amount_standard($cat); ?>
-                </div>
+                <?php
+                  $std_cost_amount = '';
+                  $std_cost_suffix = '';
+                  $std_type = !empty($cat->quotation_options_amount_type) ? $cat->quotation_options_amount_type : 'net';
+                  if ($std_type === 'person') {
+                    $std_cost_amount = q_preview_amount($cat->quotation_options_per_amount);
+                    $std_cost_suffix = 'Per Person';
+                  } elseif ($std_type === 'adult') {
+                    $std_cost_amount = q_preview_amount($cat->quotation_options_per_amount);
+                    $std_cost_suffix = 'Per Adult';
+                  } elseif ($std_type === 'couple') {
+                    $std_cost_amount = q_preview_amount($cat->quotation_options_per_amount);
+                    $std_cost_suffix = 'Per Couple';
+                  } else {
+                    $std_cost_amount = q_preview_amount($cat->preview_total_amount);
+                    $std_cost_suffix = 'NET';
+                  }
+                ?>
+                <div class="standard-cost-value"><?= htmlspecialchars($std_cost_amount); ?>/-</div>
+                <?php if ($std_cost_suffix): ?>
+                <div class="standard-cost-suffix"><?= htmlspecialchars($std_cost_suffix); ?></div>
+                <?php endif; ?>
               </div>
             </div>
 
@@ -2201,22 +2392,46 @@ function q_option_display_amount_standard($option)
                       $propertyText = !empty($propertyNames) ? implode(' / ', array_unique($propertyNames)) : '-';
                       $roomText = !empty($roomNames) ? implode(' / ', array_unique($roomNames)) : '-';
                     ?>
+                    <?php
+                      $std_day_date_text = '';
+                      $std_day_num = 0;
+                      if (!empty($day->quotation_properties_days_day)) {
+                        $std_day_num = (int)preg_replace('/[^0-9]/', '', $day->quotation_properties_days_day);
+                      } elseif (!empty($day->quotation_itineraries_days_day)) {
+                        $std_day_num = (int)preg_replace('/[^0-9]/', '', $day->quotation_itineraries_days_day);
+                      }
+                      if (isset($quotation->start_date) && $quotation->start_date && $std_day_num > 0) {
+                        $std_day_date_text = date('d M Y', strtotime('+' . ($std_day_num - 1) . ' days', strtotime($quotation->start_date)));
+                      }
+                    ?>
                     <tr>
-                      <td><?= htmlspecialchars($day->quotation_properties_days_day); ?></td>
+                      <td><?= $std_day_date_text ? htmlspecialchars($std_day_date_text) : 'Day ' . str_pad($std_day_num, 2, '0', STR_PAD_LEFT); ?></td>
                       <td><?= htmlspecialchars($day->state_name); ?></td>
-                      <td><?= htmlspecialchars($propertyText); ?></td>
-                      <?php if ($showRoom): ?><td><?= htmlspecialchars($roomText); ?></td><?php endif; ?>
-                      <?php if ($showMeal): ?><td><?= htmlspecialchars(!empty($day->meal_plan) ? $day->meal_plan : '-'); ?></td><?php endif; ?>
+                      <?php if (!empty($day->quotation_itineraries_days_travel_back)): ?>
+                        <td colspan="<?= $colCountS + 1; ?>"><?= htmlspecialchars($day->state_name); ?> sightseeing and dropping</td>
+                      <?php else: ?>
+                        <td><?= htmlspecialchars($propertyText); ?></td>
+                        <?php if ($showRoom): ?><td><?= htmlspecialchars($roomText); ?></td><?php endif; ?>
+                        <?php if ($showMeal): ?><td><?= htmlspecialchars(!empty($day->meal_plan) ? $day->meal_plan : '-'); ?></td><?php endif; ?>
+                      <?php endif; ?>
                     </tr>
                   <?php endforeach; ?>
                 <?php endif; ?>
               </tbody>
             </table>
 
-            <?php if (!empty($cat->quotation_options_complimentary_inclusion)): ?>
+            <?php if (!empty($cat->quotation_options_complimentary_inclusion) || !empty($cat->special_requirements)): ?>
             <div class="complimentary-box">
-              <div class="complimentary-title">Complimentary Inclusions</div>
-              <div class="complimentary-text"><?= nl2br(htmlspecialchars($cat->quotation_options_complimentary_inclusion)); ?></div>
+              <div class="complimentary-text"><?php
+                $parts = [];
+                if (!empty($cat->quotation_options_complimentary_inclusion)) {
+                  $parts[] = htmlspecialchars($cat->quotation_options_complimentary_inclusion);
+                }
+                if (!empty($cat->special_requirements)) {
+                  $parts[] = implode(', ', array_map(function($sr) { return htmlspecialchars($sr->special_requirements_name); }, $cat->special_requirements));
+                }
+                echo nl2br(implode(', ', $parts));
+              ?></div>
             </div>
             <?php endif; ?>
 
@@ -2325,6 +2540,7 @@ function q_option_display_amount_standard($option)
 
 
               <?php if (!empty($cat->special_requirements)): ?>
+              <div style="display:none;">
               <div class="standard-extra-box">
                 <div class="standard-extra-left">
                   <!-- <img src="<?= base_url('assets/images/complimentary.png'); ?>" alt="Special" class="standard-extra-icon-img"> -->
@@ -2340,6 +2556,7 @@ function q_option_display_amount_standard($option)
                     <?php endforeach; ?>
                   </ul>
                 </div>
+              </div>
               </div>
               <?php endif; ?>
 
@@ -3015,7 +3232,6 @@ function createStandardContinuationPage() {
         </div>
       </div>
 
-      <div class="standard-cont-title">PACKAGE COST &amp; ACCOMMODATION SUMMARY</div>
       <div class="standard-split-content"></div>
     </div>
   `;
@@ -3041,7 +3257,6 @@ function createExclusiveContinuationPage() {
         <img src="<?= base_url('assets/images/exclusive-ornament-bottom.png'); ?>">
       </div>
 
-      <div class="exclusive-cont-title">ACCOMMODATION DETAILS</div>
       <div class="exclusive-split-content"></div>
     </div>
 
@@ -3071,6 +3286,44 @@ function createExclusiveContinuationPage() {
   return page;
 }
 
+function fitOptionPageFontSize(page, type) {
+  const contentSelector = type === 'standard' ? '.standard-full-wrap' : '.exclusive-inner';
+  const content = page.querySelector(contentSelector);
+  if (!content) return;
+
+  const fontClasses = ['font-xs', 'font-sm', 'font-normal', 'font-lg', 'font-xl'];
+  fontClasses.forEach(function(cls) { page.classList.remove(cls); });
+
+  const targetHeight = page.clientHeight;
+  const originalHeight = page.style.height;
+  const originalOverflow = page.style.overflow;
+  const originalContentMinHeight = content.style.minHeight;
+
+  page.style.height = 'auto';
+  page.style.overflow = 'visible';
+  content.style.minHeight = '0';
+
+  const tryOrder = ['font-xl', 'font-lg', 'font-normal', 'font-sm', 'font-xs'];
+  let chosenClass = 'font-xs';
+
+  for (let i = 0; i < tryOrder.length; i++) {
+    const cls = tryOrder[i];
+    page.classList.remove(...fontClasses);
+    page.classList.add(cls);
+    void content.offsetHeight;
+    if (content.scrollHeight <= targetHeight + 2) {
+      chosenClass = cls;
+      break;
+    }
+  }
+
+  page.classList.remove(...fontClasses);
+  page.classList.add(chosenClass);
+  page.style.height = originalHeight;
+  page.style.overflow = originalOverflow;
+  content.style.minHeight = originalContentMinHeight;
+}
+
 function buildOptionExtraPages() {
   // document.querySelectorAll('.generated-option-page').forEach(function(el) {
   //   el.remove();
@@ -3081,11 +3334,51 @@ function buildOptionExtraPages() {
 }
 
   document.querySelectorAll('.property-page:not(.generated-option-page)').forEach(function(page) {
+    fitOptionPageFontSize(page, 'standard');
     splitStandardOptionPage(page);
   });
 
   document.querySelectorAll('.exclusive-page:not(.generated-option-page):not(#lastCoverPage)').forEach(function(page) {
+    fitOptionPageFontSize(page, 'exclusive');
     splitExclusiveOptionPage(page);
+  });
+
+  removeEmptyContinuationPages();
+}
+
+function removeEmptyContinuationPages() {
+  document.querySelectorAll('.standard-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.standard-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('standard-extra-section')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
+  });
+
+  document.querySelectorAll('.exclusive-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.exclusive-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('exclusive-bottom-grid')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
   });
 }
 
@@ -3209,6 +3502,23 @@ function splitStandardOptionPage(page) {
         content.appendChild(item.node);
       }
     }
+  });
+
+  document.querySelectorAll('.standard-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.standard-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('standard-extra-section')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
   });
 }
 
@@ -3334,6 +3644,23 @@ function splitExclusiveOptionPage(page) {
         content.appendChild(item.node);
       }
     }
+  });
+
+  document.querySelectorAll('.exclusive-cont-page.generated-option-page').forEach(function(p) {
+    var c = p.querySelector('.exclusive-split-content');
+    if (!c) { p.remove(); return; }
+    var hasContent = false;
+    Array.from(c.children).forEach(function(child) {
+      if (child.tagName === 'TABLE') {
+        var tbody = child.querySelector('tbody');
+        if (tbody && tbody.children.length > 0) hasContent = true;
+      } else if (child.classList && child.classList.contains('exclusive-bottom-grid')) {
+        if (child.children.length > 0) hasContent = true;
+      } else {
+        hasContent = true;
+      }
+    });
+    if (!hasContent) p.remove();
   });
 }
 

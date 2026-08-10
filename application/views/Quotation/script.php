@@ -3353,6 +3353,7 @@ function reload_table_status()
                     $select.empty().append('<option value="">Select Status</option>');
 
                     var currentStatus = parseInt(res.data.quotation_current_status);
+                    $('#changeStatusForm').data('original-status', currentStatus);
                     var statusOptions = [
                         { value: 2, text: 'Draft' },
                         { value: 3, text: 'Sent' },
@@ -3363,7 +3364,7 @@ function reload_table_status()
                         $select.append('<option value="' + opt.value + '">' + opt.text + '</option>');
                     });
 
-                    $select.val('').trigger('change.select2');
+                    $select.val(currentStatus).trigger('change.select2');
 
                     $('#ChangeStatusModal').modal('show');
                 } else {
@@ -3380,9 +3381,15 @@ function reload_table_status()
     {
         var quotation_id = $('#changeStatusForm #quotation_id').val();
         var status = $('#changeStatusForm #quotation_current_status').val();
+        var originalStatus = $('#changeStatusForm').data('original-status');
 
         if (!quotation_id || !status) {
             swal('Please select a status', '', 'warning');
+            return;
+        }
+
+        if (parseInt(status) === parseInt(originalStatus)) {
+            swal('Status is the same as current status. Please select a different status.', '', 'warning');
             return;
         }
 
