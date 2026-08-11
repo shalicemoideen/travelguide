@@ -453,6 +453,111 @@ class Receipt_scheduler_model extends CI_Model {
         return $count > 0;
     }
 
+    public function sync_total_amount($quotation_id)
+    {
+        $scheduler = $this->get_by_quotation_id($quotation_id);
+        if (!$scheduler) {
+            return false;
+        }
+
+        $scheduler_id = $scheduler->receipt_scheduler_id;
+
+        $new_data = $this->get_quotation_total_amount($quotation_id);
+        $new_total = (float)$new_data['total_amount'];
+
+        if ($new_total <= 0) {
+            return false;
+        }
+
+        $old_total = (float)$scheduler->total_amount;
+
+        if (abs($new_total - $old_total) < 0.01) {
+            return false;
+        }
+
+        // Always update the scheduler total to match the quotation.
+        $this->update(
+            array('receipt_scheduler_id' => $scheduler_id),
+            array('total_amount' => $new_total)
+        );
+
+        $installments = $this->db
+            ->from($this->table_installments)
+            ->where('receipt_scheduler_id_fk', $scheduler_id)
+            ->where('installment_status', 1)
+            ->order_by('installment_number', 'ASC')
+            ->get()
+            ->result();
+
+        if (empty($installments)) {
+            return true;
+        }
+
+        // Separate installments that already have a recorded payment (preserve them)
+        // from fully unpaid installments (redistribute the remaining balance).
+        $reserved = 0;
+        $unpaid = array();
+        foreach ($installments as $inst) {
+            if ((float)$inst->paid_amount > 0) {
+                $reserved += (float)$inst->calculated_amount;
+            } else {
+                $unpaid[] = $inst;
+            }
+        }
+
+        // Remaining amount to spread across the unpaid installments.
+        $remaining = $new_total - $reserved;
+        if ($remaining < 0) {
+            $remaining = 0;
+        }
+
+        // No unpaid installments to adjust; total already updated.
+        if (empty($unpaid)) {
+            return true;
+        }
+
+        // Baseline sum of existing unpaid amounts (for proportional distribution).
+        $unpaid_base = 0;
+        foreach ($unpaid as $inst) {
+            $unpaid_base += (float)$inst->calculated_amount;
+        }
+
+        $count = count($unpaid);
+        $running = 0;
+        for ($i = 0; $i < $count; $i++) {
+            $inst = $unpaid[$i];
+
+            if ($i < $count - 1) {
+                if ($unpaid_base > 0) {
+                    $share = round($remaining * ((float)$inst->calculated_amount / $unpaid_base), 2);
+                } else {
+                    $share = round($remaining / $count, 2);
+                }
+                $running += $share;
+            } else {
+                // Last unpaid installment absorbs any rounding remainder.
+                $share = round($remaining - $running, 2);
+            }
+
+            $update = array(
+                'installment_amount' => $share,
+                'calculated_amount' => $share
+            );
+
+            // Keep percentage in sync when the scheduler splits by percentage.
+            if ($scheduler->payment_type == 'EMI' && $scheduler->split_type == 'PERCENTAGE' && $new_total > 0) {
+                $update['installment_percentage'] = round(($share / $new_total) * 100, 2);
+            }
+
+            $this->update_installment(
+                array('installment_id' => $inst->installment_id),
+                $update
+            );
+        }
+
+        return true;
+    }
+
     public function check_scheduler_exists($quotation_id)
     {
         $exists = $this->db
