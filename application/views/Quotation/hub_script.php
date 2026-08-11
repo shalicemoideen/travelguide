@@ -6595,6 +6595,34 @@ function hub_editScheduler(id) {
 
 
 
+            if (!hasPayments) {
+
+                $.ajax({
+
+                    url: "<?php echo base_url(); ?>index.php/Receipt_scheduler/get_quotation_amount",
+
+                    type: 'POST', data: { quotation_id: scheduler.quotation_id_fk }, dataType: 'json',
+
+                    success: function(latest) {
+
+                        var latestAmt = parseFloat(latest.total_amount) || 0;
+
+                        if (latestAmt > 0 && Math.abs(latestAmt - hubEditAmt) >= 0.01) {
+
+                            $('#hub_total_amount').val(latest.total_amount);
+
+                            $('#hub_total_amount_display').text('₹' + latestAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+
             $('#hub_payment_type').val(scheduler.payment_type);
 
 

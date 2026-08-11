@@ -9195,6 +9195,7 @@ public function ajax_delete()
 				'quotation_remarks' => $this->input->post('quotation_remarks'),
 				'total_inclusion_amount' => $this->input->post('total_inclusion_amount'),
 				'total_special_requirment_amount' => $this->input->post('total_special_requirment_amount'),
+				'quotation_current_status' => 1,
 				'quotation_updatedby_user_id' => $currentuserid,
 				'quotation_updated_at' => $date1,
 			);
@@ -9572,6 +9573,9 @@ public function ajax_delete()
 					}
 				}
 			}
+
+			$this->load->model('Receipt_scheduler_model');
+			$this->Receipt_scheduler_model->sync_total_amount($quotation_id);
 
 			$this->db->trans_commit();
 

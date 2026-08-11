@@ -1,4 +1,4 @@
-﻿
+
 <script type="text/javascript">
 
 ////***Select2 AJAX option *****///

@@ -1,4 +1,4 @@
-﻿<script>
+<script>
     ////***Latest dropdown select2*****///
 
 function renderRejectedQuotationRow(data, row) {

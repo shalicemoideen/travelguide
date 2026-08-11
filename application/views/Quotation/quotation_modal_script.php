@@ -1,4 +1,4 @@
-﻿///////////////////////////////////////////////////**************** Quotation ***************////////////////////////////
+///////////////////////////////////////////////////**************** Quotation ***************////////////////////////////
 
 // Global in-memory storage for pending room tariff details
 // Keyed by temp_id, stores all tariff form data until quotation save/update
