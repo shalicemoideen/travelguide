@@ -4082,7 +4082,23 @@ if (!empty($accommodationPlanIds)) {
 
 
 
+        // Fetch old rooms with package FK for tariff mapping (before disabling)
+        $oldRoomPkgMap = array();  // old_room_id => packages_properties_rooms_id_fk
+
         if (!empty($oldPropertyIds)) {
+
+            $oldRooms = $this->db
+                ->select('quotation_properties_rooms_id, packages_properties_rooms_id_fk')
+                ->from($this->quotation_properties_rooms)
+                ->where_in('quotation_properties_id_fk', $oldPropertyIds)
+                ->where('quotation_properties_rooms_status', 1)
+                ->get()
+                ->result_array();
+
+            foreach ($oldRooms as $r) {
+                $rid = (int)$r['quotation_properties_rooms_id'];
+                $oldRoomPkgMap[$rid] = (int)$r['packages_properties_rooms_id_fk'];
+            }
 
             $this->db->where_in('quotation_properties_id_fk', $oldPropertyIds);
 
@@ -4161,6 +4177,8 @@ if (!empty($accommodationPlanIds)) {
 		$optionMap = array();
 
 		$optionUidMap = array();
+
+		$newRoomPkgMap = array();  // packages_properties_rooms_id_fk => new quotation_properties_rooms_id
 
         if (!empty($payload['options']) && is_array($payload['options'])) {
 
@@ -4362,6 +4380,11 @@ if (!empty($accommodationPlanIds)) {
 
                                         }
 
+                                        $_room_pkg_fk = isset($room['packages_properties_rooms_id_fk']) ? (int)$room['packages_properties_rooms_id_fk'] : 0;
+                                        if ($_room_pkg_fk > 0) {
+                                            $newRoomPkgMap[$_room_pkg_fk] = (int)$quotation_properties_room_id;
+                                        }
+
 
 
                                         // ✅ Save tariff data from payload (in-memory stored data)
@@ -4447,6 +4470,22 @@ if (!empty($accommodationPlanIds)) {
 
             }
 
+        }
+
+
+
+        /* ================= UPDATE quotation_room_tariff_details WITH NEW ROOM IDs ================= */
+        if (!empty($oldRoomPkgMap) && !empty($newRoomPkgMap)) {
+            foreach ($oldRoomPkgMap as $old_room_id => $pkg_room_fk) {
+                if ($pkg_room_fk && isset($newRoomPkgMap[$pkg_room_fk])) {
+                    $new_room_id = $newRoomPkgMap[$pkg_room_fk];
+                    $this->db->where('quotation_id_fk', $quotation_id);
+                    $this->db->where('quotation_properties_rooms_id_fk', $old_room_id);
+                    $this->db->update('quotation_room_tariff_details', array(
+                        'quotation_properties_rooms_id_fk' => $new_room_id
+                    ));
+                }
+            }
         }
 
 
@@ -9215,6 +9254,22 @@ public function ajax_delete()
 					}
 				}
 
+				// Get old rooms for those properties
+				$oldRoomIds = array();
+				if (!empty($oldPropertyIds)) {
+					$oldRooms = $this->db
+						->select('quotation_properties_rooms_id')
+						->from($this->quotation_properties_rooms)
+						->where_in('quotation_properties_id_fk', $oldPropertyIds)
+						->where('quotation_properties_rooms_status', 1)
+						->get()
+						->result_array();
+
+					foreach ($oldRooms as $r) {
+						$oldRoomIds[] = (int)$r['quotation_properties_rooms_id'];
+					}
+				}
+
 				// Disable old rooms
 				if (!empty($oldPropertyIds)) {
 					$this->db->where_in('quotation_properties_id_fk', $oldPropertyIds);
@@ -9289,15 +9344,6 @@ public function ajax_delete()
 					$edit_opt_uid = isset($option['option_uid']) ? $option['option_uid'] : '';
 					if ($edit_opt_uid !== '') {
 						$optionUidMap[$edit_opt_uid] = (int)$option_id;
-					}
-
-					// Update quotation_confirmation to point to new option ID
-					if (isset($confirmed_option_id) && $confirmed_option_id) {
-						$this->db->where('option_id_fk', $confirmed_option_id);
-						$this->db->where('quotation_id_fk', $quotation_id);
-						$this->db->update('quotation_confirmation', array(
-							'option_id_fk' => (int)$option_id
-						));
 					}
 
 					if (!empty($option['days']) && is_array($option['days'])) {
