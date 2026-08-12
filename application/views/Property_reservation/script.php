@@ -29,7 +29,10 @@ $(document).ready(function() {
         resetPanel();
         $('#option_wrap').hide();
         $('#property_select').prop('disabled', true).html('<option value="">Select Property</option>');
+        $('#supersededPanel').hide();
         if (!quotation_id) return;
+
+        loadSupersededReservations(quotation_id);
 
         $.ajax({
             url: base_url + 'property_reservation/ajax_get_options',
@@ -883,6 +886,171 @@ function applySelectedCredits() {
         $('#prCreditModal').modal('hide');
         reloadCurrent();
     }
+}
+
+/* =========================================================
+   PROPERTY CHANGE: superseded reservations
+   ========================================================= */
+
+var prSupersededRows = [];
+
+function prNotify(style, message) {
+    var n = new notify({
+        title: '',
+        style: style,
+        message: message,
+        icon: style === 'success' ? 'fas fa-check' : 'fas fa-times'
+    });
+    n.show();
+    setTimeout(function() { n.hide(); }, 4000);
+}
+
+function prMoney(v) {
+    return parseFloat(v || 0).toFixed(2);
+}
+
+/**
+ * Properties the client replaced on the confirmation page. They drop out of
+ * every confirmation-driven query, so they are loaded separately to keep the
+ * money already committed to them visible.
+ */
+function loadSupersededReservations(quotation_id) {
+    prSupersededRows = [];
+    $('#supersededTable tbody').empty();
+    $('#supersededPanel').hide();
+    if (!quotation_id) return;
+
+    $.ajax({
+        url: base_url + 'property_reservation/ajax_get_superseded_reservations',
+        type: 'POST',
+        data: { quotation_id: quotation_id },
+        dataType: 'json',
+        success: function(res) {
+            if (!res.status || !res.rows || res.rows.length === 0) return;
+
+            prSupersededRows = res.rows;
+            var html = '';
+
+            res.rows.forEach(function(r, idx) {
+                var cancelled = (r.reservation_state === 'CANCELLED');
+                var credit    = r.property_credit;
+
+                var statusCell = cancelled
+                    ? '<span class="badge bg-danger">CANCELLED</span>'
+                    : '<span class="badge bg-warning text-dark">REPLACED</span>';
+
+                var actionCell;
+                if (cancelled) {
+                    actionCell = credit
+                        ? '<span class="badge bg-success">Credit ' + prMoney(credit.credit_amount) + '</span>'
+                        : '<span class="text-muted small">No credit</span>';
+                } else if (res.can_cancel) {
+                    actionCell = '<button type="button" class="btn btn-sm btn-outline-danger" onclick="openCancelReservationModal(' + idx + ')">'
+                               + '<i class="fas fa-ban me-1"></i> Cancel Reservation</button>';
+                } else {
+                    actionCell = '<span class="text-muted small">-</span>';
+                }
+
+                html += '<tr>'
+                     +  '<td>' + (r.properties_name || '-') + '</td>'
+                     +  '<td>' + (r.superseded_by_property_name || '<span class="text-muted">-</span>') + '</td>'
+                     +  '<td>' + (r.check_in_date || '-') + '</td>'
+                     +  '<td class="text-end">' + prMoney(r.snap_reservation_amount) + '</td>'
+                     +  '<td class="text-end">' + prMoney(r.snap_paid_amount) + '</td>'
+                     +  '<td>' + statusCell + '</td>'
+                     +  '<td class="text-center">' + actionCell + '</td>'
+                     +  '</tr>';
+            });
+
+            $('#supersededTable tbody').html(html);
+            $('#supersededPanel').show();
+        }
+    });
+}
+
+function openCancelReservationModal(idx) {
+    var r = prSupersededRows[idx];
+    if (!r) return;
+
+    $('#cancel_res_id').val(r.property_reservation_id);
+    $('#cancelResPropertyName').text(r.properties_name || 'this property');
+    $('#cancelResReserved').text(prMoney(r.snap_reservation_amount));
+    $('#cancelResPaid').text(prMoney(r.snap_paid_amount));
+
+    // Default to the full amount the property is holding; staff can reduce it.
+    $('#cancel_res_amount').val(prMoney(r.snap_paid_amount)).attr('max', prMoney(r.snap_paid_amount));
+    $('#cancel_res_reference').val('');
+    $('#cancel_res_reason').val('');
+    $('#cancel_res_expiry').val('');
+
+    var today = new Date();
+    var dd = ('0' + today.getDate()).slice(-2);
+    var mm = ('0' + (today.getMonth() + 1)).slice(-2);
+    $('#cancel_res_date').val(dd + '/' + mm + '/' + today.getFullYear());
+
+    $('#cancel_res_date, #cancel_res_expiry').each(function() {
+        if (!$(this).data('datepicker')) {
+            $(this).datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true });
+        }
+    });
+
+    $('#cancelResSubmitBtn').prop('disabled', false);
+    $('#prCancelReservationModal').modal('show');
+}
+
+function submitCancelReservation() {
+    var reservation_id = $('#cancel_res_id').val();
+    var amount         = parseFloat($('#cancel_res_amount').val() || 0);
+    var date           = $('#cancel_res_date').val();
+    var paid           = parseFloat($('#cancelResPaid').text() || 0);
+
+    if (!reservation_id) return;
+
+    if (isNaN(amount) || amount < 0) {
+        prNotify('error', 'Enter a valid cancellation amount.');
+        return;
+    }
+    if (amount > paid + 0.009) {
+        prNotify('error', 'Cancellation amount cannot exceed the amount paid (' + prMoney(paid) + ').');
+        return;
+    }
+    if (!date) {
+        prNotify('error', 'Cancellation date is required.');
+        return;
+    }
+    if (!confirm('Cancel this reservation and record a credit of ' + prMoney(amount) + '?')) return;
+
+    // Guard against a double submit creating a second credit.
+    $('#cancelResSubmitBtn').prop('disabled', true);
+
+    $.ajax({
+        url: base_url + 'property_reservation/ajax_cancel_reservation',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            property_reservation_id: reservation_id,
+            cancellation_amount    : amount,
+            cancellation_date      : date,
+            cancellation_reason    : $('#cancel_res_reason').val(),
+            reference_number       : $('#cancel_res_reference').val(),
+            credit_expiry_date     : $('#cancel_res_expiry').val()
+        },
+        success: function(res) {
+            if (!res.status) {
+                prNotify('error', res.message || 'Could not cancel the reservation');
+                $('#cancelResSubmitBtn').prop('disabled', false);
+                return;
+            }
+            prNotify('success', res.message);
+            $('#prCancelReservationModal').modal('hide');
+            loadSupersededReservations($('#booking_select').val());
+            reloadCurrent();
+        },
+        error: function() {
+            prNotify('error', 'An error occurred. Please try again.');
+            $('#cancelResSubmitBtn').prop('disabled', false);
+        }
+    });
 }
 
 </script>

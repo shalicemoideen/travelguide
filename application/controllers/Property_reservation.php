@@ -114,6 +114,13 @@ class Property_reservation extends MY_Controller {
         $rent_breakdown    = $this->Property_reservation_model->get_property_rent_breakdown($quotation_id, $properties_id);
         $inclusions_detail = $this->Property_reservation_model->get_property_inclusions_detail($quotation_id, $properties_id);
 
+        /* A property the client has swapped out no longer has active
+           confirmation rows, so the live total collapses to 0. Fall back to the
+           amount snapshotted at the moment it was superseded. */
+        if ($reservation->reservation_state !== 'ACTIVE' && $reservation->snap_reservation_amount !== null) {
+            $total_amount = (float)$reservation->snap_reservation_amount;
+        }
+
         /* Property credit detection: check for available credits on this property */
         $available_credits = array();
         $applied_credits   = array();
@@ -724,6 +731,190 @@ class Property_reservation extends MY_Controller {
 
         $credits = $this->Property_credit_model->get_available_credits($properties_id);
         echo json_encode(array('status' => true, 'credits' => $credits));
+    }
+
+    // =========================================================
+    // PROPERTY CHANGE: superseded reservations
+    // =========================================================
+
+    /**
+     * Reservations kept after the client changed property on the confirmation
+     * page. These no longer appear in any confirmation-driven query, so the
+     * page loads them separately to keep the money spent on them visible.
+     */
+    public function ajax_get_superseded_reservations()
+    {
+        $quotation_id = (int)$this->input->post('quotation_id');
+
+        if ($quotation_id <= 0) {
+            echo json_encode(array('status' => false, 'message' => 'Booking is required'));
+            return;
+        }
+
+        $rows = $this->Property_reservation_model->get_superseded_reservations($quotation_id);
+
+        // Surface the credit already raised so the UI can show it instead of
+        // offering the cancel action a second time.
+        $has_credit_table = $this->db->table_exists('property_credit_ledger');
+        foreach ($rows as $r) {
+            $r->property_credit = $has_credit_table
+                ? $this->Property_credit_model->get_credit_for_property_change($r->property_reservation_id)
+                : null;
+        }
+
+        echo json_encode(array(
+            'status'    => true,
+            'rows'      => $rows,
+            'can_cancel'=> has_permission('PROPERTY_RESERVATION_CANCEL'),
+        ));
+    }
+
+    /**
+     * Cancel a superseded property reservation and push the manually entered
+     * recoverable amount into the existing property credit ledger.
+     *
+     * The reservation is never deleted — it moves to CANCELLED and keeps its
+     * snapshotted amounts, its payment scheduler and its payment history, so
+     * the trail from reservation to cancellation to credit stays auditable.
+     */
+    public function ajax_cancel_reservation()
+    {
+        if (!has_permission('PROPERTY_RESERVATION_CANCEL')) {
+            echo json_encode(array('status' => false, 'message' => 'Permission denied: Cancel Property Reservation'));
+            return;
+        }
+
+        $reservation_id      = (int)$this->input->post('property_reservation_id');
+        $cancellation_amount = (float)$this->input->post('cancellation_amount');
+        $cancellation_date   = $this->_date($this->input->post('cancellation_date'));
+        $reason              = trim((string)$this->input->post('cancellation_reason'));
+        $reference           = trim((string)$this->input->post('reference_number'));
+        $expiry_date         = $this->_date($this->input->post('credit_expiry_date'));
+
+        $reservation = $reservation_id > 0
+            ? $this->Property_reservation_model->get_reservation_by_id($reservation_id)
+            : null;
+
+        if (!$reservation || (int)$reservation->property_reservation_status !== 1) {
+            echo json_encode(array('status' => false, 'message' => 'Reservation not found'));
+            return;
+        }
+
+        if ($reservation->reservation_state === 'CANCELLED') {
+            echo json_encode(array('status' => false, 'message' => 'This reservation is already cancelled'));
+            return;
+        }
+
+        if ($reservation->reservation_state !== 'SUPERSEDED') {
+            echo json_encode(array(
+                'status'  => false,
+                'message' => 'Only a property that has been replaced on the confirmation can be cancelled here'
+            ));
+            return;
+        }
+
+        $errors = array();
+        if ($cancellation_amount < 0)  { $errors[] = 'Cancellation amount cannot be negative'; }
+        if (!$cancellation_date)       { $errors[] = 'Valid cancellation date is required'; }
+
+        /* The recoverable amount cannot exceed what was actually paid to the
+           property — the credit has to be money the property is holding. */
+        $paid = $reservation->snap_paid_amount !== null
+            ? (float)$reservation->snap_paid_amount
+            : $this->Property_reservation_model->get_paid_total($reservation_id);
+
+        if ($cancellation_amount > $paid + 0.009) {
+            $errors[] = 'Cancellation amount cannot exceed the amount paid to this property ('
+                      . number_format($paid, 2) . ')';
+        }
+
+        if ($errors) {
+            echo json_encode(array('status' => false, 'message' => implode('. ', $errors)));
+            return;
+        }
+
+        $credit_supported = $this->db->table_exists('property_credit_ledger');
+
+        if ($cancellation_amount > 0.009 && $credit_supported) {
+            $existing = $this->Property_credit_model->get_credit_for_property_change($reservation_id);
+            if ($existing) {
+                echo json_encode(array(
+                    'status'  => false,
+                    'message' => 'A property credit has already been recorded for this reservation'
+                ));
+                return;
+            }
+        }
+
+        $this->db->trans_begin();
+
+        $this->Property_reservation_model->update_reservation($reservation_id, array(
+            'reservation_state'     => 'CANCELLED',
+            'cancellation_amount'   => round($cancellation_amount, 2),
+            'cancellation_date'     => $cancellation_date,
+            'cancellation_reason'   => $reason,
+            'cancelled_by_userid'   => $this->currentuserid,
+            'cancelled_by_username' => $this->currentusername,
+            'cancelled_datetime'    => date('Y-m-d H:i:s'),
+        ));
+
+        /* Reuse the cancellation module's ledger rather than a parallel one.
+           credit_origin distinguishes this from a booking cancellation, and the
+           two cancellation FKs stay NULL because no booking was cancelled. */
+        $credit_id = null;
+        if ($cancellation_amount > 0.009 && $credit_supported) {
+            $credit_id = $this->Property_credit_model->create_credit(array(
+                'properties_id_fk'                  => (int)$reservation->properties_id_fk,
+                'booking_cancellation_id_fk'        => null,
+                'cancellation_property_id_fk'       => null,
+                'property_reservation_id_fk'        => $reservation_id,
+                'property_change_reservation_id_fk' => $reservation_id,
+                'quotation_id_fk'                   => (int)$reservation->quotation_id_fk,
+                'credit_origin'                     => 'PROPERTY_CHANGE',
+                'credit_amount'                     => round($cancellation_amount, 2),
+                'used_amount'                       => 0.00,
+                'remaining_amount'                  => round($cancellation_amount, 2),
+                'credit_status'                     => 'AVAILABLE',
+                'expiry_date'                       => $expiry_date,
+                'reference_number'                  => $reference,
+                'remarks'                           => $reason,
+                'created_by_userid'                 => $this->currentuserid,
+                'created_by_username'               => $this->currentusername,
+                'created_datetime'                  => date('Y-m-d H:i:s'),
+                'property_credit_status'            => 1,
+            ));
+        }
+
+        $this->Property_reservation_model->add_comment(array(
+            'property_reservation_id_fk' => $reservation_id,
+            'comment_text'               => 'Reservation cancelled after property change. Cancellation amount: '
+                                            . number_format($cancellation_amount, 2)
+                                            . ($reason !== '' ? '. Reason: ' . $reason : ''),
+            'comment_created_by_userid'  => $this->currentuserid,
+            'comment_created_date'       => date('Y-m-d H:i:s'),
+            'comment_status'             => 1,
+        ));
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            echo json_encode(array('status' => false, 'message' => 'Could not cancel the reservation'));
+            return;
+        }
+
+        $this->db->trans_commit();
+
+        $message = 'Reservation cancelled.';
+        if ($credit_id) {
+            $message .= ' Property credit of ' . number_format($cancellation_amount, 2) . ' recorded.';
+        } elseif ($cancellation_amount > 0.009 && !$credit_supported) {
+            $message .= ' Property credit ledger is not installed, so no credit was recorded.';
+        }
+
+        echo json_encode(array(
+            'status'            => true,
+            'message'           => $message,
+            'property_credit_id'=> $credit_id,
+        ));
     }
 
     // =========================================================

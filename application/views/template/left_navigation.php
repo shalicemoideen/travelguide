@@ -324,7 +324,8 @@
 					<?php if (has_any_permission([
 						'BOOKING_CANCELLATION_VIEW',
 						'BOOKING_CANCELLATION_TRACKER',
-						'BOOKING_CANCELLATION_REPORT'
+						'BOOKING_CANCELLATION_REPORT',
+						'PROPERTY_CREDIT_VIEW'
 					])): ?>
 					<li class="<?php if($this->uri->segment(1)=="Booking_cancellation"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
 						<i class="la la-ban"></i>
@@ -339,6 +340,9 @@
 						<?php endif; ?>
 						<?php if (has_permission('BOOKING_CANCELLATION_REPORT')): ?>
 						<li class="<?php if($this->uri->segment(2)=="customer_refund_register"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Booking_cancellation/customer_refund_register">Customer Refund Register</a></li>
+						<?php endif; ?>
+						<?php if (has_permission('PROPERTY_CREDIT_VIEW')): ?>
+						<li class="<?php if($this->uri->segment(1)=="Property_credit"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Property_credit">Property Credit Ledger</a></li>
 						<?php endif; ?>
 					</ul>
 					</li>

@@ -1084,6 +1084,116 @@ class Quotation_model extends CI_Model{
 
 
 
+    /**
+
+     * Real properties.properties_id values currently confirmed for a quotation.
+
+     *
+
+     * quotation_confirmation.properties_id_fk holds a quotation_properties_id
+
+     * (the per-day candidate hotel row), not a properties_id, so it has to be
+
+     * resolved through quotation_properties before two selections can be
+
+     * compared. Returns a de-duplicated list of integers.
+
+     */
+
+    public function get_confirmed_property_ids($quotation_id)
+
+    {
+
+        $rows = $this->db
+
+            ->distinct()
+
+            ->select('qp.properties_id_fk')
+
+            ->from('quotation_confirmation qc')
+
+            ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
+
+            ->where('qc.quotation_id_fk', (int)$quotation_id)
+
+            ->where('qc.property_confirmation_status', 1)
+
+            ->get()
+
+            ->result_array();
+
+
+
+        $ids = array();
+
+        foreach ($rows as $r) {
+
+            $pid = (int)$r['properties_id_fk'];
+
+            if ($pid > 0) { $ids[$pid] = $pid; }
+
+        }
+
+
+
+        return array_values($ids);
+
+    }
+
+
+
+    /**
+
+     * Resolve a set of quotation_properties_id values (as posted by the
+
+     * confirmation page) to their real properties_id values.
+
+     */
+
+    public function resolve_real_property_ids($quotation_property_ids)
+
+    {
+
+        $quotation_property_ids = array_filter(array_map('intval', (array)$quotation_property_ids));
+
+        if (empty($quotation_property_ids)) { return array(); }
+
+
+
+        $rows = $this->db
+
+            ->distinct()
+
+            ->select('properties_id_fk')
+
+            ->from('quotation_properties')
+
+            ->where_in('quotation_properties_id', array_values($quotation_property_ids))
+
+            ->get()
+
+            ->result_array();
+
+
+
+        $ids = array();
+
+        foreach ($rows as $r) {
+
+            $pid = (int)$r['properties_id_fk'];
+
+            if ($pid > 0) { $ids[$pid] = $pid; }
+
+        }
+
+
+
+        return array_values($ids);
+
+    }
+
+
+
     public function get_financial_posting_defaults($quotation_id)
 
     {

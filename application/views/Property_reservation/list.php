@@ -74,6 +74,32 @@
                     </div>
                 </div>
 
+                <!-- Properties replaced on the confirmation page. Retained so the
+                     amount already committed to them stays visible and can be
+                     cancelled and credited. -->
+                <div id="supersededPanel" class="alert alert-secondary border-secondary mb-4" style="display:none;">
+                    <strong><i class="fas fa-exchange-alt me-1"></i> Previously Selected Properties</strong>
+                    <div class="small text-muted mb-2">
+                        The client changed property on the confirmation page. These reservations are kept for cancellation and credit.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0" id="supersededTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Replaced By</th>
+                                    <th>Check In</th>
+                                    <th class="text-end">Reserved Amount</th>
+                                    <th class="text-end">Amount Paid</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Reservation panel (hidden until property selected) -->
                 <div id="reservation_panel" style="display:none;">
 
@@ -513,6 +539,73 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success" onclick="prSavePayment()">Record Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Superseded Property Reservation -->
+<div class="modal fade" id="prCancelReservationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-ban me-1"></i> Cancel Property Reservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning py-2 small mb-3">
+                    The client replaced <strong id="cancelResPropertyName">this property</strong>.
+                    Enter the amount the property is holding for us — it is recorded in Property Credit
+                    Management and can be applied to a future booking with the same property.
+                </div>
+
+                <input type="hidden" id="cancel_res_id" value="">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="pr-info-box">
+                            <div class="lbl">Reserved Amount</div>
+                            <div class="val">INR <span id="cancelResReserved">0.00</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="pr-info-box">
+                            <div class="lbl">Amount Paid</div>
+                            <div class="val">INR <span id="cancelResPaid">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <label class="form-label">Cancellation Amount <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="cancel_res_amount" value="0.00">
+                        <small class="text-muted">Cannot exceed the amount paid. Enter 0 if nothing is recoverable.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cancellation Date <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control datepicker" id="cancel_res_date" placeholder="dd/mm/yyyy" autocomplete="off">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Credit Reference No</label>
+                        <input type="text" class="form-control" id="cancel_res_reference" placeholder="Hotel credit reference">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Credit Expiry Date</label>
+                        <input type="text" class="form-control datepicker" id="cancel_res_expiry" placeholder="dd/mm/yyyy" autocomplete="off">
+                        <small class="text-muted">Leave blank if the credit does not expire.</small>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Reason / Remarks</label>
+                        <textarea class="form-control" id="cancel_res_reason" rows="2" placeholder="Why the reservation was cancelled"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="cancelResSubmitBtn" onclick="submitCancelReservation()">
+                    <i class="fas fa-ban me-1"></i> Cancel Reservation &amp; Record Credit
+                </button>
             </div>
         </div>
     </div>

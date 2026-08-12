@@ -127,6 +127,7 @@
                                     <?php foreach ($day->properties as $property): ?>
                                         <div class="property-option" 
                                              data-day="<?php echo $day->quotation_properties_days_day; ?>" 
+                                             data-day-id="<?php echo $day->quotation_properties_days_id; ?>"
                                              data-property-id="<?php echo $property->quotation_properties_id; ?>"
                                              onclick="selectProperty(event, <?php echo $property->quotation_properties_id; ?>, '<?php echo $day->quotation_properties_days_day; ?>')">
                                             <h6><?php echo $property->properties_name; ?></h6>
@@ -209,6 +210,53 @@
                 event.currentTarget.classList.add('selected');
             }
         }
+
+        // Pre-select the previously confirmed option / properties / rooms on load.
+        const confirmedSelection = <?php echo json_encode($confirmed_selection); ?>;
+
+        function applyConfirmedSelection() {
+            if (!confirmedSelection || !confirmedSelection.option_id) {
+                return;
+            }
+
+            const optionCard = document.querySelector(`.option-card[data-option-id="${confirmedSelection.option_id}"]`);
+            if (!optionCard) {
+                return;
+            }
+
+            selectOption(confirmedSelection.option_id);
+
+            // Pre-select property per day
+            const props = confirmedSelection.properties || {};
+            Object.keys(props).forEach(dayId => {
+                const propertyId = props[dayId];
+                const propEl = optionCard.querySelector(`.property-option[data-day-id="${dayId}"][data-property-id="${propertyId}"]`);
+                if (propEl) {
+                    const day = propEl.getAttribute('data-day');
+                    document.querySelectorAll(`.property-option[data-day="${day}"]`).forEach(p => p.classList.remove('selected'));
+                    propEl.classList.add('selected');
+                    const dayKey = 'day_' + day.replace('Day ', '');
+                    selectedProperties[dayKey] = parseInt(propertyId, 10);
+                }
+            });
+
+            // Pre-select rooms per property
+            const rooms = confirmedSelection.rooms || {};
+            Object.keys(rooms).forEach(propertyId => {
+                (rooms[propertyId] || []).forEach(roomId => {
+                    const roomEl = optionCard.querySelector(`.room-option[data-property-id="${propertyId}"][data-room-id="${roomId}"]`);
+                    if (roomEl) {
+                        roomEl.classList.add('selected');
+                        if (!selectedRooms[propertyId]) {
+                            selectedRooms[propertyId] = [];
+                        }
+                        selectedRooms[propertyId].push(parseInt(roomId, 10));
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', applyConfirmedSelection);
 
         document.getElementById('confirmationForm').addEventListener('submit', function(e) {
             e.preventDefault();

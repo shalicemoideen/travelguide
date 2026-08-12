@@ -32,9 +32,10 @@ class Property_credit_model extends CI_Model {
     public function get_available_credits($properties_id)
     {
         return $this->db
-            ->select('pcl.*, bc.cancellation_number,
+            ->select("pcl.*,
+                      COALESCE(bc.cancellation_number, 'Property Change') AS cancellation_number,
                       q.quotation_number AS original_booking_number,
-                      p.properties_name')
+                      p.properties_name", FALSE)
             ->from($this->table_ledger . ' pcl')
             ->join('booking_cancellation bc',
                    'bc.booking_cancellation_id = pcl.booking_cancellation_id_fk', 'left')
@@ -91,6 +92,23 @@ class Property_credit_model extends CI_Model {
     {
         $this->db->insert($this->table_ledger, $data);
         return $this->db->insert_id();
+    }
+
+    /**
+     * The PROPERTY_CHANGE credit already raised against a superseded
+     * reservation, if any. Backs the duplicate check in
+     * Property_reservation::ajax_cancel_reservation; the
+     * uq_property_change_reservation unique index enforces the same rule
+     * at the database level for concurrent requests.
+     */
+    public function get_credit_for_property_change($property_reservation_id)
+    {
+        return $this->db
+            ->from($this->table_ledger)
+            ->where('property_change_reservation_id_fk', (int)$property_reservation_id)
+            ->where('property_credit_status', 1)
+            ->get()
+            ->row();
     }
 
     public function update_credit($credit_id, $data)
@@ -257,9 +275,10 @@ class Property_credit_model extends CI_Model {
     public function get_credit_history($properties_id)
     {
         return $this->db
-            ->select('pcl.*, bc.cancellation_number,
+            ->select("pcl.*,
+                      COALESCE(bc.cancellation_number, 'Property Change') AS cancellation_number,
                       q.quotation_number AS original_booking_number,
-                      p.properties_name')
+                      p.properties_name", FALSE)
             ->from($this->table_ledger . ' pcl')
             ->join('booking_cancellation bc',
                    'bc.booking_cancellation_id = pcl.booking_cancellation_id_fk', 'left')
@@ -341,10 +360,10 @@ class Property_credit_model extends CI_Model {
     public function getCreditTable($param)
     {
         $this->db
-            ->select('pcl.*, p.properties_name,
-                      bc.cancellation_number,
+            ->select("pcl.*, p.properties_name,
+                      COALESCE(bc.cancellation_number, 'Property Change') AS cancellation_number,
                       q.quotation_number AS original_booking_number,
-                      DATEDIFF(CURDATE(), pcl.created_datetime) AS age_days', FALSE)
+                      DATEDIFF(CURDATE(), pcl.created_datetime) AS age_days", FALSE)
             ->from($this->table_ledger . ' pcl')
             ->join('properties p', 'p.properties_id = pcl.properties_id_fk', 'left')
             ->join('booking_cancellation bc',

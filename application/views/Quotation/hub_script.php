@@ -4997,7 +4997,11 @@ properties_room_id_fk: $(this).data('room-id')
 
 
 
-                message : res.status ? 'Confirmation saved successfully.' : ('Failed to save confirmation. ' + (res.message || '')),
+                // On success the backend reports whether a property change retained
+                // any previous reservation for cancellation, so surface its message.
+                message : res.status
+                          ? (res.message || 'Confirmation saved successfully.')
+                          : ('Failed to save confirmation. ' + (res.message || '')),
 
 
 
@@ -5593,9 +5597,294 @@ $('#tabPropertyReservation').on('shown.bs.tab', function () {
 
 
 
+/* =========================================================
+   PROPERTY CHANGE: reservations retained after a property swap
+   ========================================================= */
+
+var hubSupersededRows = [];
+
+function hubMoney(v) {
+
+    return parseFloat(v || 0).toFixed(2);
+
+}
+
+function hubNotify(style, message) {
+
+    var n = new notify({
+
+        title   : '',
+
+        style   : style,
+
+        message : message,
+
+        icon    : style === 'success' ? 'fas fa-check' : 'fas fa-times'
+
+    });
+
+    n.show(); setTimeout(function () { n.hide(); }, 4000);
+
+}
+
+/**
+ * Properties the client replaced on the confirmation page.
+ *
+ * These are loaded separately from the status table above, which is driven by
+ * the active confirmation and therefore no longer includes them. The status
+ * counts and the reconfirmed-equals-total completion gate are deliberately
+ * left untouched, so a retained property can never block Reservation Complete.
+ */
+
+function loadHubSupersededReservations(quotation_id)
+
+{
+
+    hubSupersededRows = [];
+
+    $('#hubSupersededTable tbody').empty();
+
+    $('#hubSupersededPanel').hide();
+
+    if (!quotation_id) return;
+
+    $.ajax({
+
+        url: "<?php echo base_url(); ?>index.php/property_reservation/ajax_get_superseded_reservations",
+
+        type: "POST",
+
+        dataType: "json",
+
+        data: { quotation_id: quotation_id },
+
+        success: function (res) {
+
+            if (!res.status || !res.rows || res.rows.length === 0) return;
+
+            hubSupersededRows = res.rows;
+
+            var html = '';
+
+            res.rows.forEach(function (r, idx) {
+
+                var cancelled = (r.reservation_state === 'CANCELLED');
+
+                var credit    = r.property_credit;
+
+                var statusCell = cancelled
+
+                    ? '<span class="badge bg-danger">CANCELLED</span>'
+
+                    : '<span class="badge bg-warning text-dark">REPLACED</span>';
+
+                var actionCell;
+
+                if (cancelled) {
+
+                    actionCell = credit
+
+                        ? '<span class="badge bg-success">Credit ' + hubMoney(credit.credit_amount) + '</span>'
+
+                        : '<span class="text-muted small">No credit</span>';
+
+                } else if (res.can_cancel) {
+
+                    actionCell = '<button type="button" class="btn btn-sm btn-outline-danger" onclick="hubOpenCancelReservationModal(' + idx + ')">'
+
+                               + '<i class="fas fa-ban me-1"></i> Cancel Reservation</button>';
+
+                } else {
+
+                    actionCell = '<span class="text-muted small">-</span>';
+
+                }
+
+                html += '<tr>'
+
+                     +  '<td>' + (r.properties_name || '-') + '</td>'
+
+                     +  '<td>' + (r.superseded_by_property_name || '<span class="text-muted">-</span>') + '</td>'
+
+                     +  '<td>' + (r.check_in_date || '-') + '</td>'
+
+                     +  '<td class="text-end">' + hubMoney(r.snap_reservation_amount) + '</td>'
+
+                     +  '<td class="text-end">' + hubMoney(r.snap_paid_amount) + '</td>'
+
+                     +  '<td>' + statusCell + '</td>'
+
+                     +  '<td class="text-center">' + actionCell + '</td>'
+
+                     +  '</tr>';
+
+            });
+
+            $('#hubSupersededTable tbody').html(html);
+
+            $('#hubSupersededPanel').show();
+
+        }
+
+    });
+
+}
+
+function hubOpenCancelReservationModal(idx)
+
+{
+
+    var r = hubSupersededRows[idx];
+
+    if (!r) return;
+
+    $('#hub_cancel_res_id').val(r.property_reservation_id);
+
+    $('#hubCancelResPropertyName').text(r.properties_name || 'this property');
+
+    $('#hubCancelResReserved').text(hubMoney(r.snap_reservation_amount));
+
+    $('#hubCancelResPaid').text(hubMoney(r.snap_paid_amount));
+
+    // Default to the full amount the property is holding; staff can reduce it.
+
+    $('#hub_cancel_res_amount').val(hubMoney(r.snap_paid_amount)).attr('max', hubMoney(r.snap_paid_amount));
+
+    $('#hub_cancel_res_reference').val('');
+
+    $('#hub_cancel_res_reason').val('');
+
+    $('#hub_cancel_res_expiry').val('');
+
+    var today = new Date();
+
+    var dd = ('0' + today.getDate()).slice(-2);
+
+    var mm = ('0' + (today.getMonth() + 1)).slice(-2);
+
+    $('#hub_cancel_res_date').val(dd + '/' + mm + '/' + today.getFullYear());
+
+    $('#hub_cancel_res_date, #hub_cancel_res_expiry').each(function () {
+
+        if (!$(this).data('datepicker')) {
+
+            $(this).datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true });
+
+        }
+
+    });
+
+    $('#hubCancelResSubmitBtn').prop('disabled', false);
+
+    $('#hubCancelReservationModal').modal('show');
+
+}
+
+function hubSubmitCancelReservation()
+
+{
+
+    var reservation_id = $('#hub_cancel_res_id').val();
+
+    var amount         = parseFloat($('#hub_cancel_res_amount').val() || 0);
+
+    var date           = $('#hub_cancel_res_date').val();
+
+    var paid           = parseFloat($('#hubCancelResPaid').text() || 0);
+
+    if (!reservation_id) return;
+
+    if (isNaN(amount) || amount < 0) {
+
+        hubNotify('error', 'Enter a valid cancellation amount.');
+
+        return;
+
+    }
+
+    if (amount > paid + 0.009) {
+
+        hubNotify('error', 'Cancellation amount cannot exceed the amount paid (' + hubMoney(paid) + ').');
+
+        return;
+
+    }
+
+    if (!date) {
+
+        hubNotify('error', 'Cancellation date is required.');
+
+        return;
+
+    }
+
+    if (!confirm('Cancel this reservation and record a credit of ' + hubMoney(amount) + '?')) return;
+
+    // Guard against a double submit creating a second credit.
+
+    $('#hubCancelResSubmitBtn').prop('disabled', true);
+
+    $.ajax({
+
+        url: "<?php echo base_url(); ?>index.php/property_reservation/ajax_cancel_reservation",
+
+        type: "POST",
+
+        dataType: "json",
+
+        data: {
+
+            property_reservation_id: reservation_id,
+
+            cancellation_amount    : amount,
+
+            cancellation_date      : date,
+
+            cancellation_reason    : $('#hub_cancel_res_reason').val(),
+
+            reference_number       : $('#hub_cancel_res_reference').val(),
+
+            credit_expiry_date     : $('#hub_cancel_res_expiry').val()
+
+        },
+
+        success: function (res) {
+
+            if (!res.status) {
+
+                hubNotify('error', res.message || 'Could not cancel the reservation');
+
+                $('#hubCancelResSubmitBtn').prop('disabled', false);
+
+                return;
+
+            }
+
+            hubNotify('success', res.message);
+
+            $('#hubCancelReservationModal').modal('hide');
+
+            loadPropertyStatus($('#quotation_id').val());
+
+        },
+
+        error: function () {
+
+            hubNotify('error', 'An error occurred. Please try again.');
+
+            $('#hubCancelResSubmitBtn').prop('disabled', false);
+
+        }
+
+    });
+
+}
+
 function loadPropertyStatus(quotation_id)
 
 {
+
+    loadHubSupersededReservations(quotation_id);
 
     $('#propertyStatusTable').html(`
 

@@ -40,9 +40,43 @@ class Client_confirmation extends MY_Controller {
 			);
 		}
 
+		// Previously confirmed selection (option / property per day / rooms) so the
+		// page can pre-select them on load, even after a hub edit re-pointed the IDs.
+		$confirmed_rows = $this->db
+			->select('option_id_fk, properties_day_id_fk, properties_id_fk, properties_room_id_fk')
+			->from('quotation_confirmation')
+			->where('quotation_id_fk', $confirmation->quotation_id_fk)
+			->where('property_confirmation_status', 1)
+			->get()
+			->result_array();
+
+		$confirmed_selection = array(
+			'option_id'   => 0,
+			'properties'  => array(), // properties_day_id_fk => properties_id_fk
+			'rooms'       => array()  // properties_id_fk => [properties_room_id_fk, ...]
+		);
+		foreach ($confirmed_rows as $cr) {
+			if (!$confirmed_selection['option_id'] && !empty($cr['option_id_fk'])) {
+				$confirmed_selection['option_id'] = (int)$cr['option_id_fk'];
+			}
+			$day_id  = (int)$cr['properties_day_id_fk'];
+			$prop_id = (int)$cr['properties_id_fk'];
+			$room_id = (int)$cr['properties_room_id_fk'];
+			if ($day_id && $prop_id) {
+				$confirmed_selection['properties'][$day_id] = $prop_id;
+			}
+			if ($prop_id && $room_id) {
+				if (!isset($confirmed_selection['rooms'][$prop_id])) {
+					$confirmed_selection['rooms'][$prop_id] = array();
+				}
+				$confirmed_selection['rooms'][$prop_id][] = $room_id;
+			}
+		}
+
 		$data['confirmation'] = $confirmation;
 		$data['quotation'] = $quotation;
 		$data['options'] = $options;
+		$data['confirmed_selection'] = $confirmed_selection;
 
 		$this->load->view('Client_confirmation/client_view', $data);
 	}

@@ -855,11 +855,15 @@ public function client_confirmation_preview($quotation_id)
 
 		$has_new = false;
 
+		$posted_qp_ids = array();
+
 		foreach ($rows as $row) {
 
 			$conf_id = isset($row['confirmation_id']) ? (int)$row['confirmation_id'] : 0;
 
 			if (!$conf_id) $has_new = true;
+
+			$posted_qp_ids[] = (int)$row['properties_id_fk'];
 
 			$insert_data[] = array(
 
@@ -882,8 +886,38 @@ public function client_confirmation_preview($quotation_id)
 				'property_confirmation_status'=> 1,
 
 			);
-// print_r($insert_data);die;
+
 		}
+
+
+
+		/* Which real hotels is the client moving from, and to?
+		   quotation_confirmation.properties_id_fk holds a quotation_properties_id,
+		   so both sides have to be resolved to properties.properties_id before
+		   they can be compared — a different quotation_properties row can still
+		   point at the same hotel. */
+
+		$old_property_ids = $this->Quotation_model->get_confirmed_property_ids($quotation_id);
+
+		$new_property_ids = $this->Quotation_model->resolve_real_property_ids($posted_qp_ids);
+
+
+
+		$dropped_ids = array_values(array_diff($old_property_ids, $new_property_ids));
+
+		$added_ids   = array_values(array_diff($new_property_ids, $old_property_ids));
+
+
+
+		$this->db->trans_begin();
+
+
+
+		/* Retire the reservations of dropped properties BEFORE the confirmation
+		   rows are rewritten: the snapshot amounts are derived from the rows
+		   that are about to be deactivated. */
+
+		$superseded = $this->_supersede_dropped_reservations($quotation_id, $dropped_ids, $added_ids);
 
 
 
@@ -919,7 +953,174 @@ public function client_confirmation_preview($quotation_id)
 
 
 
-		echo json_encode(array('status' => true));
+		/* A property swapped back in gets its retained reservation revived,
+		   unless it was already cancelled and credited. */
+
+		$restored = $this->_restore_returning_reservations($quotation_id, $added_ids);
+
+
+
+		/* Keep the client payment schedule aligned with the quotation, exactly
+		   as the hub edit does. This is a no-op unless the confirmed option
+		   changed: the client price is the option quote rate plus inclusions
+		   and special requirements, not a function of the room selection. */
+
+		$this->load->model('Receipt_scheduler_model');
+
+		$this->Receipt_scheduler_model->sync_total_amount($quotation_id);
+
+
+
+		if ($this->db->trans_status() === FALSE) {
+
+			$this->db->trans_rollback();
+
+			echo json_encode(array('status' => false, 'message' => 'Could not save the confirmation.'));
+
+			return;
+
+		}
+
+
+
+		$this->db->trans_commit();
+
+
+
+		$message = 'Confirmation saved.';
+
+		if (!empty($superseded)) {
+
+			$message .= ' ' . count($superseded) . ' previous property reservation(s) retained for cancellation.';
+
+		}
+
+
+
+		echo json_encode(array(
+
+			'status'            => true,
+
+			'message'           => $message,
+
+			'property_changed'  => !empty($dropped_ids) || !empty($added_ids),
+
+			'superseded'        => $superseded,
+
+			'restored'          => $restored,
+
+		));
+
+	}
+
+
+
+	/**
+	 * Retain the reservation of every hotel the client just dropped.
+	 *
+	 * Nothing is deleted: the reservation moves to SUPERSEDED with its amounts
+	 * snapshotted, so the money already committed to that hotel stays visible
+	 * on the Property Reservation page and can be cancelled and credited there.
+	 * A dropped hotel with no reservation at all needs no action.
+	 *
+	 * @return array rows describing what was retained, for the UI
+	 */
+
+	private function _supersede_dropped_reservations($quotation_id, $dropped_ids, $added_ids)
+
+	{
+
+		if (empty($dropped_ids)) { return array(); }
+
+
+
+		$this->load->model('Property_reservation_model');
+
+
+
+		// Only attribute a replacement when the swap is unambiguous.
+
+		$replaced_by = (count($dropped_ids) === 1 && count($added_ids) === 1) ? (int)$added_ids[0] : null;
+
+
+
+		$result = array();
+
+		foreach ($dropped_ids as $properties_id) {
+
+			$reservation = $this->Property_reservation_model->get_reservation($quotation_id, $properties_id);
+
+			if (!$reservation) { continue; }
+
+
+
+			if (!$this->Property_reservation_model->supersede_reservation($reservation, $quotation_id, $replaced_by)) {
+
+				continue; // already SUPERSEDED or CANCELLED — leave the original snapshot intact
+
+			}
+
+
+
+			$result[] = array(
+
+				'property_reservation_id' => (int)$reservation->property_reservation_id,
+
+				'properties_id'           => (int)$properties_id,
+
+				'paid_amount'             => $this->Property_reservation_model->get_paid_total($reservation->property_reservation_id),
+
+			);
+
+		}
+
+
+
+		return $result;
+
+	}
+
+
+
+	/**
+	 * Revive the retained reservation of a hotel the client swapped back in,
+	 * so an A -> B -> A round trip reuses the original reservation instead of
+	 * creating a duplicate. Cancelled reservations stay closed.
+	 */
+
+	private function _restore_returning_reservations($quotation_id, $added_ids)
+
+	{
+
+		if (empty($added_ids)) { return array(); }
+
+
+
+		$this->load->model('Property_reservation_model');
+
+
+
+		$result = array();
+
+		foreach ($added_ids as $properties_id) {
+
+			$reservation = $this->Property_reservation_model->get_reservation($quotation_id, $properties_id);
+
+			if (!$reservation) { continue; }
+
+
+
+			if ($this->Property_reservation_model->restore_reservation($reservation)) {
+
+				$result[] = (int)$reservation->property_reservation_id;
+
+			}
+
+		}
+
+
+
+		return $result;
 
 	}
 
@@ -9221,8 +9422,23 @@ public function ajax_delete()
 				->get()
 				->row_array();
 
+			$oldConfirmations = array();
+			$oldTariffMap = array();
 			if ($confirmed && !empty($confirmed['option_id_fk'])) {
 				$confirmed_option_id = (int)$confirmed['option_id_fk'];
+
+				// Capture existing confirmation rows (with package-level IDs) so we can
+				// re-point them to the newly inserted option/day/property/room IDs later.
+				$oldConfirmations = $this->db
+					->select('qc.id, qc.properties_day_id_fk, qc.properties_id_fk, qc.properties_room_id_fk, qpd.packages_properties_days_id_fk AS pkg_day_id, qp.packages_properties_id_fk AS pkg_prop_id, qpr.packages_properties_rooms_id_fk AS pkg_room_id')
+					->from('quotation_confirmation qc')
+					->join($this->quotation_properties_days . ' qpd', 'qpd.quotation_properties_days_id = qc.properties_day_id_fk', 'left')
+					->join($this->quotation_properties . ' qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'left')
+					->join($this->quotation_properties_rooms . ' qpr', 'qpr.quotation_properties_rooms_id = qc.properties_room_id_fk', 'left')
+					->where('qc.quotation_id_fk', $quotation_id)
+					->where('qc.property_confirmation_status', 1)
+					->get()
+					->result_array();
 
 				// Get old days for this option
 				$oldDays = $this->db
@@ -9271,6 +9487,24 @@ public function ajax_delete()
 					}
 				}
 
+				// Capture existing tariff rows keyed by room category (packages_properties_rooms_id_fk)
+				// so rooms that are not recalculated during the edit keep their previous rates.
+				if (!empty($oldRoomIds)) {
+					$oldTariffs = $this->db
+						->select('qrtd.*, qpr.packages_properties_rooms_id_fk AS pkg_room_id')
+						->from('quotation_room_tariff_details qrtd')
+						->join($this->quotation_properties_rooms . ' qpr', 'qpr.quotation_properties_rooms_id = qrtd.quotation_properties_rooms_id_fk', 'inner')
+						->where_in('qrtd.quotation_properties_rooms_id_fk', $oldRoomIds)
+						->where('qrtd.quotation_room_tariff_details_status', 1)
+						->order_by('qrtd.quotation_room_tariff_details_id', 'ASC')
+						->get()
+						->result_array();
+
+					foreach ($oldTariffs as $ot) {
+						$oldTariffMap[(int)$ot['pkg_room_id']] = $ot;
+					}
+				}
+
 				// Disable old rooms
 				if (!empty($oldPropertyIds)) {
 					$this->db->where_in('quotation_properties_id_fk', $oldPropertyIds);
@@ -9311,6 +9545,9 @@ public function ajax_delete()
 			/* ================= INSERT UPDATED CONFIRMED OPTION ================= */
 
 			$optionUidMap = array();
+			$dayPkgMap = array();
+			$propPkgMap = array();
+			$roomPkgMap = array();
 
 			if (!empty($payload['options']) && is_array($payload['options'])) {
 
@@ -9369,6 +9606,11 @@ public function ajax_delete()
 								throw new Exception('Day insert failed');
 							}
 
+							$pkg_day_fk = isset($day['packages_properties_days_id_fk']) ? (int)$day['packages_properties_days_id_fk'] : 0;
+							if ($pkg_day_fk > 0) {
+								$dayPkgMap[$pkg_day_fk] = (int)$day_id;
+							}
+
 							if (!empty($day['properties']) && is_array($day['properties'])) {
 
 								foreach ($day['properties'] as $property) {
@@ -9385,6 +9627,11 @@ public function ajax_delete()
 
 									if (!$property_id) {
 										throw new Exception('Property insert failed');
+									}
+
+									$pkg_prop_fk = isset($property['packages_properties_id_fk']) ? (int)$property['packages_properties_id_fk'] : 0;
+									if ($pkg_prop_fk > 0) {
+										$propPkgMap[$pkg_prop_fk] = (int)$property_id;
 									}
 
 									if (!empty($property['rooms']) && is_array($property['rooms'])) {
@@ -9404,6 +9651,11 @@ public function ajax_delete()
 
 											if (!$quotation_properties_room_id) {
 												throw new Exception('Room insert failed');
+											}
+
+											$pkg_room_fk = isset($room['packages_properties_rooms_id_fk']) ? (int)$room['packages_properties_rooms_id_fk'] : 0;
+											if ($pkg_room_fk > 0) {
+												$roomPkgMap[$pkg_room_fk] = (int)$quotation_properties_room_id;
 											}
 
 											// Insert tariff data if available in payload
@@ -9461,6 +9713,16 @@ public function ajax_delete()
 													'quotation_room_tariff_details_status' => 1
 												);
 												$this->db->insert('quotation_room_tariff_details', $tariff_insert);
+											} elseif ($pkg_room_fk > 0 && isset($oldTariffMap[$pkg_room_fk])) {
+												// Room was not recalculated during the edit: carry the
+												// previous tariff forward by cloning it onto the new room row.
+												$clone = $oldTariffMap[$pkg_room_fk];
+												unset($clone['quotation_room_tariff_details_id']);
+												unset($clone['pkg_room_id']);
+												$clone['quotation_id_fk'] = $quotation_id;
+												$clone['quotation_properties_rooms_id_fk'] = $quotation_properties_room_id;
+												$clone['quotation_room_tariff_details_status'] = 1;
+												$this->db->insert('quotation_room_tariff_details', $clone);
 											}
 										}
 									}
@@ -9468,6 +9730,31 @@ public function ajax_delete()
 							}
 						}
 					}
+				}
+			}
+
+			/* ================= RE-POINT CLIENT CONFIRMATION TO NEW IDs ================= */
+			if (!empty($oldConfirmations) && !empty($optionUidMap)) {
+				$new_option_id = reset($optionUidMap);
+				foreach ($oldConfirmations as $oc) {
+					$update_conf = array('option_id_fk' => $new_option_id);
+
+					$pkg_day  = (int)$oc['pkg_day_id'];
+					$pkg_prop = (int)$oc['pkg_prop_id'];
+					$pkg_room = (int)$oc['pkg_room_id'];
+
+					if ($pkg_day > 0 && isset($dayPkgMap[$pkg_day])) {
+						$update_conf['properties_day_id_fk'] = $dayPkgMap[$pkg_day];
+					}
+					if ($pkg_prop > 0 && isset($propPkgMap[$pkg_prop])) {
+						$update_conf['properties_id_fk'] = $propPkgMap[$pkg_prop];
+					}
+					if ($pkg_room > 0 && isset($roomPkgMap[$pkg_room])) {
+						$update_conf['properties_room_id_fk'] = $roomPkgMap[$pkg_room];
+					}
+
+					$this->db->where('id', (int)$oc['id']);
+					$this->db->update('quotation_confirmation', $update_conf);
 				}
 			}
 

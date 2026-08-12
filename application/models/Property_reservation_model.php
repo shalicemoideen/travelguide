@@ -127,6 +127,14 @@ class Property_reservation_model extends CI_Model {
     // RESERVATION load / seed
     // =========================================================
 
+    /**
+     * The live reservation for a property on a booking.
+     *
+     * CANCELLED rows are skipped: once a reservation has been cancelled and
+     * credited, it is closed history. If the client later swaps that property
+     * back in, the caller creates a fresh reservation rather than reopening a
+     * settled one — the cancelled row stays visible in the superseded list.
+     */
     public function get_reservation($quotation_id, $properties_id)
     {
         return $this->db
@@ -134,6 +142,9 @@ class Property_reservation_model extends CI_Model {
             ->where('quotation_id_fk', (int)$quotation_id)
             ->where('properties_id_fk', (int)$properties_id)
             ->where('property_reservation_status', 1)
+            ->where('reservation_state !=', 'CANCELLED')
+            ->order_by('property_reservation_id', 'DESC')
+            ->limit(1)
             ->get()
             ->row();
     }
@@ -161,6 +172,116 @@ class Property_reservation_model extends CI_Model {
         $this->db->where('property_reservation_id', (int)$id);
         $this->db->update($this->table, $data);
         return $this->db->affected_rows();
+    }
+
+    // =========================================================
+    // PROPERTY CHANGE: supersede / restore / cancel
+    // =========================================================
+
+    /**
+     * Total already paid to a property across every installment of its
+     * scheduler. Reads the installment roll-up rather than the append-only
+     * payment rows so it matches what the reservation view displays.
+     */
+    public function get_paid_total($property_reservation_id)
+    {
+        $payment = $this->get_payment_by_reservation($property_reservation_id);
+        if (!$payment) { return 0.0; }
+
+        $row = $this->db
+            ->select('COALESCE(SUM(paid_amount), 0) AS paid', FALSE)
+            ->from($this->table_installments)
+            ->where('property_payment_scheduler_id_fk', (int)$payment->property_payment_scheduler_id)
+            ->where('installment_status', 1)
+            ->get()
+            ->row();
+
+        return $row ? (float)$row->paid : 0.0;
+    }
+
+    /**
+     * Mark a reservation as superseded because the client swapped this
+     * property out on the confirmation page.
+     *
+     * The amounts must be snapshotted here: they are derived from
+     * quotation_confirmation rows that the caller is about to deactivate,
+     * after which get_property_total_amount() would return 0.
+     *
+     * Idempotent — a reservation that is already SUPERSEDED or CANCELLED is
+     * left untouched so repeated saves never overwrite the original snapshot.
+     */
+    public function supersede_reservation($reservation, $quotation_id, $replaced_by_properties_id = null)
+    {
+        if (!$reservation || $reservation->reservation_state !== 'ACTIVE') {
+            return false;
+        }
+
+        $reservation_id = (int)$reservation->property_reservation_id;
+
+        return $this->update_reservation($reservation_id, array(
+            'reservation_state'              => 'SUPERSEDED',
+            'snap_reservation_amount'        => round($this->get_property_total_amount(
+                                                    $quotation_id,
+                                                    (int)$reservation->properties_id_fk
+                                                ), 2),
+            'snap_paid_amount'               => round($this->get_paid_total($reservation_id), 2),
+            'superseded_by_properties_id_fk' => $replaced_by_properties_id > 0 ? (int)$replaced_by_properties_id : null,
+            'superseded_datetime'            => date('Y-m-d H:i:s'),
+        ));
+    }
+
+    /**
+     * The client swapped a previously dropped property back in. Only a
+     * SUPERSEDED reservation is revived — once CANCELLED, a credit has been
+     * issued against it and the row must stay closed.
+     */
+    public function restore_reservation($reservation)
+    {
+        if (!$reservation || $reservation->reservation_state !== 'SUPERSEDED') {
+            return false;
+        }
+
+        return $this->update_reservation($reservation->property_reservation_id, array(
+            'reservation_state'              => 'ACTIVE',
+            'snap_reservation_amount'        => null,
+            'snap_paid_amount'               => null,
+            'superseded_by_properties_id_fk' => null,
+            'superseded_datetime'            => null,
+        ));
+    }
+
+    /**
+     * Reservations retained for audit after a property change: the ones the
+     * Property Reservation page must keep showing with a cancel action.
+     */
+    public function get_superseded_reservations($quotation_id)
+    {
+        $rows = $this->db
+            ->select('pr.*, p.properties_name, np.properties_name AS superseded_by_property_name')
+            ->from('property_reservation pr')
+            ->join('properties p', 'p.properties_id = pr.properties_id_fk', 'left')
+            ->join('properties np', 'np.properties_id = pr.superseded_by_properties_id_fk', 'left')
+            ->where('pr.quotation_id_fk', (int)$quotation_id)
+            ->where('pr.property_reservation_status', 1)
+            ->where_in('pr.reservation_state', array('SUPERSEDED', 'CANCELLED'))
+            ->order_by('pr.check_in_date', 'ASC')
+            ->get()
+            ->result();
+
+        foreach ($rows as $r) {
+            // Snapshots are written when the property is superseded; fall back
+            // to the live figures for rows predating this migration.
+            if ($r->snap_reservation_amount === null) {
+                $r->snap_reservation_amount = $this->get_property_total_amount(
+                    $quotation_id, (int)$r->properties_id_fk
+                );
+            }
+            if ($r->snap_paid_amount === null) {
+                $r->snap_paid_amount = $this->get_paid_total($r->property_reservation_id);
+            }
+        }
+
+        return $rows;
     }
 
     // =========================================================
