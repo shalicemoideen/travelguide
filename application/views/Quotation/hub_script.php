@@ -5688,6 +5688,13 @@ function loadHubSupersededReservations(quotation_id)
 
                         : '<span class="text-muted small">No credit</span>';
 
+                } else if (!r.is_cancellable) {
+
+                    // Nothing was paid to this property, so there is nothing to
+                    // recover — the row is kept purely as change history.
+
+                    actionCell = '<span class="text-muted small"><i class="fas fa-history me-1"></i>History only</span>';
+
                 } else if (res.can_cancel) {
 
                     actionCell = '<button type="button" class="btn btn-sm btn-outline-danger" onclick="hubOpenCancelReservationModal(' + idx + ')">'

@@ -971,6 +971,16 @@ public function client_confirmation_preview($quotation_id)
 
 
 
+		/* A changed room selection moves the supplier amount even when the
+		   property stays the same, so realign the property schedules too.
+		   Superseded and cancelled reservations are skipped by the sync. */
+
+		$this->load->model('Property_reservation_model');
+
+		$this->Property_reservation_model->sync_property_scheduler_totals($quotation_id);
+
+
+
 		if ($this->db->trans_status() === FALSE) {
 
 			$this->db->trans_rollback();
@@ -9863,6 +9873,13 @@ public function ajax_delete()
 
 			$this->load->model('Receipt_scheduler_model');
 			$this->Receipt_scheduler_model->sync_total_amount($quotation_id);
+
+			/* The supplier schedule stores its total as a snapshot taken at
+			   Level 2 confirmation, so a reschedule would otherwise leave the
+			   property payment scheduler, its installments and the derived
+			   pending figure on the old amount. */
+			$this->load->model('Property_reservation_model');
+			$this->Property_reservation_model->sync_property_scheduler_totals($quotation_id);
 
 			$this->db->trans_commit();
 

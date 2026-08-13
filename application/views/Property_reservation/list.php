@@ -80,7 +80,7 @@
                 <div id="supersededPanel" class="alert alert-secondary border-secondary mb-4" style="display:none;">
                     <strong><i class="fas fa-exchange-alt me-1"></i> Previously Selected Properties</strong>
                     <div class="small text-muted mb-2">
-                        The client changed property on the confirmation page. These reservations are kept for cancellation and credit.
+                        The client changed property on the confirmation page. Cancellation is offered only where an amount was already paid; the rest are kept as history.
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered align-middle mb-0" id="supersededTable">

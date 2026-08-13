@@ -250,6 +250,171 @@ class Property_reservation_model extends CI_Model {
         ));
     }
 
+    // =========================================================
+    // PROPERTY SCHEDULER SYNC
+    // =========================================================
+
+    /**
+     * Realign every active property payment scheduler on a booking with the
+     * current property amount.
+     *
+     * The supplier schedule stores its total as a snapshot taken when Level 2
+     * confirmation was saved, so a later reschedule or room change left the
+     * scheduler, its installments and the derived pending figure showing the
+     * old amount. This is the property-side counterpart of
+     * Receipt_scheduler_model::sync_total_amount().
+     *
+     * SUPERSEDED and CANCELLED reservations are skipped — their amounts are
+     * historical snapshots and must not move.
+     *
+     * @return array one entry per scheduler that actually changed
+     */
+    public function sync_property_scheduler_totals($quotation_id)
+    {
+        $quotation_id = (int)$quotation_id;
+
+        $reservations = $this->db
+            ->from($this->table)
+            ->where('quotation_id_fk', $quotation_id)
+            ->where('property_reservation_status', 1)
+            ->where('reservation_state', 'ACTIVE')
+            ->get()
+            ->result();
+
+        $changed = array();
+
+        foreach ($reservations as $reservation) {
+            $payment = $this->get_payment_by_reservation($reservation->property_reservation_id);
+            if (!$payment) { continue; }
+
+            $new_total = round(
+                $this->get_property_total_amount($quotation_id, (int)$reservation->properties_id_fk), 2
+            );
+
+            // A zero total means the confirmed rooms could not be resolved.
+            // Never wipe a real schedule on the strength of that.
+            if ($new_total <= 0) { continue; }
+
+            if (abs($new_total - (float)$payment->total_amount) < 0.01) { continue; }
+
+            $discount        = (float)$payment->discount_amount;
+            $new_discounted  = round(max(0, $new_total - $discount), 2);
+
+            $this->update_payment($payment->property_payment_scheduler_id, array(
+                'total_amount'     => $new_total,
+                'discounted_total' => $new_discounted,
+            ));
+
+            $this->_redistribute_installments($payment, $new_discounted);
+
+            $changed[] = array(
+                'property_reservation_id' => (int)$reservation->property_reservation_id,
+                'properties_id'           => (int)$reservation->properties_id_fk,
+                'old_total'               => (float)$payment->total_amount,
+                'new_total'               => $new_total,
+            );
+        }
+
+        return $changed;
+    }
+
+    /**
+     * Spread a revised net total across a scheduler's active installments.
+     *
+     * Rules:
+     *   * An installment is never reduced below what has already been paid.
+     *   * Installments that carry a payment keep their current amount, so
+     *     settled history is not rewritten.
+     *   * The difference is spread proportionally across the fully unpaid
+     *     installments; if there are none (e.g. a FULL payment whose single
+     *     installment is partly paid), the last installment absorbs it.
+     */
+    private function _redistribute_installments($payment, $new_net_total)
+    {
+        $installments = $this->get_installments($payment->property_payment_scheduler_id);
+        if (empty($installments)) { return; }
+
+        $unpaid   = array();
+        $reserved = 0.0;
+
+        foreach ($installments as $inst) {
+            if ((float)$inst->paid_amount > 0) {
+                $reserved += (float)$inst->calculated_amount;
+            } else {
+                $unpaid[] = $inst;
+            }
+        }
+
+        if (!empty($unpaid)) {
+            $remaining   = max(0, $new_net_total - $reserved);
+            $unpaid_base = 0.0;
+            foreach ($unpaid as $inst) { $unpaid_base += (float)$inst->calculated_amount; }
+
+            $count   = count($unpaid);
+            $running = 0.0;
+
+            for ($i = 0; $i < $count; $i++) {
+                $inst = $unpaid[$i];
+
+                if ($i < $count - 1) {
+                    $share = $unpaid_base > 0
+                        ? round($remaining * ((float)$inst->calculated_amount / $unpaid_base), 2)
+                        : round($remaining / $count, 2);
+                    $running += $share;
+                } else {
+                    // Last unpaid installment absorbs any rounding remainder.
+                    $share = round($remaining - $running, 2);
+                }
+
+                $this->_write_installment_amount($inst, $share, $payment, $new_net_total);
+            }
+
+            return;
+        }
+
+        /* Every installment carries a payment — typically a FULL schedule with
+           one partly-paid row. Put the whole revised total on the last one,
+           floored at what has already been paid. */
+        $last     = $installments[count($installments) - 1];
+        $others   = 0.0;
+        for ($i = 0; $i < count($installments) - 1; $i++) {
+            $others += (float)$installments[$i]->calculated_amount;
+        }
+
+        $this->_write_installment_amount($last, $new_net_total - $others, $payment, $new_net_total);
+    }
+
+    /**
+     * Write a recalculated amount onto an installment, never dropping below
+     * the amount already paid, and refresh its payment status.
+     */
+    private function _write_installment_amount($installment, $amount, $payment, $new_net_total)
+    {
+        $paid   = (float)$installment->paid_amount;
+        $amount = round(max($amount, $paid), 2);
+
+        if ($paid <= 0) {
+            $status = 'PENDING';
+        } elseif ($paid >= $amount) {
+            $status = 'PAID';
+        } else {
+            $status = 'PARTIAL';
+        }
+
+        $update = array(
+            'installment_amount' => $amount,
+            'calculated_amount'  => $amount,
+            'payment_status'     => $status,
+        );
+
+        // Keep the percentage meaningful when the schedule splits by percentage.
+        if ($payment->payment_type == 'EMI' && $payment->split_type == 'PERCENTAGE' && $new_net_total > 0) {
+            $update['installment_percentage'] = round(($amount / $new_net_total) * 100, 2);
+        }
+
+        $this->update_installment($installment->installment_id, $update);
+    }
+
     /**
      * Reservations retained for audit after a property change: the ones the
      * Property Reservation page must keep showing with a cancel action.
@@ -279,6 +444,12 @@ class Property_reservation_model extends CI_Model {
             if ($r->snap_paid_amount === null) {
                 $r->snap_paid_amount = $this->get_paid_total($r->property_reservation_id);
             }
+
+            /* Every replaced property is listed so the change history stays
+               visible, but cancellation only applies where money was actually
+               paid — otherwise the hotel holds nothing and there is no credit
+               to raise. The UI uses this to decide whether to offer the action. */
+            $r->is_cancellable = ((float)$r->snap_paid_amount > 0);
         }
 
         return $rows;

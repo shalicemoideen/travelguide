@@ -947,7 +947,7 @@
 
                                                             <div class="small text-muted mb-2">
 
-                                                                The property was changed on the client confirmation. These reservations are retained for cancellation and credit.
+                                                                The property was changed on the client confirmation. Cancellation is offered only where an amount was already paid; the rest are kept as history.
 
                                                             </div>
 

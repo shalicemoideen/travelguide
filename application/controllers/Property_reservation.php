@@ -813,15 +813,26 @@ class Property_reservation extends MY_Controller {
             return;
         }
 
-        $errors = array();
-        if ($cancellation_amount < 0)  { $errors[] = 'Cancellation amount cannot be negative'; }
-        if (!$cancellation_date)       { $errors[] = 'Valid cancellation date is required'; }
-
         /* The recoverable amount cannot exceed what was actually paid to the
            property — the credit has to be money the property is holding. */
         $paid = $reservation->snap_paid_amount !== null
             ? (float)$reservation->snap_paid_amount
             : $this->Property_reservation_model->get_paid_total($reservation_id);
+
+        /* Nothing was paid, so the property holds nothing for us. Such
+           reservations are not offered for cancellation in the UI; reject a
+           direct call too rather than creating a meaningless zero credit. */
+        if ($paid <= 0) {
+            echo json_encode(array(
+                'status'  => false,
+                'message' => 'No amount has been paid to this property, so there is nothing to cancel or credit'
+            ));
+            return;
+        }
+
+        $errors = array();
+        if ($cancellation_amount < 0)  { $errors[] = 'Cancellation amount cannot be negative'; }
+        if (!$cancellation_date)       { $errors[] = 'Valid cancellation date is required'; }
 
         if ($cancellation_amount > $paid + 0.009) {
             $errors[] = 'Cancellation amount cannot exceed the amount paid to this property ('
