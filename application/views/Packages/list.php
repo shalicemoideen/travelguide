@@ -421,11 +421,29 @@
 
                                     <div id="last_cover_preview" style="margin-top:8px;"></div>
 
-                                </div>                               
+                                </div>                               </div>
+
+                            <!-- Drag from other Template -->
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-3">
+                                    <label class="form-label"><b>Filter by Template Category</b></label>
+                                    <select id="drag_package_category" class="form-control">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><b>Drag from other Template</b></label>
+                                    <select id="drag_package_select" class="form-control">
+                                        <option value="">Select Template to load days</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-info w-100" id="btnLoadDragPackage" onclick="loadDragPackageDays()">
+                                        Load Template Days
+                                    </button>
+                                </div>
                             </div>
 
-                            
-                            
                             <div class="row">
                                 <div class="table-responsive">
                                     <table class="table table-responsive-md" id="table1">

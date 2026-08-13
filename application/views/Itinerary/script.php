@@ -184,7 +184,141 @@ function initCategorySelect2InModal() {
 $('#ItineraryModal').on('shown.bs.modal', function () {
     initCommonSelect2(this);
     initCategorySelect2InModal();
+    initDragItinerarySelect2();
+    resetDragItineraryDropdowns();
 });
+
+// Initialize drag-from-itinerary select2 dropdowns
+function initDragItinerarySelect2() {
+    // Category filter
+    if (!$('#drag_itinerary_category').hasClass('select2-hidden-accessible')) {
+        $('#drag_itinerary_category').select2({
+            dropdownParent: $('#ItineraryModal'),
+            width: '100%',
+            placeholder: 'All Categories',
+            allowClear: true,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Itinerary/get_itinerary_category_dropdown',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return { q: params.term };
+                },
+                processResults: function(data) {
+                    return data;
+                },
+                cache: true
+            }
+        });
+    }
+
+    // Itinerary selector (filtered by duration + category)
+    if (!$('#drag_itinerary_select').hasClass('select2-hidden-accessible')) {
+        $('#drag_itinerary_select').select2({
+            dropdownParent: $('#ItineraryModal'),
+            width: '100%',
+            placeholder: 'Select Itinerary to load days',
+            allowClear: true,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Itinerary/get_itinerary_dropdown_by_duration',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term,
+                        duration: $('#itineraries_duration_nights1').val() || '',
+                        category_id: $('#drag_itinerary_category').val() || '',
+                        exclude_id: $('#id').val() || ''
+                    };
+                },
+                processResults: function(data) {
+                    return data;
+                },
+                cache: false
+            }
+        });
+    }
+
+    // When category filter changes, reset itinerary selector
+    $('#drag_itinerary_category').off('change.dragItin').on('change.dragItin', function() {
+        $('#drag_itinerary_select').val(null).trigger('change');
+    });
+}
+
+function resetDragItineraryDropdowns() {
+    if ($('#drag_itinerary_category').hasClass('select2-hidden-accessible')) {
+        $('#drag_itinerary_category').val(null).trigger('change');
+    }
+    if ($('#drag_itinerary_select').hasClass('select2-hidden-accessible')) {
+        $('#drag_itinerary_select').val(null).trigger('change');
+    }
+}
+
+// Load itinerary days from selected drag-from itinerary
+function loadDragItineraryDays() {
+    var itineraryId = $('#drag_itinerary_select').val();
+    if (!itineraryId) {
+        alert('Please select an itinerary first.');
+        return;
+    }
+
+    // Check for duplicate: prevent dragging from the same itinerary being edited
+    var currentEditId = $('#id').val();
+    if (currentEditId && String(currentEditId) === String(itineraryId)) {
+        alert('Cannot drag from the same itinerary you are currently editing.');
+        return;
+    }
+
+    // Collect existing day IDs for soft deletion before replacing
+    var $existingRows = $('#productRowWrapper .day-row');
+    if ($existingRows.length > 0) {
+        addRemovedDayIdsFromRemovedRows($existingRows);
+    }
+
+    // Fetch master itinerary data (for cover pages) then fetch days
+    $.ajax({
+        url: "<?= base_url('index.php/Itinerary/ajax_edit/'); ?>" + itineraryId,
+        type: "GET",
+        dataType: "JSON",
+        success: function(master) {
+            // Load cover page images if they exist
+            if (master.itineraries_first_cover_page) {
+                $('#itineraries_first_cover_page_txt').val(master.itineraries_first_cover_page);
+                $('#first_cover_preview').html(
+                    '<img src="<?php echo base_url("uploads/itinerary_cover/"); ?>' +
+                    master.itineraries_first_cover_page +
+                    '" style="width:120px;border:1px solid #ddd;padding:3px;">'
+                );
+            }
+
+            if (master.itineraries_last_cover_page) {
+                $('#itineraries_last_cover_page_txt').val(master.itineraries_last_cover_page);
+                $('#last_cover_preview').html(
+                    '<img src="<?php echo base_url("uploads/itinerary_cover/"); ?>' +
+                    master.itineraries_last_cover_page +
+                    '" style="width:120px;border:1px solid #ddd;padding:3px;">'
+                );
+            }
+
+            // Now fetch and render day details
+            $.ajax({
+                url: "<?= base_url('index.php/Itinerary/fetch_itineraries_days'); ?>",
+                type: "POST",
+                dataType: "JSON",
+                data: { itineraries_id: itineraryId },
+                success: function(days) {
+                    renderDayRowsFromDBForDuplicate(days);
+                },
+                error: function() {
+                    alert('Error loading itinerary days.');
+                }
+            });
+        },
+        error: function() {
+            alert('Error loading itinerary details.');
+        }
+    });
+}
 
 // $("#itineraries_id_filter").select2({
 //   // dropdownParent: $("#LeadsModal"),
@@ -511,6 +645,9 @@ $('#ItineraryModal').on('hidden.bs.modal', function () {
   $('.help-block').empty();
   $('.input-warning-o').removeClass('input-warning-o');
 
+  // reset drag-from dropdowns
+  resetDragItineraryDropdowns();
+
 });
 
 
@@ -687,6 +824,9 @@ function renderDayRowsFromDB(days)
     // store description HTML temporarily in textarea (for later editor setData)
     $row.find('.day-editor').val(d.itineraries_days_description || '');
   }
+
+  assignEditorIds();
+  initChangeContentSelect2();
 
   // ✅ init editors then setData from textarea value
   initDayEditors('#productRowWrapper').then(function(){
@@ -1212,6 +1352,7 @@ function renderDayRowsFromDBForDuplicate(days)
   }
 
   assignEditorIds();
+  initChangeContentSelect2();
 
   initDayEditors('#productRowWrapper').then(function(){
     $('#productRowWrapper .day-editor').each(function(){
@@ -1672,6 +1813,90 @@ function initSelect2Destination(scope = document) {
 
 }
 
+function initChangeContentSelect2() {
+  var $parent = $('#ItineraryModal');
+
+  // change_itinerary (AJAX)
+  $('#productRowWrapper .change_itinerary').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '50%',
+        placeholder: 'Please Select Itinerary',
+        allowClear: true,
+        dropdownParent: $parent,
+        ajax: {
+          url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_change_itineraries',
+          dataType: 'json',
+          delay: 250,
+          data: function(params) { return { q: params.term }; },
+          processResults: function(data) { return data; },
+          cache: true
+        }
+      });
+    }
+  });
+
+  // change_itinerary_day
+  $('#productRowWrapper .change_itinerary_day').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '50%',
+        placeholder: 'Please Select Days',
+        allowClear: true,
+        dropdownParent: $parent,
+        templateResult: function (data) {
+          if (!data.id) return data.text;
+          var description = $(data.element).attr('data-desc');
+          var $span = $('<span>').text(data.text);
+          if (description) { $span.attr('data-preview-desc', description); }
+          return $span;
+        }
+      });
+    }
+  });
+
+  // change_package (AJAX — all templates, no duration filter)
+  $('#productRowWrapper .change_package').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '50%',
+        placeholder: 'Please Select Template',
+        allowClear: true,
+        dropdownParent: $parent,
+        ajax: {
+          url: '<?php echo base_url(); ?>index.php/Packages/get_package_dropdown_by_duration',
+          dataType: 'json',
+          delay: 250,
+          data: function(params) {
+            return { q: params.term, category_id: '', exclude_id: '' };
+          },
+          processResults: function(data) { return data; },
+          cache: false
+        }
+      });
+    }
+  });
+
+  // change_package_day
+  $('#productRowWrapper .change_package_day').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '50%',
+        placeholder: 'Please Select Days',
+        allowClear: true,
+        dropdownParent: $parent,
+        templateResult: function (data) {
+          if (!data.id) return data.text;
+          var description = $(data.element).attr('data-desc');
+          var $span = $('<span>').text(data.text);
+          if (description) { $span.attr('data-preview-desc', description); }
+          return $span;
+        }
+      });
+    }
+  });
+}
+
 let DEST_OPTIONS_HTML = '<option value="">Please Select Destination</option>';
 
 function loadDestinationsOnce() {
@@ -1765,6 +1990,7 @@ function renderDayRows(nights) {
   });
 
   assignEditorIds();
+  initChangeContentSelect2();
 initDayEditors('#productRowWrapper');
 
   $('#noa_header').show();
@@ -1784,6 +2010,10 @@ $(document).ready(function(){
       $(this).val(0);
     }
     renderDayRows(v);
+    // reset drag-from itinerary dropdown when duration changes
+    if ($('#drag_itinerary_select').hasClass('select2-hidden-accessible')) {
+      $('#drag_itinerary_select').val(null).trigger('change');
+    }
   });
 });
 
@@ -1912,8 +2142,17 @@ function initDayEditors(scope) {
 
 function assignEditorIds() {
   $('#productRowWrapper .day-row').each(function(index){
-    var id = 'day_desc_' + (index + 1);
+    var num = index + 1;
+    var id = 'day_desc_' + num;
+    $(this).attr('data-row-num', num);
     $(this).find('textarea.day-editor').attr('id', id);
+    $(this).find('.content-source-radio').attr('name', 'content_source_' + num);
+    $(this).find('[data-row-num="ROWNUM"]').attr('data-row-num', num);
+    $(this).find('#tooltip_ROWNUM').attr('id', 'tooltip_' + num);
+    // Ensure itinerary radio is checked and itinerary section is visible
+    $(this).find('.content-source-radio[value="itinerary"]').prop('checked', true);
+    $(this).find('.content-source-itinerary').show();
+    $(this).find('.content-source-package').hide();
   });
 }
 
@@ -1954,6 +2193,211 @@ function destroyEditorsInRows($rows){
     catch(e){ return false; }
   });
 }
+
+// ==========================================================
+//  CHANGE CONTENT — radio toggle, itinerary & package dropdowns
+// ==========================================================
+
+$(document).on('change', '.content-source-radio', function () {
+  var $row = $(this).closest('.day-row');
+  var val = $(this).val();
+
+  if (val === 'package') {
+    $row.find('.content-source-itinerary').hide();
+    $row.find('.content-source-package').show();
+  } else {
+    $row.find('.content-source-package').hide();
+    $row.find('.content-source-itinerary').show();
+  }
+});
+
+// change_itinerary → load days
+$(document).on('change', '.change_itinerary', function () {
+  var $row = $(this).closest('.day-row');
+  var itineraryId = $(this).val();
+  var $daySelect = $row.find('.change_itinerary_day');
+
+  if ($daySelect.hasClass('select2-hidden-accessible')) {
+    $daySelect.select2('destroy');
+  }
+
+  $daySelect.empty().append('<option value="">Please Select Days</option>');
+
+  if (!itineraryId) {
+    $daySelect.select2({
+      width: '50%', placeholder: 'Please Select Days', allowClear: true,
+      dropdownParent: $('#ItineraryModal'),
+      templateResult: function (data) {
+        if (!data.id) return data.text;
+        var d = $(data.element).attr('data-desc');
+        var $s = $('<span>').text(data.text);
+        if (d) { $s.attr('data-preview-desc', d); }
+        return $s;
+      }
+    });
+    return;
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: '<?php echo base_url(); ?>index.php/Packages/fetch_days_under_itinerary',
+    data: { itineraries_id_fk: itineraryId },
+    dataType: 'json',
+    success: function (days) {
+      $.each(days, function (i, day) {
+        $daySelect.append(
+          '<option value="' + day.itineraries_days_id + '"'
+          + ' data-desc="' + (day.itineraries_days_description || '').replace(/"/g, '&quot;') + '">'
+          + (day.itineraries_days_day || ('Day ' + (i + 1))) + ' | ' + (day.itineraries_days_title || '')
+          + '</option>'
+        );
+      });
+      $daySelect.select2({
+        width: '50%', placeholder: 'Please Select Days', allowClear: true,
+        dropdownParent: $('#ItineraryModal'),
+        templateResult: function (data) {
+          if (!data.id) return data.text;
+          var d = $(data.element).attr('data-desc');
+          var $s = $('<span>').text(data.text);
+          if (d) { $s.attr('data-preview-desc', d); }
+          return $s;
+        }
+      });
+    }
+  });
+});
+
+// change_itinerary_day → load description into CKEditor
+$(document).on('select2:select', '.change_itinerary_day', function (e) {
+  var $row = $(this).closest('.day-row');
+  var data = e.params.data;
+  var description = $(data.element).attr('data-desc') || '';
+  var editorEl = $row.find('.day-editor')[0];
+  if (editorEl && editorEl.editorInstance) {
+    editorEl.editorInstance.setData(description);
+  }
+});
+
+// Tooltip: show day description on hover
+var activeRowId = null;
+var isMenuOpening = false;
+var activeSelectEl = null;
+
+$(document).on('select2:open', '.change_itinerary_day', function() {
+  activeRowId = $(this).data('row-num');
+  activeSelectEl = this;
+  isMenuOpening = true;
+  setTimeout(() => isMenuOpening = false, 200);
+});
+
+$(document).on('select2:close', '.change_itinerary_day', function() {
+  $('.day-description-tooltip').hide();
+  activeRowId = null;
+  activeSelectEl = null;
+});
+
+// change_package → load package days
+$(document).on('change', '.change_package', function () {
+  var $row = $(this).closest('.day-row');
+  var packageId = $(this).val();
+  var $daySelect = $row.find('.change_package_day');
+
+  if ($daySelect.hasClass('select2-hidden-accessible')) {
+    $daySelect.select2('destroy');
+  }
+
+  $daySelect.empty().append('<option value="">Please Select Days</option>');
+
+  if (!packageId) {
+    $daySelect.select2({
+      width: '50%', placeholder: 'Please Select Days', allowClear: true,
+      dropdownParent: $('#ItineraryModal'),
+      templateResult: function (data) {
+        if (!data.id) return data.text;
+        var d = $(data.element).attr('data-desc');
+        var $s = $('<span>').text(data.text);
+        if (d) { $s.attr('data-preview-desc', d); }
+        return $s;
+      }
+    });
+    return;
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: '<?php echo base_url(); ?>index.php/Packages/fetch_days_under_package',
+    data: { packages_id: packageId },
+    dataType: 'json',
+    success: function (days) {
+      $.each(days, function (i, day) {
+        $daySelect.append(
+          '<option value="' + day.packages_itinerary_days_id + '"'
+          + ' data-desc="' + (day.packages_itineraries_days_description || '').replace(/"/g, '&quot;') + '">'
+          + (day.packages_itineraries_days_day || ('Day ' + (i + 1))) + ' | ' + (day.packages_itineraries_days_title || '')
+          + '</option>'
+        );
+      });
+      $daySelect.select2({
+        width: '50%', placeholder: 'Please Select Days', allowClear: true,
+        dropdownParent: $('#ItineraryModal'),
+        templateResult: function (data) {
+          if (!data.id) return data.text;
+          var d = $(data.element).attr('data-desc');
+          var $s = $('<span>').text(data.text);
+          if (d) { $s.attr('data-preview-desc', d); }
+          return $s;
+        }
+      });
+    }
+  });
+});
+
+// change_package_day → load description into CKEditor
+$(document).on('select2:select', '.change_package_day', function (e) {
+  var $row = $(this).closest('.day-row');
+  var data = e.params.data;
+  var description = $(data.element).attr('data-desc') || '';
+  var editorEl = $row.find('.day-editor')[0];
+  if (editorEl && editorEl.editorInstance) {
+    editorEl.editorInstance.setData(description);
+  }
+});
+
+$(document).on('select2:open', '.change_package_day', function() {
+  activeRowId = $(this).data('row-num');
+  activeSelectEl = this;
+  isMenuOpening = true;
+  setTimeout(() => isMenuOpening = false, 200);
+});
+
+$(document).on('select2:close', '.change_package_day', function() {
+  $('.day-description-tooltip').hide();
+  activeRowId = null;
+  activeSelectEl = null;
+});
+
+// Shared: show tooltip on hover over dropdown options
+$(document).on('mouseenter', '.select2-results__option', function() {
+  if (!activeRowId || isMenuOpening || !activeSelectEl) return;
+  var description = $(this).find('[data-preview-desc]').attr('data-preview-desc');
+  var $tooltip = $('#tooltip_' + activeRowId);
+  if (description) {
+    $tooltip.html(description);
+    // Position tooltip above the "Change Content" heading
+    var $row = $(activeSelectEl).closest('.day-row');
+    var $changeContent = $row.find('.col-12.mt-2:has(.content-source-radio)');
+    if ($changeContent.length) {
+      var offset = $changeContent.offset();
+      var tooltipHeight = $tooltip.outerHeight() || 300;
+      $tooltip.css({
+        top: offset.top - tooltipHeight - 5,
+        left: offset.left
+      });
+    }
+    $tooltip.fadeIn(100);
+    $tooltip.css({ opacity: 1, transform: 'translateY(0)' }).show();
+  }
+});
 
 
 

@@ -85,6 +85,45 @@ class Packages extends MY_Controller {
 		echo json_encode(['results' => $results]);
 	}
 
+	public function get_package_dropdown_by_duration()
+	{
+		$search = $this->input->get('q');
+		$duration = $this->input->get('duration');
+		$category_id = $this->input->get('category_id');
+		$exclude_id = $this->input->get('exclude_id');
+
+		if ($duration === '__none__') {
+			echo json_encode(['results' => []]);
+			return;
+		}
+
+		$this->db->select('packages_id as id, packages_title as text');
+		$this->db->from('packages');
+		$this->db->where('packages_status', 1);
+
+		if ($duration !== '' && $duration !== null) {
+			$this->db->where('packages_duration_in_nights', (int)$duration);
+		}
+
+		if ($category_id) {
+			$this->db->where('packages_category_id_fk', (int)$category_id);
+		}
+
+		if ($exclude_id) {
+			$this->db->where('packages_id !=', (int)$exclude_id);
+		}
+
+		if ($search) {
+			$this->db->like('packages_title', $search);
+		}
+
+		$this->db->order_by('packages_title', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
 	public function ajax_filter_template_masters()
 	{
 		$q = $this->input->get('q');
@@ -276,6 +315,27 @@ class Packages extends MY_Controller {
 		}
 
 		$days = $this->Packages_model->fetch_days_under_itinerary($itineraryId);
+
+		echo json_encode($days);
+	}
+
+	public function fetch_days_under_package()
+	{
+		$packageId = $this->input->post('packages_id');
+
+		if (!$packageId) {
+			echo json_encode([]);
+			return;
+		}
+
+		$days = $this->db
+			->select('pid.packages_itinerary_days_id, pid.packages_itineraries_days_day, pid.packages_itineraries_days_title, pid.packages_itineraries_days_description')
+			->from('packages_itinerary_days pid')
+			->join('packages_itinerary pi', 'pi.packages_itinerary_id = pid.packages_itinerary_id_fk')
+			->where('pi.packages_id_fk', (int)$packageId)
+			->order_by('pid.packages_itineraries_days_day', 'ASC')
+			->get()
+			->result();
 
 		echo json_encode($days);
 	}

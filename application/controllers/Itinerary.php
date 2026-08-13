@@ -47,6 +47,52 @@ class Itinerary extends MY_Controller {
 		echo json_encode(['results' => $results]);
 	}
 
+	public function get_itinerary_dropdown_by_duration()
+	{
+		$search = $this->input->get('q');
+		$duration = $this->input->get('duration');
+		$category_id = $this->input->get('category_id');
+		$exclude_id = $this->input->get('exclude_id');
+
+		if ($duration === '' || $duration === null) {
+			echo json_encode(['results' => []]);
+			return;
+		}
+
+		$this->db->select('itineraries_id as id, itineraries_name as text, itineraries_duration_nights');
+		$this->db->from('itineraries');
+		$this->db->where('itineraries_status', 1);
+		$this->db->where('itineraries_duration_nights', (int)$duration);
+
+		if ($category_id) {
+			$this->db->where('itineraries_category_id_fk', (int)$category_id);
+		}
+
+		if ($exclude_id) {
+			$this->db->where('itineraries_id !=', (int)$exclude_id);
+		}
+
+		if ($search) {
+			$this->db->like('itineraries_name', $search);
+		}
+
+		$currentuserid = $this->currentuserid;
+		$currentusertype = $this->currentusertype;
+
+		if ($currentusertype == 'S') {
+			$this->db->group_start();
+			$this->db->where('itineraries_createdby_user_id', $currentuserid);
+			$this->db->or_where('itineraries_createdby_user_id IN (SELECT user_id FROM user_details WHERE user_type = "A")');
+			$this->db->group_end();
+		}
+
+		$this->db->order_by('itineraries_name', 'ASC');
+		$query = $this->db->get();
+		$results = $query->result();
+
+		echo json_encode(['results' => $results]);
+	}
+
 	public function get_itinerary_category_dropdown()
 	{
 		$search = $this->input->get('q');

@@ -565,7 +565,7 @@ button:hover{background:#172554;}
 }
 .standard-cost-value{
   text-align:center;
-  font-size:24px;
+  font-size:28px;
   font-weight:900;
   color:#334155;
   padding:10px 8px 12px 8px;
@@ -573,7 +573,7 @@ button:hover{background:#172554;}
 }
 .standard-cost-suffix{
   text-align:center;
-  font-size:11px;
+  font-size:13px;
   font-weight:600;
   color:#666;
   padding:0 8px 12px 8px;
@@ -842,13 +842,13 @@ button:hover{background:#172554;}
   gap:10px;
 }
 .exclusive-summary-price .amount{
-  font-size:20px;
+  font-size:24px;
   font-weight:800;
   color:#000;
   line-height:1;
 }
 .exclusive-summary-price .amount-suffix{
-  font-size:11px;
+  font-size:13px;
   font-weight:600;
   color:#5c4a3a;
   margin-left:4px;
@@ -1252,7 +1252,7 @@ button:hover{background:#172554;}
 
 .payment-bank-lines{
   font-family:'Open Sans',sans-serif;
-  font-size:15px;
+  font-size:12.5px;
   line-height:1.5;
   color:#111;
 }
@@ -1541,8 +1541,8 @@ button:hover{background:#172554;}
 .font-xs .standard-package-star { font-size:16px !important; }
 .font-xs .standard-info-row { font-size:12px !important; }
 .font-xs .standard-cost-title { font-size:11px !important; }
-.font-xs .standard-cost-value { font-size:20px !important; }
-.font-xs .standard-cost-suffix { font-size:10px !important; }
+.font-xs .standard-cost-value { font-size:24px !important; }
+.font-xs .standard-cost-suffix { font-size:11px !important; }
 .font-xs .accommodation-title { font-size:16px !important; }
 .font-xs .property-table th { font-size:11px !important; }
 .font-xs .property-table td { font-size:10px !important; }
@@ -1556,8 +1556,8 @@ button:hover{background:#172554;}
 .font-sm .standard-package-star { font-size:17px !important; }
 .font-sm .standard-info-row { font-size:13px !important; }
 .font-sm .standard-cost-title { font-size:12px !important; }
-.font-sm .standard-cost-value { font-size:22px !important; }
-.font-sm .standard-cost-suffix { font-size:10px !important; }
+.font-sm .standard-cost-value { font-size:26px !important; }
+.font-sm .standard-cost-suffix { font-size:11px !important; }
 .font-sm .accommodation-title { font-size:17px !important; }
 .font-sm .property-table th { font-size:12px !important; }
 .font-sm .property-table td { font-size:11px !important; }
@@ -1571,8 +1571,8 @@ button:hover{background:#172554;}
 .font-lg .standard-package-star { font-size:20px !important; }
 .font-lg .standard-info-row { font-size:15px !important; }
 .font-lg .standard-cost-title { font-size:15px !important; }
-.font-lg .standard-cost-value { font-size:28px !important; }
-.font-lg .standard-cost-suffix { font-size:12px !important; }
+.font-lg .standard-cost-value { font-size:32px !important; }
+.font-lg .standard-cost-suffix { font-size:14px !important; }
 .font-lg .accommodation-title { font-size:20px !important; }
 .font-lg .property-table th { font-size:16px !important; }
 .font-lg .property-table td { font-size:14px !important; }
@@ -1586,8 +1586,8 @@ button:hover{background:#172554;}
 .font-xl .standard-package-star { font-size:21px !important; }
 .font-xl .standard-info-row { font-size:16px !important; }
 .font-xl .standard-cost-title { font-size:16px !important; }
-.font-xl .standard-cost-value { font-size:30px !important; }
-.font-xl .standard-cost-suffix { font-size:13px !important; }
+.font-xl .standard-cost-value { font-size:34px !important; }
+.font-xl .standard-cost-suffix { font-size:15px !important; }
 .font-xl .accommodation-title { font-size:21px !important; }
 .font-xl .property-table th { font-size:17px !important; }
 .font-xl .property-table td { font-size:15px !important; }
@@ -1600,7 +1600,7 @@ button:hover{background:#172554;}
 /* Exclusive levels */
 .font-xs .exclusive-package-title { font-size:17px !important; }
 .font-xs .exclusive-summary-title { font-size:11px !important; }
-.font-xs .exclusive-summary-price .amount { font-size:17px !important; }
+.font-xs .exclusive-summary-price .amount { font-size:20px !important; }
 .font-xs .exclusive-section-title { font-size:12px !important; }
 .font-xs .exclusive-table th { font-size:10px !important; }
 .font-xs .exclusive-table td { font-size:10px !important; }
@@ -1610,7 +1610,7 @@ button:hover{background:#172554;}
 
 .font-sm .exclusive-package-title { font-size:18px !important; }
 .font-sm .exclusive-summary-title { font-size:12px !important; }
-.font-sm .exclusive-summary-price .amount { font-size:18px !important; }
+.font-sm .exclusive-summary-price .amount { font-size:22px !important; }
 .font-sm .exclusive-section-title { font-size:13px !important; }
 .font-sm .exclusive-table th { font-size:11px !important; }
 .font-sm .exclusive-table td { font-size:11px !important; }
@@ -1620,7 +1620,7 @@ button:hover{background:#172554;}
 
 .font-lg .exclusive-package-title { font-size:22px !important; }
 .font-lg .exclusive-summary-title { font-size:15px !important; }
-.font-lg .exclusive-summary-price .amount { font-size:22px !important; }
+.font-lg .exclusive-summary-price .amount { font-size:26px !important; }
 .font-lg .exclusive-section-title { font-size:16px !important; }
 .font-lg .exclusive-table th { font-size:14px !important; }
 .font-lg .exclusive-table td { font-size:14px !important; }
@@ -1630,7 +1630,7 @@ button:hover{background:#172554;}
 
 .font-xl .exclusive-package-title { font-size:24px !important; }
 .font-xl .exclusive-summary-title { font-size:16px !important; }
-.font-xl .exclusive-summary-price .amount { font-size:24px !important; }
+.font-xl .exclusive-summary-price .amount { font-size:28px !important; }
 .font-xl .exclusive-section-title { font-size:17px !important; }
 .font-xl .exclusive-table th { font-size:15px !important; }
 .font-xl .exclusive-table td { font-size:15px !important; }
@@ -2014,11 +2014,11 @@ function q_option_display_amount_premium($option)
               <?php
                 $colCount = ($showRoom ? 1 : 0) + ($showMeal ? 1 : 0);
                 if ($colCount === 2) {
-                    $wDay = 8; $wDest = 14; $wHotel = 28; $wRoom = 25; $wMeal = 25;
+                    $wDay = 8; $wDest = 14; $wHotel = 38; $wRoom = 25; $wMeal = 15;
                 } elseif ($colCount === 1) {
-                    $wDay = 8; $wDest = 18; $wHotel = 39;
+                    $wDay = 8; $wDest = 18; $wHotel = 59;
                     $wRoom = $showRoom ? 35 : 0;
-                    $wMeal = $showMeal ? 35 : 0;
+                    $wMeal = $showMeal ? 15 : 0;
                 } else {
                     $wDay = 12; $wDest = 18; $wHotel = 70; $wRoom = 0; $wMeal = 0;
                 }
@@ -2351,11 +2351,11 @@ function q_option_display_amount_standard($option)
             <?php
                 $colCountS = ($showRoom ? 1 : 0) + ($showMeal ? 1 : 0);
                 if ($colCountS === 2) {
-                    $wDateS = 8; $wDestS = 14; $wHotelS = 28; $wRoomS = 25; $wMealS = 25;
+                    $wDateS = 8; $wDestS = 14; $wHotelS = 38; $wRoomS = 25; $wMealS = 15;
                 } elseif ($colCountS === 1) {
-                    $wDateS = 8; $wDestS = 18; $wHotelS = 39;
+                    $wDateS = 8; $wDestS = 18; $wHotelS = 59;
                     $wRoomS = $showRoom ? 35 : 0;
-                    $wMealS = $showMeal ? 35 : 0;
+                    $wMealS = $showMeal ? 15 : 0;
                 } else {
                     $wDateS = 12; $wDestS = 18; $wHotelS = 70; $wRoomS = 0; $wMealS = 0;
                 }
@@ -2670,6 +2670,10 @@ foreach ($accounts as $acc) {
 
             <?php if (!empty($acc->branch_name)): ?>
               <div><strong>BRANCH:</strong> <?= htmlspecialchars($acc->branch_name); ?></div>
+            <?php endif; ?>
+
+            <?php if (!empty($acc->up_id)): ?>
+              <div style="white-space:nowrap;"><strong>UPI ID:</strong> <?= htmlspecialchars($acc->up_id); ?></div>
             <?php endif; ?>
           </div>
 

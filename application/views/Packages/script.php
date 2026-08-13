@@ -54,6 +54,15 @@ $(document).ready(function () {
 // call this after opening any modal
 $('#PackagesModal').on('shown.bs.modal', function () {
     initCommonSelect2(this);
+    initDragPackageSelect2();
+    resetDragPackageDropdowns();
+
+    // Show drag-from section only for add/duplicate, hide for edit
+    if (window.save_method === 'update') {
+        $('#drag_package_category').closest('.row.g-3').hide();
+    } else {
+        $('#drag_package_category').closest('.row.g-3').show();
+    }
 
     if (!$('#packages_category_id_fk').hasClass('select2-hidden-accessible')) {
         $('#packages_category_id_fk').select2({
@@ -157,6 +166,283 @@ $('#PackagesModal').on('shown.bs.modal', function () {
         });
     }
 });
+
+// Initialize drag-from-package select2 dropdowns
+function initDragPackageSelect2() {
+    if (!$('#drag_package_category').hasClass('select2-hidden-accessible')) {
+        $('#drag_package_category').select2({
+            dropdownParent: $('#PackagesModal .modal-content'),
+            width: '100%',
+            placeholder: 'All Categories',
+            allowClear: true,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/ajax_filter_package_categories',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) { return { q: params.term }; },
+                processResults: function(data) { return data; },
+                cache: true
+            }
+        });
+    }
+
+    if (!$('#drag_package_select').hasClass('select2-hidden-accessible')) {
+        $('#drag_package_select').select2({
+            dropdownParent: $('#PackagesModal .modal-content'),
+            width: '100%',
+            placeholder: 'Select Template to load days',
+            allowClear: true,
+            ajax: {
+                url: '<?php echo base_url(); ?>index.php/Packages/get_package_dropdown_by_duration',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    var dur = $('#packages_duration_in_nights').val() || '';
+                    if (!dur) {
+                        return { q: params.term, duration: '__none__' };
+                    }
+                    return {
+                        q: params.term,
+                        duration: dur,
+                        category_id: $('#drag_package_category').val() || '',
+                        exclude_id: $('#packages_id').val() || ''
+                    };
+                },
+                processResults: function(data) { return data; },
+                cache: false
+            }
+        });
+    }
+
+    $('#drag_package_category').off('change.dragPkg').on('change.dragPkg', function() {
+        $('#drag_package_select').val(null).trigger('change');
+    });
+}
+
+function resetDragPackageDropdowns() {
+    if ($('#drag_package_category').hasClass('select2-hidden-accessible')) {
+        $('#drag_package_category').val(null).trigger('change');
+    }
+    if ($('#drag_package_select').hasClass('select2-hidden-accessible')) {
+        $('#drag_package_select').val(null).trigger('change');
+    }
+}
+
+// Load package days from selected drag-from package
+function loadDragPackageDays() {
+    var packageId = $('#drag_package_select').val();
+    if (!packageId) {
+        alert('Please select a template first.');
+        return;
+    }
+
+    var currentEditId = $('#packages_id').val();
+    if (currentEditId && String(currentEditId) === String(packageId)) {
+        alert('Cannot drag from the same template you are currently editing.');
+        return;
+    }
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Packages/ajax_edit/" + packageId,
+        type: "GET",
+        dataType: "json",
+        success: function(res) {
+            if (!res || !res.status) {
+                alert(res.message || 'Failed to load template');
+                return;
+            }
+
+            var p = res.package || {};
+
+            // Auto-select package category, itinerary category and itinerary from dragged package
+            if (p.packages_category_id_fk) {
+                select2AjaxSetSelected('#packages_category_id_fk', p.packages_category_id_fk, p.package_category_name);
+            }
+            if (p.packages_itinerary_category_id_fk) {
+                select2AjaxSetSelected('#packages_itinerary_category_id_fk', p.packages_itinerary_category_id_fk, p.itinerary_category_name);
+            }
+
+            // Load cover page images if they exist
+            if (p.packages_first_cover_page) {
+                $('#packages_first_cover_page_txt').val(p.packages_first_cover_page);
+                $('#first_cover_preview').html(
+                    '<img src="<?php echo base_url("uploads/packages_cover/"); ?>' +
+                    p.packages_first_cover_page +
+                    '" style="width:120px;border:1px solid #ddd;padding:3px;">'
+                );
+            }
+
+            if (p.packages_last_cover_page) {
+                $('#packages_last_cover_page_txt').val(p.packages_last_cover_page);
+                $('#last_cover_preview').html(
+                    '<img src="<?php echo base_url("uploads/packages_cover/"); ?>' +
+                    p.packages_last_cover_page +
+                    '" style="width:120px;border:1px solid #ddd;padding:3px;">'
+                );
+            }
+
+            // Load itinerary dropdown and select the dragged package's itinerary, then render days
+            var itinId = p.packages_itinerary_id_fk || '';
+            loadItinerariesByCategoryDuration(function(ok) {
+                if (ok && itinId) {
+                    $('#packages_itinerary_id_fk').val(String(itinId));
+                    if ($('#packages_itinerary_id_fk').hasClass('select2-hidden-accessible')) {
+                        $('#packages_itinerary_id_fk').trigger('change.select2');
+                    }
+                }
+
+                // Render itinerary days
+                if (res.itinerary_days && res.itinerary_days.length) {
+                    buildItineraryRowsFromSaved(res.itinerary_days);
+                    if (typeof initEditorsForDays === 'function') initEditorsForDays();
+                } else {
+                    $('#itinerary').empty();
+                }
+
+                // Resolve destination names and build properties
+                if (typeof loadDestinationMap === 'function') {
+                    loadDestinationMap(function(map) {
+                        resolveDestinationNamesFromMap(map);
+
+                        if (p.packages_property_checked_type === 'Y') {
+                            window.isPropertyEditBuild = true;
+                            $('#packages_property_type').prop('checked', true);
+                            buildSavedPropertyUI(res.property_data || []);
+                            window.isPropertyEditBuild = false;
+                        }
+                    });
+                }
+            }, itinId);
+
+            // inclusion/exclusion
+            if (p.packages_inclusion_exclusion_checked_type === 'Y') {
+                $('#packages_inclusion_exclusion_checked_type').prop('checked', true).trigger('change');
+                select2AjaxSetSelected('#packages_inclusion_exclusion_common_id_fk', p.packages_inclusion_exclusion_common_id_fk, p.inclusion_exclusion_common_title);
+
+                setTimeout(function () {
+                    $('#inclusion').empty();
+                    $('#exclusion').empty();
+
+                    (res.inclusions || []).forEach(function (row) {
+                        $('#inclusion').append(
+                            '<div class="d-flex gap-2 mb-2 inclusion-row align-items-start">' +
+                            '<textarea class="form-control" name="packages_inclusions_details[]" rows="3">' + (row.packages_inclusions_details || '') + '</textarea>' +
+                            '<button type="button" class="btn btn-sm btn-danger remove-row"><b>X</b></button>' +
+                            '</div>'
+                        );
+                    });
+
+                    (res.exclusions || []).forEach(function (row) {
+                        $('#exclusion').append(
+                            '<div class="d-flex gap-2 mb-2 exclusion-row align-items-start">' +
+                            '<textarea class="form-control" name="packages_exclusions_details[]" rows="3">' + (row.packages_exclusions_details || '') + '</textarea>' +
+                            '<button type="button" class="btn btn-sm btn-danger remove-row"><b>X</b></button>' +
+                            '</div>'
+                        );
+                    });
+                }, 300);
+            }
+
+            // optional add-ons
+            if (p.packages_optional_add_on_checked_type === 'Y') {
+                $('#packages_optional_add_on_checked_type').prop('checked', true).trigger('change');
+
+                var $box = $('#optional-addon');
+                $box.find('.optional-addon-row').remove();
+
+                (res.optional_addons || []).forEach(function (r) {
+                    $box.find('.mb-3.col-md-6').first().before(
+                        '<div class="d-flex gap-2 mb-2 optional-addon-row align-items-start">' +
+                        '<textarea name="packages_optional_add_on_details[]" class="form-control" rows="3">' + (r.packages_optional_add_on_details || '') + '</textarea>' +
+                        '<button type="button" class="btn btn-sm btn-danger remove-optional-addon"><b>X</b></button>' +
+                        '</div>'
+                    );
+                });
+            }
+
+            // payment policies
+            if (p.packages_payment_policies_checked_type === 'Y') {
+                window._loadingPackage = true;
+                $('#packages_payment_policies_checked_type').prop('checked', true).trigger('change');
+                select2AjaxSetSelected('#payment_policies_id_fk', p.payment_policies_id_fk, p.payment_policies_name);
+
+                setTimeout(function () {
+                    window._loadingPackage = false;
+                    $('#payment-policies').find('.payment-row').remove();
+
+                    (res.payment_policies || []).forEach(function (r) {
+                        $('#payment-policies').find('.payment_add').first().before(
+                            '<div class="d-flex gap-2 mb-2 payment-row align-items-start">' +
+                            '<textarea class="form-control" name="packages_payment_policies_details[]" rows="3">' + (r.packages_payment_policies_details || '') + '</textarea>' +
+                            '<button type="button" class="btn btn-sm btn-danger remove-payment"><b>X</b></button>' +
+                            '</div>'
+                        );
+                    });
+                }, 300);
+            }
+
+            // terms & conditions
+            if (p.packages_terms_conditions_checked_type === 'Y') {
+                window._loadingPackage = true;
+                $('#packages_terms_conditions_checked_type').prop('checked', true).trigger('change');
+                select2AjaxSetSelected('#terms_condition_id_fk', p.terms_condition_id_fk, p.terms_condition_name);
+
+                setTimeout(function () {
+                    window._loadingPackage = false;
+                    $('#terms-conditions').find('.terms-row').remove();
+
+                    (res.terms || []).forEach(function (r) {
+                        $('#terms-conditions').find('.terms_add').first().before(
+                            '<div class="d-flex gap-2 mb-2 terms-row align-items-start">' +
+                            '<textarea class="form-control" name="packages_terms_condition_details[]" rows="3">' + (r.packages_terms_condition_details || '') + '</textarea>' +
+                            '<button type="button" class="btn btn-sm btn-danger remove-terms"><b>X</b></button>' +
+                            '</div>'
+                        );
+                    });
+                }, 300);
+            }
+
+            // cancellation policy
+            if (p.packages_cancellation_policy_checked_type === 'Y') {
+                window._loadingPackage = true;
+                $('#packages_cancellation_policy_checked_type').prop('checked', true).trigger('change');
+                select2AjaxSetSelected('#cancellation_policies_id_fk', p.cancellation_policies_id_fk, p.cancellation_policies_name);
+
+                setTimeout(function () {
+                    window._loadingPackage = false;
+                    $('#cancellation-policy').find('.cancellation-row').remove();
+
+                    (res.cancellation || []).forEach(function (r) {
+                        $('#cancellation-policy').find('.terms_add').first().before(
+                            '<div class="d-flex gap-2 mb-2 cancellation-row align-items-start">' +
+                            '<textarea class="form-control" name="packages_cancellation_policies_details[]" rows="3">' + (r.packages_cancellation_policies_details || '') + '</textarea>' +
+                            '<button type="button" class="btn btn-sm btn-danger remove-cancellation"><b>X</b></button>' +
+                            '</div>'
+                        );
+                    });
+                }, 300);
+            }
+
+            // notes
+            if (p.packages_notes_checked_type === 'Y') {
+                $('#packages_notes_checked_type').prop('checked', true).trigger('change');
+                $('#add_notes').find('.note-row').remove();
+
+                (res.notes || []).forEach(function (r) {
+                    $('#add_notes').find('.mb-3.col-md-6').first().before(
+                        '<div class="d-flex gap-2 mb-2 note-row align-items-start">' +
+                        '<textarea class="form-control" name="packages_notes_details[]" rows="3">' + (r.packages_notes_details || '') + '</textarea>' +
+                        '<button type="button" class="btn btn-sm btn-danger remove-note"><b>X</b></button>' +
+                        '</div>'
+                    );
+                });
+            }
+        },
+        error: function() {
+            alert('Error loading template details.');
+        }
+    });
+}
 
 function select2AjaxSetSelected(selector, id, text) {
     var $s = $(selector);
@@ -857,13 +1143,34 @@ function buildItineraryRowsFromSaved(itineraryDays) {
         </td>
 
         <td class="position-relative">
-          <select class="form-control change_itinerary mb-2" data-row-num="${rowNum}" style="width:100%;" data-loaded="0">
-            <option value="">Please Select Itinerary</option>
-          </select>
+          <div class="mb-2 d-flex gap-3">
+            <label class="form-check-label" style="font-size:12px;">
+              <input type="radio" name="content_source_${rowNum}" class="form-check-input content-source-radio" value="itinerary" checked> Itinerary
+            </label>
+            <label class="form-check-label" style="font-size:12px;">
+              <input type="radio" name="content_source_${rowNum}" class="form-check-input content-source-radio" value="package"> Template
+            </label>
+          </div>
 
-          <select class="form-control change_itinerary_day" data-row-num="${rowNum}" style="width:100%;">
-            <option value="">Please Select Days</option>
-          </select>
+          <div class="content-source-itinerary">
+            <select class="form-control change_itinerary mb-2" data-row-num="${rowNum}" style="width:100%;" data-loaded="0">
+              <option value="">Please Select Itinerary</option>
+            </select>
+
+            <select class="form-control change_itinerary_day" data-row-num="${rowNum}" style="width:100%;">
+              <option value="">Please Select Days</option>
+            </select>
+          </div>
+
+          <div class="content-source-package" style="display:none;">
+            <select class="form-control change_package mb-2" data-row-num="${rowNum}" style="width:100%;">
+              <option value="">Please Select Template</option>
+            </select>
+
+            <select class="form-control change_package_day" data-row-num="${rowNum}" style="width:100%;">
+              <option value="">Please Select Days</option>
+            </select>
+          </div>
 
           <div class="day-description-tooltip" id="tooltip_${rowNum}">
             <div class="tooltip-content"></div>
@@ -913,6 +1220,34 @@ function buildItineraryRowsFromSaved(itineraryDays) {
   });
 
   $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
+
+  // ✅ Init select2 for change_package (AJAX) and change_package_day
+  $('#itinerary .change_package').each(function () {
+    if (!$(this).hasClass('select2-hidden-accessible')) {
+      $(this).select2({
+        width: '100%',
+        placeholder: 'Please Select Template',
+        allowClear: true,
+        dropdownParent: $('#PackagesModal .modal-content'),
+        ajax: {
+          url: '<?php echo base_url(); ?>index.php/Packages/get_package_dropdown_by_duration',
+          dataType: 'json',
+          delay: 250,
+          data: function(params) {
+            return {
+              q: params.term,
+              category_id: '',
+              exclude_id: ''
+            };
+          },
+          processResults: function(data) { return data; },
+          cache: false
+        }
+      });
+    }
+  });
+
+  $('.change_package_day').select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
 
   // ✅ Init CKEditor
   if (typeof initEditorsForDays === 'function') initEditorsForDays();
@@ -1015,10 +1350,14 @@ function edit_package(id, mode) {
         $('#packages_id').val(p.packages_id);
         $('#btnSave').text('Update');
         $('#PackagesModal .modal-title').text('Edit Template');
+        // Hide drag-from template section in edit mode
+        $('#drag_package_category').closest('.row.g-3').hide();
       } else {
         $('#packages_id').val('');
         $('#btnSave').text('Save');
         $('#PackagesModal .modal-title').text('Duplicate Template');
+        // Show drag-from template section in duplicate mode
+        $('#drag_package_category').closest('.row.g-3').show();
       }
 
       // master fields
@@ -2000,6 +2339,11 @@ $(document).ready(function () {
   $duration.on('keyup change', function () {
     if (window.isEditLoading) return;
 
+    // reset drag-from package dropdown when duration changes
+    if ($('#drag_package_select').hasClass('select2-hidden-accessible')) {
+      $('#drag_package_select').val(null).trigger('change');
+    }
+
     clearTimeout(t);
     t = setTimeout(function () {
       if ($cat.val()) {
@@ -2079,6 +2423,9 @@ function resetPackageModal() {
   // clear itinerary rows
   if (typeof destroyDayEditors === 'function') destroyDayEditors();
   $('#itinerary').empty();
+
+  // reset drag-from dropdowns
+  resetDragPackageDropdowns();
 
   // clear dynamic sections
   $('#inclusion, #exclusion').empty();
@@ -2373,13 +2720,34 @@ $('#packages_itinerary_id_fk').on('change', function () {
             </td>
 
             <td class="position-relative">
-              <select class="form-control change_itinerary mb-2" data-row-num="${rowNum}" style="width:100%;">
-                <option value="">Please Select Itinerary</option>
-              </select>
+              <div class="mb-2 d-flex gap-3">
+                <label class="form-check-label" style="font-size:12px;">
+                  <input type="radio" name="content_source_${rowNum}" class="form-check-input content-source-radio" value="itinerary" checked> Itinerary
+                </label>
+                <label class="form-check-label" style="font-size:12px;">
+                  <input type="radio" name="content_source_${rowNum}" class="form-check-input content-source-radio" value="package"> Template
+                </label>
+              </div>
 
-              <select class="form-control change_itinerary_day" data-row-num="${rowNum}" style="width:100%;">
-                <option value="">Please Select Days</option>
-              </select>
+              <div class="content-source-itinerary">
+                <select class="form-control change_itinerary mb-2" data-row-num="${rowNum}" style="width:100%;">
+                  <option value="">Please Select Itinerary</option>
+                </select>
+
+                <select class="form-control change_itinerary_day" data-row-num="${rowNum}" style="width:100%;">
+                  <option value="">Please Select Days</option>
+                </select>
+              </div>
+
+              <div class="content-source-package" style="display:none;">
+                <select class="form-control change_package mb-2" data-row-num="${rowNum}" style="width:100%;">
+                  <option value="">Please Select Template</option>
+                </select>
+
+                <select class="form-control change_package_day" data-row-num="${rowNum}" style="width:100%;">
+                  <option value="">Please Select Days</option>
+                </select>
+              </div>
 
               <div class="day-description-tooltip" id="tooltip_${rowNum}">
                 <div class="tooltip-content"></div>
@@ -2430,6 +2798,34 @@ $('#packages_itinerary_id_fk').on('change', function () {
       });
 
       $('.change_itinerary_day').select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
+
+      // Init AJAX Select2 for change_package
+      $('#itinerary .change_package').each(function () {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2({
+            width: '100%',
+            placeholder: 'Please Select Template',
+            allowClear: true,
+            dropdownParent: $('#PackagesModal .modal-content'),
+            ajax: {
+              url: '<?php echo base_url(); ?>index.php/Packages/get_package_dropdown_by_duration',
+              dataType: 'json',
+              delay: 250,
+              data: function(params) {
+                return {
+                  q: params.term,
+                  category_id: '',
+                  exclude_id: ''
+                };
+              },
+              processResults: function(data) { return data; },
+              cache: false
+            }
+          });
+        }
+      });
+
+      $('.change_package_day').select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
 
       // Stamp original destination values so the clear handler can restore them
       stampOriginalDestinations();
@@ -2660,9 +3056,106 @@ $(document).on('select2:select', '.change_itinerary_day', function (e) {
   }
 });
 
+// ==========================================================
+//  CONTENT SOURCE RADIO TOGGLE (Itinerary / Template)
+// ==========================================================
+
+$(document).on('change', '.content-source-radio', function () {
+  let row = $(this).closest('tr');
+  let val = $(this).val();
+
+  if (val === 'package') {
+    row.find('.content-source-itinerary').hide();
+    row.find('.content-source-package').show();
+  } else {
+    row.find('.content-source-package').hide();
+    row.find('.content-source-itinerary').show();
+  }
 });
 
-////***For loading itiniraries in dropdown under duration nights and load days based on itineray and display details in tooltip *****///
+// ==========================================================
+//  CHANGE PACKAGE → Load package days into day dropdown
+// ==========================================================
+
+$(document).on('change', '.change_package', function () {
+
+  let row = $(this).closest('tr');
+  let packageId = $(this).val();
+  let daySelect = row.find('.change_package_day');
+
+  if (daySelect.hasClass('select2-hidden-accessible')) {
+    daySelect.select2('destroy');
+  }
+
+  daySelect.empty().append('<option value="">Please Select Days</option>');
+
+  if (!packageId) {
+    daySelect.select2({ width: '100%', dropdownParent: $('#PackagesModal .modal-content') });
+    return;
+  }
+
+  $.ajax({
+    type: "POST",
+    url: "<?php echo base_url(); ?>index.php/Packages/fetch_days_under_package",
+    data: { packages_id: packageId },
+    dataType: "json",
+    success: function (days) {
+      $.each(days, function (i, day) {
+        daySelect.append(
+          '<option value="' + day.packages_itinerary_days_id + '"'
+          + ' data-desc="' + (day.packages_itineraries_days_description || '').replace(/"/g, '&quot;') + '">'
+          + (day.packages_itineraries_days_day || ('Day ' + (i + 1))) + ' | ' + (day.packages_itineraries_days_title || '')
+          + '</option>'
+        );
+      });
+      daySelect.select2({
+        width: '100%',
+        placeholder: 'Please Select Days',
+        allowClear: true,
+        dropdownParent: $('#PackagesModal .modal-content'),
+        templateResult: function (data) {
+          if (!data.id) return data.text;
+          var description = $(data.element).attr('data-desc');
+          var $span = $('<span>').text(data.text);
+          if (description) { $span.attr('data-preview-desc', description); }
+          return $span;
+        }
+      });
+    }
+  });
+});
+
+// ==========================================================
+//  CHANGE PACKAGE DAY → Load description into CKEditor
+// ==========================================================
+
+$(document).on('select2:open', '.change_package_day', function() {
+  activeRowId = $(this).data('row-num');
+  isMenuOpening = true;
+  setTimeout(() => isMenuOpening = false, 200);
+});
+
+$(document).on('select2:close', '.change_package_day', function() {
+  $('.day-description-tooltip').hide();
+  activeRowId = null;
+});
+
+$(document).on('select2:select', '.change_package_day', function (e) {
+  let $select = $(this);
+  let row = $select.closest('tr');
+  let rowNum = row.data('row-num');
+
+  let data = e.params.data;
+  let description = $(data.element).attr('data-desc') || '';
+
+  if (window.dayEditors && window.dayEditors[rowNum]) {
+    window.dayEditors[rowNum].setData(description);
+  } else {
+    row.find('.day-editor').val(description);
+  }
+});
+
+});
 
     
 

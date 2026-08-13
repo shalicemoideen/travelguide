@@ -4389,9 +4389,13 @@ function toggleCheckTimeByType(typeVal) {
         $('#properties_check_in_time').val('').prop('disabled', true);
         $('#properties_check_out_time').val('').prop('disabled', true);
     } else {
-        // Other -> enable
-        $('#properties_check_in_time').prop('disabled', false);
-        $('#properties_check_out_time').prop('disabled', false);
+        // Other -> enable & set defaults
+        var $in = $('#properties_check_in_time');
+        var $out = $('#properties_check_out_time');
+        $in.prop('disabled', false);
+        $out.prop('disabled', false);
+        if (!$in.val()) $in.val('14:00:00');
+        if (!$out.val()) $out.val('11:00:00');
     }
 }
 

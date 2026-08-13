@@ -233,6 +233,7 @@ class Packages_model extends CI_Model{
         return $this->db
             ->select('p.*, pc.package_category_name, ic.itinerary_category_name,
                 iec.inclusion_exclusion_common_title,
+                it.itineraries_name,
                 pp.payment_policies_id_fk,
                 pay.payment_policies_name,
                 pt.terms_condition_id_fk,
@@ -244,6 +245,7 @@ class Packages_model extends CI_Model{
             ->from('packages p')
             ->join('package_category pc', 'pc.package_category_id = p.packages_category_id_fk', 'left')
             ->join('itinerary_category ic', 'ic.itinerary_category_id = p.packages_itinerary_category_id_fk', 'left')
+            ->join('itineraries it', 'it.itineraries_id = p.packages_itinerary_id_fk', 'left')
             ->join('inclusion_exclusion_common iec', 'iec.inclusion_exclusion_common_id = p.packages_inclusion_exclusion_common_id_fk', 'left')
             ->join('packages_payment_policies pp', 'p.packages_id = pp.packages_payment_policies_packages_id_fk', 'left')
             ->join('packages_terms_condition pt', 'p.packages_id = pt.packages_terms_condition_packages_id_fk', 'left')

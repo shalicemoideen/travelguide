@@ -43,6 +43,28 @@
     transform: translateY(-50%);
 }
 </style>
+<style>
+.day-description-tooltip {
+    position: fixed;
+    background: #fff;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 99999;
+    min-width: 400px;
+    max-width: 500px;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.day-description-tooltip .tooltip-content {
+    color: #333;
+    font-size: 13px;
+    line-height: 1.5;
+}
+</style>
 <!--**********************************
             Content body start
         ***********************************-->
@@ -241,6 +263,27 @@
               </div>                               
           </div>
 
+          <!-- Drag from other itinerary -->
+          <div class="row g-3 mt-1">
+            <div class="col-md-3">
+              <label class="form-label"><b>Filter by Category</b></label>
+              <select id="drag_itinerary_category" class="form-control">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><b>Drag from other Itinerary</b></label>
+              <select id="drag_itinerary_select" class="form-control">
+                <option value="">Select Itinerary to load days</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <button type="button" class="btn btn-info w-100" id="btnLoadDragItinerary" onclick="loadDragItineraryDays()">
+                Load Itinerary Days
+              </button>
+            </div>
+          </div>
+
           <!-- Day Blocks Container -->
           <div class="mt-3">
             <div class="card">
@@ -298,6 +341,46 @@
             <small class="text-muted">Optional (jpg/png/webp/gif)</small>
             <div class="mt-2">
               <img class="img-thumbnail day-image-preview" src="" style="display:none; max-height:90px;">
+            </div>
+          </div>
+
+          <div class="col-12 mt-2">
+            <label class="form-label mb-1"><b>Change Content</b></label>
+            <div class="d-flex gap-3 mb-2">
+              <label class="form-check-label" style="font-size:12px;">
+                <input type="radio" name="content_source_ROWNUM" class="form-check-input content-source-radio" value="itinerary" checked> Itinerary
+              </label>
+              <label class="form-check-label" style="font-size:12px;">
+                <input type="radio" name="content_source_ROWNUM" class="form-check-input content-source-radio" value="package"> Template
+              </label>
+            </div>
+
+            <div class="content-source-itinerary">
+              <div class="d-flex gap-2">
+                <select class="form-control change_itinerary" data-row-num="ROWNUM" style="width:50%;">
+                  <option value="">Please Select Itinerary</option>
+                </select>
+
+                <select class="form-control change_itinerary_day" data-row-num="ROWNUM" style="width:50%;">
+                  <option value="">Please Select Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="content-source-package" style="display:none;">
+              <div class="d-flex gap-2">
+                <select class="form-control change_package" data-row-num="ROWNUM" style="width:50%;">
+                  <option value="">Please Select Template</option>
+                </select>
+
+                <select class="form-control change_package_day" data-row-num="ROWNUM" style="width:50%;">
+                  <option value="">Please Select Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="day-description-tooltip" id="tooltip_ROWNUM">
+              <div class="tooltip-content"></div>
             </div>
           </div>
 
