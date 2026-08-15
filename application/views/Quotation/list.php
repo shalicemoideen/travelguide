@@ -1618,8 +1618,6 @@
 
                                                 <th>Transporter</th>
 
-                                                <th>Cab Type</th>
-
                                                 <th>Status</th>
 
                                                 <th>Created by</th>

@@ -249,21 +249,21 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Quotation details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Quotation details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                                     },
                                     title: 'Quotation details'
                                 },
@@ -307,7 +307,7 @@ var table;
             });
             
             
-            $table.column(10).nodes().each(function(node, index, dt) {
+            $table.column(9).nodes().each(function(node, index, dt) {
             if($table.cell(node).data() == '1') {
             
             // if(data['quotation_current_status'] == 1){
@@ -357,7 +357,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(12).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
             }
             else if($table.cell(node).data() == '2') {
             // else if(data['quotation_current_status'] == 2){
@@ -406,7 +406,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(12).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
             }
             else if($table.cell(node).data() == '3') {
             // else if(data['quotation_current_status'] == 3){
@@ -455,7 +455,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(12).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
             }
             else if($table.cell(node).data() == '4') {
             // else if(data['quotation_current_status'] == 4){
@@ -499,7 +499,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(12).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
             }
             else if($table.cell(node).data() == '5') {
             // else if(data['quotation_current_status'] == 5){
@@ -543,7 +543,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(12).html(actionHtml);  
+                $('td', row).eq(11).html(actionHtml);  
             }
             else if($table.cell(node).data() == '8') {
               $table.cell(node).data('<span class="badge badge-info">Reservation Completed</span>');
@@ -566,7 +566,7 @@ var table;
                 }
 
                 actionHtml8 += '</div></div>';
-                $('td', row).eq(12).html(actionHtml8);
+                $('td', row).eq(11).html(actionHtml8);
             }
             else if($table.cell(node).data() == '7') {
               $table.cell(node).data('<span class="badge badge-primary">Ready to Trip</span>');
@@ -589,7 +589,7 @@ var table;
                 }
 
                 actionHtml7 += '</div></div>';
-                $('td', row).eq(12).html(actionHtml7);
+                $('td', row).eq(11).html(actionHtml7);
             }
             else if($table.cell(node).data() == '9') {
               $table.cell(node).data('<span class="badge badge-warning">Driver Not Assigned</span>');
@@ -612,7 +612,7 @@ var table;
                 }
 
                 actionHtml9 += '</div></div>';
-                $('td', row).eq(12).html(actionHtml9);
+                $('td', row).eq(11).html(actionHtml9);
             }
             else if($table.cell(node).data() == '10') {
               $table.cell(node).data('<span class="badge badge-success">Trip Completed</span>');
@@ -635,7 +635,7 @@ var table;
                 }
 
                 actionHtml10 += '</div></div>';
-                $('td', row).eq(12).html(actionHtml10);
+                $('td', row).eq(11).html(actionHtml10);
             }
             else if($table.cell(node).data() == '6') {
             // else if(data['quotation_current_status'] == 6){
@@ -671,7 +671,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(12).html(actionHtml);
+                $('td', row).eq(11).html(actionHtml);
             }
             });
 
@@ -685,14 +685,12 @@ var table;
             } else {
                 $('td', row).eq(7).html('-');
             }
-            // Show transporter and cab type only for confirmed quotations
+            // Show transporter only for confirmed quotations
             var confirmedStatuses = ['5','7','8','9','10'];
             if (confirmedStatuses.indexOf(rawStatus) === -1) {
                 $('td', row).eq(8).html('-');
-                $('td', row).eq(9).html('-');
             } else {
                 $('td', row).eq(8).html(data['transporter_name'] ? data['transporter_name'] : '-');
-                $('td', row).eq(9).html(data['confirmed_cab_type'] ? data['confirmed_cab_type'] : '-');
             }
             // <a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="convert_trip('+data['quotation_id']+')">Convert to trips</a>
            },
@@ -711,7 +709,6 @@ var table;
             { "data": "departure_date", "orderable": false },
             { "data": "travel_duration", "orderable": false },
             { "data": "transporter_name", "orderable": false },
-            { "data": "confirmed_cab_type", "orderable": false },
             { "data": "quotation_current_status", "orderable": false },
             { "data": "quotation_created_by_username", "orderable": false },                       
             { "data": "quotation_id", "orderable": false }

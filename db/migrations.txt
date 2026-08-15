@@ -320,3 +320,13 @@ ALTER TABLE `user_details` MODIFY `password` VARCHAR(255) NOT NULL;
 -- New permissions: PROPERTY_CREDIT_VIEW, PROPERTY_CREDIT_CREATE,
 -- PROPERTY_CREDIT_APPLY, PROPERTY_CREDIT_REVERSE, PROPERTY_CREDIT_REPORT
 -- Granted to SUPER ADMIN role.
+
+-- =========================================================
+-- Incentive Report
+-- =========================================================
+-- Converted trips that already have a financial posting record, showing
+-- quotation number, trip code, assigned staff, total quotation amount
+-- (receipt scheduler total), total cost, profit and incentive.
+-- See: db/add_incentive_report_permission.sql
+--
+-- New permission: INCENTIVE_REPORT (REPORTS / MAIN REPORTS)

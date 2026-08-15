@@ -9017,6 +9017,61 @@ public function ajax_delete()
 		echo json_encode($data);
 	}
 
+	public function incentive_reports()
+	{
+		if (!has_permission('INCENTIVE_REPORT')) {
+			show_permission_denied();
+			return;
+		}
+		$template['staff']             = $this->Quotation_model->fetch_staff_users();
+		$template['current_user_type'] = $this->currentusertype;
+		$template['current_user_id']   = $this->currentuserid;
+		$template['body']   = 'Quotation/incentive_report';
+		$template['script'] = 'Quotation/incentive_report_script';
+		$this->load->view('template', $template);
+	}
+
+	public function ajax_incentive_reports()
+	{
+		if (!has_permission('INCENTIVE_REPORT')) {
+			echo json_encode(array('data' => array(), 'recordsTotal' => 0, 'recordsFiltered' => 0));
+			return;
+		}
+
+		$param['draw']        = isset($_REQUEST['draw'])               ? $_REQUEST['draw']               : '';
+		$param['length']      = isset($_REQUEST['length'])             ? $_REQUEST['length']             : '10';
+		$param['start']       = isset($_REQUEST['start'])              ? $_REQUEST['start']              : '0';
+		$param['order']       = isset($_REQUEST['order'][0]['column']) ? $_REQUEST['order'][0]['column'] : '';
+		$param['dir']         = isset($_REQUEST['order'][0]['dir'])    ? $_REQUEST['order'][0]['dir']    : '';
+		$param['searchValue'] = isset($_REQUEST['search']['value'])    ? $_REQUEST['search']['value']    : '';
+
+		$param['guest_name'] = isset($_REQUEST['guest_name']) ? $_REQUEST['guest_name'] : '';
+		$param['trip_code']  = isset($_REQUEST['trip_code'])  ? $_REQUEST['trip_code']  : '';
+
+		if ($this->currentusertype != 'A') {
+			$param['staff_id'] = $this->currentuserid;
+		} else {
+			$param['staff_id'] = isset($_REQUEST['staff_id']) ? $_REQUEST['staff_id'] : '';
+		}
+
+		$start_date = isset($_REQUEST['start_date']) ? $_REQUEST['start_date'] : '';
+		$end_date   = isset($_REQUEST['end_date'])   ? $_REQUEST['end_date']   : '';
+
+		if ($start_date) {
+			$start_date = str_replace('/', '-', $start_date);
+			$param['start_date'] = date('Y-m-d', strtotime($start_date));
+		}
+		if ($end_date) {
+			$end_date = str_replace('/', '-', $end_date);
+			$param['end_date'] = date('Y-m-d', strtotime($end_date));
+		}
+
+		$param['date_type'] = isset($_REQUEST['date_type']) ? $_REQUEST['date_type'] : 'arrival';
+
+		$data = $this->Quotation_model->getIncentiveReport($param);
+		echo json_encode($data);
+	}
+
 	public function quotation_report()
 	{
 		if (!has_permission('QUOTATION_REPORT')) {

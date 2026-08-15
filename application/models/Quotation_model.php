@@ -154,7 +154,7 @@ class Quotation_model extends CI_Model{
 
 			
 
-		$this->db->select('*, DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username, DATE_FORMAT(leads.start_date,\'%d-%m-%Y\') as arriving_date, DATE_FORMAT(leads.end_date,\'%d-%m-%Y\') as departure_date, leads.duration as travel_duration, (SELECT t.transporter_name FROM quotation_transport_allocation qta LEFT JOIN transporter t ON t.user_id_fk = qta.transporter_id_fk WHERE qta.quotation_id_fk = quotation.quotation_id AND qta.status = 1 LIMIT 1) as transporter_name, (SELECT v.vehicle_name FROM quotation_confirmation qc LEFT JOIN quotation_options qo ON qo.quotation_options_id = qc.option_id_fk LEFT JOIN vehicle v ON v.vehicle_id = qo.quotation_options_vehicle_id_fk WHERE qc.quotation_id_fk = quotation.quotation_id AND qc.property_confirmation_status = 1 LIMIT 1) as confirmed_cab_type', FALSE);
+		$this->db->select('*, DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username, DATE_FORMAT(leads.start_date,\'%d-%m-%Y\') as arriving_date, DATE_FORMAT(leads.end_date,\'%d-%m-%Y\') as departure_date, leads.duration as travel_duration, (SELECT t.transporter_name FROM quotation_transport_allocation qta LEFT JOIN transporter t ON t.user_id_fk = qta.transporter_id_fk WHERE qta.quotation_id_fk = quotation.quotation_id AND qta.status = 1 LIMIT 1) as transporter_name', FALSE);
 
 		$this->db->from('quotation');
 
@@ -5849,6 +5849,162 @@ public function insert_room_tariff_details($data)
 		$this->db->from('leads');
 
 		return $this->db->count_all_results();
+	}
+
+
+
+	/**
+	 * Converted trips that already have a financial posting record.
+	 * The quoted amount is the customer receipt scheduler total, so the report
+	 * shows the same figure the client is billed.
+	 */
+    public function getIncentiveReport($param = array())
+
+	{
+		$this->_incentiveReportFrom($param);
+
+		if (isset($param['length']) && $param['length'] != -1 && isset($param['start']) && $param['start'] != 'false') {
+			$this->db->limit($param['length'], $param['start']);
+		}
+
+		$this->db->select("
+			l.leads_id,
+			l.leads_number,
+			l.guest_name,
+			DATE_FORMAT(l.start_date, '%d-%m-%Y') AS travel_start_date,
+			DATE_FORMAT(l.end_date, '%d-%m-%Y') AS travel_end_date,
+			l.duration,
+			ud.admin_name AS staff_name,
+			q.quotation_number,
+			q.trip_code,
+			COALESCE(fp.fp_cost_after, 0) AS total_financial_cost,
+			COALESCE(rs.total_amount, qa.quotation_total_amount, 0) AS pre_quoted_amount,
+			(COALESCE(rs.total_amount, qa.quotation_total_amount, 0) - COALESCE(fp.fp_cost_after, 0)) AS profit
+		", FALSE);
+
+		$this->db->order_by('l.leads_id', 'DESC');
+
+		$rows = $this->db->get()->result();
+
+		$slabs = $this->IncentiveConfig_model->get_all_slabs();
+		foreach ($rows as $row) {
+			$row->incentive = $this->IncentiveConfig_model->calculate_incentive($row->profit, $slabs);
+		}
+
+		$data['data'] = $rows;
+		$data['recordsTotal'] = $this->getIncentiveReportCount($param);
+		$data['recordsFiltered'] = $data['recordsTotal'];
+
+		return $data;
+	}
+
+
+
+    public function getIncentiveReportCount($param = array())
+
+	{
+		$this->_incentiveReportFrom($param);
+
+		return $this->db->count_all_results();
+	}
+
+
+
+	/**
+	 * Shared FROM/JOIN/WHERE for the incentive report and its row count.
+	 */
+	private function _incentiveReportFrom($param = array())
+	{
+		$guest_name = isset($param['guest_name']) ? $param['guest_name'] : '';
+		$staff_id   = isset($param['staff_id'])   ? $param['staff_id']   : '';
+		$trip_code  = isset($param['trip_code'])  ? $param['trip_code']  : '';
+		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
+		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+		$date_type  = isset($param['date_type'])  ? $param['date_type']  : 'arrival';
+		$date_col   = ($date_type === 'departure') ? 'l.end_date' : 'l.start_date';
+
+		if ($guest_name) {
+			$this->db->like('l.guest_name', $guest_name);
+		}
+		if ($staff_id) {
+			$this->db->where('l.staff_id_fk', $staff_id);
+		}
+		if ($start_date) {
+			$this->db->where($date_col . ' >=', $start_date);
+		}
+		if ($end_date) {
+			$this->db->where($date_col . ' <=', $end_date);
+		}
+
+		$this->db->where('l.leads_status', 1);
+		$this->db->where('l.lead_current_status', 3);
+
+		$this->db->from('leads l');
+		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
+		$this->db->join('(
+			SELECT q1.leads_id_fk, q1.quotation_number, q1.quotation_id, q1.trip_code
+			FROM quotation q1
+			INNER JOIN (
+				SELECT leads_id_fk, MAX(quotation_id) AS max_qid
+				FROM quotation
+				WHERE quotation_status = 1
+				GROUP BY leads_id_fk
+			) q2 ON q2.leads_id_fk = q1.leads_id_fk AND q2.max_qid = q1.quotation_id
+		) q', 'q.leads_id_fk = l.leads_id', 'left');
+		// INNER JOIN: only trips whose financial posting is done appear in this report
+		$this->db->join('(
+			SELECT fp1.fp_leads_id_fk, fp1.fp_cost_after
+			FROM financial_posting fp1
+			INNER JOIN (
+				SELECT fp_leads_id_fk, MAX(fp_id) AS max_fp_id
+				FROM financial_posting
+				GROUP BY fp_leads_id_fk
+			) fp2 ON fp2.fp_leads_id_fk = fp1.fp_leads_id_fk AND fp2.max_fp_id = fp1.fp_id
+		) fp', 'fp.fp_leads_id_fk = l.leads_id', 'inner');
+		// Customer receipt scheduler total; the amount the client is actually billed.
+		$this->db->join('(
+			SELECT rs1.quotation_id_fk, rs1.total_amount
+			FROM receipt_scheduler rs1
+			INNER JOIN (
+				SELECT quotation_id_fk, MAX(receipt_scheduler_id) AS max_rs_id
+				FROM receipt_scheduler
+				WHERE receipt_scheduler_status = 1
+				GROUP BY quotation_id_fk
+			) rs2 ON rs2.quotation_id_fk = rs1.quotation_id_fk AND rs2.max_rs_id = rs1.receipt_scheduler_id
+		) rs', 'rs.quotation_id_fk = q.quotation_id', 'left');
+		// Fallback when no scheduler exists yet: same formula the scheduler is built
+		// from - confirmed option rate + property inclusions + special requirements.
+		// See Receipt_scheduler_model::get_quotation_total_amount().
+		$this->db->join('(
+			SELECT qc.quotation_id_fk,
+				COALESCE(qo.quotation_options_total_quote_rate, 0)
+					+ COALESCE(inc.inclusion_total, 0)
+					+ COALESCE(sp.special_total, 0) AS quotation_total_amount
+			FROM quotation_confirmation qc
+			INNER JOIN (
+				SELECT quotation_id_fk, MIN(id) AS min_qc_id
+				FROM quotation_confirmation
+				WHERE property_confirmation_status = 1
+				GROUP BY quotation_id_fk
+			) qc2 ON qc2.min_qc_id = qc.id
+			LEFT JOIN quotation_options qo ON qo.quotation_options_id = qc.option_id_fk
+			LEFT JOIN (
+				SELECT quotation_id_fk, quotation_options_id_fk, SUM(inclusion_amount) AS inclusion_total
+				FROM quotation_property_inclusions
+				WHERE quotation_property_inclusions_status = 1
+				GROUP BY quotation_id_fk, quotation_options_id_fk
+			) inc ON inc.quotation_id_fk = qc.quotation_id_fk AND inc.quotation_options_id_fk = qc.option_id_fk
+			LEFT JOIN (
+				SELECT quotation_id_fk, SUM(quotation_special_requirements_cost) AS special_total
+				FROM quotation_special_requirements
+				WHERE quotation_special_requirements_status = 1
+				GROUP BY quotation_id_fk
+			) sp ON sp.quotation_id_fk = qc.quotation_id_fk
+		) qa', 'qa.quotation_id_fk = q.quotation_id', 'left');
+
+		if ($trip_code) {
+			$this->db->like('q.trip_code', $trip_code);
+		}
 	}
 
 
