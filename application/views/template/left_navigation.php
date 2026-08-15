@@ -351,6 +351,7 @@
 					<?php if (has_any_permission([
 						'CONVERTED_TRIPS_REPORT',
 						'INCENTIVE_REPORT',
+						'FINANCIAL_POSTING_REPORT',
 						'LEAD_REPORT',
 						'QUOTATION_REPORT',
 						'TRANSPORTER_REPORT',
@@ -358,7 +359,7 @@
 						'PROPERTY_PAYMENTS_REPORT',
 						'PAYMENT_REPORT'
 					])): ?>
-					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="incentive_reports" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(2)=="transporter_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report" || $this->uri->segment(2)=="customer_payment_report" || $this->uri->segment(2)=="property_payments_report" || $this->uri->segment(1)=="Payment_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
+					<li class="<?php if($this->uri->segment(2)=="converted_trips_report" || $this->uri->segment(2)=="incentive_reports" || $this->uri->segment(2)=="financial_posting_report" || $this->uri->segment(2)=="quotation_report" || $this->uri->segment(2)=="transporter_report" || $this->uri->segment(1)=="IncentiveConfig" || $this->uri->segment(2)=="lead_report" || $this->uri->segment(2)=="customer_payment_report" || $this->uri->segment(2)=="property_payments_report" || $this->uri->segment(1)=="Payment_report"){echo "active";}?>"><a class="has-arrow" href="javascript:void()" aria-expanded="false">
 							<i class="bi bi-bar-chart-line-fill"></i>
 							<span class="nav-text">Reports</span>
 						</a>
@@ -368,6 +369,9 @@
 							<?php endif; ?>
 							<?php if (has_permission('INCENTIVE_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="incentive_reports"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/incentive_reports">Incentive Report</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('FINANCIAL_POSTING_REPORT')): ?>
+							<li class="<?php if($this->uri->segment(2)=="financial_posting_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Quotation/financial_posting_report">Financial Posting</a></li>
 							<?php endif; ?>
 							<?php if (has_permission('LEAD_REPORT')): ?>
 							<li class="<?php if($this->uri->segment(2)=="lead_report"){echo "active";}?>"><a href="<?php echo base_url();?>index.php/Leads/lead_report">Lead Report</a></li>

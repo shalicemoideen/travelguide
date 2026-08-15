@@ -677,6 +677,7 @@ var table;
 
             $('td', row).eq(3).html('<center><a href="javascript:void(0)" class="text-primary" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+' ('+data['guest_name']+')</a></center>');
             $('td', row).eq(2).html(data['trip_code'] ? '<span class="badge badge-warning">'+data['trip_code']+'</span>' : '-');
+            $('td', row).eq(1).html('<a href="javascript:void(0)" class="text-primary fw-bold" onclick="view_trip_details('+data['quotation_id']+')">'+(data['quotation_number'] || '-')+'</a>');
             // Format duration as X Nights Y Days
             var dur = parseInt(data['travel_duration'], 10);
             if (!isNaN(dur) && dur > 0) {
@@ -768,6 +769,8 @@ $('#QuotationModal').on('shown.bs.modal', function () {
     
 
 <?php include(APPPATH . 'views/Quotation/quotation_modal_script.php'); ?>
+
+<?php include(APPPATH . 'views/Quotation/trip_details_modal_script.php'); ?>
 
 function add_quotation()
 { 

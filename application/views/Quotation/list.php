@@ -4564,3 +4564,4 @@ td.position-relative {
 }
 
 </style>
+<?php include(APPPATH . 'views/Quotation/trip_details_modal.php'); ?>

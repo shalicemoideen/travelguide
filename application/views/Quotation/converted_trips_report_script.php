@@ -94,19 +94,19 @@ $(document).ready(function() {
             {
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                    columns: [0, 1, 2, 3, 4, 5, 6]
                 }
             },
             {
                 extend: 'pdf',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                    columns: [0, 1, 2, 3, 4, 5, 6]
                 }
             },
             {
                 extend: 'print',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                    columns: [0, 1, 2, 3, 4, 5, 6]
                 }
             }
         ],
@@ -141,18 +141,15 @@ $(document).ready(function() {
             }
             guestCell.html(guestHtml);
 
-            if (data['total_financial_cost'] !== undefined) {
-                $('td', row).eq(6).html(parseFloat(data['total_financial_cost']).toFixed(2));
+            if (data['quotation_id']) {
+                $('td', row).eq(1).html(
+                    '<a href="javascript:void(0)" class="text-primary fw-bold" onclick="view_trip_details(' +
+                    data['quotation_id'] + ')">' + (data['quotation_number'] || '-') + '</a>'
+                );
             }
-            if (data['profit'] !== undefined) {
-                var profit = parseFloat(data['profit']);
-                var profitClass = profit >= 0 ? 'text-success' : 'text-danger';
-                $('td', row).eq(7).html('<span class="' + profitClass + ' fw-bold">' + profit.toFixed(2) + '</span>');
-            }
-            if (data['incentive'] !== undefined) {
-                var incentive = parseFloat(data['incentive']);
-                var badgeClass = incentive > 0 ? 'bg-success' : 'bg-secondary';
-                $('td', row).eq(8).html('<span class="badge ' + badgeClass + ' fs-6">₹' + incentive.toFixed(2) + '</span>');
+
+            if (data['pre_quoted_amount'] !== undefined) {
+                $('td', row).eq(6).html(parseFloat(data['pre_quoted_amount']).toFixed(2));
             }
         },
         "drawCallback": function(settings) {
@@ -169,9 +166,7 @@ $(document).ready(function() {
             { "data": "travel_start_date", "orderable": false },
             { "data": "duration", "orderable": false },
             { "data": "staff_name", "orderable": false },
-            { "data": "total_financial_cost", "orderable": false },
-            { "data": "profit", "orderable": false },
-            { "data": "incentive", "orderable": false }
+            { "data": "pre_quoted_amount", "orderable": false }
         ]
     });
 
@@ -179,4 +174,6 @@ $(document).ready(function() {
         $table.ajax.reload();
     }
 });
+
+<?php include(APPPATH . 'views/Quotation/trip_details_modal_script.php'); ?>
 </script>

@@ -9017,6 +9017,66 @@ public function ajax_delete()
 		echo json_encode($data);
 	}
 
+	public function financial_posting_report()
+	{
+		if (!has_permission('FINANCIAL_POSTING_REPORT')) {
+			show_permission_denied();
+			return;
+		}
+		$template['body']   = 'Quotation/financial_posting_list';
+		$template['script'] = 'Quotation/financial_posting_list_script';
+		$this->load->view('template', $template);
+	}
+
+	public function ajax_financial_posting_list()
+	{
+		if (!has_permission('FINANCIAL_POSTING_REPORT')) {
+			echo json_encode(array('data' => array(), 'recordsTotal' => 0, 'recordsFiltered' => 0));
+			return;
+		}
+
+		$param['draw']   = isset($_REQUEST['draw'])   ? $_REQUEST['draw']   : '';
+		$param['length'] = isset($_REQUEST['length']) ? $_REQUEST['length'] : '10';
+		$param['start']  = isset($_REQUEST['start'])  ? $_REQUEST['start']  : '0';
+		$param['search'] = isset($_REQUEST['search_value']) ? $_REQUEST['search_value'] : '';
+
+		echo json_encode($this->Quotation_model->getFinancialPostingList($param));
+	}
+
+	public function ajax_trip_completed_quotations()
+	{
+		if (!has_permission('FINANCIAL_POSTING_REPORT')) {
+			echo json_encode(array('status' => false, 'data' => array()));
+			return;
+		}
+
+		$search = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
+		$rows   = $this->Quotation_model->getTripCompletedQuotationsForPosting($search);
+
+		echo json_encode(array('status' => true, 'data' => $rows));
+	}
+
+	public function ajax_get_converted_trip_details($quotation_id)
+	{
+		// Reachable from the converted trips report and the quotation list.
+		if (!has_any_permission(array('CONVERTED_TRIPS_REPORT', 'QUOTATION_VIEW'))) {
+			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
+			return;
+		}
+
+		$data = $this->Quotation_model->get_converted_trip_details($quotation_id);
+
+		if (empty($data)) {
+			echo json_encode(array(
+				'status'  => false,
+				'message' => 'Trip details not found. The quotation may not be confirmed yet.'
+			));
+			return;
+		}
+
+		echo json_encode(array('status' => true, 'data' => $data));
+	}
+
 	public function incentive_reports()
 	{
 		if (!has_permission('INCENTIVE_REPORT')) {

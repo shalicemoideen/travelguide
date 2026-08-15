@@ -82,9 +82,7 @@
                                                 <th>Travel date</th>
                                                 <th>Duration</th>
                                                 <th>Assigned staff</th>
-                                                <th>Total Cost</th>
-                                                <th>Profit</th>
-                                                <th>Incentive</th>
+                                                <th>Pre Quoted</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -96,6 +94,8 @@
                 </div>
             </div>
         </div>
+
+        <?php include(APPPATH . 'views/Quotation/trip_details_modal.php'); ?>
         <!--**********************************
             Content body end
         ***********************************-->

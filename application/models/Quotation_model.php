@@ -1392,6 +1392,21 @@ class Quotation_model extends CI_Model{
                 }
             }
 
+            // Property names of the confirmed properties, so each day row on the
+            // financial posting screen can show which property it belongs to.
+            $propertyNameById = array();
+            if (!empty($confirmedPropertyByDay)) {
+                $propRows = $this->db
+                    ->select('properties_id, properties_name')
+                    ->from('properties')
+                    ->where_in('properties_id', array_unique(array_values($confirmedPropertyByDay)))
+                    ->get()
+                    ->result_array();
+                foreach ($propRows as $propRow) {
+                    $propertyNameById[(int)$propRow['properties_id']] = $propRow['properties_name'];
+                }
+            }
+
             // Cost only the confirmed room(s); fall back to every room when nothing is confirmed yet
             $dayCostExpr = 'COALESCE(SUM(qrtd.manual_total_rate), 0) as day_cost';
             if (!empty($confirmedRoomIds)) {
@@ -1402,9 +1417,11 @@ class Quotation_model extends CI_Model{
 
             $hotelDays = $this->db
 
-                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, qpd.packages_properties_days_id_fk, qpd.quotation_itinerary_days_id_fk, ' . $dayCostExpr, FALSE)
+                ->select('qpd.quotation_properties_days_id, qpd.quotation_properties_days_day as day_label, qpd.packages_properties_days_id_fk, qpd.quotation_itinerary_days_id_fk, ap.accommodation_date, ap.accommodation_day_name, ' . $dayCostExpr, FALSE)
 
                 ->from('quotation_properties_days qpd')
+
+                ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
 
                 ->join('quotation_properties qp', 'qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id', 'inner')
 
@@ -1544,14 +1561,23 @@ class Quotation_model extends CI_Model{
 
                 $combinedDays[] = array(
                     'day_label' => $day['day_label'],
+                    'stay_date' => (!empty($day['accommodation_date']) && $day['accommodation_date'] !== '0000-00-00')
+                        ? date('d-m-Y', strtotime($day['accommodation_date']))
+                        : '',
+                    'stay_day_name' => !empty($day['accommodation_day_name']) ? $day['accommodation_day_name'] : '',
+                    'property_name' => ($confirmedPropertyId && isset($propertyNameById[$confirmedPropertyId]))
+                        ? $propertyNameById[$confirmedPropertyId]
+                        : '',
                     'hotel_cost' => $hotelQuoted,
                     'hotel_quoted' => $hotelQuoted,
                     'hotel_actual' => $hotelActual,
                     'hotel_desc' => $hotelDesc,
                     'inclusions_cost' => $incAmount,
                     'inclusion_desc' => implode(', ', $incNames),
+                    'inclusion_names' => implode(', ', $incNames),
                     'special_cost' => $specAmount,
                     'special_desc' => implode(', ', $specNames),
+                    'special_names' => implode(', ', $specNames),
                 );
             }
 
@@ -5752,18 +5778,18 @@ public function insert_room_tariff_details($data)
 			l.duration,
 			DATE_FORMAT(l.lead_register_date, '%d-%m-%Y') AS lead_register_date,
 			ud.admin_name AS staff_name,
+			q.quotation_id,
 			q.quotation_number,
+			q.trip_code,
 			COALESCE(gc.total_adults, 0) AS total_adults,
 			COALESCE(gc.total_children, 0) AS total_children,
-			COALESCE(fp.fp_cost_after, 0) AS total_financial_cost,
-			COALESCE(qo.quotation_options_total_quote_rate, 0) AS pre_quoted_amount,
-			(COALESCE(qo.quotation_options_total_quote_rate, 0) - COALESCE(fp.fp_cost_after, 0)) AS profit
+			COALESCE(rs.total_amount, qa.quotation_total_amount, 0) AS pre_quoted_amount
 		", FALSE);
 
 		$this->db->from('leads l');
 		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
 		$this->db->join('(
-			SELECT q1.leads_id_fk, q1.quotation_number, q1.quotation_id
+			SELECT q1.leads_id_fk, q1.quotation_number, q1.quotation_id, q1.trip_code
 			FROM quotation q1
 			INNER JOIN (
 				SELECT leads_id_fk, MAX(quotation_id) AS max_qid
@@ -5772,25 +5798,46 @@ public function insert_room_tariff_details($data)
 				GROUP BY leads_id_fk
 			) q2 ON q2.leads_id_fk = q1.leads_id_fk AND q2.max_qid = q1.quotation_id
 		) q', 'q.leads_id_fk = l.leads_id', 'left');
+		// Pre quoted amount: the customer receipt scheduler total, matching the
+		// incentive report. See Receipt_scheduler_model::get_quotation_total_amount().
 		$this->db->join('(
-			SELECT fp1.fp_leads_id_fk, fp1.fp_cost_after
-			FROM financial_posting fp1
+			SELECT rs1.quotation_id_fk, rs1.total_amount
+			FROM receipt_scheduler rs1
 			INNER JOIN (
-				SELECT fp_leads_id_fk, MAX(fp_id) AS max_fp_id
-				FROM financial_posting
-				GROUP BY fp_leads_id_fk
-			) fp2 ON fp2.fp_leads_id_fk = fp1.fp_leads_id_fk AND fp2.max_fp_id = fp1.fp_id
-		) fp', 'fp.fp_leads_id_fk = l.leads_id', 'left');
-		$this->db->join('(
-			SELECT qo1.quotation_id_fk, qo1.quotation_options_total_quote_rate
-			FROM quotation_options qo1
-			INNER JOIN (
-				SELECT quotation_id_fk, MIN(quotation_options_id) AS min_oid
-				FROM quotation_options
-				WHERE quotation_options_status = 1
+				SELECT quotation_id_fk, MAX(receipt_scheduler_id) AS max_rs_id
+				FROM receipt_scheduler
+				WHERE receipt_scheduler_status = 1
 				GROUP BY quotation_id_fk
-			) qo2 ON qo2.quotation_id_fk = qo1.quotation_id_fk AND qo2.min_oid = qo1.quotation_options_id
-		) qo', 'qo.quotation_id_fk = q.quotation_id', 'left');
+			) rs2 ON rs2.quotation_id_fk = rs1.quotation_id_fk AND rs2.max_rs_id = rs1.receipt_scheduler_id
+		) rs', 'rs.quotation_id_fk = q.quotation_id', 'left');
+		// Fallback when no scheduler exists yet: confirmed option rate + property
+		// inclusions + special requirements.
+		$this->db->join('(
+			SELECT qc.quotation_id_fk,
+				COALESCE(qo.quotation_options_total_quote_rate, 0)
+					+ COALESCE(inc.inclusion_total, 0)
+					+ COALESCE(sp.special_total, 0) AS quotation_total_amount
+			FROM quotation_confirmation qc
+			INNER JOIN (
+				SELECT quotation_id_fk, MIN(id) AS min_qc_id
+				FROM quotation_confirmation
+				WHERE property_confirmation_status = 1
+				GROUP BY quotation_id_fk
+			) qc2 ON qc2.min_qc_id = qc.id
+			LEFT JOIN quotation_options qo ON qo.quotation_options_id = qc.option_id_fk
+			LEFT JOIN (
+				SELECT quotation_id_fk, quotation_options_id_fk, SUM(inclusion_amount) AS inclusion_total
+				FROM quotation_property_inclusions
+				WHERE quotation_property_inclusions_status = 1
+				GROUP BY quotation_id_fk, quotation_options_id_fk
+			) inc ON inc.quotation_id_fk = qc.quotation_id_fk AND inc.quotation_options_id_fk = qc.option_id_fk
+			LEFT JOIN (
+				SELECT quotation_id_fk, SUM(quotation_special_requirements_cost) AS special_total
+				FROM quotation_special_requirements
+				WHERE quotation_special_requirements_status = 1
+				GROUP BY quotation_id_fk
+			) sp ON sp.quotation_id_fk = qc.quotation_id_fk
+		) qa', 'qa.quotation_id_fk = q.quotation_id', 'left');
 		$this->db->join('(
 			SELECT gc1.guset_count_lead_id_fk,
 				SUM(gcd1.adults) AS total_adults,
@@ -5806,11 +5853,6 @@ public function insert_room_tariff_details($data)
 
 		$query = $this->db->get();
 		$rows  = $query->result();
-
-		$slabs = $this->IncentiveConfig_model->get_all_slabs();
-		foreach ($rows as $row) {
-			$row->incentive = $this->IncentiveConfig_model->calculate_incentive($row->profit, $slabs);
-		}
 
 		$data['data'] = $rows;
 		$data['recordsTotal'] = $this->getConvertedTripsReportCount($param);
@@ -5906,6 +5948,167 @@ public function insert_room_tariff_details($data)
 		$this->_incentiveReportFrom($param);
 
 		return $this->db->count_all_results();
+	}
+
+
+
+	/**
+	 * Listing for the standalone financial posting page: one row per quotation
+	 * that already has a financial posting record.
+	 */
+    public function getFinancialPostingList($param = array())
+
+	{
+		$this->_financialPostingListFrom($param);
+
+		if (isset($param['length']) && $param['length'] != -1 && isset($param['start']) && $param['start'] != 'false') {
+			$this->db->limit($param['length'], $param['start']);
+		}
+
+		$this->db->select("
+			l.leads_id,
+			l.guest_name,
+			DATE_FORMAT(l.start_date, '%d-%m-%Y') AS travel_start_date,
+			ud.admin_name AS staff_name,
+			q.quotation_id,
+			q.quotation_number,
+			q.trip_code,
+			fp.fp_id,
+			COALESCE(fp.fp_cost_after, 0) AS actual_cost,
+			COALESCE(rs.total_amount, qa.quotation_total_amount, 0) AS pre_quoted_amount,
+			(COALESCE(rs.total_amount, qa.quotation_total_amount, 0) - COALESCE(fp.fp_cost_after, 0)) AS total_margin
+		", FALSE);
+
+		$this->db->order_by('fp.fp_id', 'DESC');
+
+		$data['data'] = $this->db->get()->result();
+		$data['recordsTotal'] = $this->getFinancialPostingListCount($param);
+		$data['recordsFiltered'] = $data['recordsTotal'];
+
+		return $data;
+	}
+
+
+
+    public function getFinancialPostingListCount($param = array())
+
+	{
+		$this->_financialPostingListFrom($param);
+
+		return $this->db->count_all_results();
+	}
+
+
+
+	private function _financialPostingListFrom($param = array())
+	{
+		$search = isset($param['search']) ? $param['search'] : '';
+
+		if ($search) {
+			$this->db->group_start();
+			$this->db->like('q.quotation_number', $search);
+			$this->db->or_like('q.trip_code', $search);
+			$this->db->or_like('l.guest_name', $search);
+			$this->db->group_end();
+		}
+
+		$this->db->where('l.leads_status', 1);
+
+		$this->db->from('leads l');
+		$this->db->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left');
+		$this->db->join('(
+			SELECT q1.leads_id_fk, q1.quotation_number, q1.quotation_id, q1.trip_code
+			FROM quotation q1
+			INNER JOIN (
+				SELECT leads_id_fk, MAX(quotation_id) AS max_qid
+				FROM quotation
+				WHERE quotation_status = 1
+				GROUP BY leads_id_fk
+			) q2 ON q2.leads_id_fk = q1.leads_id_fk AND q2.max_qid = q1.quotation_id
+		) q', 'q.leads_id_fk = l.leads_id', 'inner');
+		// INNER JOIN: only leads with a saved financial posting are listed
+		$this->db->join('(
+			SELECT fp1.fp_leads_id_fk, fp1.fp_id, fp1.fp_cost_after
+			FROM financial_posting fp1
+			INNER JOIN (
+				SELECT fp_leads_id_fk, MAX(fp_id) AS max_fp_id
+				FROM financial_posting
+				GROUP BY fp_leads_id_fk
+			) fp2 ON fp2.fp_leads_id_fk = fp1.fp_leads_id_fk AND fp2.max_fp_id = fp1.fp_id
+		) fp', 'fp.fp_leads_id_fk = l.leads_id', 'inner');
+		$this->db->join('(
+			SELECT rs1.quotation_id_fk, rs1.total_amount
+			FROM receipt_scheduler rs1
+			INNER JOIN (
+				SELECT quotation_id_fk, MAX(receipt_scheduler_id) AS max_rs_id
+				FROM receipt_scheduler
+				WHERE receipt_scheduler_status = 1
+				GROUP BY quotation_id_fk
+			) rs2 ON rs2.quotation_id_fk = rs1.quotation_id_fk AND rs2.max_rs_id = rs1.receipt_scheduler_id
+		) rs', 'rs.quotation_id_fk = q.quotation_id', 'left');
+		$this->db->join('(
+			SELECT qc.quotation_id_fk,
+				COALESCE(qo.quotation_options_total_quote_rate, 0)
+					+ COALESCE(inc.inclusion_total, 0)
+					+ COALESCE(sp.special_total, 0) AS quotation_total_amount
+			FROM quotation_confirmation qc
+			INNER JOIN (
+				SELECT quotation_id_fk, MIN(id) AS min_qc_id
+				FROM quotation_confirmation
+				WHERE property_confirmation_status = 1
+				GROUP BY quotation_id_fk
+			) qc2 ON qc2.min_qc_id = qc.id
+			LEFT JOIN quotation_options qo ON qo.quotation_options_id = qc.option_id_fk
+			LEFT JOIN (
+				SELECT quotation_id_fk, quotation_options_id_fk, SUM(inclusion_amount) AS inclusion_total
+				FROM quotation_property_inclusions
+				WHERE quotation_property_inclusions_status = 1
+				GROUP BY quotation_id_fk, quotation_options_id_fk
+			) inc ON inc.quotation_id_fk = qc.quotation_id_fk AND inc.quotation_options_id_fk = qc.option_id_fk
+			LEFT JOIN (
+				SELECT quotation_id_fk, SUM(quotation_special_requirements_cost) AS special_total
+				FROM quotation_special_requirements
+				WHERE quotation_special_requirements_status = 1
+				GROUP BY quotation_id_fk
+			) sp ON sp.quotation_id_fk = qc.quotation_id_fk
+		) qa', 'qa.quotation_id_fk = q.quotation_id', 'left');
+	}
+
+
+
+	/**
+	 * Trip-completed quotations that do not have a financial posting yet.
+	 * Feeds the "Add Financial Posting" picker.
+	 */
+	public function getTripCompletedQuotationsForPosting($search = '', $limit = 30)
+	{
+		if ($search) {
+			$this->db->group_start();
+			$this->db->like('q.quotation_number', $search);
+			$this->db->or_like('q.trip_code', $search);
+			$this->db->or_like('l.guest_name', $search);
+			$this->db->group_end();
+		}
+
+		$this->db->select("
+			q.quotation_id,
+			q.quotation_number,
+			q.trip_code,
+			l.leads_id,
+			l.leads_number,
+			l.guest_name,
+			DATE_FORMAT(l.start_date, '%d-%m-%Y') AS travel_start_date
+		", FALSE);
+		$this->db->from('quotation q');
+		$this->db->join('leads l', 'l.leads_id = q.leads_id_fk', 'inner');
+		$this->db->where('q.quotation_status', 1);
+		$this->db->where('q.quotation_current_status', 10); // Trip Completed
+		$this->db->where('l.leads_status', 1);
+		$this->db->where('NOT EXISTS (SELECT 1 FROM financial_posting fp WHERE fp.fp_leads_id_fk = l.leads_id)', NULL, FALSE);
+		$this->db->order_by('q.quotation_id', 'DESC');
+		$this->db->limit($limit);
+
+		return $this->db->get()->result();
 	}
 
 
@@ -7422,6 +7625,90 @@ public function get_quotation_special_requirements_preview($quotation_id)
             'payment_schedule' => $payment_schedule,
             'account' => $account
         );
+    }
+
+    /**
+     * Full trip details for the converted trips report modal.
+     * Builds on the client confirmation preview (confirmed option, per-day
+     * properties, inclusions, special requirements, payment schedule) and adds
+     * the lead contact block, trip code, transport allocation and guest counts.
+     */
+    public function get_converted_trip_details($quotation_id)
+    {
+        $quotation_id = (int)$quotation_id;
+
+        $data = $this->get_client_confirmation_preview($quotation_id);
+
+        if (empty($data) || empty($data['main'])) {
+            return array();
+        }
+
+        $extra = $this->db
+            ->select("
+                q.quotation_id,
+                q.trip_code,
+                q.quotation_title,
+                l.leads_id,
+                l.leads_number,
+                l.lead_type,
+                l.leads_email,
+                l.leads_address,
+                l.whats_number,
+                l.alternative_number,
+                DATEDIFF(l.end_date, l.start_date) AS total_nights,
+                ud.admin_name AS staff_name,
+                pc.package_category_name
+            ", FALSE)
+            ->from('quotation q')
+            ->join('leads l', 'l.leads_id = q.leads_id_fk', 'left')
+            ->join('user_details ud', 'ud.user_id = l.staff_id_fk', 'left')
+            ->join('package_category pc', 'pc.package_category_id = l.leads_package_category_id_fk', 'left')
+            ->where('q.quotation_id', $quotation_id)
+            ->get()
+            ->row_array();
+
+        if ($extra) {
+            $data['main'] = array_merge($data['main'], $extra);
+        }
+
+        $data['transport'] = $this->db
+            ->select('qta.driver_name, qta.driver_mobile, qta.cab_number, t.transporter_name')
+            ->from('quotation_transport_allocation qta')
+            ->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left')
+            ->where('qta.quotation_id_fk', $quotation_id)
+            ->where('qta.status', 1)
+            ->get()
+            ->result_array();
+
+        $guests = $this->db
+            ->select('SUM(gcd.adults) AS total_adults, SUM(gcd.children) AS total_children', FALSE)
+            ->from('guset_count gc')
+            ->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id AND gcd.guset_count_details_status = 1', 'left')
+            ->where('gc.guset_count_lead_id_fk', $data['main']['leads_id_fk'])
+            ->where('gc.guset_count_status', 1)
+            ->get()
+            ->row_array();
+
+        $data['main']['total_adults']   = isset($guests['total_adults'])   ? (int)$guests['total_adults']   : 0;
+        $data['main']['total_children'] = isset($guests['total_children']) ? (int)$guests['total_children'] : 0;
+
+        // Package cost shown to the client: the receipt scheduler total, falling
+        // back to the confirmation preview figure when no scheduler exists yet.
+        $scheduler = $this->db
+            ->select('total_amount')
+            ->from('receipt_scheduler')
+            ->where('quotation_id_fk', $quotation_id)
+            ->where('receipt_scheduler_status', 1)
+            ->order_by('receipt_scheduler_id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row_array();
+
+        $data['main']['package_cost'] = !empty($scheduler['total_amount'])
+            ? (float)$scheduler['total_amount']
+            : (float)(isset($data['main']['final_quoted_price']) ? $data['main']['final_quoted_price'] : 0);
+
+        return $data;
     }
 
     public function get_property_reservation_preview($quotation_id)
