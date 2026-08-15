@@ -375,7 +375,16 @@ Infant: <?= $appliedBaby; ?>
         <!-- Prepared By -->
         <div class="section-header">Prepared by</div>
         <div class="prepared-section">
-            <div><?php echo htmlspecialchars(get($main, 'quotation_created_by_username', 'Staff')); ?></div>
+            <?php
+            $pb = isset($main['prepared_by_user']) ? $main['prepared_by_user'] : null;
+            if ($pb): ?>
+                <div><?php echo htmlspecialchars($pb->admin_name); ?></div>
+                <?php if (!empty($pb->user_phone_number)): ?>
+                <div>Ph No : <?php echo htmlspecialchars($pb->user_phone_number); ?></div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div><?php echo htmlspecialchars(get($main, 'quotation_created_by_username', 'Staff')); ?></div>
+            <?php endif; ?>
             <div>Royale India</div>
             <div>Ernakulam, Kerala, India</div>
             <div>https://royaleindia.in</div>

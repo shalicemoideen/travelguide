@@ -67,6 +67,7 @@
                                     <tr>
                                         <th>Sl.no</th>
                                         <th>Guest Name</th>
+                                        <th>Trip Code</th>
                                         <th>Travel Date</th>
                                         <th>Transporter</th>
                                         <th>Driver Name</th>

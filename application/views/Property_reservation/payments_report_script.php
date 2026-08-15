@@ -264,6 +264,11 @@ function openRecordPropertyPayment(installmentId, schedulerId, dueAmount) {
     $('#pp_payment_reference').val('');
     $('#pp_payment_remarks').val('');
     $('#pp_payment_slip').val('');
+    if (window.resetMultiFiles_pp_payment_slip) { window.resetMultiFiles_pp_payment_slip(); }
+    if (!window._pp_payment_slip_picker_init) {
+        initMultiFilePicker('pp_payment_slip', 'pp_payment_slip_list');
+        window._pp_payment_slip_picker_init = true;
+    }
 
     $('#recordPropertyPaymentModal').modal('show');
 }
@@ -271,7 +276,6 @@ function openRecordPropertyPayment(installmentId, schedulerId, dueAmount) {
 function submitPropertyPayment() {
     var $amount = $('#pp_payment_amount');
     var $date = $('#pp_payment_date');
-    var $slip = $('#pp_payment_slip');
 
     var amountVal = $.trim($amount.val());
     if (amountVal == '' || isNaN(amountVal) || parseFloat(amountVal) <= 0) {
@@ -286,8 +290,8 @@ function submitPropertyPayment() {
 
     var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
     $date.toggleClass('is-invalid', !dateValid);
-    $slip.toggleClass('is-invalid', !$slip.val());
-    if (!dateValid || !$slip.val()) {
+    var pickedFiles = window.getMultiFiles_pp_payment_slip ? window.getMultiFiles_pp_payment_slip() : [];
+    if (!dateValid || pickedFiles.length === 0) {
         var msg = !dateValid ? 'Please enter a valid payment date in dd/mm/yyyy format.' : 'Please upload a payment slip.';
         var n = new notify({ title: '', style: 'error', message: msg, icon: 'fas fa-times' });
         n.show(); setTimeout(function(){ n.hide(); }, 3000);
@@ -295,6 +299,9 @@ function submitPropertyPayment() {
     }
 
     var formData = new FormData($('#recordPropertyPaymentForm')[0]);
+    for (var i = 0; i < pickedFiles.length; i++) {
+        formData.append('payment_slip[]', pickedFiles[i]);
+    }
 
     $.ajax({
         url: base_url + 'property_reservation/ajax_record_payment',
@@ -339,9 +346,13 @@ function viewPropertyPaymentHistory(installmentId) {
             } else {
                 for (var i = 0; i < response.payments.length; i++) {
                     var payment = response.payments[i];
-                    var slipLink = payment.payment_slip
-                        ? '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + payment.payment_slip + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip"><i class="fas fa-file-alt"></i></a>'
-                        : '';
+                    var slipLink = '';
+                    if (payment.payment_slip) {
+                        var slips = payment.payment_slip.split(',');
+                        for (var s = 0; s < slips.length; s++) {
+                            slipLink += '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + slips[s] + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip ' + (s+1) + '"><i class="fas fa-file-alt"></i></a>';
+                        }
+                    }
                     var actionHtml = '<div class="d-flex">' + slipLink +
                         '<button class="btn btn-primary shadow btn-xs sharp" onclick="printPropertyReceipt(' + payment.payment_id + ')" title="Print Receipt"><i class="fas fa-print"></i></button>' +
                         '</div>';

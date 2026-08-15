@@ -658,11 +658,11 @@
 
                         <div class="card">
 
-                            <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="card-header d-flex justify-content-between align-items-center flex-nowrap">
 
-                                <h4 class="card-title mb-0">Quotation Hub</h4>
+                                <h4 class="card-title mb-0" style="white-space:nowrap;flex-shrink:0;">Quotation Hub</h4>
 
-                                <div id="quotationActionButtons">
+                                <div id="quotationActionButtons" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;">
 
                                     <!-- Buttons will be dynamically inserted here by JS -->
 
@@ -671,6 +671,19 @@
                             </div>
 
                             <div class="card-body">
+
+                                <div id="hubQuotationTitleBox" class="alert alert-primary d-flex align-items-center justify-content-between mb-3" style="background:#e3f2fd;border:1px solid #90caf9;border-radius:8px;padding:12px 16px;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="la la-file-text me-2" style="font-size:22px;color:#1565c0;"></i>
+                                        <div class="d-flex flex-column">
+                                            <span id="hubTripCode" style="font-size:12px;font-weight:700;color:#fff;background:#1565c0;padding:2px 10px;border-radius:12px;display:inline-block;margin-bottom:4px;width:fit-content;"></span>
+                                            <span id="hubQuotationTitle" style="font-size:18px;font-weight:700;color:#1565c0;"></span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="hubEditTitleBtn" onclick="hubOpenEditTitleModal()" style="display:none;">
+                                        <i class="la la-edit me-1"></i> Edit Title
+                                    </button>
+                                </div>
 
                                 <!-- Nav tabs -->
 
@@ -2086,6 +2099,30 @@
         </div>
         <!-- ===== END Property Credit Application Modal ===== -->
 
+        <!-- Edit Quotation Title Modal -->
+        <div class="modal fade" id="hubEditTitleModal" tabindex="-1" aria-labelledby="hubEditTitleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="hubEditTitleModalLabel"><i class="la la-edit me-2"></i> Edit Quotation Title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Quotation Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="hub_edit_title_input" placeholder="Enter quotation title">
+                            <input type="hidden" id="hub_edit_title_id">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="hubSaveTitle()"><i class="la la-check me-1"></i> Save Title</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ===== END Edit Quotation Title Modal ===== -->
+
         <!-- Generate Quotation Modal -->
 
         <div class="modal fade" id="generateQuotationModal" tabindex="-1" aria-labelledby="generateQuotationModalLabel" aria-hidden="true">
@@ -2912,9 +2949,13 @@
 
                                     <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
 
-                                    <input type="file" class="form-control" name="payment_slip" id="hub_payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <input type="file" class="form-control" id="hub_payment_slip" accept=".jpg,.jpeg,.png,.pdf" multiple style="display:none;">
 
-                                    <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="$('#hub_payment_slip').click();"><i class="fas fa-plus me-1"></i> Add Files</button>
+
+                                    <div id="hub_payment_slip_list" class="mt-2"></div>
+
+                                    <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB per file. Add one or more files.</small>
 
                                 </div>
 
@@ -3254,9 +3295,13 @@
 
                                     <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
 
-                                    <input type="file" class="form-control" name="payment_slip" id="hub_pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <input type="file" class="form-control" id="hub_pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" multiple style="display:none;">
 
-                                    <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="$('#hub_pr_pay_slip').click();"><i class="fas fa-plus me-1"></i> Add Files</button>
+
+                                    <div id="hub_pr_pay_slip_list" class="mt-2"></div>
+
+                                    <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB per file. Add one or more files.</small>
 
                                 </div>
 
@@ -3423,6 +3468,89 @@
         </div>
 
 
+
+        <!-- Assign Driver Details Modal -->
+        <div class="modal fade" id="hubAssignDriverModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="la la-user-plus me-2"></i> Assign Driver Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="hubAssignDriverForm">
+                            <input type="hidden" id="hub_ad_allocation_id" name="allocation_id">
+                            <input type="hidden" id="hub_ad_quotation_id" name="quotation_id">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Vehicle (from confirmed option)</label>
+                                    <div id="hub_ad_vehicle_name" style="font-size:15px;font-weight:600;color:#333;padding:8px 0;">-</div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Guest Count</label>
+                                    <div id="hub_ad_guest_count" style="font-size:15px;font-weight:600;color:#333;padding:8px 0;">-</div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Driver Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="hub_ad_driver_name" name="driver_name" placeholder="Enter driver name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Driver Mobile <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="hub_ad_driver_mobile" name="driver_mobile" placeholder="Enter driver mobile">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Cab Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="hub_ad_cab_number" name="cab_number" placeholder="Enter cab number">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" onclick="hubSubmitAssignDriver()"><i class="la la-check me-1"></i> Update &amp; Set Ready to Trip</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Driver Details Modal -->
+        <div class="modal fade" id="hubViewDriverModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="la la-eye me-2"></i> Driver Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width:40%">Transporter</th>
+                                <td id="hub_vd_transporter">-</td>
+                            </tr>
+                            <tr>
+                                <th>Vehicle</th>
+                                <td id="hub_vd_vehicle">-</td>
+                            </tr>
+                            <tr>
+                                <th>Driver Name</th>
+                                <td id="hub_vd_driver_name">-</td>
+                            </tr>
+                            <tr>
+                                <th>Driver Mobile</th>
+                                <td id="hub_vd_driver_mobile">-</td>
+                            </tr>
+                            <tr>
+                                <th>Cab Number</th>
+                                <td id="hub_vd_cab_number">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Review Update Modal -->
 

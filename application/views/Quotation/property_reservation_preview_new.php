@@ -144,6 +144,8 @@ Trip Code: <?= htmlspecialchars($tripCode); ?>
 Guest Name: <?= htmlspecialchars($guestName); ?>
 
 No. of Guests: <?= $adults; ?> Adults, <?= $children; ?> Children (<?= htmlspecialchars($childAgeStr); ?>)
+Property Name: <?= htmlspecialchars($g['property_name']); ?>
+
 Number of Rooms: <?= $totalRooms; ?>
 
 Room Category: <?= htmlspecialchars($roomCategory); ?>
@@ -169,7 +171,22 @@ Kind Regards,
 
 Reservations Team
 RIT Royale Getaways Private Limited (Royale India)
+<?php
+$pb = isset($prepared_by_user) ? $prepared_by_user : null;
+if ($pb): ?>
+👤 <?= htmlspecialchars($pb->admin_name); ?>
+
+<?php if (!empty($pb->user_phone_number)): ?>
+📞 <?= htmlspecialchars($pb->user_phone_number); ?>
+
+<?php else: ?>
 📞 +91-90726 09089
+
+<?php endif; ?>
+<?php else: ?>
+📞 +91-90726 09089
+
+<?php endif; ?>
 ✉️ reservations@royaleindia.in
 🌐 www.royaleindia.in</div>
 

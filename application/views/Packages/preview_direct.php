@@ -703,10 +703,14 @@ button:hover{background:#172554;}
 }
 .complimentary-text{
   font-size:13px;
-  line-height:1.6;
-  color:#333;
-  font-weight:600;
-  white-space:pre-line;
+  line-height:1.3;
+  color:#ff0000;
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+.complimentary-text br{
+  line-height:0;
+  margin-bottom:0;
 }
 
 /* ===== COMPLIMENTARY INCLUSIONS (EXCLUSIVE) ===== */
@@ -724,10 +728,14 @@ button:hover{background:#172554;}
 .complimentary-text-exclusive{
   font-family:'Open Sans',sans-serif;
   font-size:13px;
-  line-height:1.4;
-  color:#5c4a3a;
-  font-weight:600;
-  white-space:pre-line;
+  line-height:1.3;
+  color:#ff0000;
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+.complimentary-text-exclusive br{
+  line-height:0;
+  margin-bottom:0;
 }
 
 /* ===== EXCLUSIVE ===== */
@@ -1139,8 +1147,8 @@ button:hover{background:#172554;}
   margin-bottom:8px;
 }
 .payment-bank-lines{
-  font-size:19px;
-  line-height:1.6;
+  font-size:12.5px;
+  line-height:1.5;
   color:#111;
 }
 .payment-bank-lines strong{
@@ -1287,7 +1295,7 @@ button:hover{background:#172554;}
 
 .payment-bank-lines{
   font-family:'Open Sans',sans-serif;
-  font-size:15px;
+  font-size:12.5px;
   line-height:1.5;
   color:#111;
 }
@@ -2378,6 +2386,10 @@ foreach ($accounts as $acc) {
 
             <?php if (!empty($acc->branch_name)): ?>
               <div><strong>BRANCH:</strong> <?= htmlspecialchars($acc->branch_name); ?></div>
+            <?php endif; ?>
+
+            <?php if (!empty($acc->up_id)): ?>
+              <div style="white-space:nowrap;"><strong>UPI ID:</strong> <?= htmlspecialchars($acc->up_id); ?></div>
             <?php endif; ?>
           </div>
 

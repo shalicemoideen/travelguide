@@ -10024,6 +10024,10 @@ function resetQuotationModalForm() {
 
     // reset option blocks
 
+    $('#template_name_display').text('');
+
+    $('#quotation_title').val('');
+
     if ($('#optionsContainer').length) {
 
         $('#optionsContainer').html('');
@@ -10239,6 +10243,10 @@ loadInclusionAndRequirementDropdownData();   // ✅ now will work (after you fix
       $('#leads_id_hidden').val(leadId);
 
       $('#packages_id_hidden').val(packageId);
+
+      $('#template_name_display').text(res.packages_title || '');
+
+      $('#quotation_title').val(res.packages_title || '');
 
 
 
@@ -10527,6 +10535,12 @@ function validateQuotationForm() {
     if (!$('#packages_id_hidden').val())
 
         return showError('Please select Package', $('#packages_id_hidden')[0]), false;
+
+
+
+    if (!$('#quotation_title').val())
+
+        return showError('Quotation title is required', $('#quotation_title')[0]), false;
 
 
 
@@ -10968,7 +10982,7 @@ function save_quote() {
 
     const data = new FormData(form);
 
-
+    data.set('quotation_title', $('#quotation_title').val() || '');
 
     // JSON payload
 

@@ -3666,6 +3666,7 @@ function buildB2CLayout(d)
                     ['Date Type', d.date_type],
                     ['Travel Start Date', formatDate(d.start_date)],
                     ['End Date', formatDate(d.end_date)],
+                    ['Duration', formatDuration(d.duration)],
                     ['Accommodation Status', getAccommodationStatusText(d.leads_accomodation_status,d.leads_quotation_status)]
                 ])}
             </div>
@@ -3718,6 +3719,7 @@ function buildMetaLayout(d)
                     ['Date Type', d.date_type],
                     ['Travel Start Date', formatDate(d.start_date)],
                     ['End Date', formatDate(d.end_date)],
+                    ['Duration', formatDuration(d.duration)],
                     ['Accommodation Status', getAccommodationStatusText(d.leads_accomodation_status,d.leads_quotation_status)]
                 ])}
             </div>
@@ -3868,6 +3870,14 @@ function formatDate(dateStr)
     if (parts.length !== 3) return dateStr;
 
     return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function formatDuration(dur)
+{
+    var n = parseInt(dur, 10);
+    if (isNaN(n) || n <= 0) return '-';
+    var nights = n - 1;
+    return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + n + ' Day' + (n !== 1 ? 's' : '');
 }
 
 function formatDateTime(dateTimeStr)
@@ -5104,15 +5114,31 @@ if (save_method === 'update') {
                     reload_table_meta();
                 }
 
-                // âœ… after new lead save, open guest count modal
-                // if (isAdd && data.lead_id) {
-                //     guset_count(data.lead_id);
-                // }
-                // âœ… after new lead save, open guest count modal only if travel/template details exist
+                // after new lead save, open guest count modal only if travel/template details exist
                 if (isAdd && data.lead_id) {
                     checkLeadTravelDetails(data.lead_id, function () {
                         guset_count(data.lead_id);
                     });
+                }
+
+                // If accommodation was reset due to travel details change, open accommodation modal directly
+                if (!isAdd && data.accommodation_reset) {
+                    setTimeout(function() {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Accommodation Required',
+                            text: 'Travel date, duration, or template has been changed. Please set accommodation again.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Set Accommodation',
+                            cancelButtonText: 'Later',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then(function(result) {
+                            if (result.value === true || result.isConfirmed === true) {
+                                accomodation_plan(data.lead_id);
+                            }
+                        });
+                    }, 300);
                 }
             }
 

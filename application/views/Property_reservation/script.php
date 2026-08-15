@@ -432,10 +432,19 @@ function redistributeEmiAmounts($changed) {
     var split = $('#split_type').val();
     var total = split === 'PERCENTAGE' ? 100 : pr_getNetTotal();
     var $inputs = split === 'PERCENTAGE' ? $('.emi-percentage') : $('.emi-amount');
+    var changedIndex = $inputs.index($changed);
     var changedVal = parseFloat($changed.val()) || 0;
-    var $others = $inputs.not($changed);
-    if ($others.length > 0) {
-        $others.val(((total - changedVal) / $others.length).toFixed(2));
+
+    var sumBefore = 0;
+    for (var i = 0; i < changedIndex; i++) {
+        sumBefore += parseFloat($($inputs[i]).val()) || 0;
+    }
+
+    var sumAfter = total - sumBefore - changedVal;
+    var $afterInputs = $inputs.slice(changedIndex + 1);
+
+    if ($afterInputs.length > 0) {
+        $afterInputs.val((sumAfter / $afterInputs.length).toFixed(2));
     }
     calcEmiTotal();
 }
@@ -666,22 +675,29 @@ function prRecordPayment(installmentId, dueAmount) {
     $('#pr_pay_ref').val('');
     $('#pr_pay_remarks').val('');
     $('#pr_pay_slip').val('');
+    if (window.resetMultiFiles_pr_pay_slip) { window.resetMultiFiles_pr_pay_slip(); }
+    if (!window._pr_pay_slip_picker_init) {
+        initMultiFilePicker('pr_pay_slip', 'pr_pay_slip_list');
+        window._pr_pay_slip_picker_init = true;
+    }
     $('#prRecordPaymentModal').modal('show');
 }
 
 function prSavePayment() {
     var $date = $('#pr_pay_date');
-    var $slip = $('#pr_pay_slip');
     var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
     $date.toggleClass('is-invalid', !dateValid);
-    $slip.toggleClass('is-invalid', !$slip.val());
-    if (!dateValid || !$slip.val()) {
+    var pickedFiles = window.getMultiFiles_pr_pay_slip ? window.getMultiFiles_pr_pay_slip() : [];
+    if (!dateValid || pickedFiles.length === 0) {
         var n = new notify({ title: '', style: 'error', message: 'Payment date and payment slip are required.', icon: 'fas fa-exclamation-circle' });
         n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
 
     var formData = new FormData($('#prPaymentForm')[0]);
+    for (var i = 0; i < pickedFiles.length; i++) {
+        formData.append('payment_slip[]', pickedFiles[i]);
+    }
     $.ajax({
         url: base_url + 'index.php/property_reservation/ajax_record_payment',
         type: 'POST',

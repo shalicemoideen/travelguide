@@ -271,6 +271,62 @@
 		});
 	</script>
 
+	<!-- Multi File Picker Helper -->
+	<script>
+	(function() {
+	    window.initMultiFilePicker = function(inputId, listId) {
+	        var $input = $('#' + inputId);
+	        var $list = $('#' + listId);
+	        var selectedFiles = [];
+
+	        $input.on('change', function(e) {
+	            var newFiles = Array.from(e.target.files);
+	            for (var i = 0; i < newFiles.length; i++) {
+	                selectedFiles.push(newFiles[i]);
+	            }
+	            $input.val('');
+	            renderList();
+	        });
+
+	        $list.on('click', '.remove-file-btn', function() {
+	            var idx = $(this).data('idx');
+	            selectedFiles.splice(idx, 1);
+	            renderList();
+	        });
+
+	        function renderList() {
+	            $list.empty();
+	            if (selectedFiles.length === 0) {
+	                $list.html('<small class="text-muted">No files selected</small>');
+	                return;
+	            }
+	            for (var i = 0; i < selectedFiles.length; i++) {
+	                var f = selectedFiles[i];
+	                var sizeKB = (f.size / 1024).toFixed(0);
+	                var sizeStr = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
+	                $list.append(
+	                    '<div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1" style="background:#f8f9fa;">' +
+	                    '<span class="text-truncate" style="max-width:300px;"><i class="fas fa-file-alt me-1 text-primary"></i>' + f.name + ' <small class="text-muted">(' + sizeStr + ')</small></span>' +
+	                    '<button type="button" class="btn btn-sm btn-danger remove-file-btn" data-idx="' + i + '" style="padding:2px 8px;"><i class="fas fa-times"></i></button>' +
+	                    '</div>'
+	                );
+	            }
+	        }
+
+	        window['getMultiFiles_' + inputId] = function() {
+	            return selectedFiles;
+	        };
+
+	        window['resetMultiFiles_' + inputId] = function() {
+	            selectedFiles = [];
+	            renderList();
+                                        };
+
+                                        renderList();
+                                    };
+	})();
+	</script>
+
 </body>
 
 <!-- Mirrored from travl.dexignlab.com/django/xhtml/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 11 Jul 2025 04:27:06 GMT -->

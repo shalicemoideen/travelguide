@@ -18,6 +18,7 @@ class Receipt_scheduler extends MY_Controller {
 
         $this->load->model('General_model');
         $this->load->model('Receipt_scheduler_model');
+        $this->load->model('Quotation_model');
     }
 
     public function index()
@@ -450,7 +451,7 @@ class Receipt_scheduler extends MY_Controller {
 
     private function _upload_payment_slip()
     {
-        if (empty($_FILES['payment_slip']['name'])) {
+        if (empty($_FILES['payment_slip']['name'][0])) {
             return array('status' => false, 'message' => 'Payment slip is required');
         }
 
@@ -468,12 +469,28 @@ class Receipt_scheduler extends MY_Controller {
         $this->load->library('upload');
         $this->upload->initialize($config);
 
-        if (!$this->upload->do_upload('payment_slip')) {
-            return array('status' => false, 'message' => $this->upload->display_errors('', ''));
+        $filenames = array();
+        $files = $_FILES['payment_slip'];
+        $file_count = count($files['name']);
+
+        for ($i = 0; $i < $file_count; $i++) {
+            $_FILES['payment_slip_single'] = array(
+                'name'     => $files['name'][$i],
+                'type'     => $files['type'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error'    => $files['error'][$i],
+                'size'     => $files['size'][$i]
+            );
+
+            if (!$this->upload->do_upload('payment_slip_single')) {
+                return array('status' => false, 'message' => $this->upload->display_errors('', ''));
+            }
+
+            $file = $this->upload->data();
+            $filenames[] = $file['file_name'];
         }
 
-        $file = $this->upload->data();
-        return array('status' => true, 'filename' => $file['file_name']);
+        return array('status' => true, 'filename' => implode(',', $filenames));
     }
 
     private function _payment_date($value)
@@ -502,8 +519,12 @@ class Receipt_scheduler extends MY_Controller {
             if ($quotation_id) {
                 $quotation = $this->db->where('quotation_id', $quotation_id)->get('quotation')->row();
                 if ($quotation && (int)$quotation->quotation_current_status === 1) {
+                    $trip_code = $this->Quotation_model->generate_trip_code();
                     $this->db->where('quotation_id', $quotation_id);
-                    $this->db->update('quotation', array('quotation_current_status' => 5));
+                    $this->db->update('quotation', array(
+                        'quotation_current_status' => 5,
+                        'trip_code' => $trip_code
+                    ));
                 }
             }
             echo json_encode(array('error' => false, 'message' => 'Payment approved by accountant'));
@@ -735,8 +756,12 @@ class Receipt_scheduler extends MY_Controller {
             if ($quotation_id) {
                 $quotation = $this->db->where('quotation_id', $quotation_id)->get('quotation')->row();
                 if ($quotation && (int)$quotation->quotation_current_status === 1) {
+                    $trip_code = $this->Quotation_model->generate_trip_code();
                     $this->db->where('quotation_id', $quotation_id);
-                    $this->db->update('quotation', array('quotation_current_status' => 5));
+                    $this->db->update('quotation', array(
+                        'quotation_current_status' => 5,
+                        'trip_code' => $trip_code
+                    ));
                 }
             }
         } else {

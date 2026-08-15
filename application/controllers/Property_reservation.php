@@ -654,7 +654,7 @@ class Property_reservation extends MY_Controller {
 
     private function _upload_payment_slip()
     {
-        if (empty($_FILES['payment_slip']['name'])) {
+        if (empty($_FILES['payment_slip']['name'][0])) {
             return array('status' => false, 'message' => 'Payment slip is required');
         }
 
@@ -672,12 +672,28 @@ class Property_reservation extends MY_Controller {
         $this->load->library('upload');
         $this->upload->initialize($config);
 
-        if (!$this->upload->do_upload('payment_slip')) {
-            return array('status' => false, 'message' => $this->upload->display_errors('', ''));
+        $filenames = array();
+        $files = $_FILES['payment_slip'];
+        $file_count = count($files['name']);
+
+        for ($i = 0; $i < $file_count; $i++) {
+            $_FILES['payment_slip_single'] = array(
+                'name'     => $files['name'][$i],
+                'type'     => $files['type'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error'    => $files['error'][$i],
+                'size'     => $files['size'][$i]
+            );
+
+            if (!$this->upload->do_upload('payment_slip_single')) {
+                return array('status' => false, 'message' => $this->upload->display_errors('', ''));
+            }
+
+            $file = $this->upload->data();
+            $filenames[] = $file['file_name'];
         }
 
-        $file = $this->upload->data();
-        return array('status' => true, 'filename' => $file['file_name']);
+        return array('status' => true, 'filename' => implode(',', $filenames));
     }
 
     public function ajax_get_installment_payments()

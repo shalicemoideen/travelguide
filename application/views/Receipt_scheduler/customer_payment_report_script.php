@@ -216,6 +216,11 @@ function openRecordCustomerPayment(installmentId, dueAmount) {
     $('#cp_payment_reference').val('');
     $('#cp_payment_remarks').val('');
     $('#cp_payment_slip').val('');
+    if (window.resetMultiFiles_cp_payment_slip) { window.resetMultiFiles_cp_payment_slip(); }
+    if (!window._cp_payment_slip_picker_init) {
+        initMultiFilePicker('cp_payment_slip', 'cp_payment_slip_list');
+        window._cp_payment_slip_picker_init = true;
+    }
 
     $('#recordCustomerPaymentModal').modal('show');
 }
@@ -223,7 +228,7 @@ function openRecordCustomerPayment(installmentId, dueAmount) {
 function submitCustomerPayment() {
     var amount = $.trim($('#cp_payment_amount').val());
     var date   = $.trim($('#cp_payment_date').val());
-    var slip   = $('#cp_payment_slip')[0].files[0];
+    var pickedFiles = window.getMultiFiles_cp_payment_slip ? window.getMultiFiles_cp_payment_slip() : [];
 
     if (amount == '' || isNaN(amount) || parseFloat(amount) <= 0) {
         alert('Please enter a valid payment amount greater than 0.');
@@ -238,13 +243,15 @@ function submitCustomerPayment() {
         return;
     }
 
-    if (!slip) {
+    if (pickedFiles.length === 0) {
         alert('Please upload a payment slip.');
-        $('#cp_payment_slip').focus();
         return;
     }
 
     var formData = new FormData($('#recordCustomerPaymentForm')[0]);
+    for (var i = 0; i < pickedFiles.length; i++) {
+        formData.append('payment_slip[]', pickedFiles[i]);
+    }
 
     $.ajax({
         url: base_url + 'receipt_scheduler/record_payment',
@@ -288,9 +295,13 @@ function viewCustomerPaymentHistory(installmentId) {
             } else {
                 for (var i = 0; i < payments.length; i++) {
                     var payment = payments[i];
-                    var slipLink = payment.payment_slip
-                        ? '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + payment.payment_slip + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip"><i class="fas fa-file-alt"></i></a>'
-                        : '';
+                    var slipLink = '';
+                    if (payment.payment_slip) {
+                        var slips = payment.payment_slip.split(',');
+                        for (var s = 0; s < slips.length; s++) {
+                            slipLink += '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + slips[s] + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip ' + (s+1) + '"><i class="fas fa-file-alt"></i></a>';
+                        }
+                    }
                     var status = payment.accountant_approval_status ? payment.accountant_approval_status : 'pending';
                     var statusBadge = '<span class="badge ' + (status == 'approved' ? 'bg-success' : 'bg-warning') + '">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span>';
                     var actionHtml = '<div class="d-flex">' + slipLink + '<button class="btn btn-primary shadow btn-xs sharp me-1" onclick="printCustomerReceipt(' + payment.payment_id + ')" title="Print Receipt"><i class="fas fa-print"></i></button>';

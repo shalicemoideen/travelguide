@@ -439,7 +439,16 @@ ul.hotel-inc {
 
     <div class="prepared-section">
         <strong>Prepared by</strong><br>
-        <?= htmlspecialchars(tv_get($main, 'quotation_created_by_username')); ?><br>
+        <?php
+        $pb = isset($main['prepared_by_user']) ? $main['prepared_by_user'] : null;
+        if ($pb): ?>
+            <?= htmlspecialchars($pb->admin_name); ?><br>
+            <?php if (!empty($pb->user_phone_number)): ?>
+            Ph No : <?= htmlspecialchars($pb->user_phone_number); ?><br>
+            <?php endif; ?>
+        <?php else: ?>
+            <?= htmlspecialchars(tv_get($main, 'quotation_created_by_username')); ?><br>
+        <?php endif; ?>
         Royale India<br>
         Ernakulam, Kerala, India<br>
         +917382882822<br>

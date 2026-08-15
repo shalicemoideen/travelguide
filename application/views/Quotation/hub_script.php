@@ -181,6 +181,17 @@ function loadQuotationHubSummary(quotation_id)
 
             $('#hubQuotationNumber').text(data.quotation_number || '-');
 
+            $('#hubTripCode').text(data.trip_code || '');
+            if (!data.trip_code) $('#hubTripCode').hide(); else $('#hubTripCode').show();
+
+            $('#hubQuotationTitle').text(data.quotation_title || data.quotation_number || '-');
+
+            if (hasPermission('QUOTATION_HUB_EDIT')) {
+                $('#hubEditTitleBtn').show();
+            } else {
+                $('#hubEditTitleBtn').hide();
+            }
+
 
 
             $('#hubGuestName').text(data.guest_name || '-');
@@ -199,7 +210,7 @@ function loadQuotationHubSummary(quotation_id)
 
 
 
-            $('#hubDuration').text(data.duration ? data.duration + ' Days' : '-');
+            $('#hubDuration').text(data.duration ? formatDuration(data.duration) : '-');
 
 
 
@@ -455,13 +466,13 @@ function updateQuotationHubActions(status) {
 
         }
 
-        buttonsHtml += buildEditQuotationButton();
-
         if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
 
             buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
 
         }
+
+        buttonsHtml += buildEditQuotationButton();
 
 
 
@@ -489,15 +500,15 @@ function updateQuotationHubActions(status) {
 
         }
 
-        buttonsHtml += buildEditQuotationButton();
-
-        buttonsHtml += buildVoucherDropdown();
-
         if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
 
             buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
 
         }
+
+        buttonsHtml += buildEditQuotationButton();
+
+        buttonsHtml += buildVoucherDropdown();
 
 
 
@@ -508,10 +519,7 @@ function updateQuotationHubActions(status) {
     // Status 9=Driver Not Assigned
 
 
-
     else if (status == 9) {
-
-
 
         buttonsHtml = '<span class="badge badge-warning p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-car me-1"></i> Driver Not Assigned</span> ';
 
@@ -519,17 +527,19 @@ function updateQuotationHubActions(status) {
 
             buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Transporter Allocation</button>';
 
+            buttonsHtml += '<button type="button" class="btn btn-success btn-sm ms-2" onclick="hubOpenAssignDriverModal()"><i class="la la-user-plus me-1"></i> Assign Driver Details</button>';
+
         }
-
-        buttonsHtml += buildEditQuotationButton();
-
-        buttonsHtml += buildVoucherDropdown();
 
         if (hasPermission('BOOKING_CANCELLATION_VIEW')) {
 
             buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
 
         }
+
+        buttonsHtml += buildEditQuotationButton();
+
+        buttonsHtml += buildVoucherDropdown();
 
 
 
@@ -551,11 +561,9 @@ function updateQuotationHubActions(status) {
 
             buttonsHtml += '<button type="button" class="btn btn-warning btn-sm ms-2" onclick="showDriverAllocationModal()"><i class="la la-edit me-1"></i> Edit Transporter Allocation</button>';
 
+            buttonsHtml += '<button type="button" class="btn btn-success btn-sm ms-2" onclick="hubOpenAssignDriverModal()"><i class="la la-user-edit me-1"></i> Edit Driver Details</button>';
+
         }
-
-        buttonsHtml += buildEditQuotationButton();
-
-        buttonsHtml += buildVoucherDropdown();
 
         var hubSummary7 = window._hubSummaryData || {};
         if (hubSummary7.all_payments_complete == true) {
@@ -569,6 +577,10 @@ function updateQuotationHubActions(status) {
             buttonsHtml += '<a href="<?php echo base_url(); ?>index.php/Booking_cancellation/index/' + $('#quotation_id').val() + '" class="btn btn-danger btn-sm ms-2"><i class="la la-ban me-1"></i> Cancel Booking</a>';
 
         }
+
+        buttonsHtml += buildEditQuotationButton();
+
+        buttonsHtml += buildVoucherDropdown();
 
 
 
@@ -585,6 +597,10 @@ function updateQuotationHubActions(status) {
 
 
         buttonsHtml = '<span class="badge badge-success p-2" style="font-size:16px;padding:10px 16px;"><i class="la la-check-circle me-1"></i> Trip Completed</span> ';
+
+        if (window._hubSummaryData && window._hubSummaryData.driver_name) {
+            buttonsHtml += '<button type="button" class="btn btn-info btn-sm ms-2" onclick="hubViewDriverDetails()"><i class="la la-eye me-1"></i> View Driver Details</button>';
+        }
 
         buttonsHtml += buildVoucherDropdown();
 
@@ -975,6 +991,58 @@ function buildEditQuotationButton() {
 
 }
 
+function hubOpenEditTitleModal() {
+    var quotation_id = $('#quotation_id').val();
+    if (!quotation_id) return;
+    var currentTitle = $('#hubQuotationTitle').text().trim();
+    $('#hub_edit_title_id').val(quotation_id);
+    $('#hub_edit_title_input').val(currentTitle);
+    $('#hubEditTitleModal').modal('show');
+    setTimeout(function() { $('#hub_edit_title_input').focus(); }, 300);
+}
+
+function hubSaveTitle() {
+    var quotation_id = $('#hub_edit_title_id').val();
+    var title = $.trim($('#hub_edit_title_input').val());
+
+    if (!quotation_id) {
+        var n = new notify({ title: '', style: 'error', message: 'Quotation ID missing.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        return;
+    }
+    if (title === '') {
+        var n = new notify({ title: '', style: 'error', message: 'Quotation title is required.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        $('#hub_edit_title_input').focus();
+        return;
+    }
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_update_quotation_title",
+        type: "POST",
+        dataType: "json",
+        data: {
+            quotation_id: quotation_id,
+            quotation_title: title
+        },
+        success: function(res) {
+            if (res.status) {
+                $('#hubQuotationTitle').text(res.quotation_title || title);
+                $('#hubEditTitleModal').modal('hide');
+                var n = new notify({ title: '', style: 'success', message: res.message || 'Quotation title updated.', icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            } else {
+                var n = new notify({ title: '', style: 'error', message: res.message || 'Failed to update title.', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            }
+        },
+        error: function() {
+            var n = new notify({ title: '', style: 'error', message: 'Server error. Please try again.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        }
+    });
+}
+
 
 
 function buildVoucherDropdown() {
@@ -1348,6 +1416,125 @@ function submitDriverAllocation() {
 
 
 
+
+
+
+/* ===== Assign Driver Details (from hub) ===== */
+
+function hubOpenAssignDriverModal() {
+    var data = window._hubSummaryData || {};
+    var quotation_id = $('#quotation_id').val();
+
+    $('#hub_ad_allocation_id').val(data.allocation_id || '');
+    $('#hub_ad_quotation_id').val(quotation_id);
+    $('#hub_ad_vehicle_name').text(data.confirmed_vehicle_name || '-');
+    $('#hub_ad_driver_name').val(data.driver_name || '');
+    $('#hub_ad_driver_mobile').val(data.driver_mobile || '');
+    $('#hub_ad_cab_number').val(data.cab_number || '');
+
+    $('#hub_ad_guest_count').text('Loading...');
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_get_transporter_guest_details",
+        type: "POST",
+        dataType: "json",
+        data: { quotation_id: quotation_id },
+        success: function(res) {
+            if (res.status && res.data) {
+                var gc = res.data.guest_count || [];
+                var totalAdults = 0, totalChildren = 0;
+                for (var i = 0; i < gc.length; i++) {
+                    totalAdults += parseInt(gc[i].adults || 0);
+                    totalChildren += parseInt(gc[i].children || 0);
+                }
+                var childAges = [];
+                for (var i = 0; i < gc.length; i++) {
+                    if (gc[i].child_ages) {
+                        for (var j = 0; j < gc[i].child_ages.length; j++) {
+                            if (parseInt(gc[i].child_ages[j].count) > 0) {
+                                childAges.push(gc[i].child_ages[j].age + ' yrs (' + gc[i].child_ages[j].count + ')');
+                            }
+                        }
+                    }
+                }
+                var childAgeStr = childAges.length > 0 ? childAges.join(', ') : '0';
+                $('#hub_ad_guest_count').text(totalAdults + ' Adults, ' + totalChildren + ' Children (' + childAgeStr + ')');
+            } else {
+                $('#hub_ad_guest_count').text('-');
+            }
+        },
+        error: function() {
+            $('#hub_ad_guest_count').text('-');
+        }
+    });
+
+    $('#hubAssignDriverModal').modal('show');
+}
+
+function hubSubmitAssignDriver() {
+    var allocation_id = $('#hub_ad_allocation_id').val();
+    var quotation_id  = $('#hub_ad_quotation_id').val();
+    var driver_name   = $.trim($('#hub_ad_driver_name').val());
+    var driver_mobile = $.trim($('#hub_ad_driver_mobile').val());
+    var cab_number    = $.trim($('#hub_ad_cab_number').val());
+
+    if (!driver_name) {
+        var n = new notify({ title: '', style: 'error', message: 'Driver name is required.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        $('#hub_ad_driver_name').focus();
+        return;
+    }
+    if (!driver_mobile) {
+        var n = new notify({ title: '', style: 'error', message: 'Driver mobile is required.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        $('#hub_ad_driver_mobile').focus();
+        return;
+    }
+    if (!cab_number) {
+        var n = new notify({ title: '', style: 'error', message: 'Cab number is required.', icon: 'fas fa-times' });
+        n.show(); setTimeout(function(){ n.hide(); }, 3000);
+        $('#hub_ad_cab_number').focus();
+        return;
+    }
+
+    $.ajax({
+        url: "<?php echo base_url(); ?>index.php/Quotation/ajax_update_driver_details",
+        type: "POST",
+        dataType: "json",
+        data: {
+            allocation_id: allocation_id,
+            quotation_id:  quotation_id,
+            driver_name:   driver_name,
+            driver_mobile: driver_mobile,
+            cab_number:    cab_number
+        },
+        success: function(res) {
+            $('#hubAssignDriverModal').modal('hide');
+            if (res.status) {
+                loadQuotationHubSummary(quotation_id);
+                var n = new notify({ title: '', style: 'success', message: res.message || 'Driver details updated. Status set to Ready to Trip.', icon: 'fas fa-check' });
+                n.show(); setTimeout(function(){ n.hide(); }, 3000);
+            } else {
+                var n = new notify({ title: '', style: 'error', message: res.message || 'Failed to update driver details.', icon: 'fas fa-times' });
+                n.show(); setTimeout(function(){ n.hide(); }, 5000);
+            }
+        },
+        error: function() {
+            $('#hubAssignDriverModal').modal('hide');
+            var n = new notify({ title: '', style: 'error', message: 'Server error occurred.', icon: 'fas fa-times' });
+            n.show(); setTimeout(function(){ n.hide(); }, 5000);
+        }
+    });
+}
+
+function hubViewDriverDetails() {
+    var data = window._hubSummaryData || {};
+    $('#hub_vd_transporter').text(data.transporter_name || '-');
+    $('#hub_vd_vehicle').text(data.confirmed_vehicle_name || '-');
+    $('#hub_vd_driver_name').text(data.driver_name || '-');
+    $('#hub_vd_driver_mobile').text(data.driver_mobile || '-');
+    $('#hub_vd_cab_number').text(data.cab_number || '-');
+    $('#hubViewDriverModal').modal('show');
+}
 
 
 
@@ -2471,7 +2658,7 @@ function buildHubImportantLeadDetails(d)
 
 
 
-                            ['Duration', d.duration ? d.duration + ' Days' : '-'],
+                            ['Duration', d.duration ? formatDuration(d.duration) : '-'],
 
 
 
@@ -2499,22 +2686,23 @@ function buildHubImportantLeadDetails(d)
 
 
 
-                            ['Created Date', formatDate(d.leads_created_date)],
+                            ['Created Date', formatDateTime(d.leads_created_at)],
 
 
 
-                            ['Created Time', d.leads_created_time],
+                            ['Created By User', d.created_by_admin_name],
 
 
 
-                            ['Created By User', d.leads_createdby_username]
+                            ['Updated Date', formatDateTime(d.leads_updated_at)],
+
+
+
+                            ['Updated By', d.updated_by_admin_name]
 
 
 
                         ])}
-
-
-
                     </div>
 
 
@@ -3235,6 +3423,64 @@ function formatDate(dateStr)
 
 
 
+
+
+    }
+
+
+
+
+
+
+
+function formatDuration(dur)
+
+
+
+    {
+
+
+
+        var n = parseInt(dur, 10);
+
+
+
+        if (isNaN(n) || n <= 0) return '-';
+
+
+
+
+
+
+
+        var nights = n - 1;
+
+
+
+        return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + n + ' Day' + (n !== 1 ? 's' : '');
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+function formatDateTime(dateTimeStr)
+{
+    if (!dateTimeStr || dateTimeStr === '0000-00-00 00:00:00') return '-';
+    var parts = dateTimeStr.split(' ');
+    if (parts.length !== 2) return dateTimeStr;
+    var dateParts = parts[0].split('-');
+    if (dateParts.length !== 3) return dateTimeStr;
+    return dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0] + ' ' + parts[1];
 }
 
 
@@ -3247,15 +3493,19 @@ function getAccommodationStatusText(val)
 
 
 
-{
+    {
 
 
 
-    return parseInt(val, 10) === 1 ? 'Completed' : 'Pending';
+        return parseInt(val, 10) === 1 ? 'Completed' : 'Pending';
 
 
 
-}
+
+
+
+
+    }
 
 
 
@@ -6637,79 +6887,33 @@ function hub_calculateEmiTotal() {
 
 function hub_redistributeEmiAmounts($changedInput) {
 
-
-
     var splitType = $('#hub_split_type').val();
-
-
-
-    var total;
-
-
-
-    var $inputs;
-
-
+    var total, $inputs;
 
     if (splitType == 'PERCENTAGE') {
-
-
-
         total = 100;
-
-
-
         $inputs = $('#hub_emiTableBody .hub-emi-percentage');
-
-
-
     } else {
-
-
-
         total = parseFloat($('#hub_total_amount').val()) || 0;
-
-
-
         $inputs = $('#hub_emiTableBody .hub-emi-amount');
-
-
-
     }
 
-
-
+    var changedIndex = $inputs.index($changedInput);
     var changedVal = parseFloat($changedInput.val()) || 0;
 
-
-
-    var remaining = total - changedVal;
-
-
-
-    var $others = $inputs.not($changedInput);
-
-
-
-    if ($others.length > 0) {
-
-
-
-        var each = (remaining / $others.length).toFixed(2);
-
-
-
-        $others.val(each);
-
-
-
+    var sumBefore = 0;
+    for (var i = 0; i < changedIndex; i++) {
+        sumBefore += parseFloat($($inputs[i]).val()) || 0;
     }
 
+    var sumAfter = total - sumBefore - changedVal;
+    var $afterInputs = $inputs.slice(changedIndex + 1);
 
+    if ($afterInputs.length > 0) {
+        $afterInputs.val((sumAfter / $afterInputs.length).toFixed(2));
+    }
 
     hub_calculateEmiTotal();
-
-
 
 }
 
@@ -7337,7 +7541,11 @@ function hub_recordPayment(installmentId, dueAmount) {
 
     $('#hub_payment_slip').val('');
 
-
+    if (window.resetMultiFiles_hub_payment_slip) { window.resetMultiFiles_hub_payment_slip(); }
+    if (!window._hub_payment_slip_picker_init) {
+        initMultiFilePicker('hub_payment_slip', 'hub_payment_slip_list');
+        window._hub_payment_slip_picker_init = true;
+    }
 
     $('#hub_paymentModal').modal('show');
 
@@ -7358,8 +7566,6 @@ function hub_savePayment() {
     var $amount = $('#hub_payment_amount');
 
     var $date = $('#hub_payment_date');
-
-    var $slip = $('#hub_payment_slip');
 
 
 
@@ -7389,9 +7595,9 @@ function hub_savePayment() {
 
     $date.toggleClass('is-invalid', !dateValid);
 
-    $slip.toggleClass('is-invalid', !$slip.val());
+    var pickedFiles = window.getMultiFiles_hub_payment_slip ? window.getMultiFiles_hub_payment_slip() : [];
 
-    if (!dateValid || !$slip.val()) {
+    if (!dateValid || pickedFiles.length === 0) {
 
         var msg = !dateValid ? 'Please enter a valid payment date in dd/mm/yyyy format.' : 'Please upload a payment slip.';
 
@@ -7406,6 +7612,9 @@ function hub_savePayment() {
 
 
     var formData = new FormData($('#hub_paymentForm')[0]);
+    for (var i = 0; i < pickedFiles.length; i++) {
+        formData.append('payment_slip[]', pickedFiles[i]);
+    }
 
 
 
@@ -7655,11 +7864,19 @@ function hub_viewReceipts(installmentId) {
 
 
 
-                    var slipLink = p.payment_slip
+                    var slipLink = '';
 
-                        ? '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + p.payment_slip + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip"><i class="fas fa-file-alt"></i></a>'
+                    if (p.payment_slip) {
 
-                        : '';
+                        var slips = p.payment_slip.split(',');
+
+                        for (var s = 0; s < slips.length; s++) {
+
+                            slipLink += '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + slips[s] + '" target="_blank" class="btn btn-primary shadow btn-xs sharp me-1" title="Payment Slip ' + (s+1) + '"><i class="fas fa-file-alt"></i></a>';
+
+                        }
+
+                    }
 
                     html += '<td><div class="d-flex">' + slipLink + '<button class="btn btn-primary shadow btn-xs sharp" onclick="hub_printReceipt(' + p.payment_id + ')" title="Print Receipt"><i class="fas fa-print"></i></button></div></td>';
 
@@ -8604,31 +8821,29 @@ function hub_res_initEmiDatepickers() {
 function hubRedistributeEmi($changed) {
 
     var split = $('#hub_split_type_res').val();
-
     var total, $inputs;
 
     if (split === 'PERCENTAGE') {
-
         total = 100;
-
         $inputs = $('#hub_res_emiTableBody .hub-emi-percentage');
-
     } else {
-
         total = hub_getNetTotal();
-
         $inputs = $('#hub_res_emiTableBody .hub-emi-amount');
-
     }
 
+    var changedIndex = $inputs.index($changed);
     var changedVal = parseFloat($changed.val()) || 0;
 
-    var $others = $inputs.not($changed);
+    var sumBefore = 0;
+    for (var i = 0; i < changedIndex; i++) {
+        sumBefore += parseFloat($($inputs[i]).val()) || 0;
+    }
 
-    if ($others.length > 0) {
+    var sumAfter = total - sumBefore - changedVal;
+    var $afterInputs = $inputs.slice(changedIndex + 1);
 
-        $others.val(((total - changedVal) / $others.length).toFixed(2));
-
+    if ($afterInputs.length > 0) {
+        $afterInputs.val((sumAfter / $afterInputs.length).toFixed(2));
     }
 
     hubCalcEmiTotal();
@@ -10110,6 +10325,12 @@ function hubPrRecordPayment(installmentId, dueAmount) {
 
     $('#hub_pr_pay_slip').val('');
 
+    if (window.resetMultiFiles_hub_pr_pay_slip) { window.resetMultiFiles_hub_pr_pay_slip(); }
+    if (!window._hub_pr_pay_slip_picker_init) {
+        initMultiFilePicker('hub_pr_pay_slip', 'hub_pr_pay_slip_list');
+        window._hub_pr_pay_slip_picker_init = true;
+    }
+
     $('#hubPrRecordPaymentModal').modal('show');
 
 }
@@ -10121,8 +10342,6 @@ function hubPrSavePayment() {
     var $amount = $('#hub_pr_pay_amount');
 
     var $date = $('#hub_pr_pay_date');
-
-    var $slip = $('#hub_pr_pay_slip');
 
 
 
@@ -10152,9 +10371,9 @@ function hubPrSavePayment() {
 
     $date.toggleClass('is-invalid', !dateValid);
 
-    $slip.toggleClass('is-invalid', !$slip.val());
+    var pickedFiles = window.getMultiFiles_hub_pr_pay_slip ? window.getMultiFiles_hub_pr_pay_slip() : [];
 
-    if (!dateValid || !$slip.val()) {
+    if (!dateValid || pickedFiles.length === 0) {
 
         var msg = !dateValid ? 'Please enter a valid payment date in dd/mm/yyyy format.' : 'Please upload a payment slip.';
 
@@ -10169,6 +10388,9 @@ function hubPrSavePayment() {
 
 
     var formData = new FormData($('#hubPrPaymentForm')[0]);
+    for (var i = 0; i < pickedFiles.length; i++) {
+        formData.append('payment_slip[]', pickedFiles[i]);
+    }
 
     $.ajax({
 
@@ -10258,7 +10480,17 @@ function hubPrViewReceipts(installmentId) {
 
                     if (p.payment_slip) {
 
-                        html += '<td><a href="<?php echo base_url(); ?>uploads/payment_slips/' + p.payment_slip + '" target="_blank" class="btn btn-primary btn-xs"><i class="fas fa-file-alt"></i> View</a></td>';
+                        var slips = p.payment_slip.split(',');
+
+                        var slipHtml = '';
+
+                        for (var s = 0; s < slips.length; s++) {
+
+                            slipHtml += '<a href="<?php echo base_url(); ?>uploads/payment_slips/' + slips[s] + '" target="_blank" class="btn btn-primary btn-xs me-1"><i class="fas fa-file-alt"></i> View ' + (s+1) + '</a>';
+
+                        }
+
+                        html += '<td>' + slipHtml + '</td>';
 
                     } else {
 
@@ -10554,6 +10786,8 @@ function edit_quotation_hub(id)
 
             $('[name="id"]').val(q.quotation_id || '');
 
+            $('#quotation_title').val(q.quotation_title || '');
+
             const leads_id = q.leads_id_fk || '';
             const package_id = q.packages_id_fk || q.package_id_fk || q.pacakage_id_fk || '';
 
@@ -10842,6 +11076,7 @@ function saveQuotationHub()
     var data = new FormData(form);
 
     data.set('id', quotationId);
+    data.set('quotation_title', $('#QuotationModal [name="quotation_title"]').val() || '');
     data.set('quotation_remarks', $('[name="quotation_remarks"]').val() || '');
     data.set('total_inclusion_amount', $('#total_inclusion_amount').val() || 0);
     data.set('total_special_requirment_amount', $('#total_special_requirment_amount').val() || 0);

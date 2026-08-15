@@ -721,10 +721,14 @@ button:hover{background:#172554;}
 }
 .complimentary-text{
   font-size:13px;
-  line-height:1.6;
-  color:#333;
-  font-weight:600;
-  white-space:pre-line;
+  line-height:1.3;
+  color:#ff0000;
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+.complimentary-text br{
+  line-height:0;
+  margin-bottom:0;
 }
 
 /* ===== COMPLIMENTARY INCLUSIONS (EXCLUSIVE) ===== */
@@ -742,10 +746,14 @@ button:hover{background:#172554;}
 .complimentary-text-exclusive{
   font-family:'Open Sans',sans-serif;
   font-size:13px;
-  line-height:1.4;
-  color:#5c4a3a;
-  font-weight:600;
-  white-space:pre-line;
+  line-height:1.3;
+  color:#ff0000;
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+.complimentary-text-exclusive br{
+  line-height:0;
+  margin-bottom:0;
 }
 
 /* ===== EXCLUSIVE ===== */
@@ -2070,7 +2078,7 @@ function q_option_display_amount_premium($option)
                         <td><?= $exc_day_date_text ? htmlspecialchars($exc_day_date_text) : 'Day ' . str_pad($exc_day_num, 2, '0', STR_PAD_LEFT); ?></td>
                         <td><?= htmlspecialchars($day->state_name); ?></td>
                         <?php if (!empty($day->quotation_itineraries_days_travel_back)): ?>
-                          <td colspan="<?= $colCount + 1; ?>"><?= htmlspecialchars($day->state_name); ?> sightseeing and dropping</td>
+                          <td colspan="<?= $colCount + 1; ?>"><?= htmlspecialchars(!empty($cat->quotation_options_last_day_details) ? $cat->quotation_options_last_day_details : ''); ?></td>
                         <?php else: ?>
                           <td><?= htmlspecialchars($propertyText); ?></td>
                           <?php if ($showRoom): ?><td><?= htmlspecialchars($roomText); ?></td><?php endif; ?>
@@ -2408,7 +2416,7 @@ function q_option_display_amount_standard($option)
                       <td><?= $std_day_date_text ? htmlspecialchars($std_day_date_text) : 'Day ' . str_pad($std_day_num, 2, '0', STR_PAD_LEFT); ?></td>
                       <td><?= htmlspecialchars($day->state_name); ?></td>
                       <?php if (!empty($day->quotation_itineraries_days_travel_back)): ?>
-                        <td colspan="<?= $colCountS + 1; ?>"><?= htmlspecialchars($day->state_name); ?> sightseeing and dropping</td>
+                        <td colspan="<?= $colCountS + 1; ?>"><?= htmlspecialchars(!empty($cat->quotation_options_last_day_details) ? $cat->quotation_options_last_day_details : ''); ?></td>
                       <?php else: ?>
                         <td><?= htmlspecialchars($propertyText); ?></td>
                         <?php if ($showRoom): ?><td><?= htmlspecialchars($roomText); ?></td><?php endif; ?>

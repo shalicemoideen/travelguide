@@ -1174,6 +1174,10 @@ public function client_confirmation_preview($quotation_id)
 
         $end_date =(isset($_REQUEST['end_date']))?$_REQUEST['end_date']:'';
 
+		$travel_start_date =(isset($_REQUEST['travel_start_date']))?$_REQUEST['travel_start_date']:'';
+
+		$travel_end_date =(isset($_REQUEST['travel_end_date']))?$_REQUEST['travel_end_date']:'';
+
 		if($start_date){
 
             $start_date = str_replace('/', '-', $start_date);
@@ -1189,6 +1193,22 @@ public function client_confirmation_preview($quotation_id)
             $end_date = str_replace('/', '-', $end_date);
 
             $param['end_date'] =  date("Y-m-d",strtotime($end_date));
+
+        }
+
+		if($travel_start_date){
+
+            $travel_start_date = str_replace('/', '-', $travel_start_date);
+
+            $param['travel_start_date'] =  date("Y-m-d",strtotime($travel_start_date));
+
+        }
+
+        if($travel_end_date){
+
+            $travel_end_date = str_replace('/', '-', $travel_end_date);
+
+            $param['travel_end_date'] =  date("Y-m-d",strtotime($travel_end_date));
 
         }
 
@@ -2577,6 +2597,8 @@ public function ajax_get_tariff_by_context()
 
 			'package_id_fk' => $this->input->post('packages_id_fk'),
 
+			'quotation_title' => $this->input->post('quotation_title'),
+
 			'quotation_date' => $this->input->post('quotation_date'),
 
 			'quotation_remarks' => $this->input->post('quotation_remarks'),
@@ -2911,13 +2933,12 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
         $stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
 
-        $acc_date        = isset($parts[2]) ? $parts[2] : null;
+        $acc_date        = isset($sr['accomodation_date']) ? $sr['accomodation_date'] : (isset($parts[2]) ? $parts[2] : null);
 
-
-
-        if (!$property_day_id || !$stay_dest_id) continue;
-
-
+        if ($acc_date && preg_match('/^\d{2}-\d{2}-\d{4}$/', $acc_date)) {
+            $dp = explode('-', $acc_date);
+            $acc_date = $dp[2] . '-' . $dp[1] . '-' . $dp[0];
+        }
 
         $this->Quotation_model->add_special_requirement([
 
@@ -2927,7 +2948,7 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
             'stay_destination_id_fk' => $stay_dest_id,
 
-            'accommodation_date' => $acc_date, // if column exists
+            'accommodation_date' => $acc_date,
 
             'quotation_special_requirements_name' => $sr['quotation_special_requirements_name'],
 
@@ -3174,7 +3195,7 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 
 				'quotation_notes_checked_type' => isset($package->packages_notes_checked_type) ? $package->packages_notes_checked_type : '',
 
-				'quotation_title' => isset($package->packages_title) ? $package->packages_title : '',
+				'quotation_title' => $this->input->post('quotation_title'),
 
 
 
@@ -3308,6 +3329,8 @@ if (!empty($payload['special_requirements']) && is_array($payload['special_requi
 							'quotation_options_design_type' => $option['quotation_options_design_type'],
 
                 'quotation_options_complimentary_inclusion' => isset($option['quotation_options_complimentary_inclusion']) ? $option['quotation_options_complimentary_inclusion'] : '',
+
+                'quotation_options_last_day_details' => isset($option['quotation_options_last_day_details']) ? $option['quotation_options_last_day_details'] : '',
 
                 'quotation_options_vehicle_id_fk' => $option['quotation_options_vehicle_id_fk'],
 
@@ -3774,13 +3797,12 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
 					$stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
 
-					$acc_date        = isset($parts[2]) ? $parts[2] : null;
+					$acc_date        = isset($sr['accomodation_date']) ? $sr['accomodation_date'] : (isset($parts[2]) ? $parts[2] : null);
 
-
-
-					if (!$property_day_id || !$stay_dest_id) continue;
-
-
+					if ($acc_date && preg_match('/^\d{2}-\d{2}-\d{4}$/', $acc_date)) {
+						$dp = explode('-', $acc_date);
+						$acc_date = $dp[2] . '-' . $dp[1] . '-' . $dp[0];
+					}
 
 					$ok = $this->Quotation_model->add_special_requirement([
 
@@ -4419,6 +4441,8 @@ if (!empty($accommodationPlanIds)) {
 
                         'quotation_options_complimentary_inclusion' => isset($option['quotation_options_complimentary_inclusion']) ? $option['quotation_options_complimentary_inclusion'] : '',
 
+                        'quotation_options_last_day_details' => isset($option['quotation_options_last_day_details']) ? $option['quotation_options_last_day_details'] : '',
+
                         'quotation_options_vehicle_id_fk' => isset($option['quotation_options_vehicle_id_fk']) ? $option['quotation_options_vehicle_id_fk'] : 0,
 
                         'quotation_options_room_category_display' => isset($option['quotation_options_room_category_display']) ? $option['quotation_options_room_category_display'] : 0,
@@ -4879,17 +4903,12 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
                 $stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
 
-                $acc_date        = isset($parts[2]) ? $parts[2] : null;
+                $acc_date        = isset($sr['accomodation_date']) ? $sr['accomodation_date'] : (isset($parts[2]) ? $parts[2] : null);
 
-
-
-                if (!$property_day_id || !$stay_dest_id) {
-
-                    continue;
-
+                if ($acc_date && preg_match('/^\d{2}-\d{2}-\d{4}$/', $acc_date)) {
+                    $dp = explode('-', $acc_date);
+                    $acc_date = $dp[2] . '-' . $dp[1] . '-' . $dp[0];
                 }
-
-
 
                 $ok = $this->Quotation_model->add_special_requirement(array(
 
@@ -6571,6 +6590,19 @@ private function delete_quotation_children_except_itinerary($quotation_id)
 
 
 
+		// Fetch package/template title
+		$package_title = '';
+		if (!empty($quotation_itinerary->package_id_fk)) {
+			$pkg = $this->db
+				->select('packages_title')
+				->where('packages_id', (int)$quotation_itinerary->package_id_fk)
+				->get('packages')
+				->row();
+			if ($pkg) $package_title = $pkg->packages_title;
+		}
+
+
+
 		echo json_encode([
 
 			'status'               => true,
@@ -6594,6 +6626,8 @@ private function delete_quotation_children_except_itinerary($quotation_id)
 			'cancellation'         => $cancellation,
 
 			'notes'                => $notes,
+
+			'package_title'        => $package_title,
 
 		]);
 
@@ -9097,7 +9131,7 @@ public function ajax_delete()
 
 	public function ajax_update_driver_details()
 	{
-		if (!has_permission('TRANSPORTER_REPORT')) {
+		if (!has_permission('TRANSPORTER_REPORT') && !has_permission('DRIVER_ITINERARY')) {
 			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
 			return;
 		}
@@ -9128,7 +9162,7 @@ public function ajax_delete()
 			return;
 		}
 
-		if ($this->currentusertype != 'A') {
+		if ($this->currentusertype != 'A' && $this->currentusertype != 'S') {
 			$allocation = $this->db->where('id', $allocation_id)
 								   ->where('transporter_id_fk', $this->currentuserid)
 								   ->get('quotation_transport_allocation')
@@ -9162,7 +9196,7 @@ public function ajax_delete()
 
 	public function ajax_get_transporter_guest_details()
 	{
-		if (!has_permission('TRANSPORTER_REPORT')) {
+		if (!has_permission('TRANSPORTER_REPORT') && !has_permission('DRIVER_ITINERARY')) {
 			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
 			return;
 		}
@@ -9173,7 +9207,7 @@ public function ajax_delete()
 			return;
 		}
 
-		if ($this->currentusertype != 'A') {
+		if ($this->currentusertype != 'A' && $this->currentusertype != 'S') {
 			$allocation = $this->db->where('quotation_id_fk', $quotation_id)
 								   ->where('transporter_id_fk', $this->currentuserid)
 								   ->get('quotation_transport_allocation')
@@ -9282,6 +9316,36 @@ public function ajax_delete()
 			'special_requirements' => $special_requirements,
 			'lead' => $lead
 		));
+	}
+
+	public function ajax_update_quotation_title()
+	{
+		$quotation_id = (int)$this->input->post('quotation_id');
+		$title = trim($this->input->post('quotation_title'));
+
+		if (!$quotation_id) {
+			echo json_encode(array('status' => false, 'message' => 'Quotation ID missing'));
+			return;
+		}
+
+		if ($title === '') {
+			echo json_encode(array('status' => false, 'message' => 'Quotation title is required'));
+			return;
+		}
+
+		$currentuserid = $this->session->userdata('user_id');
+		$this->db->where('quotation_id', $quotation_id);
+		$this->db->update('quotation', array(
+			'quotation_title' => $title,
+			'quotation_updatedby_user_id' => $currentuserid,
+			'quotation_updated_at' => date('Y-m-d h:i:s a', time())
+		));
+
+		if ($this->db->affected_rows() >= 0) {
+			echo json_encode(array('status' => true, 'message' => 'Quotation title updated successfully', 'quotation_title' => $title));
+		} else {
+			echo json_encode(array('status' => false, 'message' => 'Failed to update quotation title'));
+		}
 	}
 
 	public function ajax_update_hub()
@@ -9403,6 +9467,7 @@ public function ajax_delete()
 
 			// Update quotation-level fields
 			$quotationData = array(
+				'quotation_title' => $this->input->post('quotation_title'),
 				'quotation_remarks' => $this->input->post('quotation_remarks'),
 				'total_inclusion_amount' => $this->input->post('total_inclusion_amount'),
 				'total_special_requirment_amount' => $this->input->post('total_special_requirment_amount'),
@@ -9844,7 +9909,12 @@ public function ajax_delete()
 
 					$stay_dest_id    = isset($parts[1]) ? (int)$parts[1] : 0;
 
-					$acc_date        = isset($parts[2]) ? $parts[2] : null;
+					$acc_date        = isset($sr['accomodation_date']) ? $sr['accomodation_date'] : (isset($parts[2]) ? $parts[2] : null);
+
+					if ($acc_date && preg_match('/^\d{2}-\d{2}-\d{4}$/', $acc_date)) {
+						$dp = explode('-', $acc_date);
+						$acc_date = $dp[2] . '-' . $dp[1] . '-' . $dp[0];
+					}
 
 					// Shift accommodation_date by offset_days if rescheduling
 					if ($acc_date && $offset_days != 0) {

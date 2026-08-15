@@ -527,8 +527,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" name="payment_slip" id="pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" required>
-                        <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                        <input type="file" class="form-control" id="pr_pay_slip" accept=".jpg,.jpeg,.png,.pdf" multiple style="display:none;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="$('#pr_pay_slip').click();"><i class="fas fa-plus me-1"></i> Add Files</button>
+                        <div id="pr_pay_slip_list" class="mt-2"></div>
+                        <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB per file. Add one or more files.</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Remarks</label>

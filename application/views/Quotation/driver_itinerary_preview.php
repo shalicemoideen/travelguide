@@ -185,31 +185,41 @@ body {
 
     <div class="title">Driver's Itinerary</div>
 
+    <?php $qt = di_get($main, 'quotation_title'); if ($qt && $qt !== '-'): ?>
+    <div style="text-align:center; margin-bottom:30px;">
+        <span style="display:inline-block; background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:10px 24px; font-size:20px; font-weight:800; color:#856404;">
+            <?= htmlspecialchars($qt); ?>
+        </span>
+    </div>
+    <?php endif; ?>
+
     <table class="info-table">
         <tr>
             <td class="info-label">Ref: <?= htmlspecialchars(di_get($main, 'quotation_number')); ?></td>
+            <td class="info-label">Trip Code</td>
+            <td><strong><?= htmlspecialchars(di_get($main, 'trip_code')); ?></strong></td>
             <td class="info-label">Guest Name</td>
             <td><strong><?= htmlspecialchars(di_get($main, 'guest_name')); ?></strong></td>
-            <td class="info-label">Phone</td>
-            <td><strong><?= htmlspecialchars(di_get($main, 'whats_number')); ?></strong></td>
         </tr>
 
         <tr>
+            <td class="info-label">Phone</td>
+            <td><strong><?= htmlspecialchars(di_get($main, 'whats_number')); ?></strong></td>
             <td class="info-label">Start Date</td>
             <td><?= di_date(di_get($main, 'start_date')); ?></td>
-            <td class="info-label">End Date</td>
-            <td><?= di_date(di_get($main, 'end_date')); ?></td>
             <td><strong>Duration</strong> <?= (int)di_get($main, 'duration', 0); ?> Nights</td>
         </tr>
 
         <tr>
-            <td colspan="2" class="info-label">Arrival Details<br>
+            <td class="info-label">End Date</td>
+            <td><?= di_date(di_get($main, 'end_date')); ?></td>
+            <td colspan="1" class="info-label">Arrival Details<br>
                 <span style="color:#000;font-weight:400;">
                     <?= htmlspecialchars(di_get($main, 'arriving_destination')); ?>
                 </span>
             </td>
 
-            <td colspan="3" class="info-label">Departure Details<br>
+            <td colspan="2" class="info-label">Departure Details<br>
                 <span style="color:#000;font-weight:400;">
                     <?= htmlspecialchars(di_get($main, 'departuring_destination')); ?>
                 </span>

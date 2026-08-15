@@ -57,6 +57,7 @@ function loadTransporterReportTable() {
                 }
             },
             { data: "guest_name" },
+            { data: "trip_code", render: function(data) { return data ? '<span class="badge bg-warning text-dark">'+data+'</span>' : '-'; } },
             { data: "travel_date" },
             { data: "transporter_name" },
             { data: "driver_name" },
@@ -277,10 +278,24 @@ function renderGuestDetails(d) {
 
     var html = '';
 
+    if (m.quotation_title) {
+        html += '<div class="row mb-3">';
+        html += '<div class="col-12 text-center">';
+        html += '<span style="display:inline-block; background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:8px 20px; font-size:18px; font-weight:700; color:#856404;">' + escapeHtml(m.quotation_title) + '</span>';
+        html += '</div>';
+        html += '</div>';
+    }
+
     html += '<div class="row mb-3">';
     html += '<div class="col-md-6"><strong>Guest Name:</strong> ' + escapeHtml(m.guest_name || '-') + '</div>';
     html += '<div class="col-md-6"><strong>Quotation No:</strong> ' + escapeHtml(m.quotation_number || '-') + '</div>';
     html += '</div>';
+
+    if (m.trip_code) {
+        html += '<div class="row mb-3">';
+        html += '<div class="col-md-6"><strong>Trip Code:</strong> ' + escapeHtml(m.trip_code) + '</div>';
+        html += '</div>';
+    }
 
     html += '<div class="row mb-3">';
     html += '<div class="col-md-6"><strong>Phone (WhatsApp):</strong> ' + escapeHtml(m.whats_number || '-') + '</div>';
@@ -368,8 +383,14 @@ function copyGuestDetails() {
     }
 
     var text = '';
+    if (m.quotation_title) {
+        text += (m.quotation_title) + '\n';
+    }
     text += 'Guest Name: ' + (m.guest_name || '-') + '\n';
     text += 'Quotation No: ' + (m.quotation_number || '-') + '\n';
+    if (m.trip_code) {
+        text += 'Trip Code: ' + (m.trip_code) + '\n';
+    }
     text += 'Phone (WhatsApp): ' + (m.whats_number || '-') + '\n';
     text += 'Alternative Number: ' + (m.alternative_number || '-') + '\n';
     text += 'Travel Date: ' + fmtDate(m.start_date) + '\n';

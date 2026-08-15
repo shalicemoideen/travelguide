@@ -183,6 +183,22 @@ class Leads extends MY_Controller {
 			return;
 		}
 
+		// Only block changes when quotation is actually created (leads_quotation_status == 1)
+		// Allow changes when cancelled (2) or rejected (3)
+		$lead = $this->db
+			->select('leads_quotation_status')
+			->where('leads_id', $lead_id)
+			->get('leads')
+			->row_array();
+
+		if (!$lead || (int)$lead['leads_quotation_status'] !== 1) {
+			echo json_encode(array(
+				'status' => true,
+				'has_active_quotation' => false
+			));
+			return;
+		}
+
 		$count = $this->db
 			->where('leads_id_fk', $lead_id)
 			->where('quotation_current_status !=', 6)
@@ -868,7 +884,27 @@ public function ajax_guest_accommodation_details($lead_id)
 		
 		$ip = $this->input->ip_address();
 		$id = $this->input->post('id');
-		// echo $ip;
+
+		// Check if travel date, duration, or template changed
+		$old_lead = $this->db->select('start_date, duration, package_id_fk, leads_accomodation_status, leads_quotation_status')
+			->where('leads_id', $id)
+			->get('leads')
+			->row_array();
+
+		$travel_changed = false;
+		if ($old_lead) {
+			$new_start = $start_date;
+			$new_duration = $this->input->post('duration');
+			$new_package = $this->input->post('package_id_fk');
+
+			if ($old_lead['start_date'] != $new_start
+				|| $old_lead['duration'] != $new_duration
+				|| $old_lead['package_id_fk'] != $new_package) {
+				$travel_changed = true;
+			}
+		}
+
+		$accommodation_reset = false;
 
 		// $activity_data = array(
 		// 		'activity_description' => 'Edited B2C leads: '.$guest_name.'',
@@ -925,13 +961,27 @@ public function ajax_guest_accommodation_details($lead_id)
 
 
 		$this->Leads_model->update(array('leads_id' => $this->input->post('id')), $data_b2c);
-		
+
+		// Reset accommodation status AFTER model update to prevent overwrite
+		if ($travel_changed && $old_lead && (int)$old_lead['leads_accomodation_status'] >= 1) {
+			$q_status = (int)$old_lead['leads_quotation_status'];
+			if ($q_status === 0 || $q_status === 2 || $q_status === 3) {
+				$this->db->where('leads_id', $id)
+					->update('leads', array(
+						'leads_accomodation_status' => 1,
+						'leads_quotation_status' => 0
+					));
+				$accommodation_reset = true;
+			}
+		}
+
 
 		
 		// echo json_encode(array("status" => TRUE));
 		echo json_encode(array(
 			"status" => true,
-			"lead_id" => $this->input->post('id')
+			"lead_id" => $this->input->post('id'),
+			"accommodation_reset" => $accommodation_reset
 		));
 	}
 

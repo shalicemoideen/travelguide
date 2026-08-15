@@ -212,8 +212,10 @@
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Payment Slip <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" id="cp_payment_slip" name="payment_slip" accept=".jpg,.jpeg,.png,.pdf" required>
-                            <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB.</small>
+                            <input type="file" class="form-control" id="cp_payment_slip" accept=".jpg,.jpeg,.png,.pdf" multiple style="display:none;">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="$('#cp_payment_slip').click();"><i class="fas fa-plus me-1"></i> Add Files</button>
+                            <div id="cp_payment_slip_list" class="mt-2"></div>
+                            <small class="text-muted">JPG, JPEG, PNG, or PDF. Maximum 20 MB per file. Add one or more files.</small>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Remarks</label>

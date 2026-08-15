@@ -40,6 +40,18 @@ $('#quotation_date').datepicker({
 
 
 
+$('.specialReqDate').datepicker({
+
+    format: 'dd-mm-yyyy',
+
+    autoclose: true,
+
+    todayHighlight: true
+
+});
+
+
+
 function resetQuotationModalForm() {
 
     clearAllPendingTariffData();
@@ -75,6 +87,8 @@ function resetQuotationModalForm() {
 
 
     $('#template_name_display').text('');
+
+    $('#quotation_title').val('');
 
     $('#lead_name_display').text('');
 
@@ -335,6 +349,8 @@ $('#quotation_date').val(formattedDate);
       $('#lead_name_display').text(leadDisplay);
 
       $('#template_name_display').text(res.packages_title || '');
+
+      $('#quotation_title').val(res.packages_title || '');
 
 
 
@@ -1252,6 +1268,12 @@ $('.is-invalid').removeClass('is-invalid');
 
 
 
+    if (!$('#quotation_title').val())
+
+        return showError('Quotation title is required', $('#quotation_title')[0]), false;
+
+
+
     // if (!validateUniquePropertyDropdowns()) {
 
     //     return false;
@@ -1935,21 +1957,23 @@ if ($('#quotation_special_requirement_type').is(':checked')) {
 
         const daySel = tr.querySelector('.specialReqDaySelect');
 
+        const dateEl = tr.querySelector('.specialReqDate');
+
         const reqName = tr.querySelector('.specialReqName');
 
         const amtEl  = tr.querySelector('.specialReqCost');
 
 
 
-        if (!daySel?.value)
+        if (!dateEl?.value?.trim())
 
             return valid = false,
 
         showError(
 
-    'Select Day | Date | Destination for Requirement',
+    'Select Date for Requirement',
 
-    $(daySel).next('.select2')[0] || daySel
+    dateEl
 
 );
 
@@ -2023,6 +2047,7 @@ function saveQuotation() {
     data.set('arriving_destination', $('#arriving_destination').val() || '');
     data.set('departuring_destination', $('#departuring_destination').val() || '');
     data.set('quotation_remarks', $('#quotation_remarks').val() || '');
+    data.set('quotation_title', $('#quotation_title').val() || '');
     data.set('total_inclusion_amount', $('#total_inclusion_amount').val() || 0);
     data.set('total_special_requirment_amount', $('#total_special_requirment_amount').val() || 0);
 
@@ -2357,6 +2382,10 @@ $(document).ready(function () {
             $box.stop(true, true).slideUp(150, function () {
 
                 resetFn();
+                recalcInclusionTotal();
+                recalcSpecialReqTotal();
+                document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+                refreshQuoteSummaryTotals();
 
             });
 
@@ -2816,7 +2845,13 @@ document.getElementById('addSpecialReqBtn').addEventListener('click', function (
 
 
 
-    fillDaySelect(row.querySelector('.specialReqDaySelect'));
+    // fillDaySelect(row.querySelector('.specialReqDaySelect'));
+
+    $(row.querySelector('.specialReqDate')).datepicker({
+        format: 'dd-mm-yyyy',
+        autoclose: true,
+        todayHighlight: true
+    });
 
 
 
@@ -2932,11 +2967,9 @@ function loadInclusionAndRequirementDropdownData(callback) {
 
 
 
-        document.querySelectorAll('.specialReqDaySelect').forEach(function (el) {
-
-            fillDaySelect(el);
-
-        });
+        // document.querySelectorAll('.specialReqDaySelect').forEach(function (el) {
+        //     fillDaySelect(el);
+        // });
 
 
 
@@ -3352,11 +3385,13 @@ function createSpecialReqRow() {
 
             <td>
 
-                <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]">
+                <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]" style="display:none;">
 
                     <option value="">Select Day | Date | Destination</option>
 
                 </select>
+
+                <input type="text" class="form-control form-control-sm specialReqDate" name="specialreq_accomodation_date[]" placeholder="Select Date" readonly>
 
             </td>
 
@@ -3865,6 +3900,8 @@ $(document).on('change', '.inclusionNameSelect', function () {
 
 
     recalcInclusionTotal();
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
 
 });
 
@@ -3873,6 +3910,8 @@ $(document).on('change', '.inclusionNameSelect', function () {
 $(document).on('input', '.inclusionAmountInput', function () {
 
     recalcInclusionTotal();
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
 
 });
 
@@ -3895,6 +3934,8 @@ document.addEventListener('click', function (e) {
     e.target.closest('tr').remove();
 
     recalcInclusionTotal();
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
 
   }
 
@@ -3911,6 +3952,8 @@ document.addEventListener('click', function (e) {
     e.target.closest('tr').remove();
 
     recalcSpecialReqTotal();
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
 
   }
 
@@ -4023,15 +4066,27 @@ document.addEventListener('input', function (e) {
   if (e.target.matches('#inclusionTable tbody [name="inclusion_amount[]"]')) {
 
     recalcInclusionTotal();
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
 
   }
 
   if (e.target.matches('#specialReqTable tbody [name="special_requirements_cost[]"]')) {
 
     recalcSpecialReqTotal();
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
 
   }
 
+});
+
+/* Recalc all option totals when an inclusion is reassigned to a different option */
+document.addEventListener('change', function (e) {
+  if (e.target.classList.contains('inclusionPackageOptionSelect')) {
+    document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+    refreshQuoteSummaryTotals();
+  }
 });
 
 
@@ -5351,6 +5406,14 @@ function getOptionTemplate(index) {
                 <label>Complimentary Inclusions</label>
 
                 <textarea name="quotation_options_complimentary_inclusion[]" class="form-control form-control-sm complimentary-inclusion-textarea" rows="2" placeholder="Enter complimentary inclusions"></textarea>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <label>Last Day Details</label>
+
+                <input type="text" name="quotation_options_last_day_details[]" class="form-control form-control-sm last-day-details-input" placeholder="e.g. Sightseeing and dropping">
 
             </div>
 
@@ -6816,6 +6879,12 @@ function buildQuotationPayload() {
 
 
 
+            quotation_options_last_day_details:
+
+                optionBlock.querySelector('.last-day-details-input')?.value || '',
+
+
+
             quotation_options_vehicle_id_fk:
 
                 optionBlock.querySelector('[name="quotation_options_vehicle_id_fk[]"]')?.value || '',
@@ -7157,19 +7226,23 @@ function buildQuotationPayload() {
 
       const dayKey = tr.querySelector('[name="specialreq_day_key[]"]')?.value || '';
 
+      const accDate = tr.querySelector('[name="specialreq_accomodation_date[]"]')?.value || '';
+
       const reqName = tr.querySelector('[name="quotation_special_requirements_name[]"]')?.value || '';
 
       const cost = tr.querySelector('[name="special_requirements_cost[]"]')?.value || '';
 
 
 
-      if (!dayKey || !reqName?.trim()) return;
+      if (!accDate || !reqName?.trim()) return;
 
 
 
       payload.special_requirements.push({
 
         dayKey,
+
+        accomodation_date: accDate,
 
         quotation_special_requirements_name: reqName.trim(),
 
@@ -11049,7 +11122,24 @@ function recalcOptionTotals(optionBlock) {
 
   const roomsTotal = calculateHighestRoomRatePerDay(optionBlock);
 
-  const totalCost = cabAmount + roomsTotal;
+  /* ===== Per-option inclusion total (inclusions linked to this option) ===== */
+  var optionUid = optionBlock.getAttribute('data-option-uid') || '';
+  var optionInclusionTotal = 0;
+  document.querySelectorAll('#inclusionTable tbody tr').forEach(function (row) {
+    var rowOptionUid = row.querySelector('.inclusionPackageOptionSelect') ? row.querySelector('.inclusionPackageOptionSelect').value : '';
+    if (rowOptionUid === optionUid) {
+      var amtInput = row.querySelector('[name="inclusion_amount[]"]');
+      if (amtInput) optionInclusionTotal += num(amtInput.value);
+    }
+  });
+
+  /* ===== Global special requirement total (added to all options) ===== */
+  var specialReqTotal = 0;
+  document.querySelectorAll('#specialReqTable tbody [name="special_requirements_cost[]"]').forEach(function (inp) {
+    specialReqTotal += num(inp.value);
+  });
+
+  const totalCost = cabAmount + roomsTotal + optionInclusionTotal + specialReqTotal;
 
 
 
@@ -12074,6 +12164,11 @@ function edit_quotation(id)
 
                         window.isQuotationEditLoading = false;
 
+                        recalcInclusionTotal();
+                        recalcSpecialReqTotal();
+                        document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
+                        refreshQuoteSummaryTotals();
+
                     }, 500);
 
                 });
@@ -12271,6 +12366,8 @@ function rebuildQuotationOptionBlocks(options, packageId, doneCallback)
         $block.find('[name="quotation_options_title[]"]').val(opt.quotation_options_title || '');
 
         $block.find('.complimentary-inclusion-textarea').val(opt.quotation_options_complimentary_inclusion || '');
+
+        $block.find('.last-day-details-input').val(opt.quotation_options_last_day_details || '');
 
         $block.find('[name="quotation_options_cab_amount[]"]').val(opt.quotation_options_cab_amount || '');
 
@@ -13951,6 +14048,16 @@ function refillSavedSpecialRequirements(rows)
 
 
         $tr.find('.specialReqDaySelect').val(dayKey).trigger('change');
+
+        var accDate = row.accommodation_date || '';
+        if (accDate && accDate !== '0000-00-00' && accDate !== 'null') {
+            var dp = accDate.split('-');
+            if (dp.length === 3 && parseInt(dp[0]) > 0) accDate = dp[2] + '-' + dp[1] + '-' + dp[0];
+            else accDate = '';
+        } else {
+            accDate = '';
+        }
+        $tr.find('.specialReqDate').val(accDate);
 
         $tr.find('.specialReqName').val(row.quotation_special_requirements_name || '');
 

@@ -48,6 +48,10 @@ class Quotation_model extends CI_Model{
 
         $end_date =(isset($param['end_date']))?$param['end_date']:'';
 
+		$travel_start_date =(isset($param['travel_start_date']))?$param['travel_start_date']:'';
+
+		$travel_end_date =(isset($param['travel_end_date']))?$param['travel_end_date']:'';
+
 
 
         if($quotation_number_filter){
@@ -104,6 +108,18 @@ class Quotation_model extends CI_Model{
 
         }
 
+        if($travel_start_date){
+
+            $this->db->where('leads.start_date>=', $travel_start_date);
+
+        }
+
+        if($travel_end_date){
+
+            $this->db->where('leads.end_date<=', $travel_end_date);
+
+        }
+
         if($quotation_created_by_userid){
 
             $this->db->where('quotation_created_by_userid', $quotation_created_by_userid); 
@@ -138,7 +154,7 @@ class Quotation_model extends CI_Model{
 
 			
 
-		$this->db->select('*,DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username');
+		$this->db->select('*, DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username, DATE_FORMAT(leads.start_date,\'%d-%m-%Y\') as arriving_date, DATE_FORMAT(leads.end_date,\'%d-%m-%Y\') as departure_date, leads.duration as travel_duration, t.transporter_name, v.vehicle_name as confirmed_cab_type', FALSE);
 
 		$this->db->from('quotation');
 
@@ -147,6 +163,18 @@ class Quotation_model extends CI_Model{
 		$this->db->join('packages', 'packages.packages_id = quotation.package_id_fk','left');
 
 		$this->db->join('user_details ud', 'ud.user_id = quotation.quotation_created_by_userid', 'left');
+
+		$this->db->join('quotation_transport_allocation qta', 'qta.quotation_id_fk = quotation.quotation_id AND qta.status = 1', 'left');
+
+		$this->db->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left');
+
+		$this->db->join('quotation_confirmation qc', 'qc.quotation_id_fk = quotation.quotation_id AND qc.property_confirmation_status = 1', 'left');
+
+		$this->db->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left');
+
+		$this->db->join('vehicle v', 'v.vehicle_id = qo.quotation_options_vehicle_id_fk', 'left');
+
+		$this->db->group_by('quotation.quotation_id');
 
         if (!empty($param['confirmed_only'])) {
             if ($currentusertype == 'S') {
@@ -211,6 +239,10 @@ class Quotation_model extends CI_Model{
 
         $end_date =(isset($param['end_date']))?$param['end_date']:'';
 
+		$travel_start_date =(isset($param['travel_start_date']))?$param['travel_start_date']:'';
+
+		$travel_end_date =(isset($param['travel_end_date']))?$param['travel_end_date']:'';
+
 
 
         if($quotation_number_filter){
@@ -264,6 +296,18 @@ class Quotation_model extends CI_Model{
         if($end_date){
 
             $this->db->where('quotation_date<=', $end_date); 
+
+        }
+
+        if($travel_start_date){
+
+            $this->db->where('leads.start_date>=', $travel_start_date);
+
+        }
+
+        if($travel_end_date){
+
+            $this->db->where('leads.end_date<=', $travel_end_date);
 
         }
 
@@ -430,7 +474,7 @@ class Quotation_model extends CI_Model{
 
         return $this->db
 
-            ->select('q.quotation_number, q.quotation_current_status, q.leads_id_fk,
+            ->select('q.quotation_number, q.quotation_current_status, q.leads_id_fk, q.quotation_title, q.trip_code,
 
                     l.guest_name, l.leads_number, l.lead_type, l.leads_id,
 
@@ -438,8 +482,12 @@ class Quotation_model extends CI_Model{
 
                     qo.quotation_options_title as confirmed_option_title,
 
+                    qta.id as allocation_id,
                     qta.transporter_id_fk as quotation_transporter_id_fk,
+                    qta.driver_name, qta.driver_mobile, qta.cab_number,
                     t.transporter_name,
+
+                    v.vehicle_name as confirmed_vehicle_name,
 
                     qr.review_id, qr.review_rating, qr.review_comment, qr.reviewed_at')
 
@@ -454,6 +502,8 @@ class Quotation_model extends CI_Model{
             ->join('quotation_transport_allocation qta', 'qta.quotation_id_fk = q.quotation_id AND qta.status = 1', 'left')
 
             ->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left')
+
+            ->join('vehicle v', 'v.vehicle_id = qo.quotation_options_vehicle_id_fk', 'left')
 
             ->join('quotation_review qr', 'qr.quotation_id_fk = q.quotation_id AND qr.review_status = 1', 'left')
 
@@ -7021,6 +7071,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
             q.arriving_destination,
             q.departuring_destination,
             q.quotation_created_by_username,
+            qc.created_by as confirmation_created_by,
             qo.quotation_options_total_quote_rate,
             l.guest_name,
             l.start_date,
@@ -7041,6 +7092,13 @@ public function get_quotation_special_requirements_preview($quotation_id)
             ->row_array();
 
         if (!$main) return array();
+
+        /* Fetch prepared-by user details from quotation_confirmation.created_by */
+        $prepared_by = null;
+        if (!empty($main['confirmation_created_by'])) {
+            $prepared_by = $this->get_prepared_by_user($main['confirmation_created_by']);
+        }
+        $main['prepared_by_user'] = $prepared_by;
 
     
     $rooms = $this->db
@@ -7336,9 +7394,24 @@ public function get_quotation_special_requirements_preview($quotation_id)
             ->result_array();
     }
 
+        /* Fetch prepared-by user details from property_reservation.property_reservation_created_by_userid */
+        $prepared_by = null;
+        $resUserRow = $this->db
+            ->select('property_reservation_created_by_userid')
+            ->from('property_reservation')
+            ->where('quotation_id_fk', $quotation_id)
+            ->where('property_reservation_status', 1)
+            ->limit(1)
+            ->get()
+            ->row_array();
+        if ($resUserRow && !empty($resUserRow['property_reservation_created_by_userid'])) {
+            $prepared_by = $this->get_prepared_by_user($resUserRow['property_reservation_created_by_userid']);
+        }
+
         return array(
             'main' => $main,
-            'properties' => $rows
+            'properties' => $rows,
+            'prepared_by_user' => $prepared_by
         );
     }
 
@@ -7470,6 +7543,8 @@ public function get_quotation_special_requirements_preview($quotation_id)
             ->select('
                 q.quotation_id,
                 q.quotation_number,
+                q.quotation_title,
+                q.trip_code,
                 q.arriving_destination,
                 q.departuring_destination,
                 l.guest_name,
@@ -7523,16 +7598,25 @@ public function get_quotation_special_requirements_preview($quotation_id)
         $data = $this->get_client_confirmation_preview($quotation_id);
 
         $resRows = $this->db
-            ->select('properties_id_fk, confirmation_cnfm_by, confirmation_cnfm_no')
+            ->select('properties_id_fk, confirmation_cnfm_by, confirmation_cnfm_no, property_reservation_created_by_userid')
             ->from('property_reservation')
             ->where('quotation_id_fk', $quotation_id)
             ->where('property_reservation_status', 1)
             ->get()->result_array();
         $reservations = array();
+        $resUserId = null;
         foreach ($resRows as $rv) {
             $reservations[$rv['properties_id_fk']] = $rv;
+            if (!$resUserId && !empty($rv['property_reservation_created_by_userid'])) {
+                $resUserId = $rv['property_reservation_created_by_userid'];
+            }
         }
         $data['reservations'] = $reservations;
+
+        /* Override prepared_by with the user who did the property reservation */
+        if ($resUserId) {
+            $data['main']['prepared_by_user'] = $this->get_prepared_by_user($resUserId);
+        }
 
         return $data;
     }
@@ -7687,6 +7771,7 @@ public function get_quotation_special_requirements_preview($quotation_id)
 		$this->db->select('
 			qta.id as allocation_id,
 			q.quotation_id,
+			q.trip_code,
 			l.guest_name,
 			DATE_FORMAT(l.start_date, "%d-%m-%Y") as travel_date,
 			qta.transporter_id_fk,
@@ -7818,6 +7903,8 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			->select('
 				q.quotation_id,
 				q.quotation_number,
+				q.quotation_title,
+				q.trip_code,
 				q.arriving_destination,
 				q.departuring_destination,
 				l.leads_id,
@@ -8187,6 +8274,31 @@ public function get_quotation_special_requirements_preview($quotation_id)
 			'quotation' => $quotation,
 			'options'   => $options,
 		);
+	}
+
+	public function generate_trip_code()
+	{
+		$year = date('Y');
+		$prefix = 'RIT';
+
+		$row = $this->db
+			->select('trip_code')
+			->from('quotation')
+			->like('trip_code', $prefix . '/' . $year, 'after')
+			->order_by('quotation_id', 'DESC')
+			->limit(1)
+			->get()
+			->row();
+
+		$next_seq = 1;
+		if ($row && !empty($row->trip_code)) {
+			$parts = explode('/', $row->trip_code);
+			if (count($parts) >= 2 && is_numeric($parts[1])) {
+				$next_seq = (int)$parts[1] + 1;
+			}
+		}
+
+		return $prefix . '/' . str_pad($next_seq, 3, '0', STR_PAD_LEFT) . '/' . $year;
 	}
 
 }

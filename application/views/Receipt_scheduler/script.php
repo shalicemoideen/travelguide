@@ -258,13 +258,20 @@ function redistributeEmiAmounts($changedInput) {
         $inputs = $('.emi-amount');
     }
 
+    var changedIndex = $inputs.index($changedInput);
     var changedVal = parseFloat($changedInput.val()) || 0;
-    var remaining = total - changedVal;
-    var $others = $inputs.not($changedInput);
 
-    if ($others.length > 0) {
-        var each = (remaining / $others.length).toFixed(2);
-        $others.val(each);
+    var sumBefore = 0;
+    for (var i = 0; i < changedIndex; i++) {
+        sumBefore += parseFloat($($inputs[i]).val()) || 0;
+    }
+
+    var sumAfter = total - sumBefore - changedVal;
+    var $afterInputs = $inputs.slice(changedIndex + 1);
+
+    if ($afterInputs.length > 0) {
+        var each = (sumAfter / $afterInputs.length).toFixed(2);
+        $afterInputs.val(each);
     }
 
     calculateEmiTotal();
@@ -460,22 +467,30 @@ function recordPayment(installmentId, dueAmount) {
     $('#payment_reference').val('');
     $('#payment_remarks').val('');
     $('#payment_slip').val('');
+    if (window.resetMultiFiles_payment_slip) { window.resetMultiFiles_payment_slip(); }
+    if (!window._payment_slip_picker_init) {
+        initMultiFilePicker('payment_slip', 'payment_slip_list');
+        window._payment_slip_picker_init = true;
+    }
     $('#paymentModal').modal('show');
 }
 
 function savePayment() {
     var $date = $('#payment_date');
-    var $slip = $('#payment_slip');
     var dateValid = /^\d{2}\/\d{2}\/\d{4}$/.test($date.val());
     $date.toggleClass('is-invalid', !dateValid);
-    $slip.toggleClass('is-invalid', !$slip.val());
-    if (!dateValid || !$slip.val()) {
-        var n = new notify({ title: '', style: 'error', message: 'Payment date and payment slip are required.', icon: 'fas fa-times' });
+    var pickedFiles = window.getMultiFiles_payment_slip ? window.getMultiFiles_payment_slip() : [];
+    if (!dateValid || pickedFiles.length === 0) {
+        var msg = !dateValid ? 'Please enter a valid payment date in dd/mm/yyyy format.' : 'Please upload a payment slip.';
+        var n = new notify({ title: '', style: 'error', message: msg, icon: 'fas fa-times' });
         n.show(); setTimeout(function(){ n.hide(); }, 3000);
         return;
     }
 
     var formData = new FormData($('#paymentForm')[0]);
+    for (var i = 0; i < pickedFiles.length; i++) {
+        formData.append('payment_slip[]', pickedFiles[i]);
+    }
     $.ajax({
         url: base_url + 'receipt_scheduler/record_payment',
         type: 'POST',

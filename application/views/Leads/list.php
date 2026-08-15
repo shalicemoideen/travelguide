@@ -4270,6 +4270,24 @@ a.leads-number-link:hover {
 
                             </div>
 
+                            <div class="row mb-2">
+
+                                <div class="col-md-6">
+
+                                    <div class="form-group">
+
+                                        <label class="col-form-label" for="quotation_title"><b>Quotation title</b> <span class="text-danger">*</span></label>
+
+                                        <input type="text" class="form-control" name="quotation_title" id="quotation_title" placeholder="Enter Quotation title" required>
+
+                                        <span class="help-block" style="color:red"></span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
 
 
                             <div class="row">
@@ -4852,7 +4870,7 @@ a.leads-number-link:hover {
 
         <tr>
 
-          <th style="width:35%">Day | Date | Destination</th>
+          <th style="width:35%">Date</th>
 
           <th style="width:30%">Requirement</th>
 
@@ -4874,11 +4892,13 @@ a.leads-number-link:hover {
 
             <!-- <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]"></select> -->
 
-             <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]">
+             <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]" style="display:none;">
 
                                                         <option value="">Select Day | Date | Destination</option>
 
                                                     </select>
+
+            <input type="text" class="form-control form-control-sm specialReqDate" name="specialreq_accomodation_date[]" placeholder="Select Date" readonly>
 
           </td>
 

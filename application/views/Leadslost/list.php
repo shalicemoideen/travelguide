@@ -1806,6 +1806,21 @@
                                 </div>
                                         
                             </div>
+                            <div class="row" id="leadPackageRow">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label><b>Template Name</b></label>
+                                        <div id="template_name_display" class="form-control-static" style="padding-top:7px; font-weight:600; min-height:34px;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-lg-7 col-form-label" for="quotation_title"><b>Quotation title</b> <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="quotation_title" id="quotation_title" placeholder="Enter Quotation title" required>
+                                        <span class="help-block" style="color:red"></span>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="row d-none" >
                                 
                                 <div class="col-md-3 packages_id_fk">

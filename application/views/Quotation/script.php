@@ -148,6 +148,18 @@ $('#quotation_daterange').on('apply.daterangepicker', function(ev, picker) {
 $('#quotation_daterange').on('cancel.daterangepicker', function() {
     $(this).val('');
 });
+
+$('#travel_start_date_filter').datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true
+});
+
+$('#travel_end_date_filter').datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true
+});
  
 ////***Date picker *****///
 
@@ -209,6 +221,8 @@ $('#reset_filter').click(function() {
     $('#arriving_destination_filter').val('');
     $('#departuring_destination_filter').val('');
     $('#quotation_daterange').val('');
+    $('#travel_start_date_filter').val('');
+    $('#travel_end_date_filter').val('');
     $('#quotation_created_by_userid').val('').trigger('change');
 
     // Reload table
@@ -235,21 +249,21 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                                     },
                                     title: 'Quotation details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                                     },
                                     title: 'Quotation details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0 ,1, 2, 3, 4, 5, 6]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                                     },
                                     title: 'Quotation details'
                                 },
@@ -278,6 +292,9 @@ var table;
                     d.start_date = '';
                     d.end_date = '';
                 }
+
+                d.travel_start_date = $("#travel_start_date_filter").val() || '';
+                d.travel_end_date = $("#travel_end_date_filter").val() || '';
            }            
         },
         "createdRow": function ( row, data, index ) {
@@ -288,7 +305,7 @@ var table;
             });
             
             
-            $table.column(6).nodes().each(function(node, index, dt) {
+            $table.column(10).nodes().each(function(node, index, dt) {
             if($table.cell(node).data() == '1') {
             
             // if(data['quotation_current_status'] == 1){
@@ -296,7 +313,7 @@ var table;
               
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
 
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -338,14 +355,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(8).html(actionHtml);
+                $('td', row).eq(12).html(actionHtml);
             }
             else if($table.cell(node).data() == '2') {
             // else if(data['quotation_current_status'] == 2){
               $table.cell(node).data('<span class="badge badge-light">Draft</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
-            $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+            $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -387,14 +404,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(8).html(actionHtml);
+                $('td', row).eq(12).html(actionHtml);
             }
             else if($table.cell(node).data() == '3') {
             // else if(data['quotation_current_status'] == 3){
               $table.cell(node).data('<span class="badge badge-info">Sent</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
-            $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+            $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -436,14 +453,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(8).html(actionHtml);
+                $('td', row).eq(12).html(actionHtml);
             }
             else if($table.cell(node).data() == '4') {
             // else if(data['quotation_current_status'] == 4){
               $table.cell(node).data('<span class="badge badge-danger">Rejected</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
                 
-            $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+            $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
               let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -480,14 +497,14 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(8).html(actionHtml);
+                $('td', row).eq(12).html(actionHtml);
             }
             else if($table.cell(node).data() == '5') {
             // else if(data['quotation_current_status'] == 5){
               $table.cell(node).data('<span class="badge badge-success">Confirmed</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="change_status('+data['quotation_id']+')">Change status</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="update_itinerary('+data['quotation_id']+')">Edit Itinerary</a><a class="dropdown-item" target="_blank" href="<?php echo base_url();?>index.php/Quotation/quotation_preview/'+data['quotation_id']+'" >Preview</a><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="edit_quotation('+data['quotation_id']+')">Edit Quotation</a><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
               
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -524,12 +541,12 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(8).html(actionHtml);  
+                $('td', row).eq(12).html(actionHtml);  
             }
             else if($table.cell(node).data() == '8') {
               $table.cell(node).data('<span class="badge badge-info">Reservation Completed</span>');
 
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml8 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -547,12 +564,12 @@ var table;
                 }
 
                 actionHtml8 += '</div></div>';
-                $('td', row).eq(8).html(actionHtml8);
+                $('td', row).eq(12).html(actionHtml8);
             }
             else if($table.cell(node).data() == '7') {
               $table.cell(node).data('<span class="badge badge-primary">Ready to Trip</span>');
 
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml7 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -570,12 +587,12 @@ var table;
                 }
 
                 actionHtml7 += '</div></div>';
-                $('td', row).eq(8).html(actionHtml7);
+                $('td', row).eq(12).html(actionHtml7);
             }
             else if($table.cell(node).data() == '9') {
               $table.cell(node).data('<span class="badge badge-warning">Driver Not Assigned</span>');
 
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml9 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -593,12 +610,12 @@ var table;
                 }
 
                 actionHtml9 += '</div></div>';
-                $('td', row).eq(8).html(actionHtml9);
+                $('td', row).eq(12).html(actionHtml9);
             }
             else if($table.cell(node).data() == '10') {
               $table.cell(node).data('<span class="badge badge-success">Trip Completed</span>');
 
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml10 = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -616,14 +633,14 @@ var table;
                 }
 
                 actionHtml10 += '</div></div>';
-                $('td', row).eq(8).html(actionHtml10);
+                $('td', row).eq(12).html(actionHtml10);
             }
             else if($table.cell(node).data() == '6') {
             // else if(data['quotation_current_status'] == 6){
               $table.cell(node).data('<span class="badge badge-danger">Cancelled</span>');
             //   $('td', row).eq(9).html('<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end"><a class="dropdown-item" href="javascript:void(0)" onclick="return delete_quotation('+data['quotation_id']+')">Delete</a></div></div>');
 
-                $('td', row).eq(2).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
+                $('td', row).eq(3).html('<center><a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+'</a></center>');
 
                 let actionHtml = '<div class="dropdown ms-auto text-end"><div class="btn-link" data-bs-toggle="dropdown"><svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></div><div class="dropdown-menu dropdown-menu-end">';
 
@@ -652,11 +669,29 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(8).html(actionHtml);
+                $('td', row).eq(12).html(actionHtml);
             }
             });
 
-            $('td', row).eq(2).html('<center><a href="javascript:void(0)" class="text-primary" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+' ('+data['guest_name']+')</a></center>')
+            $('td', row).eq(3).html('<center><a href="javascript:void(0)" class="text-primary" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+' ('+data['guest_name']+')</a></center>');
+            $('td', row).eq(2).html(data['trip_code'] ? '<span class="badge badge-warning">'+data['trip_code']+'</span>' : '-');
+            // Format duration as X Nights Y Days
+            var dur = parseInt(data['travel_duration'], 10);
+            if (!isNaN(dur) && dur > 0) {
+                var nights = dur - 1;
+                $('td', row).eq(7).html(nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + dur + ' Day' + (dur !== 1 ? 's' : ''));
+            } else {
+                $('td', row).eq(7).html('-');
+            }
+            // Show transporter and cab type only for confirmed quotations
+            var confirmedStatuses = ['5','7','8','9','10'];
+            if (confirmedStatuses.indexOf(String(data['quotation_current_status'])) === -1) {
+                $('td', row).eq(8).html('-');
+                $('td', row).eq(9).html('-');
+            } else {
+                if (!data['transporter_name']) $('td', row).eq(8).html('-');
+                if (!data['confirmed_cab_type']) $('td', row).eq(9).html('-');
+            }
             // <a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="convert_trip('+data['quotation_id']+')">Convert to trips</a>
            },
 
@@ -667,12 +702,16 @@ var table;
         "columns": [
             { "data": "quotation_status", "orderable": false },
             { "data": "quotation_number", "orderable": false },
+            { "data": "trip_code", "orderable": false },
             { "data": "leads_number", "orderable": false },
-            { "data": "packages_title", "orderable": false },
-            { "data": "quotation_date", "orderable": false },
-            { "data": "quotation_remarks", "orderable": false },
+            { "data": "quotation_title", "orderable": false },
+            { "data": "arriving_date", "orderable": false },
+            { "data": "departure_date", "orderable": false },
+            { "data": "travel_duration", "orderable": false },
+            { "data": "transporter_name", "orderable": false },
+            { "data": "confirmed_cab_type", "orderable": false },
             { "data": "quotation_current_status", "orderable": false },
-            { "data": "quotation_created_by_username", "orderable": false },                      
+            { "data": "quotation_created_by_username", "orderable": false },                       
             { "data": "quotation_id", "orderable": false }
             
             
@@ -752,6 +791,7 @@ $('#leads_id').val('').trigger('change.select2');
 $('#template_name_display').text('');
 $('#packages_id_fk').val('');
 $('#packages_id_hidden').val('');
+$('#quotation_title').val('');
 
 $('#leads_id_hidden').val('');
 
@@ -792,6 +832,7 @@ $(document).on('change', '#leads_id', function () {
         $('#template_name_display').text('');
         $('#packages_id_fk').val('');
         $('#packages_id_hidden').val('');
+        $('#quotation_title').val('');
         return;
     }
     $.ajax({
@@ -803,6 +844,9 @@ $(document).on('change', '#leads_id', function () {
             $('#packages_id_hidden').val(packageId);
             $('#packages_id_fk').val(packageId);
             $('#template_name_display').text(res.packages_title || '');
+            if (!$('#quotation_title').val()) {
+                $('#quotation_title').val(res.packages_title || '');
+            }
             toggleAddOptionBtn();
         },
         error: function () {
@@ -923,7 +967,7 @@ function validateQuoteItineraryForm() {
   /* ==========================================================
      1) MAIN REQUIRED FIELDS
      ========================================================== */
-  const $qtnTitle   = $('[name="quotation_title"]');
+  const $qtnTitle   = $('#QuotationitineraryModal [name="quotation_title"]');
 
   if (isEmpty($qtnTitle.val())) { ok = false; markInvalidAndRemember($qtnTitle, 'Quotation title is required'); }
 
@@ -1803,7 +1847,9 @@ function update_itinerary(id) {
             $('#btnSave').text('Update');
             $('#QuotationitineraryModal .modal-title').text('Update Quotation Itinerary');
 
-            $('#quotation_title').val(p.quotation_title || '');
+            $('#itinerary_quotation_title').val(p.quotation_title || '');
+
+            $('#itinerary_template_name_display').text(res.package_title || p.packages_title || '-');
 
             // cover previews
             if (p.quotation_first_cover_page) {
@@ -3852,6 +3898,7 @@ function buildB2CLayout(d)
                     ['Date Type', d.date_type],
                     ['Travel Start Date', formatDate(d.start_date)],
                     ['End Date', formatDate(d.end_date)],
+                    ['Duration', formatDuration(d.duration)],
                     ['Accommodation Status', getAccommodationStatusText(d.leads_accomodation_status, d.leads_quotation_status)]
                 ])}
             </div>
@@ -3904,6 +3951,7 @@ function buildMetaLayout(d)
                     ['Date Type', d.date_type],
                     ['Travel Start Date', formatDate(d.start_date)],
                     ['End Date', formatDate(d.end_date)],
+                    ['Duration', formatDuration(d.duration)],
                     ['Accommodation Status', getAccommodationStatusText(d.leads_accomodation_status, d.leads_quotation_status)]
                 ])}
             </div>
@@ -4054,6 +4102,14 @@ function formatDate(dateStr)
     if (parts.length !== 3) return dateStr;
 
     return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function formatDuration(dur)
+{
+    var n = parseInt(dur, 10);
+    if (isNaN(n) || n <= 0) return '-';
+    var nights = n - 1;
+    return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + n + ' Day' + (n !== 1 ? 's' : '');
 }
 
 function formatDateTime(dateTimeStr)

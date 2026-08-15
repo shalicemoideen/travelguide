@@ -1458,6 +1458,34 @@
 
                                                     </div>
 
+                                                </div>
+
+                                                <div class="col-sm-6 col-md-3">
+
+                                                    <div class="card">
+
+                                                        <div class="input-group">
+
+                                                            <input type="text" class="form-control" placeholder="Travel Start Date" id="travel_start_date_filter" name="travel_start_date_filter">
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="col-sm-6 col-md-3">
+
+                                                    <div class="card">
+
+                                                        <div class="input-group">
+
+                                                            <input type="text" class="form-control" placeholder="Travel End Date" id="travel_end_date_filter" name="travel_end_date_filter">
+
+                                                        </div>
+
+                                                    </div>
+
                                                 </div>                         
 
                                                 <div class="col-sm-6 col-md-3 staff-do-not-show">
@@ -1576,13 +1604,21 @@
 
                                                 <th>Quotation no:</th>
 
+                                                <th>Trip Code</th>
+
                                                 <th>Lead:</th>
 
-                                                <th>Template name</th>
+                                                <th>Quotation Title</th>
 
-                                                <th>Quotation date</th>
+                                                <th>Arriving Date</th>
 
-                                                <th>Remark</th>
+                                                <th>Departure Date</th>
+
+                                                <th>Duration</th>
+
+                                                <th>Transporter</th>
+
+                                                <th>Cab Type</th>
 
                                                 <th>Status</th>
 
@@ -1777,6 +1813,20 @@
                                         <div id="template_name_display" class="form-control-static" style="padding-top:7px; font-weight:600; min-height:34px;"></div>
 
                                         <input type="hidden" name="packages_id_fk" id="packages_id_fk" value="">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-3">
+
+                                    <div class="form-group">
+
+                                        <label class="col-lg-7 col-form-label" for="quotation_title"><b>Quotation title</b> <span class="text-danger">*</span></label>
+
+                                        <input type="text" class="form-control" name="quotation_title" id="quotation_title" placeholder="Enter Quotation title" required>
+
+                                        <span class="help-block" style="color:red"></span>
 
                                     </div>
 
@@ -2134,7 +2184,7 @@
 
         <tr>
 
-          <th style="width:35%">Day | Date | Destination</th>
+          <th style="width:35%">Date</th>
 
           <th style="width:30%">Requirement</th>
 
@@ -2156,11 +2206,13 @@
 
             <!-- <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]"></select> -->
 
-             <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]">
+             <select class="form-select form-select-sm specialReqDaySelect" name="specialreq_day_key[]" style="display:none;">
 
                                                         <option value="">Select Day | Date | Destination</option>
 
                                                     </select>
+
+            <input type="text" class="form-control form-control-sm specialReqDate" name="specialreq_accomodation_date[]" placeholder="Select Date" readonly>
 
           </td>
 
@@ -3324,17 +3376,29 @@
 
                                     <div class=" form-group">
 
-                                        <label class="col-lg-7 col-form-label" for="quotation_title"><b>Quotation title</b> <span class="text-danger">*</span>
+                                        <label class="col-lg-7 col-form-label" for="itinerary_quotation_title"><b>Quotation title</b> <span class="text-danger">*</span>
 
                                         </label>
 
                                         
 
-                                            <input type="text" class="form-control" name="quotation_title" id="quotation_title" placeholder="Enter Quotation title" required>
+                                            <input type="text" class="form-control" name="quotation_title" id="itinerary_quotation_title" placeholder="Enter Quotation title" required>
 
                                             <span class="help-block" style="color:red"></span>
 
                                         
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-2">
+
+                                    <div class="form-group">
+
+                                        <label><b>Template Name</b></label>
+
+                                        <div id="itinerary_template_name_display" class="form-control-static" style="padding-top:7px; font-weight:600; min-height:34px;"></div>
 
                                     </div>
 
