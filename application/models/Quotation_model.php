@@ -154,7 +154,7 @@ class Quotation_model extends CI_Model{
 
 			
 
-		$this->db->select('*, DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username, DATE_FORMAT(leads.start_date,\'%d-%m-%Y\') as arriving_date, DATE_FORMAT(leads.end_date,\'%d-%m-%Y\') as departure_date, leads.duration as travel_duration, t.transporter_name, v.vehicle_name as confirmed_cab_type', FALSE);
+		$this->db->select('*, DATE_FORMAT(quotation_date,\'%d-%m-%Y\') as quotation_date, ud.admin_name as quotation_created_by_username, DATE_FORMAT(leads.start_date,\'%d-%m-%Y\') as arriving_date, DATE_FORMAT(leads.end_date,\'%d-%m-%Y\') as departure_date, leads.duration as travel_duration, (SELECT t.transporter_name FROM quotation_transport_allocation qta LEFT JOIN transporter t ON t.user_id_fk = qta.transporter_id_fk WHERE qta.quotation_id_fk = quotation.quotation_id AND qta.status = 1 LIMIT 1) as transporter_name, (SELECT v.vehicle_name FROM quotation_confirmation qc LEFT JOIN quotation_options qo ON qo.quotation_options_id = qc.option_id_fk LEFT JOIN vehicle v ON v.vehicle_id = qo.quotation_options_vehicle_id_fk WHERE qc.quotation_id_fk = quotation.quotation_id AND qc.property_confirmation_status = 1 LIMIT 1) as confirmed_cab_type', FALSE);
 
 		$this->db->from('quotation');
 
@@ -163,18 +163,6 @@ class Quotation_model extends CI_Model{
 		$this->db->join('packages', 'packages.packages_id = quotation.package_id_fk','left');
 
 		$this->db->join('user_details ud', 'ud.user_id = quotation.quotation_created_by_userid', 'left');
-
-		$this->db->join('quotation_transport_allocation qta', 'qta.quotation_id_fk = quotation.quotation_id AND qta.status = 1', 'left');
-
-		$this->db->join('transporter t', 't.user_id_fk = qta.transporter_id_fk', 'left');
-
-		$this->db->join('quotation_confirmation qc', 'qc.quotation_id_fk = quotation.quotation_id AND qc.property_confirmation_status = 1', 'left');
-
-		$this->db->join('quotation_options qo', 'qo.quotation_options_id = qc.option_id_fk', 'left');
-
-		$this->db->join('vehicle v', 'v.vehicle_id = qo.quotation_options_vehicle_id_fk', 'left');
-
-		$this->db->group_by('quotation.quotation_id');
 
         if (!empty($param['confirmed_only'])) {
             if ($currentusertype == 'S') {

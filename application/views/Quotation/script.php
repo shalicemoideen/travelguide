@@ -298,7 +298,9 @@ var table;
            }            
         },
         "createdRow": function ( row, data, index ) {
-          
+
+            var rawStatus = String(data['quotation_current_status']);
+
 //            $('td',row).eq(0).html(index+1);
            $table.column(0).nodes().each(function(node,index,dt){
             $table.cell(node).data(index+1);
@@ -685,12 +687,12 @@ var table;
             }
             // Show transporter and cab type only for confirmed quotations
             var confirmedStatuses = ['5','7','8','9','10'];
-            if (confirmedStatuses.indexOf(String(data['quotation_current_status'])) === -1) {
+            if (confirmedStatuses.indexOf(rawStatus) === -1) {
                 $('td', row).eq(8).html('-');
                 $('td', row).eq(9).html('-');
             } else {
-                if (!data['transporter_name']) $('td', row).eq(8).html('-');
-                if (!data['confirmed_cab_type']) $('td', row).eq(9).html('-');
+                $('td', row).eq(8).html(data['transporter_name'] ? data['transporter_name'] : '-');
+                $('td', row).eq(9).html(data['confirmed_cab_type'] ? data['confirmed_cab_type'] : '-');
             }
             // <a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="convert_trip('+data['quotation_id']+')">Convert to trips</a>
            },
