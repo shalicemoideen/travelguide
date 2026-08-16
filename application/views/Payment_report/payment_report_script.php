@@ -134,6 +134,13 @@ function loadPaymentReportTable() {
         "serverSide": true,
         "order": [],
         "searching": false,
+        "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'excel', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' } },
+            { extend: 'pdf',   exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' } },
+            { extend: 'print', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' } }
+        ],
         "ajax": {
             "url": base_url + "Payment_report/get_payment_report_table",
             "type": "POST",
@@ -166,11 +173,33 @@ function loadPaymentReportTable() {
             },
             { data: "quotation_number" },
             { data: "guest_name" },
-            { data: "start_date", render: function(data) { return data ? formatDate(data) : '-'; } },
+            { data: "start_date", render: function(data, type, row) {
+                var endDt = row.end_date ? formatDate(row.end_date) : '-';
+                var dur = parseInt(row.duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                var startDt = data ? formatDate(data) : '-';
+                if (type === 'export') {
+                    return startDt + ' | ' + endDt + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + startDt + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + endDt + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            } },
             { data: "whats_number", render: function(data) { return data || '-'; } },
             {
                 data: "customer_payment_statuses",
                 render: function(data, type, row) {
+                    if (type === 'export') {
+                        if (row.has_customer_scheduler == 0) return 'No Scheduler';
+                        if (!data) return 'No Data';
+                        return data;
+                    }
                     if (row.has_customer_scheduler == 0) {
                         return '<span class="badge bg-secondary">No Scheduler</span>';
                     }
@@ -198,6 +227,11 @@ function loadPaymentReportTable() {
             {
                 data: "customer_approval_pending",
                 render: function(data, type, row) {
+                    if (type === 'export') {
+                        if (row.has_customer_scheduler == 0) return '-';
+                        if (data > 0) return data + ' Pending';
+                        return 'All Approved';
+                    }
                     if (row.has_customer_scheduler == 0) {
                         return '<span class="text-muted">-</span>';
                     }
@@ -210,6 +244,11 @@ function loadPaymentReportTable() {
             {
                 data: "property_payment_statuses",
                 render: function(data, type, row) {
+                    if (type === 'export') {
+                        if (row.has_property_scheduler == 0) return 'No Scheduler';
+                        if (!data) return 'No Data';
+                        return data;
+                    }
                     if (row.has_property_scheduler == 0) {
                         return '<span class="badge bg-secondary">No Scheduler</span>';
                     }

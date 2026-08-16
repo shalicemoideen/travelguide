@@ -1610,13 +1610,11 @@
 
                                                 <th>Quotation Title</th>
 
-                                                <th>Arriving Date</th>
-
-                                                <th>Departure Date</th>
-
-                                                <th>Duration</th>
+                                                <th>Travel Details</th>
 
                                                 <th>Transporter</th>
+
+                                                <th>Cab Type</th>
 
                                                 <th>Status</th>
 

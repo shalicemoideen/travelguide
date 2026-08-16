@@ -8993,6 +8993,7 @@ public function ajax_delete()
 		$param['searchValue'] = (isset($_REQUEST['search']['value'])) ? $_REQUEST['search']['value'] : '';
 
 		$param['guest_name'] = (isset($_REQUEST['guest_name'])) ? $_REQUEST['guest_name'] : '';
+		$param['trip_code'] = (isset($_REQUEST['trip_code'])) ? $_REQUEST['trip_code'] : '';
 		if ($this->currentusertype != 'A') {
 			$param['staff_id'] = $this->currentuserid;
 		} else {
@@ -9226,6 +9227,11 @@ public function ajax_delete()
 		$status_filter = isset($_REQUEST['status_filter']) ? $_REQUEST['status_filter'] : '';
 		if ($status_filter) {
 			$param['status_filter'] = $status_filter;
+		}
+
+		$trip_code_filter = isset($_REQUEST['trip_code_filter']) ? $_REQUEST['trip_code_filter'] : '';
+		if ($trip_code_filter) {
+			$param['trip_code_filter'] = $trip_code_filter;
 		}
 
 		$start_date = isset($_REQUEST['start_date']) ? $_REQUEST['start_date'] : '';
@@ -9725,11 +9731,14 @@ public function ajax_delete()
 					'quotation_options_status' => 0
 				));
 
-				// Disable old tariff records for this quotation
-				$this->db->where('quotation_id_fk', $quotation_id);
-				$this->db->update('quotation_room_tariff_details', array(
-					'quotation_room_tariff_details_status' => 0
-				));
+				// Disable old tariff records only for the confirmed option's rooms
+				// (do NOT touch other options' tariff details for this quotation)
+				if (!empty($oldRoomIds)) {
+					$this->db->where_in('quotation_properties_rooms_id_fk', $oldRoomIds);
+					$this->db->update('quotation_room_tariff_details', array(
+						'quotation_room_tariff_details_status' => 0
+					));
+				}
 			}
 
 			/* ================= INSERT UPDATED CONFIRMED OPTION ================= */
@@ -9751,6 +9760,8 @@ public function ajax_delete()
 							'quotation_options_title' => isset($option['title']) ? $option['title'] : '',
 							'quotation_options_cab_amount' => isset($option['cab_amount']) ? $option['cab_amount'] : 0,
 							'quotation_options_design_type' => isset($option['quotation_options_design_type']) ? $option['quotation_options_design_type'] : '',
+							'quotation_options_complimentary_inclusion' => isset($option['quotation_options_complimentary_inclusion']) ? $option['quotation_options_complimentary_inclusion'] : '',
+							'quotation_options_last_day_details' => isset($option['quotation_options_last_day_details']) ? $option['quotation_options_last_day_details'] : '',
 							'quotation_options_vehicle_id_fk' => isset($option['quotation_options_vehicle_id_fk']) ? $option['quotation_options_vehicle_id_fk'] : 0,
 							'quotation_options_room_category_display' => isset($option['quotation_options_room_category_display']) ? $option['quotation_options_room_category_display'] : 0,
 							'quotation_options_meal_plan_display' => isset($option['quotation_options_meal_plan_display']) ? $option['quotation_options_meal_plan_display'] : 0,

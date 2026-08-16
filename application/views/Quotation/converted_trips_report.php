@@ -17,6 +17,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="card">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="Trip Code" id="trip_code" name="trip_code">
+                                        </div>
+                                    </div>
+                                </div>
                                 <?php if ($current_user_type == 'A'): ?>
                                 <div class="col-sm-6 col-md-3">
                                     <div class="card">
@@ -78,14 +85,25 @@
                                             <tr>
                                                 <th>Sl.no</th>
                                                 <th>Quotation no</th>
+                                                <th>Trip Code</th>
                                                 <th>Guest name</th>
-                                                <th>Travel date</th>
-                                                <th>Duration</th>
+                                                <th>Travel Details</th>
                                                 <th>Assigned staff</th>
                                                 <th>Pre Quoted</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th id="converted-trips-total-count" style="text-align:right; font-size:14px; font-weight:700; color:#3d4465; background:linear-gradient(135deg,#f8f9fc,#eaecf4); padding:10px 12px; border-top:2px solid #5e72e4; white-space:nowrap;"></th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>

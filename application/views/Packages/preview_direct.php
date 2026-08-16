@@ -1681,6 +1681,43 @@ button:hover{background:#172554;}
 .font-xl .exclusive-feature-title { font-size:17px !important; }
 .font-xl .exclusive-feature-list li { font-size:15px !important; }
 .font-xl .complimentary-text-exclusive { font-size:16px !important; }
+
+/* Brief page levels */
+.font-xs .brief-header { margin-top:14mm !important; margin-bottom:5mm !important; }
+.font-xs .brief-icon-img { width:24mm !important; }
+.font-xs .brief-title { font-size:26px !important; }
+.font-xs .brief-list { margin-top:5mm !important; }
+.font-xs .brief-row { min-height:13mm !important; padding:0 7mm !important; margin-bottom:6px !important; }
+.font-xs .brief-day { font-size:13px !important; min-width:28mm !important; height:9mm !important; margin-right:8mm !important; }
+.font-xs .brief-date { font-size:10px !important; margin-right:6mm !important; }
+.font-xs .brief-route { font-size:16px !important; }
+
+.font-sm .brief-header { margin-top:18mm !important; margin-bottom:6mm !important; }
+.font-sm .brief-icon-img { width:30mm !important; }
+.font-sm .brief-title { font-size:32px !important; }
+.font-sm .brief-list { margin-top:6mm !important; }
+.font-sm .brief-row { min-height:15mm !important; padding:0 8mm !important; margin-bottom:8px !important; }
+.font-sm .brief-day { font-size:16px !important; min-width:32mm !important; height:10mm !important; margin-right:10mm !important; }
+.font-sm .brief-date { font-size:12px !important; margin-right:8mm !important; }
+.font-sm .brief-route { font-size:20px !important; }
+
+.font-lg .brief-header { margin-top:26mm !important; margin-bottom:9mm !important; }
+.font-lg .brief-icon-img { width:44mm !important; }
+.font-lg .brief-title { font-size:44px !important; }
+.font-lg .brief-list { margin-top:9mm !important; }
+.font-lg .brief-row { min-height:20mm !important; padding:0 11mm !important; margin-bottom:11px !important; }
+.font-lg .brief-day { font-size:22px !important; min-width:40mm !important; height:12mm !important; margin-right:13mm !important; }
+.font-lg .brief-date { font-size:15px !important; margin-right:11mm !important; }
+.font-lg .brief-route { font-size:27px !important; }
+
+.font-xl .brief-header { margin-top:28mm !important; margin-bottom:10mm !important; }
+.font-xl .brief-icon-img { width:48mm !important; }
+.font-xl .brief-title { font-size:48px !important; }
+.font-xl .brief-list { margin-top:10mm !important; }
+.font-xl .brief-row { min-height:22mm !important; padding:0 12mm !important; margin-bottom:12px !important; }
+.font-xl .brief-day { font-size:24px !important; min-width:42mm !important; height:13mm !important; margin-right:14mm !important; }
+.font-xl .brief-date { font-size:16px !important; margin-right:12mm !important; }
+.font-xl .brief-route { font-size:29px !important; }
 </style>
 <style>
 #pdfLoadingOverlay{
@@ -3386,6 +3423,47 @@ function splitExclusiveOptionPage(page) {
   });
 }
 
+function fitBriefPageFontSize(page) {
+  const header = page.querySelector('.brief-header');
+  const list = page.querySelector('.brief-list');
+  if (!header || !list) return 'font-normal';
+
+  const fontClasses = ['font-xs', 'font-sm', 'font-normal', 'font-lg', 'font-xl'];
+  fontClasses.forEach(function(cls) { page.classList.remove(cls); });
+
+  const targetHeight = page.clientHeight;
+  const originalHeight = page.style.height;
+  const originalOverflow = page.style.overflow;
+  const originalListMinHeight = list.style.minHeight;
+
+  page.style.height = 'auto';
+  page.style.overflow = 'visible';
+  list.style.minHeight = '0';
+
+  const tryOrder = ['font-normal', 'font-sm', 'font-xs'];
+  let chosenClass = 'font-xs';
+
+  for (let i = 0; i < tryOrder.length; i++) {
+    const cls = tryOrder[i];
+    page.classList.remove(...fontClasses);
+    page.classList.add(cls);
+    void list.offsetHeight;
+    const contentHeight = header.scrollHeight + list.scrollHeight;
+    if (contentHeight <= targetHeight + 2) {
+      chosenClass = cls;
+      break;
+    }
+  }
+
+  page.classList.remove(...fontClasses);
+  page.classList.add(chosenClass);
+  page.style.height = originalHeight;
+  page.style.overflow = originalOverflow;
+  list.style.minHeight = originalListMinHeight;
+
+  return chosenClass;
+}
+
 function createBriefContinuationPage() {
   const page = document.createElement('div');
   page.className = 'pdf-page brief-page generated-brief-page';
@@ -3429,6 +3507,8 @@ function buildBriefExtraPages() {
   const briefList = briefPage.querySelector('.brief-list');
   if (!briefList) return;
 
+  const chosenBriefClass = fitBriefPageFontSize(briefPage);
+
   const rows = Array.from(briefList.querySelectorAll('.brief-row'));
   if (!rows.length) return;
 
@@ -3451,6 +3531,8 @@ function buildBriefExtraPages() {
 
   let insertAfter = briefPage;
   let contPage = createBriefContinuationPage();
+  ['font-xs', 'font-sm', 'font-normal', 'font-lg', 'font-xl'].forEach(function(cls) { contPage.classList.remove(cls); });
+  contPage.classList.add(chosenBriefClass);
   insertAfter.parentNode.insertBefore(contPage, insertAfter.nextSibling);
   insertAfter = contPage;
 
@@ -3463,6 +3545,8 @@ function buildBriefExtraPages() {
       contList.removeChild(row);
 
       contPage = createBriefContinuationPage();
+      ['font-xs', 'font-sm', 'font-normal', 'font-lg', 'font-xl'].forEach(function(cls) { contPage.classList.remove(cls); });
+      contPage.classList.add(chosenBriefClass);
       insertAfter.parentNode.insertBefore(contPage, insertAfter.nextSibling);
       insertAfter = contPage;
 

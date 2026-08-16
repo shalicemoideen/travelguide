@@ -9,10 +9,10 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <h2 class="card-title mb-0"><b>Financial Posting</b></h2>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 flex-wrap align-items-center">
                                     <input type="text" class="form-control form-control-sm" id="fpListSearch"
                                            placeholder="Quotation no / Trip code / Guest" style="max-width:260px;">
-                                    <button type="button" class="btn btn-primary btn-sm" id="fpAddBtn">
+                                    <button type="button" class="btn btn-primary btn-sm" id="fpAddBtn" style="white-space:nowrap;">
                                         <i class="la la-plus me-1"></i> Add Financial Posting
                                     </button>
                                 </div>
@@ -26,6 +26,7 @@
                                                 <th>Quotation no</th>
                                                 <th>Trip code</th>
                                                 <th>Guest name</th>
+                                                <th>Travel Details</th>
                                                 <th>Pre Quoted</th>
                                                 <th>Actual Cost</th>
                                                 <th>Total Margin</th>

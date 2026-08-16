@@ -77,6 +77,7 @@ $('#search').click(function () {
 
 $('#reset').click(function () {
     $('#guest_name').val('');
+    $('#trip_code').val('');
     $('#staff_id').val(null).trigger('change');
     $('#converted_trips_daterange').val('');
     $table.ajax.reload();
@@ -94,20 +95,26 @@ $(document).ready(function() {
             {
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6]
-                }
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    orthogonal: 'export'
+                },
+                footer: true
             },
             {
                 extend: 'pdf',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6]
-                }
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    orthogonal: 'export'
+                },
+                footer: true
             },
             {
                 extend: 'print',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6]
-                }
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    orthogonal: 'export'
+                },
+                footer: true
             }
         ],
         "ajax": {
@@ -115,6 +122,7 @@ $(document).ready(function() {
             "type": "POST",
             "data": function (d) {
                 d.guest_name = $("#guest_name").val();
+                d.trip_code = $("#trip_code").val();
                 d.staff_id = $("#staff_id").val();
                 d.date_type = $("#converted_trips_date_type").val();
                 var reportRange = $("#converted_trips_daterange").val();
@@ -129,7 +137,7 @@ $(document).ready(function() {
             }
         },
         "createdRow": function (row, data, index) {
-            var guestCell = $('td', row).eq(2);
+            var guestCell = $('td', row).eq(3);
             var guestHtml = '<div>' + (data['guest_name'] || '') + '</div>';
             var adults   = parseInt(data['total_adults'] || 0);
             var children = parseInt(data['total_children'] || 0);
@@ -147,6 +155,9 @@ $(document).ready(function() {
                     data['quotation_id'] + ')">' + (data['quotation_number'] || '-') + '</a>'
                 );
             }
+            if (data['trip_code']) {
+                $('td', row).eq(2).html('<span class="badge badge-warning">' + data['trip_code'] + '</span>');
+            }
 
             if (data['pre_quoted_amount'] !== undefined) {
                 $('td', row).eq(6).html(parseFloat(data['pre_quoted_amount']).toFixed(2));
@@ -158,13 +169,37 @@ $(document).ready(function() {
                 var pageInfo = api.page.info();
                 $(node).html(pageInfo.start + i + 1);
             });
+            var info = api.page.info();
+            var total    = info.recordsTotal;
+            var filtered = info.recordsDisplay;
+            var label = 'Total Converted Trips: <strong>' + total + '</strong>';
+            if (filtered !== total) {
+                label += ' &nbsp;|&nbsp; Filtered: <strong>' + filtered + '</strong>';
+            }
+            $('#converted-trips-total-count').html(label);
+            $(api.table().footer()).find('th:last').html(label);
         },
         "columns": [
             { "data": "leads_id", "orderable": false },
             { "data": "quotation_number", "orderable": false },
+            { "data": "trip_code", "orderable": false },
             { "data": "guest_name", "orderable": false },
-            { "data": "travel_start_date", "orderable": false },
-            { "data": "duration", "orderable": false },
+            { "data": "travel_start_date", "orderable": false, "render": function(data, type, row) {
+                var dur = parseInt(row.duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                if (type === 'export') {
+                    return (data || '-') + ' | ' + (row.travel_end_date || '-') + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + (data || '-') + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + (row.travel_end_date || '-') + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            }},
             { "data": "staff_name", "orderable": false },
             { "data": "pre_quoted_amount", "orderable": false }
         ]

@@ -249,21 +249,24 @@ var table;
                                 {
                                     extend: 'excel',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                                        orthogonal: 'export'
                                     },
                                     title: 'Quotation details'
                                 },
                                 {
                                     extend: 'pdf',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                                        orthogonal: 'export'
                                     },
                                     title: 'Quotation details'
                                 },
                                 {
                                     extend: 'print',
                                     exportOptions: {
-                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                                        orthogonal: 'export'
                                     },
                                     title: 'Quotation details'
                                 },
@@ -307,7 +310,7 @@ var table;
             });
             
             
-            $table.column(9).nodes().each(function(node, index, dt) {
+            $table.column(8).nodes().each(function(node, index, dt) {
             if($table.cell(node).data() == '1') {
             
             // if(data['quotation_current_status'] == 1){
@@ -357,7 +360,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(11).html(actionHtml);
+                $('td', row).eq(10).html(actionHtml);
             }
             else if($table.cell(node).data() == '2') {
             // else if(data['quotation_current_status'] == 2){
@@ -406,7 +409,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(11).html(actionHtml);
+                $('td', row).eq(10).html(actionHtml);
             }
             else if($table.cell(node).data() == '3') {
             // else if(data['quotation_current_status'] == 3){
@@ -455,7 +458,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(11).html(actionHtml);
+                $('td', row).eq(10).html(actionHtml);
             }
             else if($table.cell(node).data() == '4') {
             // else if(data['quotation_current_status'] == 4){
@@ -499,7 +502,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(11).html(actionHtml);
+                $('td', row).eq(10).html(actionHtml);
             }
             else if($table.cell(node).data() == '5') {
             // else if(data['quotation_current_status'] == 5){
@@ -543,7 +546,7 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(11).html(actionHtml);  
+                $('td', row).eq(10).html(actionHtml);  
             }
             else if($table.cell(node).data() == '8') {
               $table.cell(node).data('<span class="badge badge-info">Reservation Completed</span>');
@@ -566,7 +569,7 @@ var table;
                 }
 
                 actionHtml8 += '</div></div>';
-                $('td', row).eq(11).html(actionHtml8);
+                $('td', row).eq(10).html(actionHtml8);
             }
             else if($table.cell(node).data() == '7') {
               $table.cell(node).data('<span class="badge badge-primary">Ready to Trip</span>');
@@ -589,7 +592,7 @@ var table;
                 }
 
                 actionHtml7 += '</div></div>';
-                $('td', row).eq(11).html(actionHtml7);
+                $('td', row).eq(10).html(actionHtml7);
             }
             else if($table.cell(node).data() == '9') {
               $table.cell(node).data('<span class="badge badge-warning">Driver Not Assigned</span>');
@@ -612,7 +615,7 @@ var table;
                 }
 
                 actionHtml9 += '</div></div>';
-                $('td', row).eq(11).html(actionHtml9);
+                $('td', row).eq(10).html(actionHtml9);
             }
             else if($table.cell(node).data() == '10') {
               $table.cell(node).data('<span class="badge badge-success">Trip Completed</span>');
@@ -635,7 +638,7 @@ var table;
                 }
 
                 actionHtml10 += '</div></div>';
-                $('td', row).eq(11).html(actionHtml10);
+                $('td', row).eq(10).html(actionHtml10);
             }
             else if($table.cell(node).data() == '6') {
             // else if(data['quotation_current_status'] == 6){
@@ -671,27 +674,28 @@ var table;
 
                 actionHtml += '</div></div>';
 
-                $('td', row).eq(11).html(actionHtml);
+                $('td', row).eq(10).html(actionHtml);
             }
             });
 
             $('td', row).eq(3).html('<center><a href="javascript:void(0)" class="text-primary" onclick="view_lead_details('+data['quotation_id']+')">'+data['leads_number']+' ('+data['guest_name']+')</a></center>');
             $('td', row).eq(2).html(data['trip_code'] ? '<span class="badge badge-warning">'+data['trip_code']+'</span>' : '-');
             $('td', row).eq(1).html('<a href="javascript:void(0)" class="text-primary fw-bold" onclick="view_trip_details('+data['quotation_id']+')">'+(data['quotation_number'] || '-')+'</a>');
-            // Format duration as X Nights Y Days
+            // Travel Details: Arriving Date, Departure Date, Duration in one cell
             var dur = parseInt(data['travel_duration'], 10);
+            var durStr = '-';
             if (!isNaN(dur) && dur > 0) {
                 var nights = dur - 1;
-                $('td', row).eq(7).html(nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + dur + ' Day' + (dur !== 1 ? 's' : ''));
-            } else {
-                $('td', row).eq(7).html('-');
+                durStr = nights + 'N ' + dur + 'D';
             }
-            // Show transporter only for confirmed quotations
+            // Show transporter and cab type only for confirmed quotations
             var confirmedStatuses = ['5','7','8','9','10'];
             if (confirmedStatuses.indexOf(rawStatus) === -1) {
-                $('td', row).eq(8).html('-');
+                $('td', row).eq(6).html('-');
+                $('td', row).eq(7).html('-');
             } else {
-                $('td', row).eq(8).html(data['transporter_name'] ? data['transporter_name'] : '-');
+                $('td', row).eq(6).html(data['transporter_name'] ? data['transporter_name'] : '-');
+                $('td', row).eq(7).html(data['confirmed_cab_type'] ? data['confirmed_cab_type'] : '-');
             }
             // <a class="dropdown-item" href="javascript:void(0)" id="rt" onclick="convert_trip('+data['quotation_id']+')">Convert to trips</a>
            },
@@ -706,10 +710,24 @@ var table;
             { "data": "trip_code", "orderable": false },
             { "data": "leads_number", "orderable": false },
             { "data": "quotation_title", "orderable": false },
-            { "data": "arriving_date", "orderable": false },
-            { "data": "departure_date", "orderable": false },
-            { "data": "travel_duration", "orderable": false },
+            { "data": "arriving_date", "orderable": false, "render": function(data, type, row) {
+                var dur = parseInt(row.travel_duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                if (type === 'export') {
+                    return (row.arriving_date || '-') + ' | ' + (row.departure_date || '-') + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + (row.arriving_date || '-') + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + (row.departure_date || '-') + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            }},
             { "data": "transporter_name", "orderable": false },
+            { "data": "confirmed_cab_type", "orderable": false },
             { "data": "quotation_current_status", "orderable": false },
             { "data": "quotation_created_by_username", "orderable": false },                       
             { "data": "quotation_id", "orderable": false }

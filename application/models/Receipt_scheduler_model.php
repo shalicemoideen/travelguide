@@ -394,6 +394,8 @@ class Receipt_scheduler_model extends CI_Model {
                 q.quotation_id,
                 qo.quotation_options_id,
                 qo.quotation_options_total_quote_rate,
+                qo.quotation_options_cab_amount,
+                qo.quotation_options_margin_value,
                 l.start_date
             ')
             ->from('quotation_confirmation qc')
@@ -410,9 +412,28 @@ class Receipt_scheduler_model extends CI_Model {
             return array('total_amount' => 0, 'travel_start_date' => '');
         }
 
-        $base_amount = !empty($main['quotation_options_total_quote_rate'])
-            ? (float)$main['quotation_options_total_quote_rate']
-            : 0;
+        // Calculate hotel total dynamically from confirmed rooms
+        $hotelRow = $this->db
+            ->select('COALESCE(SUM(day_max.max_rate),0) as total')
+            ->from('(SELECT MAX(qpr.total_room_cost) as max_rate
+                FROM quotation_confirmation qc2
+                INNER JOIN quotation_properties_days qpd ON qpd.quotation_properties_days_id = qc2.properties_day_id_fk
+                INNER JOIN quotation_properties qp ON qp.quotation_properties_days_id_fk = qpd.quotation_properties_days_id
+                INNER JOIN quotation_properties_rooms qpr ON qpr.quotation_properties_id_fk = qp.quotation_properties_id
+                WHERE qc2.quotation_id_fk = ' . (int)$main['quotation_id'] . '
+                AND qc2.option_id_fk = ' . (int)$main['quotation_options_id'] . '
+                AND qc2.property_confirmation_status = 1
+                AND qpd.quotation_properties_days_status = 1
+                AND qp.quotation_properties_status = 1
+                AND qpr.quotation_properties_rooms_status = 1
+                GROUP BY qpd.quotation_properties_days_id
+            ) as day_max')
+            ->get()->row();
+        $hotel_total = $hotelRow ? (float)$hotelRow->total : 0;
+
+        $base_amount = $hotel_total
+            + (float)$main['quotation_options_cab_amount']
+            + (float)$main['quotation_options_margin_value'];
 
         $inclusion_row = $this->db
             ->select_sum('inclusion_amount')

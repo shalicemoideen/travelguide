@@ -22,9 +22,9 @@ $(document).ready(function () {
         "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'excel', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6] } },
-            { extend: 'pdf',   exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6] } },
-            { extend: 'print', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6] } }
+            { extend: 'excel', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' } },
+            { extend: 'pdf',   exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' } },
+            { extend: 'print', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' } }
         ],
         "language": {
             "emptyTable": "No financial posting recorded yet. Use \"Add Financial Posting\" to create one."
@@ -41,16 +41,16 @@ $(document).ready(function () {
                 ? '<span class="badge badge-warning">' + fpListEsc(data['trip_code']) + '</span>'
                 : '-');
 
-            $('td', row).eq(4).html(fpListMoney(data['pre_quoted_amount']));
-            $('td', row).eq(5).html(fpListMoney(data['actual_cost']));
+            $('td', row).eq(5).html(fpListMoney(data['pre_quoted_amount']));
+            $('td', row).eq(6).html(fpListMoney(data['actual_cost']));
 
             var margin = parseFloat(data['total_margin'] || 0);
-            $('td', row).eq(6).html(
+            $('td', row).eq(7).html(
                 '<span class="fw-bold ' + (margin >= 0 ? 'text-success' : 'text-danger') + '">' +
                 margin.toFixed(2) + '</span>'
             );
 
-            $('td', row).eq(7).html(
+            $('td', row).eq(8).html(
                 '<button type="button" class="btn btn-sm btn-info" onclick="fpOpenForm(' +
                 data['quotation_id'] + ',' + data['leads_id'] + ',\'' + fpListEsc(data['quotation_number']) +
                 '\')"><i class="la la-edit"></i> Edit</button>'
@@ -68,6 +68,22 @@ $(document).ready(function () {
             { "data": "quotation_number",  "orderable": false },
             { "data": "trip_code",         "orderable": false },
             { "data": "guest_name",        "orderable": false },
+            { "data": "travel_start_date", "orderable": false, "render": function(data, type, row) {
+                var dur = parseInt(row.duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                if (type === 'export') {
+                    return (data || '-') + ' | ' + (row.travel_end_date || '-') + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + (data || '-') + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + (row.travel_end_date || '-') + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            }},
             { "data": "pre_quoted_amount", "orderable": false },
             { "data": "actual_cost",       "orderable": false },
             { "data": "total_margin",      "orderable": false },

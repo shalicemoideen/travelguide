@@ -87,7 +87,7 @@
                                         <th>Sl.no</th>
                                         <th>Quotation #</th>
                                         <th>Guest Name</th>
-                                        <th>Travel Date</th>
+                                        <th>Travel Details</th>
                                         <th>Phone</th>
                                         <th>Cust. Payment</th>
                                         <th>Cust. Approval</th>

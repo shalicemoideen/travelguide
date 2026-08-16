@@ -91,29 +91,69 @@ $(document).ready(function() {
         "searching": false,
         "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         dom: 'lBfrtip',
+        "language": {
+            "paginate": {
+                "previous": "<",
+                "next": ">"
+            }
+        },
+        "drawCallback": function(settings) {
+            var api = this.api();
+            api.column(0).nodes().each(function(node, i) {
+                var pageInfo = api.page.info();
+                $(node).html(pageInfo.start + i + 1);
+            });
+            $('#IncentiveReport thead th').css({'font-size':'13px','padding':'5px 8px','white-space':'nowrap'});
+            $('#IncentiveReport tbody td').css({'padding':'4px 8px','white-space':'nowrap'});
+        },
         buttons: [
             {
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                }
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    orthogonal: 'export'
+                },
+                footer: true
             },
             {
                 extend: 'pdf',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                }
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    orthogonal: 'export'
+                },
+                footer: true
             },
             {
                 extend: 'print',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                }
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    orthogonal: 'export'
+                },
+                footer: true
             }
         ],
         "ajax": {
             "url": "<?php echo base_url(); ?>index.php/Quotation/ajax_incentive_reports",
             "type": "POST",
+            "dataSrc": function(json) {
+                if (json.totals) {
+                    var t = json.totals;
+                    var pq = parseFloat(t.total_pre_quoted || 0).toFixed(2);
+                    var tc = parseFloat(t.total_cost || 0).toFixed(2);
+                    var tp = parseFloat(t.total_profit || 0).toFixed(2);
+                    var ti = parseFloat(t.total_incentive || 0).toFixed(2);
+                    $('#incentive-total-pre-quoted').html(pq);
+                    $('#incentive-total-cost').html(tc);
+                    $('#incentive-total-profit').html(tp);
+                    $('#incentive-total-incentive').html('\u20B9' + ti);
+                    var $foot = $('#IncentiveReport tfoot th');
+                    $foot.eq(6).html(pq);
+                    $foot.eq(7).html(tc);
+                    $foot.eq(8).html(tp);
+                    $foot.eq(9).html('\u20B9' + ti);
+                }
+                return json.data;
+            },
             "data": function (d) {
                 d.guest_name = $("#guest_name").val();
                 d.trip_code  = $("#trip_code").val();
@@ -147,22 +187,30 @@ $(document).ready(function() {
             if (data['incentive'] !== undefined) {
                 var incentive = parseFloat(data['incentive']);
                 var badgeClass = incentive > 0 ? 'bg-success' : 'bg-secondary';
-                $('td', row).eq(9).html('<span class="badge ' + badgeClass + ' fs-6">₹' + incentive.toFixed(2) + '</span>');
+                $('td', row).eq(9).html('<span class="badge ' + badgeClass + '" style="font-size:11px">₹' + incentive.toFixed(2) + '</span>');
             }
-        },
-        "drawCallback": function(settings) {
-            var api = this.api();
-            api.column(0).nodes().each(function(node, i) {
-                var pageInfo = api.page.info();
-                $(node).html(pageInfo.start + i + 1);
-            });
         },
         "columns": [
             { "data": "leads_id", "orderable": false },
             { "data": "quotation_number", "orderable": false },
             { "data": "trip_code", "orderable": false },
             { "data": "guest_name", "orderable": false },
-            { "data": "travel_start_date", "orderable": false },
+            { "data": "travel_start_date", "orderable": false, "render": function(data, type, row) {
+                var dur = parseInt(row.duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                if (type === 'export') {
+                    return (data || '-') + ' | ' + (row.travel_end_date || '-') + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + (data || '-') + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + (row.travel_end_date || '-') + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            }},
             { "data": "staff_name", "orderable": false },
             { "data": "pre_quoted_amount", "orderable": false },
             { "data": "total_financial_cost", "orderable": false },

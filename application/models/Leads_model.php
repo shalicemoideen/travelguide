@@ -1289,7 +1289,7 @@ public function get_child_age_breakup($guest_count_id)
 			 FROM accommodation_plan ap
 			 LEFT JOIN state s ON s.state_id = ap.stay_destination_id_fk
 			 WHERE ap.lead_id_fk = l.leads_id AND ap.accommodation_plan_status = 1) AS destination,
-			DATE_FORMAT(l.start_date, '%d-%m-%Y') as travel_date, l.duration, l.lead_current_status,
+			DATE_FORMAT(l.start_date, '%d-%m-%Y') as travel_date, DATE_FORMAT(l.end_date, '%d-%m-%Y') as travel_end_date, l.duration, l.lead_current_status,
 			DATE_FORMAT(l.lead_register_date, '%d-%m-%Y') as lead_created_date,
 			COALESCE((SELECT SUM(gcd.adults) FROM guset_count_details gcd
 				JOIN guset_count gc ON gc.guset_count_id = gcd.guset_count_id_fk

@@ -1778,9 +1778,7 @@ a.leads-number-link:hover {
 
 														<th>Date</th>
 
-														<th>Travel date</th>
-
-                            <th>Duration</th>
+														<th>Travel Details</th>
 
                             <th>Assigned staff</th>
 
@@ -2160,9 +2158,7 @@ a.leads-number-link:hover {
 
 														<th>Register date</th>
 
-														<th>Travel date</th>
-
-                            <th>Duration</th>
+														<th>Travel Details</th>
 
                             <th>Assigned staff</th>
 

@@ -80,14 +80,23 @@
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table card-table display mb-4 shadow-hover table-responsive-lg" id="IncentiveReport">
+                                    <table class="table table-sm card-table display mb-4 shadow-hover table-responsive-lg" id="IncentiveReport" style="font-size:14px">
+                                        <style>
+                                            #IncentiveReport tfoot th {
+                                                font-size: 14px;
+                                                padding: 10px 8px;
+                                                white-space: nowrap;
+                                                background: linear-gradient(135deg, #f8f9fc, #eaecf4);
+                                                border-top: 2px solid #5e72e4;
+                                            }
+                                        </style>
                                         <thead>
                                             <tr>
                                                 <th>Sl.no</th>
                                                 <th>Quotation no</th>
                                                 <th>Trip code</th>
                                                 <th>Guest name</th>
-                                                <th>Travel date</th>
+                                                <th>Travel Details</th>
                                                 <th>Assigned staff</th>
                                                 <th>Pre Quoted</th>
                                                 <th>Total Cost</th>
@@ -96,6 +105,20 @@
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th style="text-align:right; font-weight:700;">Total:</th>
+                                                <th id="incentive-total-pre-quoted" style="text-align:right; font-weight:700; color:#4a3ee0;"></th>
+                                                <th id="incentive-total-cost" style="text-align:right; font-weight:700; color:#e74a3b;"></th>
+                                                <th id="incentive-total-profit" style="text-align:right; font-weight:700; color:#1cc88a;"></th>
+                                                <th id="incentive-total-incentive" style="text-align:right; font-weight:700; color:#f6c23e;"></th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>

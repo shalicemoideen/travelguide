@@ -91,15 +91,21 @@
                                         <th>Guest Name</th>
                                         <th>Destination</th>
                                         <th>Created Date</th>
-                                        <th>Travel Date</th>
-                                        <th>Duration</th>
+                                        <th>Travel Details</th>
                                         <th>Lead Status</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="9" class="text-right" id="lead-total-count" style="text-align:right; font-size:15px; color:#3d4465; background-color:#f0f4ff; padding:10px 16px; border-top:2px solid #5e72e4;"></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th id="lead-total-count" style="text-align:right; font-size:14px; font-weight:700; color:#3d4465; background:linear-gradient(135deg,#f8f9fc,#eaecf4); padding:10px 12px; border-top:2px solid #5e72e4; white-space:nowrap;"></th>
                                     </tr>
                                 </tfoot>
                             </table>

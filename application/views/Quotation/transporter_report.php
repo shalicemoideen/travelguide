@@ -16,8 +16,8 @@
                         <!-- Filters -->
                         <div id="transporterReportFilterSection" class="row mb-3" style="display: none;">
                             <div class="col-md-3 mb-2">
-                                <label class="form-label">Quotation Number</label>
-                                <input type="text" class="form-control" id="filter_quotation_number" placeholder="Search...">
+                                <label class="form-label">Trip Code</label>
+                                <input type="text" class="form-control" id="filter_trip_code" placeholder="Search...">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label class="form-label">Guest Name</label>
@@ -68,7 +68,7 @@
                                         <th>Sl.no</th>
                                         <th>Guest Name</th>
                                         <th>Trip Code</th>
-                                        <th>Travel Date</th>
+                                        <th>Travel Details</th>
                                         <th>Transporter</th>
                                         <th>Driver Name</th>
                                         <th>Driver Mobile</th>

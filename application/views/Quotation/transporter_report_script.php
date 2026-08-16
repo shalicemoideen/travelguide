@@ -28,11 +28,18 @@ function loadTransporterReportTable() {
         "serverSide": true,
         "order": [],
         "searching": false,
+        "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'excel', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' } },
+            { extend: 'pdf',   exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' } },
+            { extend: 'print', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' } }
+        ],
         "ajax": {
             "url": base_url + "Quotation/ajax_get_driver_not_assigned",
             "type": "POST",
             "data": function(d) {
-                d.quotation_number_filter = $('#filter_quotation_number').val();
+                d.trip_code_filter = $('#filter_trip_code').val();
                 d.guest_name_filter = $('#filter_guest_name').val();
                 d.status_filter = $('#filter_status').val();
                 var dateRange = $('#travel_date_range').val();
@@ -57,15 +64,38 @@ function loadTransporterReportTable() {
                 }
             },
             { data: "guest_name" },
-            { data: "trip_code", render: function(data) { return data ? '<span class="badge bg-warning text-dark">'+data+'</span>' : '-'; } },
-            { data: "travel_date" },
+            { data: "trip_code", render: function(data, type, row) {
+                if (type === 'export') return data || '-';
+                return data ? '<span class="badge badge-warning">'+data+'</span>' : '-';
+            } },
+            { data: "travel_date", render: function(data, type, row) {
+                var dur = parseInt(row.duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                if (type === 'export') {
+                    return (data || '-') + ' | ' + (row.travel_end_date || '-') + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + (data || '-') + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + (row.travel_end_date || '-') + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            } },
             { data: "transporter_name" },
             { data: "driver_name" },
             { data: "driver_mobile" },
             { data: "cab_number" },
             {
                 data: "quotation_current_status",
-                render: function(data) {
+                render: function(data, type, row) {
+                    if (type === 'export') {
+                        if (data == 7) return 'Ready to Trip';
+                        if (data == 10) return 'Trip Completed';
+                        return 'Driver Not Assigned';
+                    }
                     if (data == 7) {
                         return '<span class="badge bg-primary">Ready to Trip</span>';
                     }
@@ -101,7 +131,7 @@ function applyTransporterReportFilters() {
 }
 
 function clearTransporterReportFilters() {
-    $('#filter_quotation_number').val('');
+    $('#filter_trip_code').val('');
     $('#filter_guest_name').val('');
     $('#travel_date_range').val('');
     $('#filter_status').val('');

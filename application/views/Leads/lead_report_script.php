@@ -36,6 +36,10 @@ var statusLabels = {
     5: '<span class="badge bg-secondary text-white">Lost</span>'
 };
 
+var statusLabelsExport = {
+    1: 'In take', 2: 'Qualified', 3: 'Converted to trip', 4: 'Not Qualified', 5: 'Lost'
+};
+
 function getUrlParam(name) {
     var results = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.href);
     return results ? decodeURIComponent(results[1]) : null;
@@ -102,15 +106,18 @@ $(document).ready(function () {
         buttons: [
             {
                 extend: 'excel',
-                exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] }
+                exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' },
+                footer: true
             },
             {
                 extend: 'pdf',
-                exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] }
+                exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' },
+                footer: true
             },
             {
                 extend: 'print',
-                exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] }
+                exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' },
+                footer: true
             }
         ],
         "ajax": {
@@ -145,7 +152,7 @@ $(document).ready(function () {
             }
             guestCell.html(guestHtml);
 
-            var statusCell = $('td', row).eq(8);
+            var statusCell = $('td', row).eq(7);
             var statusCode = parseInt(data['lead_current_status']);
             statusCell.html(statusLabels[statusCode] || statusCode);
         },
@@ -163,6 +170,7 @@ $(document).ready(function () {
                 label += ' &nbsp;|&nbsp; Filtered: <strong>' + filtered + '</strong>';
             }
             $('#lead-total-count').html(label);
+            $(api.table().footer()).find('th:last').html(label);
         },
         "columns": [
             { "data": "leads_id",           "orderable": false },
@@ -171,9 +179,29 @@ $(document).ready(function () {
             { "data": "guest_name",          "orderable": false },
             { "data": "destination",         "orderable": false },
             { "data": "lead_created_date",    "orderable": false },
-            { "data": "travel_date",         "orderable": false },
-            { "data": "duration",            "orderable": false },
-            { "data": "lead_current_status", "orderable": false }
+            { "data": "travel_date", "orderable": false, "render": function(data, type, row) {
+                var dur = parseInt(row.duration, 10);
+                var durStr = '-';
+                if (!isNaN(dur) && dur > 0) {
+                    var nights = dur - 1;
+                    durStr = nights + 'N ' + dur + 'D';
+                }
+                if (type === 'export') {
+                    return (data || '-') + ' | ' + (row.travel_end_date || '-') + ' | ' + durStr;
+                }
+                return '<div style="line-height:1.6">' +
+                    '<div><span style="color:#36b9cc;font-weight:600;font-size:13px">' + (data || '-') + '</span></div>' +
+                    '<div><span style="color:#e74a3b;font-weight:600;font-size:13px">' + (row.travel_end_date || '-') + '</span></div>' +
+                    '<div><span class="badge badge-success" style="font-size:11px">' + durStr + '</span></div>' +
+                    '</div>';
+            }},
+            { "data": "lead_current_status", "orderable": false, "render": function(data, type, row) {
+                if (type === 'export') {
+                    var code = parseInt(data);
+                    return statusLabelsExport[code] || data;
+                }
+                return data;
+            }}
         ]
     });
 
