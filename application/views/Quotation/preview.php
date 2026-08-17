@@ -1851,7 +1851,7 @@ button:hover{background:#172554;}
 </div>
 <?php
 $companyPhone = '917907648636';
-$companyEmail = 'bookings@royaleindia.com';
+$companyEmail = 'sales@royaleindia.in';
 $companyWeb   = 'www.royaleindia.in';
 $companyInsta = 'royale_india_tours';
 

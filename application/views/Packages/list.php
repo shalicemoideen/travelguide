@@ -268,8 +268,6 @@
                                                 <th>Template title</th>
                                                 <th>Template category</th>
                                                 <th>Durations in nights</th>
-                                                <th>Itinerary Category</th>
-                                                <th>Itinerary name</th>
                                                 <th>Created by</th>
                                                 <th>Action</th>
                                             </tr>

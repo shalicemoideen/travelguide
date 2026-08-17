@@ -517,6 +517,10 @@ button:hover{background:#172554;}
 }
 .standard-package-type .type-text{
   font-weight:800;
+  font-size:18px;
+  color:#1a237e;
+  text-shadow:0 1px 3px rgba(26,35,126,0.25);
+  letter-spacing:0.3px;
 }
 .standard-left-info{
   padding:0 12px 8px 12px;
@@ -789,10 +793,12 @@ button:hover{background:#172554;}
   margin:6px 0 6px 0;
   text-align:center;
   font-family:'Open Sans',sans-serif;
-  font-size:20px;
+  font-size:24px;
   line-height:1.25;
-  font-weight:400;
-  color:#2f231c;
+  font-weight:700;
+  color:#d11a2a;
+  text-shadow:0 1px 3px rgba(209,26,42,0.25);
+  letter-spacing:0.5px;
 }
 .exclusive-mid-decor{
   text-align:center;
@@ -1019,9 +1025,12 @@ button:hover{background:#172554;}
   left:50%;
   transform:translateX(-50%);
   font-weight:700;
-  font-size:16px;
+  font-size:18px;
   text-align:center;
   white-space:nowrap;
+  color:#d11a2a;
+  text-shadow:0 1px 3px rgba(209,26,42,0.25);
+  letter-spacing:0.5px;
 }
 
 /* RIGHT placeholder */
@@ -1771,7 +1780,7 @@ button:hover{background:#172554;}
 </div>
 <?php
 $companyPhone = '917907648636';
-$companyEmail = 'bookings@royaleindia.com';
+$companyEmail = 'sales@royaleindia.in';
 $companyWeb   = 'www.royaleindia.in';
 $companyInsta = 'royale_india_tours';
 

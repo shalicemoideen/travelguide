@@ -684,7 +684,7 @@ var table;
 
             actionHtml += '</div></div>';
 
-            $('td', row).eq(7).html(actionHtml);
+            $('td', row).eq(5).html(actionHtml);
             
            },
 
@@ -697,8 +697,6 @@ var table;
             { "data": "packages_title", "orderable": false },
             { "data": "package_category_name", "orderable": false },
             { "data": "packages_duration_in_nights", "orderable": false },
-            { "data": "itinerary_category_name", "orderable": false },
-            { "data": "itineraries_name", "orderable": false },
             { "data": "admin_name", "orderable": false },                      
             { "data": "packages_id", "orderable": false }
             
