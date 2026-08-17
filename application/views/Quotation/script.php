@@ -685,8 +685,9 @@ var table;
             var dur = parseInt(data['travel_duration'], 10);
             var durStr = '-';
             if (!isNaN(dur) && dur > 0) {
-                var nights = dur - 1;
-                durStr = nights + 'N ' + dur + 'D';
+                var nights = dur;
+                var days = dur + 1;
+                durStr = nights + 'N ' + days + 'D';
             }
             // Show transporter and cab type only for confirmed quotations
             var confirmedStatuses = ['5','7','8','9','10'];
@@ -714,8 +715,9 @@ var table;
                 var dur = parseInt(row.travel_duration, 10);
                 var durStr = '-';
                 if (!isNaN(dur) && dur > 0) {
-                    var nights = dur - 1;
-                    durStr = nights + 'N ' + dur + 'D';
+                    var nights = dur;
+                    var days = dur + 1;
+                    durStr = nights + 'N ' + days + 'D';
                 }
                 if (type === 'export') {
                     return (row.arriving_date || '-') + ' | ' + (row.departure_date || '-') + ' | ' + durStr;
@@ -4128,8 +4130,9 @@ function formatDuration(dur)
 {
     var n = parseInt(dur, 10);
     if (isNaN(n) || n <= 0) return '-';
-    var nights = n - 1;
-    return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + n + ' Day' + (n !== 1 ? 's' : '');
+    var nights = n;
+    var days = n + 1;
+    return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + days + ' Day' + (days !== 1 ? 's' : '');
 }
 
 function formatDateTime(dateTimeStr)

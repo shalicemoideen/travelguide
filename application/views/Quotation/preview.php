@@ -273,6 +273,40 @@ button:hover{background:#172554;}
   flex:1;
 }
 
+/* ===== BRIEF PAGE AUTO-SCALE (when many itinerary rows) ===== */
+.brief-scaled .brief-logo img{ max-width:calc(63mm * var(--brief-scale)); }
+.brief-scaled .brief-header{
+  margin-top:calc(24mm * var(--brief-scale));
+  margin-bottom:calc(8mm * var(--brief-scale));
+}
+.brief-scaled .brief-header-inner{
+  width:calc(185mm * var(--brief-scale));
+  max-width:calc(185mm * var(--brief-scale));
+  gap:calc(14px * var(--brief-scale));
+}
+.brief-scaled .brief-icon-img{ width:calc(40mm * var(--brief-scale)); }
+.brief-scaled .brief-title{ font-size:calc(40px * var(--brief-scale)); }
+.brief-scaled .brief-list{ margin-top:calc(8mm * var(--brief-scale)); }
+.brief-scaled .brief-row{
+  min-height:calc(18mm * var(--brief-scale));
+  width:calc(185mm * var(--brief-scale));
+  max-width:calc(185mm * var(--brief-scale));
+  padding:0 calc(10mm * var(--brief-scale));
+  margin-bottom:calc(10px * var(--brief-scale));
+  border-radius:calc(30px * var(--brief-scale));
+}
+.brief-scaled .brief-day{
+  min-width:calc(38mm * var(--brief-scale));
+  height:calc(11mm * var(--brief-scale));
+  font-size:calc(20px * var(--brief-scale));
+  margin-right:calc(12mm * var(--brief-scale));
+  border-radius:calc(20px * var(--brief-scale));
+}
+.brief-scaled .brief-route{
+  font-size:calc(25px * var(--brief-scale));
+  letter-spacing:calc(.4px * var(--brief-scale));
+}
+
 /* ===== DAY PAGE ===== */
 .daypage{
   padding:10mm 0 0 0;
@@ -525,6 +559,10 @@ button:hover{background:#172554;}
 }
 .standard-package-type .type-text{
   font-weight:800;
+  font-size:18px;
+  color:#1a237e;
+  text-shadow:0 1px 3px rgba(26,35,126,0.25);
+  letter-spacing:0.3px;
 }
 .standard-left-info{
   padding:0 12px 8px 12px;
@@ -715,9 +753,15 @@ button:hover{background:#172554;}
   background:linear-gradient(135deg, #f5f5f5, #e8e8e8);
   border:2px solid #999;
   border-radius:12px;
-  padding:16px 24px;
+  padding:12px 24px;
   text-align:center;
   box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+.complimentary-heading{
+  font-size:14px;
+  font-weight:700;
+  color:#000;
+  margin-bottom:6px;
 }
 .complimentary-text{
   font-size:13px;
@@ -727,6 +771,34 @@ button:hover{background:#172554;}
   text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
 }
 .complimentary-text br{
+  line-height:0;
+  margin-bottom:0;
+}
+.special-box{
+  margin-top:10px;
+  page-break-inside:avoid;
+  break-inside:avoid;
+  background:linear-gradient(135deg, #f5f5f5, #e8e8e8);
+  border:2px solid #999;
+  border-radius:12px;
+  padding:12px 24px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+.special-heading{
+  font-size:14px;
+  font-weight:700;
+  color:#000;
+  margin-bottom:6px;
+}
+.special-text{
+  font-size:13px;
+  line-height:1.3;
+  color:#0066cc;
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+.special-text br{
   line-height:0;
   margin-bottom:0;
 }
@@ -743,6 +815,13 @@ button:hover{background:#172554;}
   text-align:center;
   box-shadow:0 2px 6px rgba(201,164,92,0.15);
 }
+.complimentary-heading-exclusive{
+  font-family:'Open Sans',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  color:#000;
+  margin-bottom:4px;
+}
 .complimentary-text-exclusive{
   font-family:'Open Sans',sans-serif;
   font-size:13px;
@@ -752,6 +831,36 @@ button:hover{background:#172554;}
   text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
 }
 .complimentary-text-exclusive br{
+  line-height:0;
+  margin-bottom:0;
+}
+.special-box-exclusive{
+  margin-top:3mm;
+  page-break-inside:avoid;
+  break-inside:avoid;
+  background:linear-gradient(135deg, #f7efe8, #ecd9c8);
+  border:2px solid #c9a45c;
+  border-radius:10px;
+  padding:10px 20px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(201,164,92,0.15);
+}
+.special-heading-exclusive{
+  font-family:'Open Sans',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  color:#000;
+  margin-bottom:4px;
+}
+.special-text-exclusive{
+  font-family:'Open Sans',sans-serif;
+  font-size:13px;
+  line-height:1.3;
+  color:#0066cc;
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+.special-text-exclusive br{
   line-height:0;
   margin-bottom:0;
 }
@@ -807,10 +916,12 @@ button:hover{background:#172554;}
   margin:6px 0 6px 0;
   text-align:center;
   font-family:'Open Sans',sans-serif;
-  font-size:20px;
+  font-size:24px;
   line-height:1.25;
-  font-weight:400;
-  color:#2f231c;
+  font-weight:700;
+  color:#d11a2a;
+  text-shadow:0 1px 3px rgba(209,26,42,0.25);
+  letter-spacing:0.5px;
 }
 .exclusive-mid-decor{
   text-align:center;
@@ -1043,9 +1154,12 @@ button:hover{background:#172554;}
   left:50%;
   transform:translateX(-50%);
   font-weight:700;
-  font-size:16px;
+  font-size:18px;
   text-align:center;
   white-space:nowrap;
+  color:#d11a2a;
+  text-shadow:0 1px 3px rgba(209,26,42,0.25);
+  letter-spacing:0.5px;
 }
 
 /* RIGHT placeholder */
@@ -1557,7 +1671,7 @@ button:hover{background:#172554;}
 .font-xs .standard-extra-title { font-size:12px !important; }
 .font-xs .standard-extra-text { font-size:10px !important; }
 .font-xs .standard-extra-red-list li { font-size:10px !important; }
-.font-xs .complimentary-text { font-size:11px !important; }
+.font-xs .complimentary-text, .font-xs .special-text { font-size:11px !important; }
 .font-xs .contact-value { font-size:12px !important; }
 
 .font-sm .standard-package-type { font-size:15px !important; }
@@ -1572,7 +1686,7 @@ button:hover{background:#172554;}
 .font-sm .standard-extra-title { font-size:13px !important; }
 .font-sm .standard-extra-text { font-size:11px !important; }
 .font-sm .standard-extra-red-list li { font-size:11px !important; }
-.font-sm .complimentary-text { font-size:12px !important; }
+.font-sm .complimentary-text, .font-sm .special-text { font-size:12px !important; }
 .font-sm .contact-value { font-size:13px !important; }
 
 .font-lg .standard-package-type { font-size:18px !important; }
@@ -1587,7 +1701,7 @@ button:hover{background:#172554;}
 .font-lg .standard-extra-title { font-size:16px !important; }
 .font-lg .standard-extra-text { font-size:14px !important; }
 .font-lg .standard-extra-red-list li { font-size:14px !important; }
-.font-lg .complimentary-text { font-size:15px !important; }
+.font-lg .complimentary-text, .font-lg .special-text { font-size:15px !important; }
 .font-lg .contact-value { font-size:16px !important; }
 
 .font-xl .standard-package-type { font-size:19px !important; }
@@ -1602,7 +1716,7 @@ button:hover{background:#172554;}
 .font-xl .standard-extra-title { font-size:17px !important; }
 .font-xl .standard-extra-text { font-size:15px !important; }
 .font-xl .standard-extra-red-list li { font-size:15px !important; }
-.font-xl .complimentary-text { font-size:16px !important; }
+.font-xl .complimentary-text, .font-xl .special-text { font-size:16px !important; }
 .font-xl .contact-value { font-size:17px !important; }
 
 /* Exclusive levels */
@@ -1614,7 +1728,7 @@ button:hover{background:#172554;}
 .font-xs .exclusive-table td { font-size:10px !important; }
 .font-xs .exclusive-feature-title { font-size:12px !important; }
 .font-xs .exclusive-feature-list li { font-size:11px !important; }
-.font-xs .complimentary-text-exclusive { font-size:11px !important; }
+.font-xs .complimentary-text-exclusive, .font-xs .special-text-exclusive { font-size:11px !important; }
 
 .font-sm .exclusive-package-title { font-size:18px !important; }
 .font-sm .exclusive-summary-title { font-size:12px !important; }
@@ -1624,7 +1738,7 @@ button:hover{background:#172554;}
 .font-sm .exclusive-table td { font-size:11px !important; }
 .font-sm .exclusive-feature-title { font-size:13px !important; }
 .font-sm .exclusive-feature-list li { font-size:12px !important; }
-.font-sm .complimentary-text-exclusive { font-size:12px !important; }
+.font-sm .complimentary-text-exclusive, .font-sm .special-text-exclusive { font-size:12px !important; }
 
 .font-lg .exclusive-package-title { font-size:22px !important; }
 .font-lg .exclusive-summary-title { font-size:15px !important; }
@@ -1634,7 +1748,7 @@ button:hover{background:#172554;}
 .font-lg .exclusive-table td { font-size:14px !important; }
 .font-lg .exclusive-feature-title { font-size:16px !important; }
 .font-lg .exclusive-feature-list li { font-size:14px !important; }
-.font-lg .complimentary-text-exclusive { font-size:15px !important; }
+.font-lg .complimentary-text-exclusive, .font-lg .special-text-exclusive { font-size:15px !important; }
 
 .font-xl .exclusive-package-title { font-size:24px !important; }
 .font-xl .exclusive-summary-title { font-size:16px !important; }
@@ -1644,23 +1758,25 @@ button:hover{background:#172554;}
 .font-xl .exclusive-table td { font-size:15px !important; }
 .font-xl .exclusive-feature-title { font-size:17px !important; }
 .font-xl .exclusive-feature-list li { font-size:15px !important; }
-.font-xl .complimentary-text-exclusive { font-size:16px !important; }
+.font-xl .complimentary-text-exclusive, .font-xl .special-text-exclusive { font-size:16px !important; }
 
 /* Brief page levels */
 .font-xs .brief-header { margin-top:14mm !important; margin-bottom:5mm !important; }
+.font-xs .brief-header-inner { width:115mm !important; max-width:115mm !important; }
 .font-xs .brief-icon-img { width:24mm !important; }
 .font-xs .brief-title { font-size:26px !important; }
 .font-xs .brief-list { margin-top:5mm !important; }
-.font-xs .brief-row { min-height:13mm !important; padding:0 7mm !important; margin-bottom:6px !important; }
+.font-xs .brief-row { min-height:13mm !important; padding:0 7mm !important; margin-bottom:6px !important; width:115mm !important; max-width:115mm !important; }
 .font-xs .brief-day { font-size:13px !important; min-width:28mm !important; height:9mm !important; margin-right:8mm !important; }
 .font-xs .brief-date { font-size:10px !important; margin-right:6mm !important; }
 .font-xs .brief-route { font-size:16px !important; }
 
 .font-sm .brief-header { margin-top:18mm !important; margin-bottom:6mm !important; }
+.font-sm .brief-header-inner { width:148mm !important; max-width:148mm !important; }
 .font-sm .brief-icon-img { width:30mm !important; }
 .font-sm .brief-title { font-size:32px !important; }
 .font-sm .brief-list { margin-top:6mm !important; }
-.font-sm .brief-row { min-height:15mm !important; padding:0 8mm !important; margin-bottom:8px !important; }
+.font-sm .brief-row { min-height:15mm !important; padding:0 8mm !important; margin-bottom:8px !important; width:148mm !important; max-width:148mm !important; }
 .font-sm .brief-day { font-size:16px !important; min-width:32mm !important; height:10mm !important; margin-right:10mm !important; }
 .font-sm .brief-date { font-size:12px !important; margin-right:8mm !important; }
 .font-sm .brief-route { font-size:20px !important; }
@@ -1816,7 +1932,14 @@ if (!function_exists('q_preview_amount')) {
   </div>
 
   <!-- BRIEF PAGE -->
-  <div class="pdf-page brief-page" id="briefPage">
+  <?php
+    $brief_row_count = !empty($brief_itinerary) ? count($brief_itinerary) : 0;
+    $brief_scale = 1.0;
+    if ($brief_row_count > 8) {
+      $brief_scale = max(0.50, 1 - 0.05 * ($brief_row_count - 8));
+    }
+  ?>
+  <div class="pdf-page brief-page<?php echo $brief_scale < 1 ? ' brief-scaled' : ''; ?>" id="briefPage"<?php echo $brief_scale < 1 ? ' style="--brief-scale:' . number_format($brief_scale, 2, '.', '') . ';"' : ''; ?>>
     <div class="brief-logo">
       <img src="<?= base_url('assets/images/Royale-logo-new.png'); ?>" alt="Logo">
     </div>
@@ -2128,17 +2251,18 @@ function q_option_display_amount_premium($option)
               </table>
             </div>
 
-            <?php if (!empty($cat->quotation_options_complimentary_inclusion) || !empty($cat->special_requirements)): ?>
+            <?php if (!empty($cat->quotation_options_complimentary_inclusion)): ?>
             <div class="complimentary-box-exclusive">
-              <div class="complimentary-text-exclusive"><?php
-                $parts = [];
-                if (!empty($cat->quotation_options_complimentary_inclusion)) {
-                  $parts[] = htmlspecialchars($cat->quotation_options_complimentary_inclusion);
-                }
-                if (!empty($cat->special_requirements)) {
-                  $parts[] = implode(', ', array_map(function($sr) { return htmlspecialchars($sr->special_requirements_name); }, $cat->special_requirements));
-                }
-                echo nl2br(implode(', ', $parts));
+              <div class="complimentary-heading-exclusive">Complimentary Inclusions</div>
+              <div class="complimentary-text-exclusive"><?= nl2br(htmlspecialchars($cat->quotation_options_complimentary_inclusion)); ?></div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($cat->special_requirements)): ?>
+            <div class="special-box-exclusive">
+              <div class="special-heading-exclusive">Special Requirements</div>
+              <div class="special-text-exclusive"><?php
+                echo nl2br(implode(', ', array_map(function($sr) { return htmlspecialchars($sr->special_requirements_name); }, $cat->special_requirements)));
               ?></div>
             </div>
             <?php endif; ?>
@@ -2465,17 +2589,18 @@ function q_option_display_amount_standard($option)
               </tbody>
             </table>
 
-            <?php if (!empty($cat->quotation_options_complimentary_inclusion) || !empty($cat->special_requirements)): ?>
+            <?php if (!empty($cat->quotation_options_complimentary_inclusion)): ?>
             <div class="complimentary-box">
-              <div class="complimentary-text"><?php
-                $parts = [];
-                if (!empty($cat->quotation_options_complimentary_inclusion)) {
-                  $parts[] = htmlspecialchars($cat->quotation_options_complimentary_inclusion);
-                }
-                if (!empty($cat->special_requirements)) {
-                  $parts[] = implode(', ', array_map(function($sr) { return htmlspecialchars($sr->special_requirements_name); }, $cat->special_requirements));
-                }
-                echo nl2br(implode(', ', $parts));
+              <div class="complimentary-heading">Complimentary Inclusions</div>
+              <div class="complimentary-text"><?= nl2br(htmlspecialchars($cat->quotation_options_complimentary_inclusion)); ?></div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($cat->special_requirements)): ?>
+            <div class="special-box">
+              <div class="special-heading">Special Requirements</div>
+              <div class="special-text"><?php
+                echo nl2br(implode(', ', array_map(function($sr) { return htmlspecialchars($sr->special_requirements_name); }, $cat->special_requirements)));
               ?></div>
             </div>
             <?php endif; ?>
@@ -3757,6 +3882,15 @@ function fitBriefPageFontSize(page) {
 function createBriefContinuationPage() {
   const page = document.createElement('div');
   page.className = 'pdf-page brief-page generated-brief-page';
+
+  const srcBrief = document.getElementById('briefPage');
+  if (srcBrief) {
+    if (srcBrief.classList.contains('brief-scaled')) {
+      page.classList.add('brief-scaled');
+      const bs = srcBrief.style.getPropertyValue('--brief-scale');
+      if (bs) page.style.setProperty('--brief-scale', bs);
+    }
+  }
 
   page.innerHTML = `
     <div class="brief-logo">

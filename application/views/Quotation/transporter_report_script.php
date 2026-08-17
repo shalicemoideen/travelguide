@@ -72,8 +72,9 @@ function loadTransporterReportTable() {
                 var dur = parseInt(row.duration, 10);
                 var durStr = '-';
                 if (!isNaN(dur) && dur > 0) {
-                    var nights = dur - 1;
-                    durStr = nights + 'N ' + dur + 'D';
+                    var nights = dur;
+                    var days = dur + 1;
+                    durStr = nights + 'N ' + days + 'D';
                 }
                 if (type === 'export') {
                     return (data || '-') + ' | ' + (row.travel_end_date || '-') + ' | ' + durStr;

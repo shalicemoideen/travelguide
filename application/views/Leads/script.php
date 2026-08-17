@@ -1874,8 +1874,9 @@ var save_method; //for save method string
                 var dur = parseInt(row.duration, 10);
                 var durStr = '-';
                 if (!isNaN(dur) && dur > 0) {
-                    var nights = dur - 1;
-                    durStr = nights + 'N ' + dur + 'D';
+                    var nights = dur;
+                    var days = dur + 1;
+                    durStr = nights + 'N ' + days + 'D';
                 }
                 if (type === 'export') {
                     return (data || '-') + ' | ' + (row.end_date || '-') + ' | ' + durStr;
@@ -3300,8 +3301,9 @@ $('#travel_daterange2').on('cancel.daterangepicker', function() {
                 var dur = parseInt(row.duration, 10);
                 var durStr = '-';
                 if (!isNaN(dur) && dur > 0) {
-                    var nights = dur - 1;
-                    durStr = nights + 'N ' + dur + 'D';
+                    var nights = dur;
+                    var days = dur + 1;
+                    durStr = nights + 'N ' + days + 'D';
                 }
                 if (type === 'export') {
                     return (data || '-') + ' | ' + (row.end_date || '-') + ' | ' + durStr;
@@ -3910,8 +3912,9 @@ function formatDuration(dur)
 {
     var n = parseInt(dur, 10);
     if (isNaN(n) || n <= 0) return '-';
-    var nights = n - 1;
-    return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + n + ' Day' + (n !== 1 ? 's' : '');
+    var nights = n;
+    var days = n + 1;
+    return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + days + ' Day' + (days !== 1 ? 's' : '');
 }
 
 function formatDateTime(dateTimeStr)

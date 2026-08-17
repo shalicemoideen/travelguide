@@ -1238,33 +1238,22 @@ $('.is-invalid').removeClass('is-invalid');
 
 
 
-    if (!$('#quotation_date').val())
+    if (!window.isHubEdit) {
+        if (!$('#quotation_date').val())
+            return showError('Quotation date is required', $('#quotation_date')[0]), false;
 
-        return showError('Quotation date is required', $('#quotation_date')[0]), false;
+        if (!$('#arriving_destination').val())
+            return showError('Arriving destination is required', $('#arriving_destination')[0]), false;
 
+        if (!$('#departuring_destination').val())
+            return showError('Departuring destination is required', $('#departuring_destination')[0]), false;
 
+        if (!$('#leads_id_hidden').val() && !$('#leads_id').val())
+            return showError('Please select Lead', ($('#leads_id')[0] || $('#leads_id_hidden')[0])), false;
 
-    if (!$('#arriving_destination').val())
-
-        return showError('Arriving destination is required', $('#arriving_destination')[0]), false;
-
-
-
-    if (!$('#departuring_destination').val())
-
-        return showError('Departuring destination is required', $('#departuring_destination')[0]), false;
-
-
-
-     if (!$('#leads_id_hidden').val() && !$('#leads_id').val())
-
-        return showError('Please select Lead', ($('#leads_id')[0] || $('#leads_id_hidden')[0])), false;
-
-
-
-    if (!$('#packages_id_hidden').val())
-
-        return showError('Please select Template', $('#packages_id_hidden')[0]), false;
+        if (!$('#packages_id_hidden').val())
+            return showError('Please select Template', $('#packages_id_hidden')[0]), false;
+    }
 
 
 
@@ -1425,54 +1414,37 @@ if (amountTypeEl) {
 
 // }
 
-        if (!optionSel?.value) {
-            expandOptionBlock(optionBlock);
-            return valid = false, showError('Select Option Name', optionSel);
+        if (!window.isHubEdit) {
+            if (!optionSel?.value) {
+                expandOptionBlock(optionBlock);
+                return valid = false, showError('Select Option Name', optionSel);
+            }
+
+            if (!titleEl?.value.trim()) {
+                expandOptionBlock(optionBlock);
+                return valid = false, showError('Option title is required', titleEl);
+            }
         }
-
-
-
-        if (!titleEl?.value.trim()) {
-            expandOptionBlock(optionBlock);
-            return valid = false, showError('Option title is required', titleEl);
-        }
-
-
 
         if (!cabNotReqEl?.checked && num(cabEl?.value) <= 0) {
             expandOptionBlock(optionBlock);
             return valid = false, showError('Cab amount is required', cabEl);
         }
 
+        if (!window.isHubEdit) {
+            if (!designEl || !designEl.value) {
+                expandOptionBlock(optionBlock);
+                return valid = false, showError('Design type is required', designEl);
+            }
 
-
-        if (!designEl || !designEl.value) {
-            expandOptionBlock(optionBlock);
-            return valid = false, showError('Design type is required', designEl);
-        }
-
-
-
-        // if (!vehicleEl || !vehicleEl.value)
-
-        //     return valid = false, showError('Vehicle is required', vehicleEl);
-
-        
-
-        if (!vehicleEl || !vehicleEl.value) {
-
-            expandOptionBlock(optionBlock);
-
-            return valid = false,
-
-            showError(
-
-                'Vehicle is required',
-
-                $(vehicleEl).next('.select2')[0] || vehicleEl
-
-            );
-
+            if (!vehicleEl || !vehicleEl.value) {
+                expandOptionBlock(optionBlock);
+                return valid = false,
+                showError(
+                    'Vehicle is required',
+                    $(vehicleEl).next('.select2')[0] || vehicleEl
+                );
+            }
         }
 
 
@@ -4224,6 +4196,10 @@ document.getElementById('addOptionBtn')?.addEventListener('click', function (e) 
         if (firstCab) {
             optionBlock.querySelector('[name="quotation_options_cab_amount[]"]').value = firstCab;
         }
+        var firstLastDay = $firstBlock.find('.last-day-details-input').val();
+        if (firstLastDay) {
+            optionBlock.querySelector('.last-day-details-input').value = firstLastDay;
+        }
     }
 
 // clearQuotationOnPackageChange();
@@ -6971,6 +6947,8 @@ function buildQuotationPayload() {
 
                 packages_properties_days_id_fk: dayIdInput.value,
 
+                quotation_properties_days_id: dayRow.querySelector('[name="quotation_properties_days_id_pk[]"]')?.value || 0,
+
                 day: dayRow.querySelector('[name="quotation_properties_days_day[]"]')?.value || '',
 
                 destination_id: dayRow.querySelector('[name="quotation_properties_days_destination_id_fk[]"]')?.value || '',
@@ -7000,6 +6978,8 @@ function buildQuotationPayload() {
                         packages_properties_id_fk: propertyGroup.dataset.packagesPropertyId || 0,
 
                         properties_id_fk: propertyGroup.dataset.propertyId || 0,
+
+                        quotation_properties_id: propertyGroup.dataset.qpPropertyId || 0,
 
                         rooms: []
 
@@ -7034,6 +7014,8 @@ function buildQuotationPayload() {
                             packages_properties_rooms_id_fk: roomRow.dataset.packagesRoomId || 0,
 
                             quotation_properties_rooms_id_fk: roomRow.dataset.roomId,
+
+                            quotation_properties_rooms_id: roomRow.querySelector('.qpRoomIdPkInput')?.value || 0,
 
                             total_room_cost: totalRoomCost,
 
@@ -12513,6 +12495,11 @@ function rebuildQuotationOptionBlocks(options, packageId, doneCallback)
 
     });
 
+    var firstLastDayDetails = (options[0] && options[0].quotation_options_last_day_details) ? options[0].quotation_options_last_day_details : '';
+    if (firstLastDayDetails) {
+        $wrap.find('.optionBlock .last-day-details-input').val(firstLastDayDetails);
+    }
+
 }
 
 
@@ -12683,7 +12670,9 @@ function buildSavedOptionItinerary($block, optionData)
 
                        data-property-id="${property.properties_id_fk || ''}"
 
-                       data-packages-property-id="${property.packages_properties_id_fk || 0}">
+                       data-packages-property-id="${property.packages_properties_id_fk || 0}"
+
+                       data-qp-property-id="${property.quotation_properties_id || 0}">
 
                     <tr class="property-group-header">
 
@@ -12702,6 +12691,8 @@ function buildSavedOptionItinerary($block, optionData)
                             <input type="hidden" name="packages_properties_id_fk[]" value="${property.packages_properties_id_fk || 0}">
 
                             <input type="hidden" name="properties_id_fk[]" value="${property.properties_id_fk || 0}">
+
+                            <input type="hidden" name="quotation_properties_id_pk[]" class="qpPropIdPkInput" value="${property.quotation_properties_id || 0}">
 
                         </td>
 
@@ -12760,6 +12751,8 @@ function buildSavedOptionItinerary($block, optionData)
                     <input type="hidden" name="packages_itinerary_days_id_fk[]" value="${day.packages_itinerary_days_id_fk || 0}">
 
                     <input type="hidden" name="packages_properties_days_id_fk[]" value="${day.packages_properties_days_id_fk || 0}">
+
+                    <input type="hidden" name="quotation_properties_days_id_pk[]" class="qpDaysIdPkInput" value="${day.quotation_properties_days_id || 0}">
 
                     <input type="hidden" name="quotation_properties_days_day[]" value="${day.quotation_properties_days_day || ''}">
 
@@ -13035,21 +13028,15 @@ function refillSavedPropertyInclusions(rows)
 
     const $tbody = $('#inclusionTable tbody');
 
-    $tbody.find('tr:gt(0)').remove();
+    $tbody.empty();
 
 
 
     rows.forEach(function(row, idx) {
 
+        const tbody = document.querySelector('#inclusionTable tbody');
 
-
-        if (idx > 0) {
-
-            const tbody = document.querySelector('#inclusionTable tbody');
-
-            tbody.insertAdjacentHTML('beforeend', createInclusionRow());
-
-        }
+        tbody.insertAdjacentHTML('beforeend', createInclusionRow());
 
 
 
@@ -14021,19 +14008,13 @@ function refillSavedSpecialRequirements(rows)
 
     const $tbody = $('#specialReqTable tbody');
 
-    $tbody.find('tr:gt(0)').remove();
+    $tbody.empty();
 
 
 
     rows.forEach(function(row, idx) {
 
-
-
-        if (idx > 0) {
-
-            $('#addSpecialReqBtn').trigger('click');
-
-        }
+        $('#addSpecialReqBtn').trigger('click');
 
 
 
@@ -14053,7 +14034,11 @@ function refillSavedSpecialRequirements(rows)
 
 
 
-        $tr.find('.specialReqDaySelect').val(dayKey).trigger('change');
+        var $srSelect = $tr.find('.specialReqDaySelect');
+        if (dayKey && !$srSelect.find('option[value="' + dayKey + '"]').length) {
+            $srSelect.append(new Option('Saved', dayKey, false, false));
+        }
+        $srSelect.val(dayKey).trigger('change');
 
         var accDate = row.accommodation_date || '';
         if (accDate && accDate !== '0000-00-00' && accDate !== 'null') {

@@ -3453,11 +3453,12 @@ function formatDuration(dur)
 
 
 
-        var nights = n - 1;
+        var nights = n;
+        var days = n + 1;
 
 
 
-        return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + n + ' Day' + (n !== 1 ? 's' : '');
+        return nights + ' Night' + (nights !== 1 ? 's' : '') + ' ' + days + ' Day' + (days !== 1 ? 's' : '');
 
 
 
@@ -10030,8 +10031,8 @@ function edit_quotation_hub(id)
     $('.help-block').empty();
 
     $('.optionBlockContainer').empty();
-    $('#inclusionTable tbody tr:gt(0)').remove();
-    $('#specialReqTable tbody tr:gt(0)').remove();
+    $('#inclusionTable tbody').empty();
+    $('#specialReqTable tbody').empty();
 
     $('#quotation_property_inclusion_type').prop('checked', false);
     $('#quotation_special_requirement_type').prop('checked', false);
@@ -10221,6 +10222,7 @@ function edit_quotation_hub(id)
                     // Hide fields within option blocks for hub edit
                     hideHubEditFields();
                     $('#addOptionBtn').hide();
+                    hubHighlightConfirmedRooms(res.confirmed_rooms || []);
 
                     loadInclusionAndRequirementDropdownData(function () {
 
@@ -10273,6 +10275,29 @@ function edit_quotation_hub(id)
     });
 }
 
+function hubHighlightConfirmedRooms(confirmedRooms)
+{
+    if (!confirmedRooms || !confirmedRooms.length) return;
+
+    var confirmedSet = {};
+    confirmedRooms.forEach(function (cr) {
+        if (cr.properties_room_id_fk) {
+            confirmedSet[String(cr.properties_room_id_fk)] = true;
+        }
+    });
+
+    $('.optionBlock .room-row').each(function () {
+        var qpRoomId = $(this).attr('data-qp-room-id') || '';
+        if (qpRoomId && confirmedSet[qpRoomId]) {
+            $(this).css('background', '#f0fdf4');
+            var $roomNameTd = $(this).find('.roomName');
+            if ($roomNameTd.length && !$roomNameTd.find('.hub-confirmed-badge').length) {
+                $roomNameTd.prepend('<span class="hub-confirmed-badge badge badge-success" style="margin-right:5px;font-size:10px;vertical-align:middle;">&#10003; Confirmed</span>');
+            }
+        }
+    });
+}
+
 function hideHubEditFields()
 {
     // Hide Date, Arriving destination, Departuring destination fields
@@ -10314,6 +10339,10 @@ function saveQuotationHub()
     var quotationId = $('[name="id"]').val();
     if (!quotationId) {
         alert('Quotation ID missing');
+        return;
+    }
+
+    if (typeof validateQuotationForm === 'function' && !validateQuotationForm()) {
         return;
     }
 

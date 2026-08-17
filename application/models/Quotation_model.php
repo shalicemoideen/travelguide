@@ -12990,83 +12990,22 @@ public function insert_room_tariff_details($data)
 
                         ->result_array();
 
-
-
-
-
-
-
-                    // For each room, find the most recent tariff by matching room category
-
-
-
-                    // (packages_properties_rooms_id_fk), since the tariff's room FK may point
-
-
-
-                    // to an old room row PK after update
-
-
-
+                    // Hub edit now updates room rows in place instead of recreating them,
+                    // so the tariff's quotation_properties_rooms_id_fk reliably points at
+                    // this exact room row -- look it up directly instead of guessing by
+                    // room category.
                     foreach ($rooms as &$room) {
 
-
-
                         $tariff = $this->db
-
-
-
                             ->select('qrtd.quotation_room_tariff_details_id, qrtd.auto_total_rate, qrtd.manual_total_rate')
-
-
-
                             ->from('quotation_room_tariff_details qrtd')
-
-
-
-                            ->join('quotation_properties_rooms qpr2', 'qpr2.quotation_properties_rooms_id = qrtd.quotation_properties_rooms_id_fk', 'inner')
-
-
-
-                            ->join('quotation_properties qp2', 'qp2.quotation_properties_id = qpr2.quotation_properties_id_fk', 'inner')
-
-
-
-                            ->join('quotation_properties_days qpd2', 'qpd2.quotation_properties_days_id = qp2.quotation_properties_days_id_fk', 'inner')
-
-
-
                             ->where('qrtd.quotation_id_fk', (int)$quotation_id)
-
-
-
-                            ->where('qpr2.packages_properties_rooms_id_fk', (int)$room['packages_properties_rooms_id_fk'])
-
-
-
-                            ->where('qpd2.quotation_options_id_fk', (int)$option['quotation_options_id'])
-
-
-
-                            ->order_by('qrtd.quotation_room_tariff_details_status', 'DESC')
-
-
-
+                            ->where('qrtd.quotation_properties_rooms_id_fk', (int)$room['quotation_properties_rooms_id'])
+                            ->where('qrtd.quotation_room_tariff_details_status', 1)
                             ->order_by('qrtd.quotation_room_tariff_details_id', 'DESC')
-
-
-
                             ->limit(1)
-
-
-
                             ->get()
-
-
-
                             ->row_array();
-
-
 
                         if ($tariff) {
 
@@ -15113,6 +15052,10 @@ public function get_quotation_special_requirements_preview($quotation_id)
         ->where('qc.option_id_fk', $main['quotation_options_id'])
 
         ->where('qc.property_confirmation_status', 1)
+
+        ->where('qp.quotation_properties_status', 1)
+
+        ->where('qpr.quotation_properties_rooms_status', 1)
 
 
 
