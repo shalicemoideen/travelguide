@@ -196,6 +196,7 @@ table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:to
           <tr>
             <th style="width:150px;">Day</th>
             <th>Property</th>
+            <th>Room Category</th>
             <th>Room</th>
             <th>EBA</th>
             <th>CWB</th>
@@ -262,11 +263,12 @@ table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:to
                                + (int)(isset($room->pax_wise_bed_baby_eb_count) ? $room->pax_wise_bed_baby_eb_count : 0)
                                + (int)(isset($room->pax_wise_bed_baby_sb_count) ? $room->pax_wise_bed_baby_sb_count : 0);
                     ?>
-                    <?php if($adultCount > 0): ?><span class="pax"><i class="fas fa-person"></i><?php echo $adultCount; ?></span><?php endif; ?>
+                    <?php if($adultCount > 0): ?><span class="pax"><i class="fas fa-male"></i><?php echo $adultCount; ?></span><?php endif; ?>
                     <?php if($childCount > 0): ?><span class="pax"><i class="fas fa-child"></i><?php echo $childCount; ?></span><?php endif; ?>
                     <?php if($babyCount > 0): ?><span class="pax"><i class="fas fa-baby"></i><?php echo $babyCount; ?></span><?php endif; ?>
                   </span>
-                  <br>
+                </td>
+                <td>
                   <?php
                   $roomCount = (int)(isset($room->room_unit_manual_count) ? $room->room_unit_manual_count : 0);
                   $roomRate = (float)(isset($room->room_unit_manual_rate) ? $room->room_unit_manual_rate : 0);

@@ -1882,6 +1882,18 @@ class Quotation_model extends CI_Model{
 
                         qrtd.extra_bed_child_manual_count, qrtd.extra_bed_child_manual_rate, qrtd.extra_bed_child_manual_total_rate,
 
+                        qrtd.child_sharing_bed_manual_count, qrtd.child_sharing_bed_manual_rate, qrtd.child_sharing_bed_manual_total_rate,
+
+                        qrtd.single_occupancy_manual_count, qrtd.single_occupancy_manual_rate, qrtd.single_occupancy_manual_total_rate,
+
+                        qrtd.supplyment_manual_cost, qrtd.supplyment_manual_total_cost,
+
+                        qrtd.pax_wise_bed_adult_db_count, qrtd.pax_wise_bed_adult_eb_count, qrtd.pax_wise_bed_adult_sgl_count,
+
+                        qrtd.pax_wise_bed_child_db_count, qrtd.pax_wise_bed_child_eb_count, qrtd.pax_wise_bed_child_sb_count,
+
+                        qrtd.pax_wise_bed_baby_db_count, qrtd.pax_wise_bed_baby_eb_count, qrtd.pax_wise_bed_baby_sb_count,
+
                         qrtd.manual_total_rate')
 
 
@@ -1938,15 +1950,35 @@ class Quotation_model extends CI_Model{
 
 
 
-        return $days;
+        $guest_count = $this->db
+
+            ->select('gcd.guset_count_details_id, gcd.guset_count_details_type, gcd.adults, gcd.children,
+                gc.guset_count_lead_id_fk')
+
+            ->from('guset_count gc')
+
+            ->join('guset_count_details gcd', 'gcd.guset_count_id_fk = gc.guset_count_id', 'inner')
+
+            ->join('quotation q', 'q.leads_id_fk = gc.guset_count_lead_id_fk', 'inner')
+
+            ->where('q.quotation_id', (int)$quotation_id)
+
+            ->where('gc.guset_count_status', 1)
+
+            ->where('gcd.guset_count_details_status', 1)
+
+            ->get()
+
+            ->result_array();
+
+
+
+
+        return array('days' => $days, 'guest_count' => $guest_count);
 
 
 
     }
-
-
-
-
 
 
 
@@ -17527,7 +17559,9 @@ public function get_quotation_special_requirements_preview($quotation_id)
 
 			->from('quotation')
 
-			->like('trip_code', $prefix . '/' . $year, 'after')
+			->like('trip_code', $prefix . '/', 'after')
+
+			->like('trip_code', '/' . $year, 'before')
 
 			->order_by('quotation_id', 'DESC')
 

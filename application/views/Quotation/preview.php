@@ -1086,7 +1086,7 @@ button:hover{background:#172554;}
   left:0;
   right:0;
   bottom:0;
-  height:36mm;
+  height:20mm;
   background:linear-gradient(180deg, #42696b 0%, #24464d 100%);
   border-top:3px solid #b99a5d;
 }
@@ -1094,7 +1094,7 @@ button:hover{background:#172554;}
   position:absolute;
   left:12mm;
   right:12mm;
-  bottom:8mm;
+  bottom:4mm;
   display:flex;
   justify-content:space-between;
   align-items:flex-end;
@@ -1107,9 +1107,9 @@ button:hover{background:#172554;}
 .exclusive-footer-item{
   display:flex;
   align-items:center;
-  gap:8px;
-  margin-bottom:6px;
-  font-size:15px;
+  gap:6px;
+  margin-bottom:4px;
+  font-size:12px;
   color:#f0ecec;
   font-weight:700;
 }
@@ -1580,7 +1580,7 @@ button:hover{background:#172554;}
   top:68mm;   /* ✅ increased */
   left:14mm;
   right:14mm;
-  bottom:42mm;
+  bottom:26mm;
   overflow:hidden;
 }
 
@@ -3482,7 +3482,7 @@ function fitOptionPageFontSize(page, type) {
 
   for (let i = 0; i < tryOrder.length; i++) {
     const cls = tryOrder[i];
-    page.classList.remove(...fontClasses);
+    fontClasses.forEach(function(fc) { page.classList.remove(fc); });
     page.classList.add(cls);
     void content.offsetHeight;
     if (content.scrollHeight <= targetHeight + 2) {
@@ -3491,11 +3491,36 @@ function fitOptionPageFontSize(page, type) {
     }
   }
 
-  page.classList.remove(...fontClasses);
+  fontClasses.forEach(function(fc) { page.classList.remove(fc); });
   page.classList.add(chosenClass);
   page.style.height = originalHeight;
   page.style.overflow = originalOverflow;
   content.style.minHeight = originalContentMinHeight;
+}
+
+function fitDayPageFontSize(page) {
+  var dayDesc = page.querySelector('.day-desc');
+  var hero = page.querySelector('.hero');
+  if (!dayDesc || !hero) return;
+
+  var footer = page.querySelector('.footer');
+  if (!footer) return;
+
+  var fontSizes = ['22px', '20px', '18px', '16px', '14px', '13px', '12px', '11px', '10px', '9px'];
+  var chosenSize = '22px';
+
+  for (var i = 0; i < fontSizes.length; i++) {
+    dayDesc.style.fontSize = fontSizes[i];
+    void dayDesc.offsetHeight;
+    var heroBottom = hero.getBoundingClientRect().bottom;
+    var footerTop = footer.getBoundingClientRect().top;
+    if (heroBottom <= footerTop + 2) {
+      chosenSize = fontSizes[i];
+      break;
+    }
+  }
+
+  dayDesc.style.fontSize = chosenSize;
 }
 
 function buildOptionExtraPages() {
@@ -3506,6 +3531,10 @@ function buildOptionExtraPages() {
   if (document.querySelectorAll('.generated-option-page').length > 0) {
     return;
 }
+
+  document.querySelectorAll('.daypage').forEach(function(page) {
+    fitDayPageFontSize(page);
+  });
 
   document.querySelectorAll('.property-page:not(.generated-option-page)').forEach(function(page) {
     fitOptionPageFontSize(page, 'standard');
@@ -3560,6 +3589,7 @@ function splitStandardOptionPage(page) {
   const table = page.querySelector('.property-table');
   const extra = page.querySelector('.standard-extra-section');
   const compBox = page.querySelector('.complimentary-box');
+  const specialBox = page.querySelector('.special-box');
 
   if (!table) return;
 
@@ -3570,15 +3600,18 @@ function splitStandardOptionPage(page) {
   const rows = Array.from(tbody.querySelectorAll('tr'));
   const extras = extra ? Array.from(extra.children) : [];
 
-  const overflowItems = [];
+  const overflowRows = [];
+  const overflowExtras = [];
+  const overflowSpecial = [];
+  const overflowComp = [];
 
   rows.forEach(function(row) {
     if (row.getBoundingClientRect().bottom > limitBottom) {
-      overflowItems.push({ type: 'row', node: row });
+      overflowRows.push({ type: 'row', node: row });
     }
   });
 
-  overflowItems.forEach(function(item) {
+  overflowRows.forEach(function(item) {
     item.node.remove();
   });
 
@@ -3586,17 +3619,26 @@ function splitStandardOptionPage(page) {
     if (!block.parentNode) return;
 
     if (block.getBoundingClientRect().bottom > limitBottom) {
-      overflowItems.push({ type: 'extra', node: block });
+      overflowExtras.push({ type: 'extra', node: block });
       block.remove();
     }
   });
 
+  if (specialBox && specialBox.parentNode) {
+    if (specialBox.getBoundingClientRect().bottom > limitBottom) {
+      overflowSpecial.push({ type: 'special', node: specialBox });
+      specialBox.remove();
+    }
+  }
+
   if (compBox && compBox.parentNode) {
     if (compBox.getBoundingClientRect().bottom > limitBottom) {
-      overflowItems.push({ type: 'complimentary', node: compBox });
+      overflowComp.push({ type: 'complimentary', node: compBox });
       compBox.remove();
     }
   }
+
+  const overflowItems = overflowRows.concat(overflowComp, overflowSpecial, overflowExtras);
 
   if (!overflowItems.length) return;
 
@@ -3662,7 +3704,7 @@ function splitStandardOptionPage(page) {
         currentExtra.appendChild(item.node);
       }
     }
-    if (item.type === 'complimentary') {
+    if (item.type === 'complimentary' || item.type === 'special') {
       content.appendChild(item.node);
 
       if (content.scrollHeight > content.clientHeight) {
@@ -3700,11 +3742,12 @@ function splitExclusiveOptionPage(page) {
   const table = page.querySelector('.exclusive-table');
   const extra = page.querySelector('.exclusive-bottom-grid');
   const compBox = page.querySelector('.complimentary-box-exclusive');
+  const specialBox = page.querySelector('.special-box-exclusive');
 
   if (!table) return;
 
   const pageTop = page.getBoundingClientRect().top;
-  const limitBottom = pageTop + page.offsetHeight - mmToPx(40);
+  const limitBottom = pageTop + page.offsetHeight - mmToPx(24);
 
   const tbody = table.querySelector('tbody');
   const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -3712,15 +3755,18 @@ function splitExclusiveOptionPage(page) {
     return el.classList.contains('exclusive-feature-box');
   }) : [];
 
-  const overflowItems = [];
+  const overflowRows = [];
+  const overflowExtras = [];
+  const overflowSpecial = [];
+  const overflowComp = [];
 
   rows.forEach(function(row) {
     if (row.getBoundingClientRect().bottom > limitBottom) {
-      overflowItems.push({ type: 'row', node: row });
+      overflowRows.push({ type: 'row', node: row });
     }
   });
 
-  overflowItems.forEach(function(item) {
+  overflowRows.forEach(function(item) {
     item.node.remove();
   });
 
@@ -3728,17 +3774,26 @@ function splitExclusiveOptionPage(page) {
     if (!block.parentNode) return;
 
     if (block.getBoundingClientRect().bottom > limitBottom) {
-      overflowItems.push({ type: 'extra', node: block });
+      overflowExtras.push({ type: 'extra', node: block });
       block.remove();
     }
   });
 
+  if (specialBox && specialBox.parentNode) {
+    if (specialBox.getBoundingClientRect().bottom > limitBottom) {
+      overflowSpecial.push({ type: 'special', node: specialBox });
+      specialBox.remove();
+    }
+  }
+
   if (compBox && compBox.parentNode) {
     if (compBox.getBoundingClientRect().bottom > limitBottom) {
-      overflowItems.push({ type: 'complimentary', node: compBox });
+      overflowComp.push({ type: 'complimentary', node: compBox });
       compBox.remove();
     }
   }
+
+  const overflowItems = overflowRows.concat(overflowComp, overflowSpecial, overflowExtras);
 
   if (!overflowItems.length) return;
 
@@ -3804,7 +3859,7 @@ function splitExclusiveOptionPage(page) {
         currentExtra.appendChild(item.node);
       }
     }
-    if (item.type === 'complimentary') {
+    if (item.type === 'complimentary' || item.type === 'special') {
       content.appendChild(item.node);
 
       if (content.scrollHeight > content.clientHeight) {
@@ -3860,7 +3915,7 @@ function fitBriefPageFontSize(page) {
 
   for (let i = 0; i < tryOrder.length; i++) {
     const cls = tryOrder[i];
-    page.classList.remove(...fontClasses);
+    fontClasses.forEach(function(fc) { page.classList.remove(fc); });
     page.classList.add(cls);
     void list.offsetHeight;
     const contentHeight = header.scrollHeight + list.scrollHeight;
@@ -3870,7 +3925,7 @@ function fitBriefPageFontSize(page) {
     }
   }
 
-  page.classList.remove(...fontClasses);
+  fontClasses.forEach(function(fc) { page.classList.remove(fc); });
   page.classList.add(chosenClass);
   page.style.height = originalHeight;
   page.style.overflow = originalOverflow;

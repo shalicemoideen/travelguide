@@ -1870,7 +1870,7 @@
 
         <div class="modal fade" id="confirmationOptionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
 
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width:1300px;">
 
                 <div class="modal-content" style="border:none;border-radius:12px;overflow:hidden;">
 

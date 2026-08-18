@@ -890,7 +890,7 @@ class Leads_model extends CI_Model{
         ->from('packages_itinerary pi')
         ->join('packages_itinerary_days pid', 'pid.packages_itinerary_id_fk = pi.packages_itinerary_id', 'inner')
         ->where('pi.packages_id_fk', (int)$package_id)
-        ->order_by('pid.packages_itineraries_days_day', 'ASC')
+        ->order_by('pid.packages_itinerary_days_id', 'ASC')
         ->get()
         ->result_array();
 }
@@ -901,7 +901,7 @@ class Leads_model extends CI_Model{
         ->from('packages_properties_common ppc')
         ->join('packages_properties_days ppd', 'ppd.packages_properties_common_id_fk = ppc.packages_properties_common_id', 'inner')
         ->where('ppc.packages_properties_common_packages_id_fk', (int)$package_id)
-        ->order_by('ppd.packages_properties_days_day', 'ASC')
+        ->order_by('ppd.packages_properties_days_id', 'ASC')
         ->get()
         ->result_array();
 // echo $this->db->last_query();exit();

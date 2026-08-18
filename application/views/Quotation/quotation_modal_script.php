@@ -8348,6 +8348,15 @@ clearRoomPricingWarnings();
     // Check if room has pending in-memory tariff data (temp_ key or numeric DB ID)
     var existingTariffKey = row.find('.quotationRoomTariffDetailsIdInput').val() || '';
 
+    // When hub reschedule is active, skip all saved tariff data.
+    // Fresh rates (from new travel dates) and occupation-based counts will be applied by the native handler.
+    if (window.isHubEdit && window.hubRescheduleNewStartISO) {
+        document.getElementById('modal_quotation_room_tariff_details_id').value = existingTariffKey;
+        document.getElementById('modal_packages_properties_days_id_fk').value = day_id_fk;
+        document.getElementById('modal_quotation_properties_rooms_id_fk').value = room_row_fk;
+        return;
+    }
+
     if (existingTariffKey) {
         // Load from in-memory pending data if available — no server fetch needed
         var pendingData = getPendingTariffData(existingTariffKey);
@@ -9410,9 +9419,12 @@ fetch(urlTariff)
 
       applyTariffRatesToModal(tariffRes);
 
+      // When rescheduling, always use fresh rates — never load from saved DB tariff
+      var _isRescheduling = window.isHubEdit && window.hubRescheduleNewStartISO;
+
       // If auto-calc active and no tariff rates found, show modal for manual entry
-      // Skip if room already has a saved tariff — proceed to fill saved data and auto-save
-      if (window.__autoCalcActive && !savedTariffId && (!tariffRes || !tariffRes.status)) {
+      // Skip if room already has a saved tariff (and not rescheduling) — proceed to fill saved data and auto-save
+      if (window.__autoCalcActive && (!savedTariffId || _isRescheduling) && (!tariffRes || !tariffRes.status)) {
           applyCopyGuestCountIfNeeded();
           refreshAllAmountsAndTotals();
           $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
@@ -9421,8 +9433,8 @@ fetch(urlTariff)
       }
 
       // If auto-calc active and tariff rates are all 0, show modal for manual entry
-      // Skip if room already has a saved tariff — proceed to fill saved data and auto-save
-      if (window.__autoCalcActive && !savedTariffId && tariffRes && tariffRes.status) {
+      // Skip if room already has a saved tariff (and not rescheduling) — proceed to fill saved data and auto-save
+      if (window.__autoCalcActive && (!savedTariffId || _isRescheduling) && tariffRes && tariffRes.status) {
           const _d = tariffRes.data || {};
           const _rates = _d.rates || {};
           const _roomRate = parseFloat(_rates.room_rate || 0);
@@ -9435,7 +9447,7 @@ fetch(urlTariff)
           }
       }
 
-      if (savedTariffId) {
+      if (savedTariffId && !_isRescheduling) {
 
           // Check in-memory pending data first (covers both temp_ and numeric DB IDs)
           var pendingData = getPendingTariffData(savedTariffId);
@@ -12156,6 +12168,34 @@ function edit_quotation(id)
                         recalcSpecialReqTotal();
                         document.querySelectorAll('.optionBlock').forEach(function (ob) { recalcOptionTotals(ob); });
                         refreshQuoteSummaryTotals();
+
+                        // Highlight confirmed option and rooms
+                        if (res.confirmed_option_id) {
+                            $('.optionBlock').each(function () {
+                                if (parseInt($(this).attr('data-option-id') || 0) === parseInt(res.confirmed_option_id)) {
+                                    $(this).css('border', '2px solid #28a745');
+                                    $(this).find('.option-header, .card-header').first().append('<span class="badge badge-success ms-2" style="font-size:11px;">&#10003; Confirmed Option</span>');
+                                }
+                            });
+                        }
+                        if (res.confirmed_rooms && res.confirmed_rooms.length) {
+                            var confirmedSet = {};
+                            res.confirmed_rooms.forEach(function (cr) {
+                                if (cr.properties_room_id_fk) {
+                                    confirmedSet[String(cr.properties_room_id_fk)] = true;
+                                }
+                            });
+                            $('.optionBlock .room-row').each(function () {
+                                var qpRoomId = $(this).attr('data-qp-room-id') || $(this).find('.qpRoomIdPkInput').val() || '';
+                                if (qpRoomId && confirmedSet[qpRoomId]) {
+                                    $(this).css('background', '#f0fdf4');
+                                    var $roomNameTd = $(this).find('.roomName');
+                                    if ($roomNameTd.length && !$roomNameTd.find('.edit-confirmed-badge').length) {
+                                        $roomNameTd.prepend('<span class="edit-confirmed-badge badge badge-success" style="margin-right:5px;font-size:10px;vertical-align:middle;">&#10003; Confirmed</span>');
+                                    }
+                                }
+                            });
+                        }
 
                     }, 500);
 

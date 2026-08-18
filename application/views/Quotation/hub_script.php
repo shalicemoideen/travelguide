@@ -4154,7 +4154,7 @@ function loadConfirmationOptionDetails(quotation_id, quotation_options_id, saved
 
 
 
-            $('#confirmationOptionModalBody').html(buildConfirmationDetailsTable(res.data, savedRows, preCheck));
+            $('#confirmationOptionModalBody').html(buildConfirmationDetailsTable(res.data, savedRows, preCheck, res.guest_count || []));
 
         }
 
@@ -4516,7 +4516,7 @@ function formatDateShort(dateStr)
 
 
 
-function buildConfirmationDetailsTable(days, savedRows, preCheck)
+function buildConfirmationDetailsTable(days, savedRows, preCheck, guestCount)
 
 
 
@@ -4525,6 +4525,8 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
     savedRows = savedRows || [];
+
+    guestCount = guestCount || [];
 
 
 
@@ -4588,15 +4590,31 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:left;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Room</th>';
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:left;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Room Category</th>';
 
 
 
-    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:90px;">Room Cost</th>';
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:90px;">Room</th>';
 
 
 
-    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:80px;">Extra Bed</th>';
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:100px;">Extra Bed Adult</th>';
+
+
+
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:100px;">Extra Bed (Child)</th>';
+
+
+
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:100px;">Child Sharing Bed</th>';
+
+
+
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:100px;">Single Occupancy</th>';
+
+
+
+    html += '<th style="background:#eef2ff;padding:10px 12px;text-align:right;font-weight:600;color:#4a3ee0;border-bottom:2px solid #e5e7eb;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;width:100px;">Supplement Cost</th>';
 
 
 
@@ -4720,11 +4738,57 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
-                var roomCost  = room ? formatNumber(room.room_unit_manual_total_rate || 0) : '0.00';
+                var roomUnitCount = room ? parseInt(room.room_unit_manual_count || 0) : 0;
+
+                var roomUnitRate  = room ? parseFloat(room.room_unit_manual_rate || 0) : 0;
+
+                var roomStr       = (roomUnitCount > 0 && roomUnitRate > 0) ? roomUnitCount + ' X ' + formatNumber(roomUnitRate) : '0';
 
 
 
-                var ebaCost   = room ? formatNumber((parseFloat(room.extra_bed_adult_manual_total_rate || 0) + parseFloat(room.extra_bed_child_manual_total_rate || 0))) : '0.00';
+                var ebaCount  = room ? parseInt(room.extra_bed_adult_manual_count || 0) : 0;
+
+                var ebaRate   = room ? parseFloat(room.extra_bed_adult_manual_rate || 0) : 0;
+
+                var ebaStr    = (ebaCount > 0 && ebaRate > 0) ? ebaCount + ' X ' + formatNumber(ebaRate) : '0';
+
+
+
+                var cwbCount  = room ? parseInt(room.extra_bed_child_manual_count || 0) : 0;
+
+                var cwbRate   = room ? parseFloat(room.extra_bed_child_manual_rate || 0) : 0;
+
+                var cwbStr    = (cwbCount > 0 && cwbRate > 0) ? cwbCount + ' X ' + formatNumber(cwbRate) : '0';
+
+
+
+                var cnbCount  = room ? parseInt(room.child_sharing_bed_manual_count || 0) : 0;
+
+                var cnbRate   = room ? parseFloat(room.child_sharing_bed_manual_rate || 0) : 0;
+
+                var cnbStr    = (cnbCount > 0 && cnbRate > 0) ? cnbCount + ' X ' + formatNumber(cnbRate) : '0';
+
+
+
+                var sglCount  = room ? parseInt(room.single_occupancy_manual_count || 0) : 0;
+
+                var sglRate   = room ? parseFloat(room.single_occupancy_manual_rate || 0) : 0;
+
+                var sglStr    = (sglCount > 0 && sglRate > 0) ? sglCount + ' X ' + formatNumber(sglRate) : '0';
+
+
+
+                var suppCost  = room ? formatNumber(room.supplyment_manual_cost || 0) : '0.00';
+
+
+
+                // Pax-wise guest counts for this room
+
+                var adultCount = room ? (parseInt(room.pax_wise_bed_adult_db_count || 0) + parseInt(room.pax_wise_bed_adult_eb_count || 0) + parseInt(room.pax_wise_bed_adult_sgl_count || 0)) : 0;
+
+                var childCount = room ? (parseInt(room.pax_wise_bed_child_db_count || 0) + parseInt(room.pax_wise_bed_child_eb_count || 0) + parseInt(room.pax_wise_bed_child_sb_count || 0)) : 0;
+
+                var babyCount  = room ? (parseInt(room.pax_wise_bed_baby_db_count || 0) + parseInt(room.pax_wise_bed_baby_eb_count || 0) + parseInt(room.pax_wise_bed_baby_sb_count || 0)) : 0;
 
 
 
@@ -4886,15 +4950,49 @@ function buildConfirmationDetailsTable(days, savedRows, preCheck)
 
 
 
+                // Guest count badges
+
+                if (adultCount > 0 || childCount > 0 || babyCount > 0) {
+
+                    html += '<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">';
+
+                    if (adultCount > 0) html += '<span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:4px;font-weight:600;"><i class="fas fa-male" style="font-size:10px;"></i> ' + adultCount + '</span>';
+
+                    if (childCount > 0) html += '<span style="font-size:11px;background:#e8f5e9;color:#1b5e20;padding:1px 6px;border-radius:4px;font-weight:600;"><i class="fas fa-child" style="font-size:10px;"></i> ' + childCount + '</span>';
+
+                    if (babyCount > 0) html += '<span style="font-size:11px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:4px;font-weight:600;"><i class="fas fa-baby" style="font-size:10px;"></i> ' + babyCount + '</span>';
+
+                    html += '</div>';
+
+                }
+
+
+
                 html += '</td>';
 
 
 
-                html += '<td style="padding:10px 12px;text-align:right;font-weight:600;color:#1e40af;white-space:nowrap;' + roomBorderBottom + '">&#8377;' + roomCost + '</td>';
+                html += '<td style="padding:10px 12px;text-align:right;font-weight:600;color:#1e40af;white-space:nowrap;' + roomBorderBottom + '">' + roomStr + '</td>';
 
 
 
-                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">&#8377;' + ebaCost + '</td>';
+                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">' + ebaStr + '</td>';
+
+
+
+                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">' + cwbStr + '</td>';
+
+
+
+                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">' + cnbStr + '</td>';
+
+
+
+                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">' + sglStr + '</td>';
+
+
+
+                html += '<td style="padding:10px 12px;text-align:right;color:#6b7280;white-space:nowrap;' + roomBorderBottom + '">' + suppCost + '</td>';
 
 
 
@@ -5291,6 +5389,11 @@ properties_room_id_fk: $(this).data('room-id')
                 // Reload options to reflect confirmed state (export button will show via loadConfirmationOptions)
 
                 loadConfirmationOptions(quotation_id, { option_id: option_id, rows: [] });
+
+                // If status was reverted due to property changes, reload hub summary to update status/buttons
+                if (res.status_reverted) {
+                    loadQuotationHubSummary(quotation_id);
+                }
 
             }
 
@@ -10118,17 +10221,19 @@ function edit_quotation_hub(id)
                 '<label class="form-label small">Duration</label>' +
                 '<p class="form-control-plaintext fw-bold" id="hubCurrentDurationDisplay">' + duration + ' Days</p>' +
                 '</div>' +
-                '<div class="col-md-3">' +
+                '<div class="col-md-2 d-flex align-items-center pt-3">' +
+                '<div class="form-check mb-0">' +
+                '<input type="checkbox" class="form-check-input" id="hubRescheduleCheck">' +
+                '<label class="form-check-label fw-semibold small ms-1" for="hubRescheduleCheck"><i class="la la-refresh me-1"></i>Reschedule</label>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-md-2">' +
                 '<label class="form-label small">New Travel Date</label>' +
-                '<input type="text" class="form-control form-control-sm" id="hubNewStartDate" placeholder="dd/mm/yyyy">' +
+                '<input type="text" class="form-control form-control-sm" id="hubNewStartDate" placeholder="dd/mm/yyyy" disabled>' +
                 '</div>' +
-                '<div class="col-md-3">' +
+                '<div class="col-md-2">' +
                 '<label class="form-label small">New End Date</label>' +
-                '<input type="text" class="form-control form-control-sm" id="hubNewEndDate" readonly placeholder="dd/mm/yyyy">' +
-                '</div>' +
-                '</div>' +
-                '<div class="row mt-2">' +
-                '<div class="col-md-12">' +
+                '<input type="text" class="form-control form-control-sm" id="hubNewEndDate" readonly disabled placeholder="dd/mm/yyyy">' +
                 '</div>' +
                 '</div>' +
                 '</div>' +
@@ -10178,22 +10283,6 @@ function edit_quotation_hub(id)
 
                         // Store the new start date (ISO) so tariff fetches use the new travel dates
                         window.hubRescheduleNewStartISO = isoStart;
-
-                        // Clear all room calculated rates — user must recalculate based on the new dates
-                        var $optionBlock = $('#optionsContainer .optionBlock').first();
-                        if ($optionBlock.length) {
-                            $optionBlock.find('.autoCalcRateInput').val('0.00');
-                            $optionBlock.find('.autoCalcRateText').text('0.00');
-                            // Drop stale in-memory tariff data so rooms re-fetch rates on edit
-                            $optionBlock.find('.quotationRoomTariffDetailsIdInput').each(function () {
-                                if (this.value && typeof removePendingTariffData === 'function') {
-                                    removePendingTariffData(this.value);
-                                }
-                            });
-                            if (typeof recalcOptionTotals === 'function') {
-                                recalcOptionTotals($optionBlock[0]);
-                            }
-                        }
                     }
                 } else {
                     $('#hubNewEndDate').val('');
@@ -10206,6 +10295,33 @@ function edit_quotation_hub(id)
             // Initialize datepicker on New Travel Date
             $('#hubNewStartDate').datepicker({ format: 'dd/mm/yyyy', autoclose: true, todayHighlight: true })
                 .on('changeDate', onNewStartDateChange);
+
+            // Reschedule checkbox: enable/disable date fields and clear rates when checked
+            $('#hubRescheduleCheck').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#hubNewStartDate').prop('disabled', false);
+                    // Clear all room calculated rates to force recalculation on new dates
+                    var $optionBlock = $('#optionsContainer .optionBlock').first();
+                    if ($optionBlock.length) {
+                        $optionBlock.find('.autoCalcRateInput').val('0.00');
+                        $optionBlock.find('.autoCalcRateText').text('0.00');
+                        $optionBlock.find('.quotationRoomTariffDetailsIdInput').each(function () {
+                            if (this.value && typeof removePendingTariffData === 'function') {
+                                removePendingTariffData(this.value);
+                            }
+                        });
+                        if (typeof recalcOptionTotals === 'function') {
+                            recalcOptionTotals($optionBlock[0]);
+                        }
+                    }
+                } else {
+                    $('#hubNewStartDate').prop('disabled', true).val('');
+                    $('#hubNewEndDate').prop('disabled', true).val('');
+                    window.hubRescheduleNewStartISO = null;
+                    window.hubDatesRecalculated = false;
+                    window.__hubAutoCalcTriggered = false;
+                }
+            });
 
             // Hide remarks section for hub edit
             $('#quotation_remarks').closest('.col-md-3').hide();
@@ -10346,9 +10462,14 @@ function saveQuotationHub()
         return;
     }
 
-    // If travel dates were changed, ensure all room rates were recalculated for the new dates
-    var newStartDate = $('#hubNewStartDate').val().trim();
-    if (newStartDate) {
+    // Reschedule validation
+    var isRescheduled = $('#hubRescheduleCheck').is(':checked');
+    var newStartDate = isRescheduled ? $('#hubNewStartDate').val().trim() : '';
+    if (isRescheduled) {
+        if (!newStartDate || !$('#hubNewEndDate').val().trim()) {
+            alert('Please enter New Travel Date and New End Date for reschedule.');
+            return;
+        }
         if (window.__autoCalcActive) {
             alert('Room-rate recalculation is in progress. Please wait for it to complete before updating.');
             return;
@@ -10383,7 +10504,7 @@ function saveQuotationHub()
     data.set('total_special_requirment_amount', $('#total_special_requirment_amount').val() || 0);
 
     // Pass new travel dates to the server so they are saved together with the recalculated rates
-    if (newStartDate) {
+    if (isRescheduled && newStartDate) {
         data.append('hub_new_start_date', newStartDate);
         data.append('hub_new_end_date', $('#hubNewEndDate').val().trim());
     }
@@ -10404,9 +10525,15 @@ function saveQuotationHub()
                 resetQuotationModalForm();
                 $('#QuotationModal').modal('hide');
                 window.isHubEdit = false;
-                swal("Quotation updated successfully", "", "success").then(function() {
-                    window.location.reload();
-                });
+                if (res.needs_reconfirmation) {
+                    swal("Quotation Updated", "Rooms were changed. Please re-confirm from Client Confirmation and complete property reservations for the updated properties.", "warning").then(function() {
+                        window.location.reload();
+                    });
+                } else {
+                    swal("Quotation updated successfully", "", "success").then(function() {
+                        window.location.reload();
+                    });
+                }
             } else {
                 alert(res.message || 'Update failed');
             }

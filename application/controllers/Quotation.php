@@ -418,9 +418,18 @@ class Quotation extends MY_Controller {
 
 
 
+		$update_data = array('quotation_current_status' => $status);
+
+		if ($status === 5) {
+			$existing = $this->db->select('trip_code')->where('quotation_id', $quotation_id)->get($this->table)->row();
+			if ($existing && empty($existing->trip_code)) {
+				$update_data['trip_code'] = $this->Quotation_model->generate_trip_code();
+			}
+		}
+
 		$this->db->where('quotation_id', $quotation_id);
 
-		$this->db->update($this->table, array('quotation_current_status' => $status));
+		$this->db->update($this->table, $update_data);
 
 
 
@@ -734,15 +743,17 @@ public function client_confirmation_preview($quotation_id)
 
 
 
-		$data = $this->Quotation_model->get_confirmation_option_details($quotation_id, $quotation_options_id);
+		$result = $this->Quotation_model->get_confirmation_option_details($quotation_id, $quotation_options_id);
 
 
 
 		echo json_encode(array(
 
-			'status' => !empty($data),
+			'status'      => !empty($result['days']),
 
-			'data' => $data
+			'data'        => $result['days'],
+
+			'guest_count' => isset($result['guest_count']) ? $result['guest_count'] : array()
 
 		));
 
@@ -993,6 +1004,18 @@ public function client_confirmation_preview($quotation_id)
 
 
 
+		// If rooms/properties changed and status was advanced (8/9/7), revert to Confirmed (5)
+		$status_reverted = false;
+		if (!empty($dropped_ids) || !empty($added_ids)) {
+			$cur_q = $this->db->select('quotation_current_status')->from('quotation')->where('quotation_id', $quotation_id)->get()->row_array();
+			$cur_st = $cur_q ? (int)$cur_q['quotation_current_status'] : 0;
+			if (in_array($cur_st, array(8, 9, 7))) {
+				$this->db->where('quotation_id', $quotation_id);
+				$this->db->update('quotation', array('quotation_current_status' => 5));
+				$status_reverted = true;
+			}
+		}
+
 		$this->db->trans_commit();
 
 
@@ -1005,6 +1028,10 @@ public function client_confirmation_preview($quotation_id)
 
 		}
 
+		if ($status_reverted) {
+			$message .= ' Status reverted to Confirmed — please complete property reservations for the updated properties.';
+		}
+
 
 
 		echo json_encode(array(
@@ -1014,6 +1041,8 @@ public function client_confirmation_preview($quotation_id)
 			'message'           => $message,
 
 			'property_changed'  => !empty($dropped_ids) || !empty($added_ids),
+
+			'status_reverted'   => $status_reverted,
 
 			'superseded'        => $superseded,
 
@@ -4318,6 +4347,29 @@ if (!empty($accommodationPlanIds)) {
         // Fetch old rooms with package FK for tariff mapping (before disabling)
         $oldRoomPkgMap = array();  // old_room_id => packages_properties_rooms_id_fk
 
+        // Fetch old confirmation entries for remapping
+        $oldConfirmations = $this->db
+            ->select('id, option_id_fk, properties_day_id_fk, properties_id_fk, properties_room_id_fk')
+            ->from('quotation_confirmation')
+            ->where('quotation_id_fk', $quotation_id)
+            ->where('property_confirmation_status', 1)
+            ->get()
+            ->result_array();
+
+        // Build old option_id => packages_properties_common_id_fk mapping
+        $oldOptionPkgMap = array();
+        if (!empty($oldOptionIds)) {
+            $oldOptRows = $this->db
+                ->select('quotation_options_id, packages_properties_common_id_fk')
+                ->from($this->quotation_options)
+                ->where_in('quotation_options_id', $oldOptionIds)
+                ->get()
+                ->result_array();
+            foreach ($oldOptRows as $oor) {
+                $oldOptionPkgMap[(int)$oor['quotation_options_id']] = (int)$oor['packages_properties_common_id_fk'];
+            }
+        }
+
         if (!empty($oldPropertyIds)) {
 
             $oldRooms = $this->db
@@ -4723,6 +4775,76 @@ if (!empty($accommodationPlanIds)) {
             }
         }
 
+        /* ================= REMAP quotation_confirmation ENTRIES TO NEW IDs ================= */
+        if (!empty($oldConfirmations) && !empty($newRoomPkgMap) && !empty($oldRoomPkgMap)) {
+            // Build old_room_id => new_room_id mapping
+            $roomIdMap = array();
+            foreach ($oldRoomPkgMap as $old_room_id => $pkg_room_fk) {
+                if ($pkg_room_fk && isset($newRoomPkgMap[$pkg_room_fk])) {
+                    $roomIdMap[$old_room_id] = $newRoomPkgMap[$pkg_room_fk];
+                }
+            }
+
+            // For each confirmation entry, find new IDs
+            foreach ($oldConfirmations as $conf) {
+                $old_room_id = (int)$conf['properties_room_id_fk'];
+                $old_option_id = (int)$conf['option_id_fk'];
+
+                if (isset($roomIdMap[$old_room_id])) {
+                    $new_room_id = $roomIdMap[$old_room_id];
+
+                    // Get new room's property_id
+                    $newRoomRow = $this->db
+                        ->select('quotation_properties_id_fk')
+                        ->from($this->quotation_properties_rooms)
+                        ->where('quotation_properties_rooms_id', $new_room_id)
+                        ->where('quotation_properties_rooms_status', 1)
+                        ->get()
+                        ->row_array();
+
+                    if ($newRoomRow) {
+                        $new_property_id = (int)$newRoomRow['quotation_properties_id_fk'];
+
+                        // Get new property's day_id
+                        $newPropRow = $this->db
+                            ->select('quotation_properties_days_id_fk')
+                            ->from($this->quotation_properties)
+                            ->where('quotation_properties_id', $new_property_id)
+                            ->where('quotation_properties_status', 1)
+                            ->get()
+                            ->row_array();
+
+                        $new_day_id = $newPropRow ? (int)$newPropRow['quotation_properties_days_id_fk'] : 0;
+
+                        // Find new option_id via optionMap
+                        $new_option_id = 0;
+                        if (isset($oldOptionPkgMap[$old_option_id])) {
+                            $pkg_common = $oldOptionPkgMap[$old_option_id];
+                            if (isset($optionMap[$pkg_common])) {
+                                $new_option_id = (int)$optionMap[$pkg_common];
+                            }
+                        }
+
+                        $this->db->where('id', $conf['id']);
+                        $this->db->update('quotation_confirmation', array(
+                            'option_id_fk' => $new_option_id,
+                            'properties_day_id_fk' => $new_day_id,
+                            'properties_id_fk' => $new_property_id,
+                            'properties_room_id_fk' => $new_room_id
+                        ));
+                    } else {
+                        // Room no longer exists, deactivate confirmation entry
+                        $this->db->where('id', $conf['id']);
+                        $this->db->update('quotation_confirmation', array('property_confirmation_status' => 0));
+                    }
+                } else {
+                    // Room was removed, deactivate confirmation entry
+                    $this->db->where('id', $conf['id']);
+                    $this->db->update('quotation_confirmation', array('property_confirmation_status' => 0));
+                }
+            }
+        }
+
 
 
         /* ================= SAVE UPDATED PROPERTY INCLUSIONS ================= */
@@ -4947,6 +5069,15 @@ if (!empty($payload['inclusions']) && is_array($payload['inclusions'])) {
 
 
         $this->update_quotation_inclusion_and_special_day_links($quotation_id);
+
+
+
+        /* ================= SYNC RECEIPT SCHEDULER & PROPERTY SCHEDULER TOTALS ================= */
+        $this->load->model('Receipt_scheduler_model');
+        $this->Receipt_scheduler_model->sync_total_amount($quotation_id);
+
+        $this->load->model('Property_reservation_model');
+        $this->Property_reservation_model->sync_property_scheduler_totals($quotation_id);
 
 
 
@@ -8467,6 +8598,19 @@ public function ajax_delete()
 
 		$special_requirements = $this->Quotation_model->get_quotation_special_requirements($id);
 
+		// Fetch confirmed option ID and confirmed rooms for highlighting
+		$confirmed = $this->db
+			->select('option_id_fk')
+			->from('quotation_confirmation')
+			->where('quotation_id_fk', (int)$id)
+			->where('property_confirmation_status', 1)
+			->group_by('option_id_fk')
+			->order_by('id', 'ASC')
+			->get()
+			->row_array();
+		$confirmed_option_id = $confirmed ? (int)$confirmed['option_id_fk'] : 0;
+		$confirmed_rooms = $this->Quotation_model->get_saved_confirmation($id);
+
 
 
 		echo json_encode(array(
@@ -8479,7 +8623,11 @@ public function ajax_delete()
 
 			'property_inclusions' => $property_inclusions,
 
-			'special_requirements' => $special_requirements
+			'special_requirements' => $special_requirements,
+
+			'confirmed_option_id' => $confirmed_option_id,
+
+			'confirmed_rooms' => $confirmed_rooms
 
 		));
 
@@ -9495,6 +9643,11 @@ public function ajax_delete()
 
 		$currentuserid = $this->session->userdata('user_id');
 
+		// Get current quotation status before any changes
+		$current_q = $this->db->select('quotation_current_status')->from('quotation')->where('quotation_id', $quotation_id)->get()->row_array();
+		$current_status_val = $current_q ? (int)$current_q['quotation_current_status'] : 1;
+		$rooms_structurally_changed = false;
+
 		$this->db->trans_begin();
 
 		try {
@@ -9590,13 +9743,12 @@ public function ajax_delete()
 				}
 			}
 
-			// Update quotation-level fields
+			// Update quotation-level fields (status updated later after room processing)
 			$quotationData = array(
 				'quotation_title' => $this->input->post('quotation_title'),
 				'quotation_remarks' => $this->input->post('quotation_remarks'),
 				'total_inclusion_amount' => $this->input->post('total_inclusion_amount'),
 				'total_special_requirment_amount' => $this->input->post('total_special_requirment_amount'),
-				'quotation_current_status' => 1,
 				'quotation_updatedby_user_id' => $currentuserid,
 				'quotation_updated_at' => $date1,
 			);
@@ -9809,111 +9961,114 @@ public function ajax_delete()
 										'quotation_properties_id_fk' => $property_id,
 										'packages_properties_rooms_id_fk' => isset($room['packages_properties_rooms_id_fk']) ? $room['packages_properties_rooms_id_fk'] : 0,
 										'quotation_properties_rooms_id_fk' => isset($room['quotation_properties_rooms_id_fk']) ? $room['quotation_properties_rooms_id_fk'] : 0,
-										'total_room_cost' => isset($room['total_room_cost']) ? (float)$room['total_room_cost'] : 0,
-										'quotation_properties_rooms_status' => 1
+									'total_room_cost' => isset($room['total_room_cost']) ? (float)$room['total_room_cost'] : 0,
+									'quotation_properties_rooms_status' => 1
+								);
+
+								if ($existing_room_pk > 0 && in_array($existing_room_pk, $existingRoomIds, true)) {
+									$quotation_properties_room_id = $existing_room_pk;
+									$this->db->where('quotation_properties_rooms_id', $quotation_properties_room_id);
+									$this->db->update($this->quotation_properties_rooms, $roomData);
+								} else {
+									$quotation_properties_room_id = $this->General_model->add_returnID($this->quotation_properties_rooms, $roomData);
+									if (!$quotation_properties_room_id) {
+										throw new Exception('Room insert failed');
+									}
+									$rooms_structurally_changed = true;
+								}
+								$quotation_properties_room_id = (int)$quotation_properties_room_id;
+								$matchedRoomIds[] = $quotation_properties_room_id;
+
+								// ---- Tariff for this room: update in place, keep existing row if unchanged ----
+								if (!empty($room['tariff_data']) && is_array($room['tariff_data'])) {
+									$td = $room['tariff_data'];
+									$tariff_fields = array(
+										'packages_properties_days_id_fk' => isset($td['packages_properties_days_id_fk']) ? (int)$td['packages_properties_days_id_fk'] : 0,
+										'pax_wise_bed_adult_db_count' => isset($td['pax_wise_bed_adult_db_count']) ? (int)$td['pax_wise_bed_adult_db_count'] : 0,
+										'pax_wise_bed_adult_eb_count' => isset($td['pax_wise_bed_adult_eb_count']) ? (int)$td['pax_wise_bed_adult_eb_count'] : 0,
+										'pax_wise_bed_adult_sgl_count' => isset($td['pax_wise_bed_adult_sgl_count']) ? (int)$td['pax_wise_bed_adult_sgl_count'] : 0,
+										'pax_wise_bed_child_db_count' => isset($td['pax_wise_bed_child_db_count']) ? (int)$td['pax_wise_bed_child_db_count'] : 0,
+										'pax_wise_bed_child_eb_count' => isset($td['pax_wise_bed_child_eb_count']) ? (int)$td['pax_wise_bed_child_eb_count'] : 0,
+										'pax_wise_bed_child_sb_count' => isset($td['pax_wise_bed_child_sb_count']) ? (int)$td['pax_wise_bed_child_sb_count'] : 0,
+										'pax_wise_bed_baby_db_count' => isset($td['pax_wise_bed_baby_db_count']) ? (int)$td['pax_wise_bed_baby_db_count'] : 0,
+										'pax_wise_bed_baby_eb_count' => isset($td['pax_wise_bed_baby_eb_count']) ? (int)$td['pax_wise_bed_baby_eb_count'] : 0,
+										'pax_wise_bed_baby_sb_count' => isset($td['pax_wise_bed_baby_sb_count']) ? (int)$td['pax_wise_bed_baby_sb_count'] : 0,
+										'room_unit_auto_count' => isset($td['room_unit_auto_count']) ? (int)$td['room_unit_auto_count'] : 0,
+										'room_unit_auto_rate' => isset($td['room_unit_auto_rate']) ? (float)$td['room_unit_auto_rate'] : 0,
+										'room_unit_auto_total_rate' => isset($td['room_unit_auto_total_rate']) ? (float)$td['room_unit_auto_total_rate'] : 0,
+										'room_unit_manual_count' => isset($td['room_unit_manual_count']) ? (int)$td['room_unit_manual_count'] : 0,
+										'room_unit_manual_rate' => isset($td['room_unit_manual_rate']) ? (float)$td['room_unit_manual_rate'] : 0,
+										'room_unit_manual_total_rate' => isset($td['room_unit_manual_total_rate']) ? (float)$td['room_unit_manual_total_rate'] : 0,
+										'extra_bed_adult_auto_count' => isset($td['extra_bed_adult_auto_count']) ? (int)$td['extra_bed_adult_auto_count'] : 0,
+										'extra_bed_adult_auto_rate' => isset($td['extra_bed_adult_auto_rate']) ? (float)$td['extra_bed_adult_auto_rate'] : 0,
+										'extra_bed_adult_auto_total_rate' => isset($td['extra_bed_adult_auto_total_rate']) ? (float)$td['extra_bed_adult_auto_total_rate'] : 0,
+										'extra_bed_adult_manual_count' => isset($td['extra_bed_adult_manual_count']) ? (int)$td['extra_bed_adult_manual_count'] : 0,
+										'extra_bed_adult_manual_rate' => isset($td['extra_bed_adult_manual_rate']) ? (float)$td['extra_bed_adult_manual_rate'] : 0,
+										'extra_bed_adult_manual_total_rate' => isset($td['extra_bed_adult_manual_total_rate']) ? (float)$td['extra_bed_adult_manual_total_rate'] : 0,
+										'extra_bed_child_auto_count' => isset($td['extra_bed_child_auto_count']) ? (int)$td['extra_bed_child_auto_count'] : 0,
+										'extra_bed_child_auto_rate' => isset($td['extra_bed_child_auto_rate']) ? (float)$td['extra_bed_child_auto_rate'] : 0,
+										'extra_bed_child_auto_total_rate' => isset($td['extra_bed_child_auto_total_rate']) ? (float)$td['extra_bed_child_auto_total_rate'] : 0,
+										'extra_bed_child_manual_count' => isset($td['extra_bed_child_manual_count']) ? (int)$td['extra_bed_child_manual_count'] : 0,
+										'extra_bed_child_manual_rate' => isset($td['extra_bed_child_manual_rate']) ? (float)$td['extra_bed_child_manual_rate'] : 0,
+										'extra_bed_child_manual_total_rate' => isset($td['extra_bed_child_manual_total_rate']) ? (float)$td['extra_bed_child_manual_total_rate'] : 0,
+										'child_sharing_bed_auto_count' => isset($td['child_sharing_bed_auto_count']) ? (int)$td['child_sharing_bed_auto_count'] : 0,
+										'child_sharing_bed_auto_rate' => isset($td['child_sharing_bed_auto_rate']) ? (float)$td['child_sharing_bed_auto_rate'] : 0,
+										'child_sharing_bed_auto_total_rate' => isset($td['child_sharing_bed_auto_total_rate']) ? (float)$td['child_sharing_bed_auto_total_rate'] : 0,
+										'child_sharing_bed_manual_count' => isset($td['child_sharing_bed_manual_count']) ? (int)$td['child_sharing_bed_manual_count'] : 0,
+										'child_sharing_bed_manual_rate' => isset($td['child_sharing_bed_manual_rate']) ? (float)$td['child_sharing_bed_manual_rate'] : 0,
+										'child_sharing_bed_manual_total_rate' => isset($td['child_sharing_bed_manual_total_rate']) ? (float)$td['child_sharing_bed_manual_total_rate'] : 0,
+										'single_occupancy_auto_count' => isset($td['single_occupancy_auto_count']) ? (int)$td['single_occupancy_auto_count'] : 0,
+										'single_occupancy_auto_rate' => isset($td['single_occupancy_auto_rate']) ? (float)$td['single_occupancy_auto_rate'] : 0,
+										'single_occupancy_auto_total_rate' => isset($td['single_occupancy_auto_total_rate']) ? (float)$td['single_occupancy_auto_total_rate'] : 0,
+										'single_occupancy_manual_count' => isset($td['single_occupancy_manual_count']) ? (int)$td['single_occupancy_manual_count'] : 0,
+										'single_occupancy_manual_rate' => isset($td['single_occupancy_manual_rate']) ? (float)$td['single_occupancy_manual_rate'] : 0,
+										'single_occupancy_manual_total_rate' => isset($td['single_occupancy_manual_total_rate']) ? (float)$td['single_occupancy_manual_total_rate'] : 0,
+										'supplyment_auto_cost' => isset($td['supplyment_auto_cost']) ? (float)$td['supplyment_auto_cost'] : 0,
+										'supplyment_auto_total_cost' => isset($td['supplyment_auto_total_cost']) ? (float)$td['supplyment_auto_total_cost'] : 0,
+										'supplyment_manual_cost' => isset($td['supplyment_manual_cost']) ? (float)$td['supplyment_manual_cost'] : 0,
+										'supplyment_manual_total_cost' => isset($td['supplyment_manual_total_cost']) ? (float)$td['supplyment_manual_total_cost'] : 0,
+										'auto_total_rate' => isset($td['auto_total_rate']) ? (float)$td['auto_total_rate'] : 0,
+										'manual_total_rate' => isset($td['manual_total_rate']) ? (float)$td['manual_total_rate'] : 0,
 									);
 
-									if ($existing_room_pk > 0 && in_array($existing_room_pk, $existingRoomIds, true)) {
-										$quotation_properties_room_id = $existing_room_pk;
-										$this->db->where('quotation_properties_rooms_id', $quotation_properties_room_id);
-										$this->db->update($this->quotation_properties_rooms, $roomData);
+									$existingTariff = $this->db
+										->select('quotation_room_tariff_details_id')
+										->from('quotation_room_tariff_details')
+										->where('quotation_properties_rooms_id_fk', $quotation_properties_room_id)
+										->where('quotation_room_tariff_details_status', 1)
+										->get()
+										->row_array();
+
+									if ($existingTariff) {
+										$this->db->where('quotation_room_tariff_details_id', $existingTariff['quotation_room_tariff_details_id']);
+										$this->db->update('quotation_room_tariff_details', $tariff_fields);
 									} else {
-										$quotation_properties_room_id = $this->General_model->add_returnID($this->quotation_properties_rooms, $roomData);
-										if (!$quotation_properties_room_id) {
-											throw new Exception('Room insert failed');
-										}
+										$tariff_fields['quotation_id_fk'] = $quotation_id;
+										$tariff_fields['quotation_properties_rooms_id_fk'] = $quotation_properties_room_id;
+										$tariff_fields['quotation_room_tariff_details_status'] = 1;
+										$this->db->insert('quotation_room_tariff_details', $tariff_fields);
 									}
-									$quotation_properties_room_id = (int)$quotation_properties_room_id;
-									$matchedRoomIds[] = $quotation_properties_room_id;
-
-									// ---- Tariff for this room: update in place, keep existing row if unchanged ----
-									if (!empty($room['tariff_data']) && is_array($room['tariff_data'])) {
-										$td = $room['tariff_data'];
-										$tariff_fields = array(
-											'packages_properties_days_id_fk' => isset($td['packages_properties_days_id_fk']) ? (int)$td['packages_properties_days_id_fk'] : 0,
-											'pax_wise_bed_adult_db_count' => isset($td['pax_wise_bed_adult_db_count']) ? (int)$td['pax_wise_bed_adult_db_count'] : 0,
-											'pax_wise_bed_adult_eb_count' => isset($td['pax_wise_bed_adult_eb_count']) ? (int)$td['pax_wise_bed_adult_eb_count'] : 0,
-											'pax_wise_bed_adult_sgl_count' => isset($td['pax_wise_bed_adult_sgl_count']) ? (int)$td['pax_wise_bed_adult_sgl_count'] : 0,
-											'pax_wise_bed_child_db_count' => isset($td['pax_wise_bed_child_db_count']) ? (int)$td['pax_wise_bed_child_db_count'] : 0,
-											'pax_wise_bed_child_eb_count' => isset($td['pax_wise_bed_child_eb_count']) ? (int)$td['pax_wise_bed_child_eb_count'] : 0,
-											'pax_wise_bed_child_sb_count' => isset($td['pax_wise_bed_child_sb_count']) ? (int)$td['pax_wise_bed_child_sb_count'] : 0,
-											'pax_wise_bed_baby_db_count' => isset($td['pax_wise_bed_baby_db_count']) ? (int)$td['pax_wise_bed_baby_db_count'] : 0,
-											'pax_wise_bed_baby_eb_count' => isset($td['pax_wise_bed_baby_eb_count']) ? (int)$td['pax_wise_bed_baby_eb_count'] : 0,
-											'pax_wise_bed_baby_sb_count' => isset($td['pax_wise_bed_baby_sb_count']) ? (int)$td['pax_wise_bed_baby_sb_count'] : 0,
-											'room_unit_auto_count' => isset($td['room_unit_auto_count']) ? (int)$td['room_unit_auto_count'] : 0,
-											'room_unit_auto_rate' => isset($td['room_unit_auto_rate']) ? (float)$td['room_unit_auto_rate'] : 0,
-											'room_unit_auto_total_rate' => isset($td['room_unit_auto_total_rate']) ? (float)$td['room_unit_auto_total_rate'] : 0,
-											'room_unit_manual_count' => isset($td['room_unit_manual_count']) ? (int)$td['room_unit_manual_count'] : 0,
-											'room_unit_manual_rate' => isset($td['room_unit_manual_rate']) ? (float)$td['room_unit_manual_rate'] : 0,
-											'room_unit_manual_total_rate' => isset($td['room_unit_manual_total_rate']) ? (float)$td['room_unit_manual_total_rate'] : 0,
-											'extra_bed_adult_auto_count' => isset($td['extra_bed_adult_auto_count']) ? (int)$td['extra_bed_adult_auto_count'] : 0,
-											'extra_bed_adult_auto_rate' => isset($td['extra_bed_adult_auto_rate']) ? (float)$td['extra_bed_adult_auto_rate'] : 0,
-											'extra_bed_adult_auto_total_rate' => isset($td['extra_bed_adult_auto_total_rate']) ? (float)$td['extra_bed_adult_auto_total_rate'] : 0,
-											'extra_bed_adult_manual_count' => isset($td['extra_bed_adult_manual_count']) ? (int)$td['extra_bed_adult_manual_count'] : 0,
-											'extra_bed_adult_manual_rate' => isset($td['extra_bed_adult_manual_rate']) ? (float)$td['extra_bed_adult_manual_rate'] : 0,
-											'extra_bed_adult_manual_total_rate' => isset($td['extra_bed_adult_manual_total_rate']) ? (float)$td['extra_bed_adult_manual_total_rate'] : 0,
-											'extra_bed_child_auto_count' => isset($td['extra_bed_child_auto_count']) ? (int)$td['extra_bed_child_auto_count'] : 0,
-											'extra_bed_child_auto_rate' => isset($td['extra_bed_child_auto_rate']) ? (float)$td['extra_bed_child_auto_rate'] : 0,
-											'extra_bed_child_auto_total_rate' => isset($td['extra_bed_child_auto_total_rate']) ? (float)$td['extra_bed_child_auto_total_rate'] : 0,
-											'extra_bed_child_manual_count' => isset($td['extra_bed_child_manual_count']) ? (int)$td['extra_bed_child_manual_count'] : 0,
-											'extra_bed_child_manual_rate' => isset($td['extra_bed_child_manual_rate']) ? (float)$td['extra_bed_child_manual_rate'] : 0,
-											'extra_bed_child_manual_total_rate' => isset($td['extra_bed_child_manual_total_rate']) ? (float)$td['extra_bed_child_manual_total_rate'] : 0,
-											'child_sharing_bed_auto_count' => isset($td['child_sharing_bed_auto_count']) ? (int)$td['child_sharing_bed_auto_count'] : 0,
-											'child_sharing_bed_auto_rate' => isset($td['child_sharing_bed_auto_rate']) ? (float)$td['child_sharing_bed_auto_rate'] : 0,
-											'child_sharing_bed_auto_total_rate' => isset($td['child_sharing_bed_auto_total_rate']) ? (float)$td['child_sharing_bed_auto_total_rate'] : 0,
-											'child_sharing_bed_manual_count' => isset($td['child_sharing_bed_manual_count']) ? (int)$td['child_sharing_bed_manual_count'] : 0,
-											'child_sharing_bed_manual_rate' => isset($td['child_sharing_bed_manual_rate']) ? (float)$td['child_sharing_bed_manual_rate'] : 0,
-											'child_sharing_bed_manual_total_rate' => isset($td['child_sharing_bed_manual_total_rate']) ? (float)$td['child_sharing_bed_manual_total_rate'] : 0,
-											'single_occupancy_auto_count' => isset($td['single_occupancy_auto_count']) ? (int)$td['single_occupancy_auto_count'] : 0,
-											'single_occupancy_auto_rate' => isset($td['single_occupancy_auto_rate']) ? (float)$td['single_occupancy_auto_rate'] : 0,
-											'single_occupancy_auto_total_rate' => isset($td['single_occupancy_auto_total_rate']) ? (float)$td['single_occupancy_auto_total_rate'] : 0,
-											'single_occupancy_manual_count' => isset($td['single_occupancy_manual_count']) ? (int)$td['single_occupancy_manual_count'] : 0,
-											'single_occupancy_manual_rate' => isset($td['single_occupancy_manual_rate']) ? (float)$td['single_occupancy_manual_rate'] : 0,
-											'single_occupancy_manual_total_rate' => isset($td['single_occupancy_manual_total_rate']) ? (float)$td['single_occupancy_manual_total_rate'] : 0,
-											'supplyment_auto_cost' => isset($td['supplyment_auto_cost']) ? (float)$td['supplyment_auto_cost'] : 0,
-											'supplyment_auto_total_cost' => isset($td['supplyment_auto_total_cost']) ? (float)$td['supplyment_auto_total_cost'] : 0,
-											'supplyment_manual_cost' => isset($td['supplyment_manual_cost']) ? (float)$td['supplyment_manual_cost'] : 0,
-											'supplyment_manual_total_cost' => isset($td['supplyment_manual_total_cost']) ? (float)$td['supplyment_manual_total_cost'] : 0,
-											'auto_total_rate' => isset($td['auto_total_rate']) ? (float)$td['auto_total_rate'] : 0,
-											'manual_total_rate' => isset($td['manual_total_rate']) ? (float)$td['manual_total_rate'] : 0,
-										);
-
-										$existingTariff = $this->db
-											->select('quotation_room_tariff_details_id')
-											->from('quotation_room_tariff_details')
-											->where('quotation_properties_rooms_id_fk', $quotation_properties_room_id)
-											->where('quotation_room_tariff_details_status', 1)
-											->get()
-											->row_array();
-
-										if ($existingTariff) {
-											$this->db->where('quotation_room_tariff_details_id', $existingTariff['quotation_room_tariff_details_id']);
-											$this->db->update('quotation_room_tariff_details', $tariff_fields);
-										} else {
-											$tariff_fields['quotation_id_fk'] = $quotation_id;
-											$tariff_fields['quotation_properties_rooms_id_fk'] = $quotation_properties_room_id;
-											$tariff_fields['quotation_room_tariff_details_status'] = 1;
-											$this->db->insert('quotation_room_tariff_details', $tariff_fields);
-										}
-									}
-									// If no tariff_data submitted for this room, leave its existing tariff row untouched.
 								}
+								// If no tariff_data submitted for this room, leave its existing tariff row untouched.
 							}
+						}
 
-							// Soft-delete rooms that were removed from this property during the edit
+						// Soft-delete rooms that were removed from this property during the edit
 							$removedRoomIds = array_diff($existingRoomIds, $matchedRoomIds);
 							if (!empty($removedRoomIds)) {
+								$rooms_structurally_changed = true;
 								$this->db->where_in('quotation_properties_rooms_id', $removedRoomIds);
 								$this->db->update($this->quotation_properties_rooms, array('quotation_properties_rooms_status' => 0));
 								$this->db->where_in('quotation_properties_rooms_id_fk', $removedRoomIds);
 								$this->db->update('quotation_room_tariff_details', array('quotation_room_tariff_details_status' => 0));
 							}
-						}
 					}
+				}
 
-					// Soft-delete properties that were removed from this day during the edit
+				// Soft-delete properties that were removed from this day during the edit
 					$removedPropIds = array_diff($existingPropIds, $matchedPropIds);
 					if (!empty($removedPropIds)) {
+						$rooms_structurally_changed = true;
 						$this->db->where_in('quotation_properties_id', $removedPropIds);
 						$this->db->update($this->quotation_properties, array('quotation_properties_status' => 0));
 
@@ -9943,6 +10098,7 @@ public function ajax_delete()
 			// Soft-delete days that were removed from this option during the edit
 			$removedDayIds = array_diff($existingDayIds, $matchedDayIds);
 			if (!empty($removedDayIds)) {
+				$rooms_structurally_changed = true;
 				$this->db->where_in('quotation_properties_days_id', $removedDayIds);
 				$this->db->update($this->quotation_properties_days, array('quotation_properties_days_status' => 0));
 
@@ -9983,6 +10139,16 @@ public function ajax_delete()
 					}
 				}
 			}
+
+			/* ================= DETERMINE STATUS AFTER ROOM PROCESSING ================= */
+			$new_status = $current_status_val;
+			$needs_reconfirmation = false;
+			if ($rooms_structurally_changed && in_array($current_status_val, array(5, 8, 9, 7))) {
+				$new_status = 5; // Confirmed — needs client re-confirmation
+				$needs_reconfirmation = true;
+			}
+			$this->db->where('quotation_id', $quotation_id);
+			$this->db->update('quotation', array('quotation_current_status' => $new_status));
 
 			/* ================= CLEANUP STALE CONFIRMATION ENTRIES ================= */
 			// Deactivate confirmation rows that reference rooms which are now soft-deleted
@@ -10113,10 +10279,16 @@ public function ajax_delete()
 
 			$this->db->trans_commit();
 
-			echo json_encode(array(
+			$resp = array(
 				'status' => true,
-				'message' => 'Quotation updated successfully'
-			));
+				'message' => 'Quotation updated successfully',
+				'rooms_changed' => $rooms_structurally_changed,
+				'needs_reconfirmation' => $needs_reconfirmation,
+			);
+			if ($needs_reconfirmation) {
+				$resp['message'] = 'Quotation updated. Rooms were changed — please re-confirm from Client Confirmation and complete property reservations for the updated properties.';
+			}
+			echo json_encode($resp);
 
 		} catch (Exception $e) {
 			$this->db->trans_rollback();
