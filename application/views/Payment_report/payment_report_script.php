@@ -26,6 +26,15 @@ function fmtDate(d) {
 }
 
 function getPeriodDates(period) {
+    if (period === 'custom') {
+        var startParam = getUrlParam('start');
+        var endParam   = getUrlParam('end');
+        if (startParam && endParam) {
+            var s = startParam.split('-');
+            var e = endParam.split('-');
+            return { start: s[2] + '/' + s[1] + '/' + s[0], end: e[2] + '/' + e[1] + '/' + e[0] };
+        }
+    }
     var now   = new Date();
     var start = new Date(now);
     var end   = new Date(now);

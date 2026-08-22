@@ -9123,9 +9123,11 @@ public function ajax_delete()
 			show_permission_denied();
 			return;
 		}
+		$this->load->helper('permission');
 		$template['staff']            = $this->Quotation_model->fetch_staff_users();
 		$template['current_user_type'] = $this->session->userdata('user_type');
 		$template['current_user_id']   = $this->session->userdata('user_id');
+		$template['can_view_all']      = has_permission('VIEW_ALL');
 		$template['body']   = 'Quotation/converted_trips_report';
 		$template['script'] = 'Quotation/converted_trips_report_script';
 		$this->load->view('template', $template);
@@ -9133,6 +9135,7 @@ public function ajax_delete()
 
 	public function ajax_converted_trips_report()
 	{
+		$this->load->helper('permission');
 		$param['draw'] = (isset($_REQUEST['draw'])) ? $_REQUEST['draw'] : '';
 		$param['length'] = (isset($_REQUEST['length'])) ? $_REQUEST['length'] : '10';
 		$param['start'] = (isset($_REQUEST['start'])) ? $_REQUEST['start'] : '0';
@@ -9142,7 +9145,7 @@ public function ajax_delete()
 
 		$param['guest_name'] = (isset($_REQUEST['guest_name'])) ? $_REQUEST['guest_name'] : '';
 		$param['trip_code'] = (isset($_REQUEST['trip_code'])) ? $_REQUEST['trip_code'] : '';
-		if ($this->currentusertype != 'A') {
+		if ($this->currentusertype != 'A' && !has_permission('VIEW_ALL')) {
 			$param['staff_id'] = $this->currentuserid;
 		} else {
 			$param['staff_id'] = (isset($_REQUEST['staff_id'])) ? $_REQUEST['staff_id'] : '';
@@ -9160,7 +9163,7 @@ public function ajax_delete()
 			$param['end_date'] = date('Y-m-d', strtotime($travels_end_date));
 		}
 
-		$param['date_type'] = (isset($_REQUEST['date_type'])) ? $_REQUEST['date_type'] : 'arrival';
+		$param['date_type'] = (isset($_REQUEST['date_type']) && $_REQUEST['date_type'] !== '') ? $_REQUEST['date_type'] : '';
 
 		$data = $this->Quotation_model->getConvertedTripsReport($param);
 		echo json_encode($data);
@@ -9287,9 +9290,11 @@ public function ajax_delete()
 			show_permission_denied();
 			return;
 		}
+		$this->load->helper('permission');
 		$template['staff']            = $this->Quotation_model->fetch_staff_users();
 		$template['current_user_type'] = $this->currentusertype;
 		$template['current_user_id']   = $this->currentuserid;
+		$template['can_view_all']      = has_permission('VIEW_ALL');
 		$template['body']   = 'Quotation/quotation_report';
 		$template['script'] = 'Quotation/quotation_report_script';
 		$this->load->view('template', $template);
@@ -9297,6 +9302,7 @@ public function ajax_delete()
 
 	public function ajax_quotation_report()
 	{
+		$this->load->helper('permission');
 		$param['draw']        = isset($_REQUEST['draw'])                  ? $_REQUEST['draw']                  : '';
 		$param['length']      = isset($_REQUEST['length'])                ? $_REQUEST['length']                : '10';
 		$param['start']       = isset($_REQUEST['start'])                 ? $_REQUEST['start']                 : '0';
@@ -9307,7 +9313,7 @@ public function ajax_delete()
 		$param['guest_name']  = isset($_REQUEST['guest_name'])  ? $_REQUEST['guest_name']  : '';
 		$param['quotation_status'] = isset($_REQUEST['quotation_status']) ? $_REQUEST['quotation_status'] : '';
 
-		if ($this->currentusertype != 'A') {
+		if ($this->currentusertype != 'A' && !has_permission('VIEW_ALL')) {
 			$param['staff_id'] = $this->currentuserid;
 		} else {
 			$param['staff_id'] = isset($_REQUEST['staff_id']) ? $_REQUEST['staff_id'] : '';
@@ -9346,9 +9352,10 @@ public function ajax_delete()
 		if (!has_permission('TRANSPORTER_REPORT')) {
 			redirect('/login');
 		}
-
+		$this->load->helper('permission');
 		$template['current_user_type'] = $this->currentusertype;
 		$template['current_user_id']   = $this->currentuserid;
+		$template['can_view_all']      = has_permission('VIEW_ALL');
 		$template['body']   = 'Quotation/transporter_report';
 		$template['script'] = 'Quotation/transporter_report_script';
 		$this->load->view('template', $template);
@@ -9356,6 +9363,7 @@ public function ajax_delete()
 
 	public function ajax_get_driver_not_assigned()
 	{
+		$this->load->helper('permission');
 		if (!has_permission('TRANSPORTER_REPORT')) {
 			echo json_encode(array('status' => false, 'message' => 'Permission denied'));
 			return;
@@ -9368,7 +9376,7 @@ public function ajax_delete()
 		$param['dir']         = isset($_REQUEST['order'][0]['dir'])       ? $_REQUEST['order'][0]['dir']       : '';
 		$param['searchValue'] = isset($_REQUEST['search']['value'])       ? $_REQUEST['search']['value']       : '';
 
-		if ($this->currentusertype != 'A') {
+		if ($this->currentusertype != 'A' && !has_permission('VIEW_ALL')) {
 			$param['transporter_id_fk'] = $this->currentuserid;
 		}
 

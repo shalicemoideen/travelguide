@@ -149,16 +149,22 @@ $('#quotation_daterange').on('cancel.daterangepicker', function() {
     $(this).val('');
 });
 
-$('#travel_start_date_filter').datepicker({
-    format: 'dd/mm/yyyy',
-    autoclose: true,
-    todayHighlight: true
+$('#travel_daterange').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+        format: 'DD/MM/YYYY',
+        cancelLabel: 'Clear'
+    }
 });
 
-$('#travel_end_date_filter').datepicker({
-    format: 'dd/mm/yyyy',
-    autoclose: true,
-    todayHighlight: true
+$('#travel_daterange').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(
+        picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+    );
+});
+
+$('#travel_daterange').on('cancel.daterangepicker', function() {
+    $(this).val('');
 });
  
 ////***Date picker *****///
@@ -221,8 +227,7 @@ $('#reset_filter').click(function() {
     $('#arriving_destination_filter').val('');
     $('#departuring_destination_filter').val('');
     $('#quotation_daterange').val('');
-    $('#travel_start_date_filter').val('');
-    $('#travel_end_date_filter').val('');
+    $('#travel_daterange').val('');
     $('#quotation_created_by_userid').val('').trigger('change');
 
     // Reload table
@@ -296,8 +301,15 @@ var table;
                     d.end_date = '';
                 }
 
-                d.travel_start_date = $("#travel_start_date_filter").val() || '';
-                d.travel_end_date = $("#travel_end_date_filter").val() || '';
+                var travelRange = $("#travel_daterange").val();
+                if (travelRange) {
+                    var travelDates = travelRange.split(' - ');
+                    d.travel_start_date = travelDates[0] || '';
+                    d.travel_end_date = travelDates[1] || '';
+                } else {
+                    d.travel_start_date = '';
+                    d.travel_end_date = '';
+                }
            }            
         },
         "createdRow": function ( row, data, index ) {

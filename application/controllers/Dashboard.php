@@ -11,14 +11,63 @@ class Dashboard extends MY_Controller {
         $this->currentusertype = $this->session->userdata('user_type');
 		
 		
-        $this->load->model('General_model');
+        $this->load->model('General_Model');
         $this->load->model('Dashboard_model');
-        
+        $this->load->helper('permission');
 	}
 	
 	
 	public function index()
 	{
+		$dashboard_perms = array(
+			'DASHBOARD_TOTAL_LEADS',
+			'DASHBOARD_CONVERTED_TRIPS',
+			'DASHBOARD_ARRIVAL',
+			'DASHBOARD_DEPARTURE',
+			'DASHBOARD_QUOT_GENERATED',
+			'DASHBOARD_QUOT_CONFIRMED',
+			'DASHBOARD_QUOT_RESERVATION',
+			'DASHBOARD_DRIVER_NOT_ASSIGNED',
+			'DASHBOARD_CUSTOMER_PAYMENT_PENDING',
+			'DASHBOARD_PROPERTY_PAYMENT_PENDING',
+			'DASHBOARD_LEADS_INCOMING_CHART',
+			'DASHBOARD_LEADS_STATUS_CHART',
+			'DASHBOARD_STAFF_CHART',
+		);
+
+		$has_any = false;
+		foreach ($dashboard_perms as $perm) {
+			if (has_permission($perm)) {
+				$has_any = true;
+				break;
+			}
+		}
+
+		if (!$has_any && $this->currentusertype != 'A') {
+			show_permission_denied();
+			return;
+		}
+
+		$view_all = has_permission('VIEW_ALL');
+		$this->Dashboard_model->setViewAll($view_all);
+
+		$isAdmin = ($this->currentusertype == 'A');
+
+		$template['can_view_all']                    = $view_all;
+		$template['show_total_leads']                = $isAdmin || has_permission('DASHBOARD_TOTAL_LEADS');
+		$template['show_converted_trips']            = $isAdmin || has_permission('DASHBOARD_CONVERTED_TRIPS');
+		$template['show_arrival']                    = $isAdmin || has_permission('DASHBOARD_ARRIVAL');
+		$template['show_departure']                  = $isAdmin || has_permission('DASHBOARD_DEPARTURE');
+		$template['show_quot_generated']             = $isAdmin || has_permission('DASHBOARD_QUOT_GENERATED');
+		$template['show_quot_confirmed']             = $isAdmin || has_permission('DASHBOARD_QUOT_CONFIRMED');
+		$template['show_quot_reservation']           = $isAdmin || has_permission('DASHBOARD_QUOT_RESERVATION');
+		$template['show_driver_not_assigned']        = $isAdmin || has_permission('DASHBOARD_DRIVER_NOT_ASSIGNED');
+		$template['show_customer_payment_pending']   = $isAdmin || has_permission('DASHBOARD_CUSTOMER_PAYMENT_PENDING');
+		$template['show_property_payment_pending']   = $isAdmin || has_permission('DASHBOARD_PROPERTY_PAYMENT_PENDING');
+		$template['can_view_leads_incoming']         = $isAdmin || has_permission('DASHBOARD_LEADS_INCOMING_CHART');
+		$template['can_view_leads_status']           = $isAdmin || has_permission('DASHBOARD_LEADS_STATUS_CHART');
+		$template['can_view_staff_chart']            = $isAdmin || has_permission('DASHBOARD_STAFF_CHART');
+
 		$template['allleads']      = $this->Dashboard_model->getTotalLeadsCount('today');
 		$template['converted']     = $this->Dashboard_model->getConvertedTripsCount('today');
 		$template['checkin']       = $this->Dashboard_model->getCheckinCount('today');
@@ -37,6 +86,16 @@ class Dashboard extends MY_Controller {
 	public function get_period_counts()
 	{
 		$period = $this->input->post('period') ? $this->input->post('period') : 'today';
+		$custom_start = $this->input->post('custom_start') ? $this->input->post('custom_start') : '';
+		$custom_end = $this->input->post('custom_end') ? $this->input->post('custom_end') : '';
+
+		$this->load->helper('permission');
+		$view_all = has_permission('VIEW_ALL');
+		$this->Dashboard_model->setViewAll($view_all);
+
+		if ($period === 'custom' && $custom_start && $custom_end) {
+			$this->Dashboard_model->setCustomRange($custom_start, $custom_end);
+		}
 
 		$allleads      = $this->Dashboard_model->getTotalLeadsCount($period);
 		$converted     = $this->Dashboard_model->getConvertedTripsCount($period);
@@ -68,11 +127,12 @@ class Dashboard extends MY_Controller {
 
 	public function graph_data1()
 	{
+		$this->load->helper('permission');
 		$m_month = $this->input->get('m_month') ? $this->input->get('m_month') : date('m');
 		$m_year  = $this->input->get('m_year') ? $this->input->get('m_year') : date('Y');
 		$y_year  = $this->input->get('y_year') ? $this->input->get('y_year') : date('Y');
 
-		if ($this->currentusertype != 'A') {
+		if ($this->currentusertype != 'A' && !has_permission('VIEW_ALL')) {
 			$m_staff = $this->currentuserid;
 			$y_staff = $this->currentuserid;
 		} else {
@@ -206,6 +266,9 @@ class Dashboard extends MY_Controller {
 
 	public function leads_chart_data()
 	{
+		$this->load->helper('permission');
+		$this->Dashboard_model->setViewAll(has_permission('VIEW_ALL'));
+
 		$daily_raw = $this->Dashboard_model->getMonthlyDailyLeadsCount();
 		$staff_raw = $this->Dashboard_model->getStaffLeadsAssignedVsConverted();
 		$status_raw = $this->Dashboard_model->getLeadsStatusBreakdown();

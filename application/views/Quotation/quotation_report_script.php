@@ -1,13 +1,36 @@
 <script type="text/javascript">
 
-$('#staff_id').select2({
-    minimumResultsForSearch: 0,
-    width: '100%'
-});
+////***Select2 AJAX dropdowns *****///
+function initFilterSelect2Ajax(id, url, placeholder) {
+    $('#' + id).select2({
+        width: '100%',
+        placeholder: placeholder,
+        allowClear: true,
+        minimumInputLength: 0,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/' + url,
+            type: 'GET',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) { return { q: params.term || '' }; },
+            processResults: function (data) { return { results: data.results }; },
+            cache: false
+        }
+    });
+}
 
-$('#quotation_status').select2({
-    minimumResultsForSearch: 0,
-    width: '100%'
+function initFilterSelect2Static(id, placeholder) {
+    $('#' + id).select2({ width: '100%', placeholder: placeholder, allowClear: true });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
 });
 
 $('#quotation_created_daterange').daterangepicker({
@@ -80,6 +103,15 @@ function fmtDate(d) {
 }
 
 function getPeriodDates(period) {
+    if (period === 'custom') {
+        var startParam = getUrlParam('start');
+        var endParam   = getUrlParam('end');
+        if (startParam && endParam) {
+            var s = startParam.split('-');
+            var e = endParam.split('-');
+            return { start: s[2] + '/' + s[1] + '/' + s[0], end: e[2] + '/' + e[1] + '/' + e[0] };
+        }
+    }
     var now   = new Date();
     var start = new Date(now);
     var end   = new Date(now);
@@ -100,12 +132,18 @@ function getPeriodDates(period) {
 $(document).ready(function () {
     $("#btn").click(function () {
         $("#Create").toggle();
+        if ($("#Create").is(":visible")) {
+            initFilterSelect2Ajax('staff_id', 'Leads/get_staff_dropdown', 'Select assigned staff');
+            initFilterSelect2Static('quotation_status', 'Select quotation status');
+        }
     });
 
     var status = getUrlParam('status');
     if (status && status !== '') {
-        $('#quotation_status').val(status).trigger('change');
         $('#Create').show();
+        initFilterSelect2Ajax('staff_id', 'Leads/get_staff_dropdown', 'Select assigned staff');
+        initFilterSelect2Static('quotation_status', 'Select quotation status');
+        $('#quotation_status').val(status).trigger('change');
         autoReload = true;
     }
 
@@ -114,6 +152,8 @@ $(document).ready(function () {
         var dates = getPeriodDates(period);
         $('#quotation_created_daterange').val(dates.start + ' - ' + dates.end);
         $('#Create').show();
+        initFilterSelect2Ajax('staff_id', 'Leads/get_staff_dropdown', 'Select assigned staff');
+        initFilterSelect2Static('quotation_status', 'Select quotation status');
         autoReload = true;
     }
 });

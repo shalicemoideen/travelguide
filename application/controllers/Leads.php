@@ -3653,6 +3653,7 @@ private function get_accommodation_date_by_index($start_date, $index)
 		$template['staff']            = $this->Leads_model->fetch_staff_details();
 		$template['current_user_type'] = $this->currentusertype;
 		$template['current_user_id']   = $this->currentuserid;
+		$template['can_view_all']      = has_permission('VIEW_ALL');
 		$template['body']   = 'Leads/lead_report';
 		$template['script'] = 'Leads/lead_report_script';
 		$this->load->view('template', $template);
@@ -3660,6 +3661,7 @@ private function get_accommodation_date_by_index($start_date, $index)
 
 	public function ajax_lead_report()
 	{
+		$this->load->helper('permission');
 		$param['draw']        = isset($_REQUEST['draw'])                  ? $_REQUEST['draw']                  : '';
 		$param['length']      = isset($_REQUEST['length'])                ? $_REQUEST['length']                : '10';
 		$param['start']       = isset($_REQUEST['start'])                 ? $_REQUEST['start']                 : '0';
@@ -3668,8 +3670,15 @@ private function get_accommodation_date_by_index($start_date, $index)
 		$param['searchValue'] = isset($_REQUEST['search']['value'])       ? $_REQUEST['search']['value']       : '';
 
 		$param['guest_name']  = isset($_REQUEST['guest_name'])  ? $_REQUEST['guest_name']  : '';
-		$param['staff_id']    = isset($_REQUEST['staff_id'])    ? $_REQUEST['staff_id']    : '';
 		$param['lead_status'] = isset($_REQUEST['lead_status']) ? $_REQUEST['lead_status'] : '';
+
+		if (has_permission('VIEW_ALL') && $this->currentusertype != 'A') {
+			$param['staff_id']    = isset($_REQUEST['staff_id'])    ? $_REQUEST['staff_id']    : '';
+		} elseif ($this->currentusertype != 'A') {
+			$param['staff_id']    = $this->currentuserid;
+		} else {
+			$param['staff_id']    = isset($_REQUEST['staff_id'])    ? $_REQUEST['staff_id']    : '';
+		}
 
 		$start_date = isset($_REQUEST['start_date']) ? $_REQUEST['start_date'] : '';
 		$end_date   = isset($_REQUEST['end_date'])   ? $_REQUEST['end_date']   : '';
@@ -3681,6 +3690,18 @@ private function get_accommodation_date_by_index($start_date, $index)
 		if ($end_date) {
 			$end_date = str_replace('/', '-', $end_date);
 			$param['end_date'] = date('Y-m-d', strtotime($end_date));
+		}
+
+		$travel_start_date = isset($_REQUEST['travel_start_date']) ? $_REQUEST['travel_start_date'] : '';
+		$travel_end_date   = isset($_REQUEST['travel_end_date'])   ? $_REQUEST['travel_end_date']   : '';
+
+		if ($travel_start_date) {
+			$travel_start_date = str_replace('/', '-', $travel_start_date);
+			$param['travel_start_date'] = date('Y-m-d', strtotime($travel_start_date));
+		}
+		if ($travel_end_date) {
+			$travel_end_date = str_replace('/', '-', $travel_end_date);
+			$param['travel_end_date'] = date('Y-m-d', strtotime($travel_end_date));
 		}
 
 		$data = $this->Leads_model->getLeadsReport($param);

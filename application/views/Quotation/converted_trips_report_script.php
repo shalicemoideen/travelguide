@@ -1,8 +1,32 @@
 <script type="text/javascript">
 
-$('#staff_id').select2({
-    minimumResultsForSearch: 0,
-    width: '100%'
+////***Select2 AJAX dropdowns *****///
+function initFilterSelect2Ajax(id, url, placeholder) {
+    $('#' + id).select2({
+        width: '100%',
+        placeholder: placeholder,
+        allowClear: true,
+        minimumInputLength: 0,
+        ajax: {
+            url: '<?php echo base_url(); ?>index.php/' + url,
+            type: 'GET',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) { return { q: params.term || '' }; },
+            processResults: function (data) { return { results: data.results }; },
+            cache: false
+        }
+    });
+}
+
+// auto focus search input for all select2
+$(document).on('select2:open', function () {
+    setTimeout(function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    }, 50);
 });
 
 $('#converted_trips_daterange').daterangepicker({
@@ -36,6 +60,15 @@ function fmtDate(d) {
 }
 
 function getPeriodDates(period) {
+    if (period === 'custom') {
+        var startParam = getUrlParam('start');
+        var endParam   = getUrlParam('end');
+        if (startParam && endParam) {
+            var s = startParam.split('-');
+            var e = endParam.split('-');
+            return { start: s[2] + '/' + s[1] + '/' + s[0], end: e[2] + '/' + e[1] + '/' + e[0] };
+        }
+    }
     var now   = new Date();
     var start = new Date(now);
     var end   = new Date(now);
@@ -56,6 +89,9 @@ function getPeriodDates(period) {
 $(document).ready(function () {
     $("#btn").click(function () {
         $("#Create").toggle();
+        if ($("#Create").is(":visible")) {
+            initFilterSelect2Ajax('staff_id', 'Leads/get_staff_dropdown', 'Select assigned staff');
+        }
     });
 
     var period = getUrlParam('period');
@@ -63,11 +99,21 @@ $(document).ready(function () {
         var dates = getPeriodDates(period);
         $('#converted_trips_daterange').val(dates.start + ' - ' + dates.end);
         $('#Create').show();
+        initFilterSelect2Ajax('staff_id', 'Leads/get_staff_dropdown', 'Select assigned staff');
     }
 
     var dateType = getUrlParam('date_type');
     if (dateType && dateType !== '') {
         $('#converted_trips_date_type').val(dateType);
+    }
+
+    // Dynamic labels based on date_type
+    if (dateType === 'departure') {
+        $('#report_title').text('Departure Trip Report');
+        $('#converted_trips_daterange').attr('placeholder', 'Departure Date');
+    } else if (dateType === 'arrival') {
+        $('#report_title').text('Arrival Trip Report');
+        $('#converted_trips_daterange').attr('placeholder', 'Arrival Date');
     }
 });
 
@@ -172,7 +218,11 @@ $(document).ready(function() {
             var info = api.page.info();
             var total    = info.recordsTotal;
             var filtered = info.recordsDisplay;
-            var label = 'Total Converted Trips: <strong>' + total + '</strong>';
+            var dt = $('#converted_trips_date_type').val();
+            var labelText = 'Total Converted Trips';
+            if (dt === 'departure') labelText = 'Total Departure Trip';
+            else if (dt === 'arrival') labelText = 'Total Arrival Trip';
+            var label = labelText + ': <strong>' + total + '</strong>';
             if (filtered !== total) {
                 label += ' &nbsp;|&nbsp; Filtered: <strong>' + filtered + '</strong>';
             }

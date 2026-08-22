@@ -532,8 +532,66 @@ class Receipt_scheduler_model extends CI_Model {
             $remaining = 0;
         }
 
-        // No unpaid installments to adjust; total already updated.
+        // All installments are paid — adjust the last installment to reflect the new total.
         if (empty($unpaid)) {
+            $total_paid = $this->get_total_paid_amount($scheduler_id);
+
+            // If new total is higher than what was paid, the last installment becomes partial.
+            if ($new_total > $total_paid + 0.01) {
+                $last_inst = $installments[count($installments) - 1];
+                $last_inst_calculated = (float)$last_inst->calculated_amount;
+                $last_inst_paid = (float)$last_inst->paid_amount;
+
+                // Increase the last installment's calculated amount by the difference.
+                $new_calculated = round($last_inst_calculated + ($new_total - $total_paid), 2);
+
+                $update = array(
+                    'installment_amount' => $new_calculated,
+                    'calculated_amount' => $new_calculated,
+                    'payment_status' => 'PARTIAL'
+                );
+
+                // Keep percentage in sync when the scheduler splits by percentage.
+                if ($scheduler->payment_type == 'EMI' && $scheduler->split_type == 'PERCENTAGE' && $new_total > 0) {
+                    $update['installment_percentage'] = round(($new_calculated / $new_total) * 100, 2);
+                }
+
+                $this->update_installment(
+                    array('installment_id' => $last_inst->installment_id),
+                    $update
+                );
+            }
+            // If new total is lower than what was paid, the last installment was overpaid.
+            // Mark it as PARTIAL so the pending (negative) balance is visible.
+            elseif ($new_total < $total_paid - 0.01) {
+                $last_inst = $installments[count($installments) - 1];
+                $last_inst_calculated = (float)$last_inst->calculated_amount;
+                $last_inst_paid = (float)$last_inst->paid_amount;
+
+                // Reduce the last installment's calculated amount by the overpayment.
+                $overpayment = round($total_paid - $new_total, 2);
+                $new_calculated = round($last_inst_calculated - $overpayment, 2);
+                if ($new_calculated < 0) {
+                    $new_calculated = 0;
+                }
+
+                $update = array(
+                    'installment_amount' => $new_calculated,
+                    'calculated_amount' => $new_calculated,
+                    'payment_status' => 'PARTIAL'
+                );
+
+                // Keep percentage in sync when the scheduler splits by percentage.
+                if ($scheduler->payment_type == 'EMI' && $scheduler->split_type == 'PERCENTAGE' && $new_total > 0) {
+                    $update['installment_percentage'] = round(($new_calculated / $new_total) * 100, 2);
+                }
+
+                $this->update_installment(
+                    array('installment_id' => $last_inst->installment_id),
+                    $update
+                );
+            }
+
             return true;
         }
 

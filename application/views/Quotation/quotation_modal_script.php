@@ -236,6 +236,11 @@ function resetQuotationModalForm() {
 
 $('#QuotationModal').on('hidden.bs.modal', function () {
 
+    // Cancel auto-calc if in progress
+    if (window.__autoCalcActive) {
+        cancelAutoCalc('Modal closed. Auto calculation stopped.');
+    }
+
     resetQuotationModalForm();
 
 });
@@ -8348,9 +8353,22 @@ clearRoomPricingWarnings();
     // Check if room has pending in-memory tariff data (temp_ key or numeric DB ID)
     var existingTariffKey = row.find('.quotationRoomTariffDetailsIdInput').val() || '';
 
-    // When hub reschedule is active, skip all saved tariff data.
-    // Fresh rates (from new travel dates) and occupation-based counts will be applied by the native handler.
+    // When hub reschedule is active, skip DB saved tariff data.
+    // But if auto-calc already saved pending data in memory (with user's manual counts),
+    // load that so the user sees their previously entered counts/amounts.
     if (window.isHubEdit && window.hubRescheduleNewStartISO) {
+        if (existingTariffKey) {
+            var _reschedulePending = getPendingTariffData(existingTariffKey);
+            if (_reschedulePending) {
+                window.__pendingTariffLoaded = true;
+                window.__pendingTariffDataToApply = _reschedulePending;
+                document.getElementById('modal_quotation_room_tariff_details_id').value = existingTariffKey;
+                document.getElementById('modal_packages_properties_days_id_fk').value = day_id_fk;
+                document.getElementById('modal_quotation_properties_rooms_id_fk').value = room_row_fk;
+                return;
+            }
+        }
+        // No pending data — let native handler fetch fresh rates
         document.getElementById('modal_quotation_room_tariff_details_id').value = existingTariffKey;
         document.getElementById('modal_packages_properties_days_id_fk').value = day_id_fk;
         document.getElementById('modal_quotation_properties_rooms_id_fk').value = room_row_fk;
@@ -9425,7 +9443,11 @@ fetch(urlTariff)
       // If auto-calc active and no tariff rates found, show modal for manual entry
       // Skip if room already has a saved tariff (and not rescheduling) — proceed to fill saved data and auto-save
       if (window.__autoCalcActive && (!savedTariffId || _isRescheduling) && (!tariffRes || !tariffRes.status)) {
-          applyCopyGuestCountIfNeeded();
+          // Only apply captured counts for subsequent rooms; skip capture for first room
+          // (counts will be captured in btnSave1 after user enters them)
+          if (window.__autoCalcCopyGuestCount && window.__autoCalcCountsCaptured) {
+              applyCopyGuestCountIfNeeded();
+          }
           refreshAllAmountsAndTotals();
           $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
           hideAutoCalcLoading();
@@ -9439,7 +9461,10 @@ fetch(urlTariff)
           const _rates = _d.rates || {};
           const _roomRate = parseFloat(_rates.room_rate || 0);
           if (_roomRate === 0) {
-              applyCopyGuestCountIfNeeded();
+              // Only apply captured counts for subsequent rooms; skip capture for first room
+              if (window.__autoCalcCopyGuestCount && window.__autoCalcCountsCaptured) {
+                  applyCopyGuestCountIfNeeded();
+              }
               refreshAllAmountsAndTotals();
               $('#roompricingandguestallocationModal').removeClass('modal-auto-calc-hidden');
               hideAutoCalcLoading();
@@ -10628,6 +10653,7 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
         if (!confirm('The Child Sharing Bed amount is set to zero even though the count is ' + _cnbCount + '. Do you want to continue saving with this amount?')) {
 
             if (window.__autoCalcActive) {
+                window.__autoCalcSkipHidden = true;
                 $('#roompricingandguestallocationModal').modal('hide');
                 setTimeout(processNextAutoCalcRoom, 300);
             }
@@ -10768,10 +10794,37 @@ document.getElementById('btnSave1')?.addEventListener('click', function () {
         if (optionBlock) recalcOptionTotals(optionBlock);
     }
 
+    // Set skip flag BEFORE hiding modal so hidden.bs.modal handler doesn't cancel auto-calc
+    if (window.__autoCalcActive) {
+        window.__autoCalcSkipHidden = true;
+    }
+
     $('#roompricingandguestallocationModal').modal('hide');
 
     if (window.__autoCalcActive) {
+
+        // If copy-guest-count is enabled and counts haven't been captured yet
+        // (modal was shown for manual entry), capture them now from the user's input
+        if (window.__autoCalcCopyGuestCount && !window.__autoCalcCountsCaptured) {
+
+            var _cgLines = ['rooms', 'eb_adult', 'eb_child', 'sb_child', 'sgl'];
+
+            window.__autoCalcCapturedCounts = {};
+
+            _cgLines.forEach(function (line) {
+
+                var mc = getPlanInput('manual', line, 'count');
+
+                window.__autoCalcCapturedCounts[line] = mc ? mc.value : '';
+
+            });
+
+            window.__autoCalcCountsCaptured = true;
+
+        }
+
         setTimeout(processNextAutoCalcRoom, 300);
+
     }
 
 });
@@ -12174,7 +12227,7 @@ function edit_quotation(id)
                             $('.optionBlock').each(function () {
                                 if (parseInt($(this).attr('data-option-id') || 0) === parseInt(res.confirmed_option_id)) {
                                     $(this).css('border', '2px solid #28a745');
-                                    $(this).find('.option-header, .card-header').first().append('<span class="badge badge-success ms-2" style="font-size:11px;">&#10003; Confirmed Option</span>');
+                                    $(this).find('.optionTitle').first().append(' <span class="badge badge-success ms-2" style="font-size:11px;">&#10003; Confirmed Option</span>');
                                 }
                             });
                         }
@@ -14270,6 +14323,27 @@ $(document).on('change', '.auto-calc-all-properties', function () {
 
 
 
+    // Validate reschedule dates if reschedule is checked
+    if (window.isHubEdit && $('#hubRescheduleCheck').is(':checked')) {
+
+        var newStart = $('#hubNewStartDate').val().trim();
+
+        var newEnd = $('#hubNewEndDate').val().trim();
+
+        if (!newStart || !newEnd) {
+
+            alert('Please select New Travel Date and New End Date before calculating room tariff.');
+
+            $checkbox.prop('checked', false);
+
+            return;
+
+        }
+
+    }
+
+
+
     // Collect all edit buttons in this option
 
     const $buttons = $optionBlock.find('.editRoomBtn');
@@ -14313,6 +14387,46 @@ $(document).on('change', '.auto-calc-all-properties', function () {
     window.__autoCalcCapturedCounts = null;
 
     window.__autoCalcCountsCaptured = false;
+
+
+
+    // If copy-guest-count is enabled, capture counts from the first room's saved tariff data
+    // before starting auto-calc (since auto-calc will reset the modal and lose user-entered counts)
+    if (window.__autoCalcCopyGuestCount && $buttons.length > 0) {
+
+        var $firstBtn = $buttons.first();
+
+        var $firstRow = $firstBtn.closest('tr');
+
+        var firstTariffKey = $firstRow.find('.quotationRoomTariffDetailsIdInput').val() || '';
+
+        if (firstTariffKey) {
+
+            var firstTariffData = getPendingTariffData(firstTariffKey);
+
+            if (firstTariffData) {
+
+                window.__autoCalcCapturedCounts = {
+
+                    'rooms': firstTariffData.room_unit_manual_count || '',
+
+                    'eb_adult': firstTariffData.extra_bed_adult_manual_count || '',
+
+                    'eb_child': firstTariffData.extra_bed_child_manual_count || '',
+
+                    'sb_child': firstTariffData.child_sharing_bed_manual_count || '',
+
+                    'sgl': firstTariffData.single_occupancy_manual_count || ''
+
+                };
+
+                window.__autoCalcCountsCaptured = true;
+
+            }
+
+        }
+
+    }
 
 
 
@@ -14402,6 +14516,9 @@ function finishAutoCalc() {
 
     hideAutoCalcLoading();
 
+    // Set inactive BEFORE hiding modal so hidden.bs.modal handler doesn't call cancelAutoCalc
+    window.__autoCalcActive = false;
+
     const optionBlock = window.__autoCalcOptionBlock;
 
     const total = window.__autoCalcTotal || 0;
@@ -14448,8 +14565,6 @@ function finishAutoCalc() {
 
     window.__autoCalcOptionBlock = null;
 
-    window.__autoCalcActive = false;
-
     window.__autoCalcTotal = 0;
 
     window.__autoCalcCurrent = 0;
@@ -14459,6 +14574,8 @@ function finishAutoCalc() {
     window.__autoCalcCapturedCounts = null;
 
     window.__autoCalcCountsCaptured = false;
+
+    window.__autoCalcSkipHidden = false;
 
     if (window.isHubEdit && window.hubRescheduleNewStartISO) {
         window.hubDatesRecalculated = true;
@@ -14470,7 +14587,14 @@ function finishAutoCalc() {
 
 function cancelAutoCalc(message) {
 
+    // Guard against re-entry (hidden.bs.modal on room tariff modal can trigger this again)
+    if (window.__autoCalcCancelling) return;
+    window.__autoCalcCancelling = true;
+
     hideAutoCalcLoading();
+
+    // Set inactive BEFORE hiding modal so hidden.bs.modal handler doesn't re-enter
+    window.__autoCalcActive = false;
 
     const optionBlock = window.__autoCalcOptionBlock;
 
@@ -14502,17 +14626,19 @@ function cancelAutoCalc(message) {
 
     window.__autoCalcOptionBlock = null;
 
-    window.__autoCalcActive = false;
-
     window.__autoCalcCopyGuestCount = false;
 
     window.__autoCalcCapturedCounts = null;
 
     window.__autoCalcCountsCaptured = false;
 
+    window.__autoCalcSkipHidden = false;
+
     if (window.isHubEdit && window.hubRescheduleNewStartISO) {
         window.hubDatesRecalculated = false;
     }
+
+    window.__autoCalcCancelling = false;
 
 }
 
@@ -14609,21 +14735,27 @@ function applyCopyGuestCountIfNeeded() {
 
 
 // Cancel auto-calculation if user manually closes the room tariff modal
-
 $(document).on('click', '#roompricingandguestallocationModal .btn-close', function () {
-
     if (window.__autoCalcActive) {
-
         cancelAutoCalc('Modal closed manually. Auto calculation stopped.');
-
     }
+});
 
+// Cancel auto-calc if room tariff modal is hidden by any means (ESC, backdrop, programmatic)
+// Skip when btnSave1 intentionally hides the modal during auto-calc flow
+$('#roompricingandguestallocationModal').on('hidden.bs.modal', function () {
+    if (window.__autoCalcSkipHidden) {
+        window.__autoCalcSkipHidden = false;
+        return;
+    }
+    if (window.__autoCalcActive && !window.__autoCalcCancelling) {
+        cancelAutoCalc('Modal closed. Auto calculation stopped.');
+    }
 });
 
 
 
 // Hide the dark backdrop while the modal is being processed automatically
-
 $('#roompricingandguestallocationModal').on('shown.bs.modal', function () {
 
     if (window.__autoCalcActive && $('#roompricingandguestallocationModal').hasClass('modal-auto-calc-hidden')) {

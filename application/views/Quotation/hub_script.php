@@ -10300,9 +10300,30 @@ function edit_quotation_hub(id)
             $('#hubRescheduleCheck').on('change', function() {
                 if ($(this).is(':checked')) {
                     $('#hubNewStartDate').prop('disabled', false);
-                    // Clear all room calculated rates to force recalculation on new dates
+                    // Store original tariff IDs and rates before clearing
                     var $optionBlock = $('#optionsContainer .optionBlock').first();
                     if ($optionBlock.length) {
+                        window.__hubOriginalTariffData = [];
+                        $optionBlock.find('tr.room-row').each(function () {
+                            var $row = $(this);
+                            var tariffId = $row.find('.quotationRoomTariffDetailsIdInput').val() || '';
+                            var rateText = $row.find('.autoCalcRateText').text() || '0.00';
+                            var rateInput = $row.find('.autoCalcRateInput').val() || '0.00';
+                            // Store a copy of pending tariff data so it can be restored on uncheck
+                            var pendingCopy = null;
+                            if (tariffId && typeof getPendingTariffData === 'function') {
+                                var pd = getPendingTariffData(tariffId);
+                                if (pd) pendingCopy = Object.assign({}, pd);
+                            }
+                            window.__hubOriginalTariffData.push({
+                                row: $row,
+                                tariffId: tariffId,
+                                rateText: rateText,
+                                rateInput: rateInput,
+                                pendingData: pendingCopy
+                            });
+                        });
+                        // Clear all room calculated rates to force recalculation on new dates
                         $optionBlock.find('.autoCalcRateInput').val('0.00');
                         $optionBlock.find('.autoCalcRateText').text('0.00');
                         $optionBlock.find('.quotationRoomTariffDetailsIdInput').each(function () {
@@ -10320,6 +10341,33 @@ function edit_quotation_hub(id)
                     window.hubRescheduleNewStartISO = null;
                     window.hubDatesRecalculated = false;
                     window.__hubAutoCalcTriggered = false;
+                    // Restore original tariff IDs and rates
+                    if (window.__hubOriginalTariffData && window.__hubOriginalTariffData.length) {
+                        // Remove any pending tariff data created during reschedule
+                        var $optionBlock = $('#optionsContainer .optionBlock').first();
+                        if ($optionBlock.length) {
+                            $optionBlock.find('.quotationRoomTariffDetailsIdInput').each(function () {
+                                if (this.value && typeof removePendingTariffData === 'function') {
+                                    removePendingTariffData(this.value);
+                                }
+                            });
+                        }
+                        window.__hubOriginalTariffData.forEach(function (item) {
+                            if (item.row && item.row.length) {
+                                item.row.find('.quotationRoomTariffDetailsIdInput').val(item.tariffId);
+                                item.row.find('.autoCalcRateText').text(item.rateText);
+                                item.row.find('.autoCalcRateInput').val(item.rateInput);
+                                // Restore pending tariff data so editRoomBtn loads the saved values
+                                if (item.tariffId && item.pendingData && typeof storePendingTariffData === 'function') {
+                                    storePendingTariffData(item.tariffId, item.pendingData);
+                                }
+                            }
+                        });
+                        window.__hubOriginalTariffData = null;
+                        if ($optionBlock.length && typeof recalcOptionTotals === 'function') {
+                            recalcOptionTotals($optionBlock[0]);
+                        }
+                    }
                 }
             });
 
@@ -10447,6 +10495,10 @@ function hideHubEditFields()
         $block.find('[name="quotation_options_meal_plan_display[]"]').closest('.col-md-3').hide();
         // Show Vehicle checkbox
         $block.find('[name="quotation_options_vehicle_display[]"]').closest('.col-md-3').hide();
+        // Complimentary Inclusions
+        $block.find('.complimentary-inclusion-textarea').closest('.col-md-6').hide();
+        // Last Day Details
+        $block.find('.last-day-details-input').closest('.col-md-6').hide();
     });
 }
 
@@ -10569,6 +10621,10 @@ function formatDateForDisplay(dateStr)
 
 // Clean up hub edit state when modal is closed
 $(document).on('hidden.bs.modal', '#QuotationModal', function () {
+    // Cancel auto-calc if in progress
+    if (window.__autoCalcActive) {
+        cancelAutoCalc('Modal closed. Auto calculation stopped.');
+    }
     if (window.isHubEdit) {
         window.isHubEdit = false;
         // Remove heading

@@ -114,7 +114,7 @@ class Quotation_model extends CI_Model{
 
 
 
-            $this->db->where('quotation_number', $quotation_number_filter); 
+            $this->db->where('quotation_id', $quotation_number_filter); 
 
 
 
@@ -472,7 +472,7 @@ class Quotation_model extends CI_Model{
 
 
 
-            $this->db->where('quotation_number', $quotation_number_filter); 
+            $this->db->where('quotation_id', $quotation_number_filter); 
 
 
 
@@ -11526,9 +11526,15 @@ public function insert_room_tariff_details($data)
 
 		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
 
-		$date_type  = isset($param['date_type'])  ? $param['date_type']  : 'arrival';
+		$date_type  = isset($param['date_type'])  ? $param['date_type']  : '';
 
-		$date_col   = ($date_type === 'departure') ? 'l.end_date' : 'l.start_date';
+		if ($date_type === 'departure') {
+			$date_col = 'l.end_date';
+		} else if ($date_type === 'arrival') {
+			$date_col = 'l.start_date';
+		} else {
+			$date_col = 'l.lead_register_date';
+		}
 
 
 
@@ -11784,9 +11790,15 @@ public function insert_room_tariff_details($data)
 
 		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
 
-		$date_type  = isset($param['date_type'])  ? $param['date_type']  : 'arrival';
+		$date_type  = isset($param['date_type'])  ? $param['date_type']  : '';
 
-		$date_col   = ($date_type === 'departure') ? 'end_date' : 'start_date';
+		if ($date_type === 'departure') {
+			$date_col = 'end_date';
+		} else if ($date_type === 'arrival') {
+			$date_col = 'start_date';
+		} else {
+			$date_col = 'lead_register_date';
+		}
 
 
 

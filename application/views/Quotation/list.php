@@ -1466,27 +1466,13 @@
 
                                                         <div class="input-group">
 
-                                                            <input type="text" class="form-control" placeholder="Travel Start Date" id="travel_start_date_filter" name="travel_start_date_filter">
+                                                            <input type="text" class="form-control" placeholder="Travel Date Range" id="travel_daterange" name="travel_daterange" readonly>
 
                                                         </div>
 
                                                     </div>
 
                                                 </div>
-
-                                                <div class="col-sm-6 col-md-3">
-
-                                                    <div class="card">
-
-                                                        <div class="input-group">
-
-                                                            <input type="text" class="form-control" placeholder="Travel End Date" id="travel_end_date_filter" name="travel_end_date_filter">
-
-                                                        </div>
-
-                                                    </div>
-
-                                                </div>                         
 
                                                 <div class="col-sm-6 col-md-3 staff-do-not-show">
 

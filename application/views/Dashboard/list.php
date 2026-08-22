@@ -3,6 +3,25 @@
 	***********************************-->
 <div class="content-body">
 	<div class="container-fluid">
+		<?php
+		$isAdmin = ($this->session->userdata('user_type') == 'A');
+		$show_total_leads              = $isAdmin || (isset($show_total_leads) && $show_total_leads);
+		$show_converted_trips          = $isAdmin || (isset($show_converted_trips) && $show_converted_trips);
+		$show_arrival                  = $isAdmin || (isset($show_arrival) && $show_arrival);
+		$show_departure                = $isAdmin || (isset($show_departure) && $show_departure);
+		$show_quot_generated           = $isAdmin || (isset($show_quot_generated) && $show_quot_generated);
+		$show_quot_confirmed           = $isAdmin || (isset($show_quot_confirmed) && $show_quot_confirmed);
+		$show_quot_reservation         = $isAdmin || (isset($show_quot_reservation) && $show_quot_reservation);
+		$show_driver_not_assigned      = $isAdmin || (isset($show_driver_not_assigned) && $show_driver_not_assigned);
+		$show_customer_payment_pending = $isAdmin || (isset($show_customer_payment_pending) && $show_customer_payment_pending);
+		$show_property_payment_pending = $isAdmin || (isset($show_property_payment_pending) && $show_property_payment_pending);
+		$showLeadsIncoming             = $isAdmin || (isset($can_view_leads_incoming) && $can_view_leads_incoming);
+		$showLeadsStatus               = $isAdmin || (isset($can_view_leads_status) && $can_view_leads_status);
+		$showStaffChart                = $isAdmin || (isset($can_view_staff_chart) && $can_view_staff_chart);
+		$showAnyCard = $show_total_leads || $show_converted_trips || $show_arrival || $show_departure ||
+			$show_quot_generated || $show_quot_confirmed || $show_quot_reservation || $show_driver_not_assigned;
+		$showAnyPending = $show_customer_payment_pending || $show_property_payment_pending;
+		?>
 		<div class="row mb-3">
 			<div class="col-xl-12 text-end">
 				<select id="dashboard-period-select" class="form-select" style="width:auto;display:inline-block;">
@@ -10,13 +29,22 @@
 					<option value="week">This Week</option>
 					<option value="month">This Month</option>
 					<option value="year">This Year</option>
+					<option value="custom">Custom Range</option>
 				</select>
+				<span id="custom-date-range" style="display:none;margin-left:10px;">
+					<input type="text" id="custom-start-date" class="form-control" style="width:auto;display:inline-block;" placeholder="dd/mm/yyyy" readonly>
+					<span style="margin:0 5px;">to</span>
+					<input type="text" id="custom-end-date" class="form-control" style="width:auto;display:inline-block;" placeholder="dd/mm/yyyy" readonly>
+					<button id="custom-date-apply" class="btn btn-primary btn-sm" style="margin-left:5px;">Apply</button>
+				</span>
 			</div>
 		</div>
 
+		<?php if ($showAnyCard): ?>
 		<div class="row">
 			<div class="col-xl-12">
 				<div class="row">
+					<?php if ($show_total_leads): ?>
 					<div class="col-xl-3 col-sm-6">
 						<div class="card" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;border-radius:12px;">
 							<div class="card-body">
@@ -36,6 +64,8 @@
 							</div>
 						</div>
 					</div>
+					<?php endif; ?>
+					<?php if ($show_converted_trips): ?>
 					<div class="col-xl-3 col-sm-6">
 						<div class="card" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);border:none;border-radius:12px;">
 							<div class="card-body">
@@ -55,6 +85,8 @@
 							</div>
 						</div>
 					</div>
+					<?php endif; ?>
+					<?php if ($show_arrival): ?>
 					<div class="col-xl-3 col-sm-6">
 						<div class="card" style="background:linear-gradient(135deg,#28a745 0%,#20c997 100%);border:none;border-radius:12px;">
 							<div class="card-body">
@@ -74,6 +106,8 @@
 							</div>
 						</div>
 					</div>
+					<?php endif; ?>
+					<?php if ($show_departure): ?>
 					<div class="col-xl-3 col-sm-6">
 						<div class="card" style="background:linear-gradient(135deg,#fd7e14 0%,#ffc107 100%);border:none;border-radius:12px;">
 							<div class="card-body">
@@ -93,12 +127,16 @@
 							</div>
 						</div>
 					</div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
+		<?php endif; ?>
 
+		<?php if ($show_quot_generated || $show_quot_confirmed || $show_quot_reservation || $show_driver_not_assigned): ?>
 		<!-- ===== PERIOD FILTER CARDS ===== -->
 		<div class="row mt-3">
+			<?php if ($show_quot_generated): ?>
 			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%);border:none;border-radius:12px;">
 					<div class="card-body">
@@ -118,6 +156,8 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($show_quot_confirmed): ?>
 			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);border:none;border-radius:12px;">
 					<div class="card-body">
@@ -137,6 +177,8 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($show_quot_reservation): ?>
 			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%);border:none;border-radius:12px;">
 					<div class="card-body">
@@ -156,6 +198,8 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($show_driver_not_assigned): ?>
 			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#f6d365 0%,#fda085 100%);border:none;border-radius:12px;">
 					<div class="card-body">
@@ -175,11 +219,15 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
 		</div>
 		<!-- ===== END PERIOD FILTER CARDS ===== -->
+		<?php endif; ?>
 
+		<?php if ($showAnyPending): ?>
 		<!-- ===== PENDING PAYMENT CARDS ===== -->
 		<div class="row mt-3">
+			<?php if ($show_customer_payment_pending): ?>
 			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#e53935 0%,#ef5350 100%);border:none;border-radius:12px;">
 					<div class="card-body">
@@ -199,6 +247,8 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($show_property_payment_pending): ?>
 			<div class="col-xl-3 col-sm-6">
 				<div class="card" style="background:linear-gradient(135deg,#ff7043 0%,#ffab40 100%);border:none;border-radius:12px;">
 					<div class="card-body">
@@ -218,11 +268,15 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
 		</div>
 		<!-- ===== END PENDING PAYMENT CARDS ===== -->
+		<?php endif; ?>
 
+		<?php if ($showLeadsIncoming || $showLeadsStatus || $showStaffChart): ?>
 		<!-- ===== LEADS ANALYTICS CHARTS ===== -->
 		<div class="row">
+			<?php if ($showLeadsIncoming): ?>
 			<div class="col-xl-8 col-lg-8">
 				<div class="card">
 					<div class="card-header border-0 pb-0">
@@ -233,6 +287,8 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($showLeadsStatus): ?>
 			<div class="col-xl-4 col-lg-4">
 				<div class="card">
 					<div class="card-header border-0 pb-0">
@@ -243,6 +299,8 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($showStaffChart): ?>
 			<div class="col-xl-12">
 				<div class="card">
 					<div class="card-header border-0 pb-0">
@@ -253,11 +311,13 @@
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
 		</div>
 		<!-- ===== END LEADS ANALYTICS CHARTS ===== -->
+		<?php endif; ?>
 
 	</div>
 </div>
 <!--**********************************
-		Content body end
-	***********************************-->
+	Content body end
+***********************************-->

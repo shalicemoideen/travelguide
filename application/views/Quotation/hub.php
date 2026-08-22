@@ -210,6 +210,17 @@
 
 }
 
+#hubNewStartDate:disabled,
+#hubNewEndDate:disabled{
+
+    color: #999 !important;
+
+    background-color: #e9ecef !important;
+
+    opacity: 1 !important;
+
+}
+
 </style>
 
 

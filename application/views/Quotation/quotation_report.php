@@ -16,7 +16,7 @@
                                 </div>
                             </div>
                         </div>
-                        <?php if ($current_user_type == 'A'): ?>
+                        <?php if ($current_user_type == 'A' || (isset($can_view_all) && $can_view_all)): ?>
                         <div class="col-sm-6 col-md-3">
                             <div class="card">
                                 <div class="input-group">

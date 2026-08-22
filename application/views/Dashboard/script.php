@@ -945,9 +945,53 @@ $(document).ready(function(){
 
   loadLeadsCharts();
 
+  // ---- Custom date range datepickers (dd/mm/yyyy) ----
+  var selectedFromDate = null;
+  var endDateOpened = false;
+
+  $('#custom-start-date').datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true
+  }).on('changeDate', function (e) {
+    selectedFromDate = e.date;
+    // Clear end date when start date changes
+    $('#custom-end-date').val('');
+    endDateOpened = false;
+  });
+
+  $('#custom-end-date').datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true
+  }).on('show', function () {
+    if (!selectedFromDate || endDateOpened) return;
+    endDateOpened = true;
+    var $this = $(this);
+    // Open the calendar on the same month as the start date
+    var firstDayOfMonth = new Date(selectedFromDate.getFullYear(), selectedFromDate.getMonth(), 1);
+    $this.datepicker('update', firstDayOfMonth);
+    // Clear the input so no date is pre-selected
+    $this.val('');
+  });
+
+  function dmyToYmd(dmy){
+    if(!dmy) return '';
+    var p = dmy.split('/');
+    if(p.length !== 3) return '';
+    return p[2] + '-' + p[1] + '-' + p[0];
+  }
+
   // ---- Period filter dropdown ----
   $('#dashboard-period-select').on('change', function(){
     var period = $(this).val();
+
+    if (period === 'custom') {
+      $('#custom-date-range').show();
+      return;
+    } else {
+      $('#custom-date-range').hide();
+    }
 
     $.ajax({
       url: "<?php echo base_url(); ?>index.php/Dashboard/get_period_counts",
@@ -978,6 +1022,58 @@ $(document).ready(function(){
       },
       error: function(){
         console.log('Error loading period counts');
+      }
+    });
+  });
+
+  // ---- Custom date range apply ----
+  $('#custom-date-apply').on('click', function(){
+    var startDisplay = $('#custom-start-date').val();
+    var endDisplay = $('#custom-end-date').val();
+    if (!startDisplay || !endDisplay) {
+      alert('Please select both start and end dates.');
+      return;
+    }
+    var startDate = dmyToYmd(startDisplay);
+    var endDate = dmyToYmd(endDisplay);
+    if (!startDate || !endDate) {
+      alert('Invalid date format. Please use dd/mm/yyyy.');
+      return;
+    }
+    if (startDate > endDate) {
+      alert('Start date cannot be after end date.');
+      return;
+    }
+    var period = 'custom';
+    $.ajax({
+      url: "<?php echo base_url(); ?>index.php/Dashboard/get_period_counts",
+      method: "POST",
+      dataType: "JSON",
+      data: { period: period, custom_start: startDate, custom_end: endDate },
+      success: function(data){
+        $('#total_leads_count').find('a').text(data.allleads);
+        $('#converted_trips_count').find('a').text(data.converted);
+        $('#checkin_count').find('a').text(data.checkin);
+        $('#checkout_count').find('a').text(data.checkout);
+        $('#quotations_generated_count').find('a').text(data.quotations_generated);
+        $('#quotations_confirmed_count').find('a').text(data.quotations_confirmed);
+        $('#quotations_reservation_count').find('a').text(data.quotations_reservation);
+        $('#quotations_driver_not_assigned_count').find('a').text(data.quotations_driver_not_assigned);
+        $('#pending_customer_payment_count').find('a').text(data.pending_customer_payment);
+        $('#pending_property_payment_count').find('a').text(data.pending_property_payment);
+        $('#converted-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&start=" + startDate + "&end=" + endDate);
+        $('#total-leads-link').attr('href', "<?php echo base_url(); ?>index.php/Leads/lead_report?period=" + period + "&start=" + startDate + "&end=" + endDate);
+        $('#quotations-generated-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=1&start=" + startDate + "&end=" + endDate);
+        $('#quotations-confirmed-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=5&start=" + startDate + "&end=" + endDate);
+        $('#quotations-reservation-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=8&start=" + startDate + "&end=" + endDate);
+        $('#quotations-driver-not-assigned-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/quotation_report?period=" + period + "&status=9&start=" + startDate + "&end=" + endDate);
+        $('#pending-customer-payment-link').attr('href', "<?php echo base_url(); ?>index.php/Payment_report?period=" + period + "&start=" + startDate + "&end=" + endDate);
+        $('#pending-property-payment-link').attr('href', "<?php echo base_url(); ?>index.php/Payment_report?period=" + period + "&start=" + startDate + "&end=" + endDate);
+        $('#arrival-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&date_type=arrival&start=" + startDate + "&end=" + endDate);
+        $('#departure-trips-link').attr('href', "<?php echo base_url(); ?>index.php/Quotation/converted_trips_report?period=" + period + "&date_type=departure&start=" + startDate + "&end=" + endDate);
+      },
+      error: function(){
+        console.log('Error loading custom period counts');
       }
     });
   });

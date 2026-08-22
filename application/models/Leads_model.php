@@ -1255,13 +1255,10 @@ public function get_child_age_breakup($guest_count_id)
 		$lead_status= isset($param['lead_status'])? $param['lead_status']: '';
 		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
 		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+		$travel_start_date = isset($param['travel_start_date']) ? $param['travel_start_date'] : '';
+		$travel_end_date   = isset($param['travel_end_date'])   ? $param['travel_end_date']   : '';
 
-		$currentuserid   = $this->session->userdata('user_id');
-		$currentusertype = $this->session->userdata('user_type');
-
-		if ($currentusertype == 'S') {
-			$this->db->where('l.staff_id_fk', $currentuserid);
-		} elseif ($staff_id) {
+		if ($staff_id) {
 			$this->db->where('l.staff_id_fk', $staff_id);
 		}
 
@@ -1276,6 +1273,12 @@ public function get_child_age_breakup($guest_count_id)
 		}
 		if ($end_date) {
 			$this->db->where('l.lead_register_date<=', $end_date);
+		}
+		if ($travel_start_date) {
+			$this->db->where('l.start_date>=', $travel_start_date);
+		}
+		if ($travel_end_date) {
+			$this->db->where('l.start_date<=', $travel_end_date);
 		}
 
 		if ($param['length'] == -1) {
@@ -1318,13 +1321,10 @@ public function get_child_age_breakup($guest_count_id)
 		$lead_status= isset($param['lead_status'])? $param['lead_status']: '';
 		$start_date = isset($param['start_date']) ? $param['start_date'] : '';
 		$end_date   = isset($param['end_date'])   ? $param['end_date']   : '';
+		$travel_start_date = isset($param['travel_start_date']) ? $param['travel_start_date'] : '';
+		$travel_end_date   = isset($param['travel_end_date'])   ? $param['travel_end_date']   : '';
 
-		$currentuserid   = $this->session->userdata('user_id');
-		$currentusertype = $this->session->userdata('user_type');
-
-		if ($currentusertype == 'S') {
-			$this->db->where('l.staff_id_fk', $currentuserid);
-		} elseif ($staff_id) {
+		if ($staff_id) {
 			$this->db->where('l.staff_id_fk', $staff_id);
 		}
 
@@ -1339,6 +1339,12 @@ public function get_child_age_breakup($guest_count_id)
 		}
 		if ($end_date) {
 			$this->db->where('l.lead_register_date<=', $end_date);
+		}
+		if ($travel_start_date) {
+			$this->db->where('l.start_date>=', $travel_start_date);
+		}
+		if ($travel_end_date) {
+			$this->db->where('l.start_date<=', $travel_end_date);
 		}
 
 		$this->db->select('l.leads_id', FALSE);

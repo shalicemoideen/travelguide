@@ -6,7 +6,7 @@
                 <button type="button" id="btn" class="btn btn-rounded btn-primary btn-md"><i class="fas fa-filter"></i> Filter</button><br><br>
 
                 <form id="convertedTripsFilterForm" method="POST" action="">
-                    <input type="hidden" id="converted_trips_date_type" name="converted_trips_date_type" value="arrival">
+                    <input type="hidden" id="converted_trips_date_type" name="converted_trips_date_type" value="">
                     <div class="card-header" id="Create" style="display:none">
                         <div class="d-flex align-items-center">
                             <div class="row row-demo-grid hdr-filter-dd-fullwd">
@@ -24,7 +24,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <?php if ($current_user_type == 'A'): ?>
+                                <?php if ($current_user_type == 'A' || (isset($can_view_all) && $can_view_all)): ?>
                                 <div class="col-sm-6 col-md-3">
                                     <div class="card">
                                         <div class="input-group">
@@ -76,7 +76,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h2 class="card-title"><b>Converted Trips Report</b></h2>
+                                <h2 class="card-title"><b id="report_title">Converted Trips Report</b></h2>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
