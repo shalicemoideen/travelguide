@@ -214,9 +214,9 @@ class Property_reservation extends MY_Controller {
         // ---- Payment scheduler ----
         $payment_type     = $this->input->post('payment_type') ?: $this->input->post('hub_payment_type'); // FULL | EMI
         $total_amount     = (float)$this->input->post('total_amount');
-        $discount_amount  = (float)$this->input->post('discount_amount');
-        $discounted_total = (float)$this->input->post('discounted_total');
-        if ($discounted_total <= 0) $discounted_total = $total_amount - $discount_amount;
+        $actual_amount    = (float)$this->input->post('actual_amount');
+        $discount_amount  = 0;
+        $discounted_total = $actual_amount > 0 ? $actual_amount : $total_amount;
         if ($discounted_total < 0)  $discounted_total = 0;
         $max_emi      = min(24, max(2, (int)$this->input->post('max_emi_count')));
         $split_type   = $this->input->post('split_type');

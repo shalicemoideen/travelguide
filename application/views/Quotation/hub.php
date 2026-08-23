@@ -1332,9 +1332,11 @@
 
                                                                 <div class="mt-2 d-flex align-items-center justify-content-end gap-2">
 
-                                                                    <label class="form-label mb-0 text-muted" style="font-size:12px;">Discount</label>
+                                                                    <label class="form-label mb-0 text-muted" style="font-size:12px;">Actual Amount</label>
 
-                                                                    <input type="number" min="0" step="0.01" class="form-control form-control-sm" id="hub_discount_amount" name="discount_amount" value="0" style="width:110px;" oninput="hub_applyDiscount()">
+                                                                    <input type="number" min="0" step="0.01" class="form-control form-control-sm" id="hub_actual_amount" name="actual_amount" value="0" style="width:110px;" oninput="hub_applyActualAmount()">
+
+                                                                    <input type="hidden" id="hub_discount_amount" name="discount_amount" value="0">
 
                                                                     <input type="hidden" id="hub_discounted_total" name="discounted_total" value="0">
 

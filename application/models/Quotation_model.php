@@ -3126,13 +3126,11 @@ class Quotation_model extends CI_Model{
 
 
 
-                    // Hotel actual = room rent (quoted tariff) minus discount only.
+                    // Hotel actual = room rent (quoted tariff).
 
-                    // Do NOT use payment scheduler total_amount / discounted_total —
+                    // No discount is applied; the actual amount is entered manually
 
-                    // those include property-based inclusion costs which have their
-
-                    // own separate column on the Financial Posting screen.
+                    // on the payment scheduler and stored in discounted_total.
 
                     $hotelActual = $hotelQuoted - $resDisc;
 

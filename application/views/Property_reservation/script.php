@@ -153,6 +153,7 @@ function renderReservation(res) {
     pr_has_payments = prHasPayments;
     pr_current_scheduler_id = 0;
     $('#btn_view_payments').hide();
+    $('#actual_amount').val(0);
     $('#discount_amount').val(0);
     $('#discounted_total').val(total);
     $('#discounted_total_display').hide();
@@ -172,12 +173,13 @@ function renderReservation(res) {
         $('#payment_total_display').text(parseFloat(p.total_amount).toLocaleString('en-IN'));
         pr_current_scheduler_id = parseInt(p.property_payment_scheduler_id) || 0;
         $('#btn_view_payments').css('display', pr_current_scheduler_id > 0 ? 'inline-block' : 'none');
-        var savedDiscount = parseFloat(p.discount_amount) || 0;
-        $('#discount_amount').val(savedDiscount);
-        var net = parseFloat(p.discounted_total) || (parseFloat(p.total_amount) - savedDiscount);
-        $('#discounted_total').val(net);
-        if (savedDiscount > 0) {
-            $('#discounted_total_val').text(net.toLocaleString('en-IN'));
+        var savedNet = parseFloat(p.discounted_total) || parseFloat(p.total_amount) || 0;
+        $('#actual_amount').val(savedNet);
+        $('#discount_amount').val(0);
+        $('#discounted_total').val(savedNet);
+        var totalAmt = parseFloat(p.total_amount) || 0;
+        if (savedNet > 0 && savedNet !== totalAmt) {
+            $('#discounted_total_val').text(savedNet.toLocaleString('en-IN'));
             $('#discounted_total_display').show();
         }
         if (prHasPayments) {
@@ -186,10 +188,10 @@ function renderReservation(res) {
             $('#split_type').prop('disabled', true);
             $('button[onclick="generateEmiRows()"]').prop('disabled', true);
             $('#cutoff_date_display').prop('readonly', true);
-            $('#discount_amount').prop('readonly', true);
+            $('#actual_amount').prop('readonly', true);
         } else {
             $('#cutoff_date_display').prop('readonly', false);
-            $('#discount_amount').prop('readonly', false);
+            $('#actual_amount').prop('readonly', false);
         }
         if (p.payment_type === 'FULL') {
             $('#pt_full').prop('checked', true);
@@ -313,19 +315,19 @@ function pr_initEmiDatepickers() {
 }
 
 function pr_getNetTotal() {
-    var total = parseFloat($('#total_amount').val()) || 0;
-    var discount = parseFloat($('#discount_amount').val()) || 0;
-    return Math.max(0, total - discount);
+    var actual = parseFloat($('#actual_amount').val()) || 0;
+    if (actual > 0) return actual;
+    return parseFloat($('#total_amount').val()) || 0;
 }
 
-function pr_applyDiscount() {
-    var total = parseFloat($('#total_amount').val()) || 0;
-    var discount = parseFloat($('#discount_amount').val()) || 0;
-    if (discount < 0) { discount = 0; $('#discount_amount').val(0); }
-    if (discount > total) { discount = total; $('#discount_amount').val(total); }
-    var net = total - discount;
+function pr_applyActualAmount() {
+    var actual = parseFloat($('#actual_amount').val()) || 0;
+    if (actual < 0) { actual = 0; $('#actual_amount').val(0); }
+    var net = actual > 0 ? actual : (parseFloat($('#total_amount').val()) || 0);
+    $('#discount_amount').val(0);
     $('#discounted_total').val(net);
-    if (discount > 0) {
+    var total = parseFloat($('#total_amount').val()) || 0;
+    if (actual > 0 && actual !== total) {
         $('#discounted_total_val').text(net.toLocaleString('en-IN'));
         $('#discounted_total_display').show();
     } else {

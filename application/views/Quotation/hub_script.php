@@ -8632,6 +8632,8 @@ function hubRenderReservation(res) {
 
     $('#hub_btn_view_payments').hide();
 
+    $('#hub_actual_amount').val(0);
+
     $('#hub_discount_amount').val(0);
 
     $('#hub_discounted_total').val(total);
@@ -8644,7 +8646,7 @@ function hubRenderReservation(res) {
 
     $('#hub_res_cutoff_date_display').val('').prop('readonly', false);
 
-    $('#hub_discount_amount').prop('readonly', false);
+    $('#hub_actual_amount').prop('readonly', false);
 
     $('#hub_res_max_emi_count').prop('disabled', false);
 
@@ -8670,17 +8672,19 @@ function hubRenderReservation(res) {
 
         $('#hub_btn_view_payments').css('display', hub_res_current_scheduler_id > 0 ? 'inline-block' : 'none');
 
-        var hubSavedDiscount = parseFloat(p.discount_amount) || 0;
+        var hubSavedNet = parseFloat(p.discounted_total) || parseFloat(p.total_amount) || 0;
 
-        $('#hub_discount_amount').val(hubSavedDiscount);
+        $('#hub_actual_amount').val(hubSavedNet);
 
-        var hubNet = Math.max(0, total - hubSavedDiscount);
+        $('#hub_discount_amount').val(0);
 
-        $('#hub_discounted_total').val(hubNet);
+        $('#hub_discounted_total').val(hubSavedNet);
 
-        if (hubSavedDiscount > 0) {
+        var hubTotalAmt = parseFloat(p.total_amount) || 0;
 
-            $('#hub_discounted_total_val').text(hubNet.toLocaleString('en-IN'));
+        if (hubSavedNet > 0 && hubSavedNet !== hubTotalAmt) {
+
+            $('#hub_discounted_total_val').text(hubSavedNet.toLocaleString('en-IN'));
 
             $('#hub_discounted_total_display').show();
 
@@ -8698,7 +8702,7 @@ function hubRenderReservation(res) {
 
             $('#hub_res_cutoff_date_display').prop('readonly', true);
 
-            $('#hub_discount_amount').prop('readonly', true);
+            $('#hub_actual_amount').prop('readonly', true);
 
         }
 
@@ -8958,31 +8962,31 @@ function hubRedistributeEmi($changed) {
 
 function hub_getNetTotal() {
 
-    var total = parseFloat($('#hub_res_total_amount').val()) || 0;
+    var actual = parseFloat($('#hub_actual_amount').val()) || 0;
 
-    var discount = parseFloat($('#hub_discount_amount').val()) || 0;
+    if (actual > 0) return actual;
 
-    return Math.max(0, total - discount);
+    return parseFloat($('#hub_res_total_amount').val()) || 0;
 
 }
 
 
 
-function hub_applyDiscount() {
+function hub_applyActualAmount() {
 
-    var total = parseFloat($('#hub_res_total_amount').val()) || 0;
+    var actual = parseFloat($('#hub_actual_amount').val()) || 0;
 
-    var discount = parseFloat($('#hub_discount_amount').val()) || 0;
+    if (actual < 0) { actual = 0; $('#hub_actual_amount').val(0); }
 
-    if (discount < 0) { discount = 0; $('#hub_discount_amount').val(0); }
+    var net = actual > 0 ? actual : (parseFloat($('#hub_res_total_amount').val()) || 0);
 
-    if (discount > total) { discount = total; $('#hub_discount_amount').val(total); }
-
-    var net = total - discount;
+    $('#hub_discount_amount').val(0);
 
     $('#hub_discounted_total').val(net);
 
-    if (discount > 0) {
+    var total = parseFloat($('#hub_res_total_amount').val()) || 0;
+
+    if (actual > 0 && actual !== total) {
 
         $('#hub_discounted_total_val').text(net.toLocaleString('en-IN'));
 

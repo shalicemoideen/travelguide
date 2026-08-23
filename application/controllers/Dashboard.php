@@ -11,7 +11,7 @@ class Dashboard extends MY_Controller {
         $this->currentusertype = $this->session->userdata('user_type');
 		
 		
-        $this->load->model('General_Model');
+        $this->load->model('General_model');
         $this->load->model('Dashboard_model');
         $this->load->helper('permission');
 	}

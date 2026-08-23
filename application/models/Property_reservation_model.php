@@ -297,8 +297,7 @@ class Property_reservation_model extends CI_Model {
 
             if (abs($new_total - (float)$payment->total_amount) < 0.01) { continue; }
 
-            $discount        = (float)$payment->discount_amount;
-            $new_discounted  = round(max(0, $new_total - $discount), 2);
+            $new_discounted  = round($new_total, 2);
 
             $this->update_payment($payment->property_payment_scheduler_id, array(
                 'total_amount'     => $new_total,

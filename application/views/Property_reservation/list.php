@@ -236,8 +236,9 @@
                                                         <div style="background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;padding:8px 16px;border-radius:8px;font-size:20px;font-weight:700;display:inline-block;">INR <span id="payment_total_display">0</span></div>
                                                         <input type="hidden" name="total_amount" id="total_amount" value="0">
                                                         <div class="mt-2 d-flex align-items-center justify-content-end gap-2">
-                                                            <label class="form-label mb-0 text-muted">Discount</label>
-                                                            <input type="number" min="0" step="0.01" class="form-control form-control-sm" id="discount_amount" name="discount_amount" value="0" style="width:120px;" oninput="pr_applyDiscount()">
+                                                            <label class="form-label mb-0 text-muted">Actual Amount</label>
+                                                            <input type="number" min="0" step="0.01" class="form-control form-control-sm" id="actual_amount" name="actual_amount" value="0" style="width:120px;" oninput="pr_applyActualAmount()">
+                                                            <input type="hidden" id="discount_amount" name="discount_amount" value="0">
                                                             <input type="hidden" id="discounted_total" name="discounted_total" value="0">
                                                         </div>
                                                         <div class="mt-1 text-success fw-bold" id="discounted_total_display" style="display:none;">Net Payable: INR <span id="discounted_total_val">0</span></div>
