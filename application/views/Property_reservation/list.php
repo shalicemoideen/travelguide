@@ -241,7 +241,11 @@
                                                             <input type="hidden" id="discount_amount" name="discount_amount" value="0">
                                                             <input type="hidden" id="discounted_total" name="discounted_total" value="0">
                                                         </div>
-                                                        <div class="mt-1 text-success fw-bold" id="discounted_total_display" style="display:none;">Net Payable: INR <span id="discounted_total_val">0</span></div>
+                                                        <div class="mt-1" id="discounted_total_display" style="display:none;">
+                                                            <div style="background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;padding:6px 14px;border-radius:8px;font-size:16px;font-weight:700;display:inline-block;">
+                                                                Net Payable: INR <span id="discounted_total_val">0</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 

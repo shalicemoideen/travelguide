@@ -6327,6 +6327,8 @@ function loadPropertyStatus(quotation_id)
 
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;text-align:right;">Amount</th>
 
+                                <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;text-align:right;">Net Payable</th>
+
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;">Reservation Status</th>
 
                                 <th style="padding:13px 18px;font-size:12px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;border:none;text-align:right;">Action</th>
@@ -6384,6 +6386,16 @@ function loadPropertyStatus(quotation_id)
                       + '</td>';
 
                 html += '<td style="padding:14px 18px;vertical-align:middle;text-align:right;font-weight:600;color:#212529;font-size:13px;">' + (row.property_total > 0 ? '\u20b9' + parseFloat(row.property_total).toLocaleString('en-IN', {minimumFractionDigits:2}) : '<span style="color:#adb5bd;">-</span>') + '</td>';
+
+                var netPayable = parseFloat(row.net_payable) || 0;
+                var propTotal  = parseFloat(row.property_total) || 0;
+                var netCell = '<span style="color:#adb5bd;">-</span>';
+                if (netPayable > 0 && Math.abs(netPayable - propTotal) > 0.01) {
+                    netCell = '<span style="color:#1565c0;font-weight:700;">\u20b9' + netPayable.toLocaleString('en-IN', {minimumFractionDigits:2}) + '</span>';
+                } else if (netPayable > 0) {
+                    netCell = '<span style="color:#212529;font-weight:600;">\u20b9' + netPayable.toLocaleString('en-IN', {minimumFractionDigits:2}) + '</span>';
+                }
+                html += '<td style="padding:14px 18px;vertical-align:middle;text-align:right;font-size:13px;">' + netCell + '</td>';
 
                 html += '<td style="padding:14px 18px;vertical-align:middle;">' + buildPropertyStatusBadges(row) + '</td>';
 
@@ -8632,7 +8644,7 @@ function hubRenderReservation(res) {
 
     $('#hub_btn_view_payments').hide();
 
-    $('#hub_actual_amount').val(0);
+    $('#hub_actual_amount').val(total);
 
     $('#hub_discount_amount').val(0);
 
@@ -8674,19 +8686,23 @@ function hubRenderReservation(res) {
 
         var hubSavedNet = parseFloat(p.discounted_total) || parseFloat(p.total_amount) || 0;
 
-        $('#hub_actual_amount').val(hubSavedNet);
+        var hubLiveTotal = parseFloat($('#hub_res_total_amount').val()) || 0;
+
+        $('#hub_actual_amount').val(hubLiveTotal);
 
         $('#hub_discount_amount').val(0);
 
-        $('#hub_discounted_total').val(hubSavedNet);
+        $('#hub_discounted_total').val(hubLiveTotal);
 
-        var hubTotalAmt = parseFloat(p.total_amount) || 0;
-
-        if (hubSavedNet > 0 && hubSavedNet !== hubTotalAmt) {
+        if (hubSavedNet > 0 && Math.abs(hubSavedNet - hubLiveTotal) > 0.01) {
 
             $('#hub_discounted_total_val').text(hubSavedNet.toLocaleString('en-IN'));
 
             $('#hub_discounted_total_display').show();
+
+        } else {
+
+            $('#hub_discounted_total_display').hide();
 
         }
 

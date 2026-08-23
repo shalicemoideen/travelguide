@@ -1342,7 +1342,11 @@
 
                                                                 </div>
 
-                                                                <div class="mt-1 fw-bold text-success" id="hub_discounted_total_display" style="display:none;font-size:13px;">Net Payable: INR <span id="hub_discounted_total_val">0</span></div>
+                                                                <div class="mt-1" id="hub_discounted_total_display" style="display:none;">
+                                                                    <div style="background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;padding:6px 14px;border-radius:8px;font-size:16px;font-weight:700;display:inline-block;">
+                                                                        Net Payable: INR <span id="hub_discounted_total_val">0</span>
+                                                                    </div>
+                                                                </div>
 
                                                             </div>
 

@@ -3010,6 +3010,8 @@ class Quotation_model extends CI_Model{
 
                 ->where('pr.property_reservation_status', 1)
 
+                ->where('pr.reservation_state', 'ACTIVE')
+
                 ->order_by('pr.property_reservation_id', 'ASC')
 
                 ->get()
@@ -3023,6 +3025,33 @@ class Quotation_model extends CI_Model{
             foreach ($reservationRows as $res) {
 
                 $reservationQueue[(int)$res['properties_id_fk']][] = $res;
+
+            }
+
+
+
+            // Pre-calculate total quoted tariff per confirmed property so the
+            // reservation's discounted_total can be distributed proportionally
+            // across the days that belong to that property.
+            $propertyQuotedTotal = array();
+
+            foreach ($hotelDays as $pday) {
+
+                $pdayId = (int)$pday['quotation_properties_days_id'];
+
+                $ppid = isset($confirmedPropertyByDay[$pdayId]) ? $confirmedPropertyByDay[$pdayId] : 0;
+
+                if ($ppid) {
+
+                    if (!isset($propertyQuotedTotal[$ppid])) {
+
+                        $propertyQuotedTotal[$ppid] = 0;
+
+                    }
+
+                    $propertyQuotedTotal[$ppid] += (float)$pday['day_cost'];
+
+                }
 
             }
 
@@ -3120,25 +3149,41 @@ class Quotation_model extends CI_Model{
 
                 if ($confirmedPropertyId && !empty($reservationQueue[$confirmedPropertyId])) {
 
-                    $res      = array_shift($reservationQueue[$confirmedPropertyId]);
+                    // Use the first (active) reservation for this property.
+                    // Do NOT array_shift — the same reservation spans every
+                    // day for this property and must remain available.
+                    $res = $reservationQueue[$confirmedPropertyId][0];
 
-                    $resDisc  = (float)$res['discount_amount'];
+                    $resDiscountedTotal = (float)$res['discounted_total'];
+
+                    $resTotalAmount     = (float)$res['total_amount'];
+
+                    $propTotalQuoted    = isset($propertyQuotedTotal[$confirmedPropertyId])
+
+                        ? $propertyQuotedTotal[$confirmedPropertyId] : 0;
 
 
 
-                    // Hotel actual = room rent (quoted tariff).
+                    // Distribute the reservation's net payable (discounted_total)
+                    // proportionally across the days for this property so the
+                    // per-day actuals sum up to the user's net amount.
+                    if ($resDiscountedTotal > 0 && $propTotalQuoted > 0) {
 
-                    // No discount is applied; the actual amount is entered manually
+                        $hotelActual = round(($hotelQuoted / $propTotalQuoted) * $resDiscountedTotal, 2);
 
-                    // on the payment scheduler and stored in discounted_total.
+                    } else {
 
-                    $hotelActual = $hotelQuoted - $resDisc;
+                        $hotelActual = $hotelQuoted;
+
+                    }
 
                     if ($hotelActual < 0) {
 
                         $hotelActual = 0;
 
                     }
+
+                    $resDisc = $resTotalAmount - $resDiscountedTotal;
 
                     if ($resDisc > 0) {
 
@@ -3196,7 +3241,28 @@ class Quotation_model extends CI_Model{
 
             $defaults['days'] = $combinedDays;
 
-
+            // Recalculate hotel_reservation_amount from the reservation net
+            // payable (discounted_total) for properties with active reservations,
+            // plus the quoted tariff for days whose property has no reservation.
+            $reservationNetTotal = 0;
+            $propertiesWithReservation = array();
+            foreach ($reservationRows as $res) {
+                $pid = (int)$res['properties_id_fk'];
+                if (!isset($propertiesWithReservation[$pid])) {
+                    $reservationNetTotal += (float)$res['discounted_total'];
+                    $propertiesWithReservation[$pid] = true;
+                }
+            }
+            foreach ($hotelDays as $hday) {
+                $hdayId = (int)$hday['quotation_properties_days_id'];
+                $hpid = isset($confirmedPropertyByDay[$hdayId]) ? $confirmedPropertyByDay[$hdayId] : 0;
+                if (!$hpid || !isset($propertiesWithReservation[$hpid])) {
+                    $reservationNetTotal += (float)$hday['day_cost'];
+                }
+            }
+            if ($reservationNetTotal > 0) {
+                $defaults['hotel_reservation_amount'] = $reservationNetTotal;
+            }
 
             // pre_quoted_amount = quotation_options_total_quote_rate (hotel + driver + margin)
 

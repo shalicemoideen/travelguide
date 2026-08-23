@@ -153,7 +153,7 @@ function renderReservation(res) {
     pr_has_payments = prHasPayments;
     pr_current_scheduler_id = 0;
     $('#btn_view_payments').hide();
-    $('#actual_amount').val(0);
+    $('#actual_amount').val(total);
     $('#discount_amount').val(0);
     $('#discounted_total').val(total);
     $('#discounted_total_display').hide();
@@ -169,18 +169,20 @@ function renderReservation(res) {
 
     if (res.payment) {
         var p = res.payment;
-        $('#total_amount').val(p.total_amount);
-        $('#payment_total_display').text(parseFloat(p.total_amount).toLocaleString('en-IN'));
+        // Keep the live property total as the displayed Total Amount;
+        // do NOT override with the scheduler's stale total_amount snapshot.
         pr_current_scheduler_id = parseInt(p.property_payment_scheduler_id) || 0;
         $('#btn_view_payments').css('display', pr_current_scheduler_id > 0 ? 'inline-block' : 'none');
         var savedNet = parseFloat(p.discounted_total) || parseFloat(p.total_amount) || 0;
-        $('#actual_amount').val(savedNet);
+        var liveTotal = parseFloat($('#total_amount').val()) || 0;
+        $('#actual_amount').val(liveTotal);
         $('#discount_amount').val(0);
-        $('#discounted_total').val(savedNet);
-        var totalAmt = parseFloat(p.total_amount) || 0;
-        if (savedNet > 0 && savedNet !== totalAmt) {
+        $('#discounted_total').val(liveTotal);
+        if (savedNet > 0 && Math.abs(savedNet - liveTotal) > 0.01) {
             $('#discounted_total_val').text(savedNet.toLocaleString('en-IN'));
             $('#discounted_total_display').show();
+        } else {
+            $('#discounted_total_display').hide();
         }
         if (prHasPayments) {
             $('input[name="payment_type"]').prop('disabled', true);

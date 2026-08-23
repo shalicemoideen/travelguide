@@ -297,7 +297,17 @@ class Property_reservation_model extends CI_Model {
 
             if (abs($new_total - (float)$payment->total_amount) < 0.01) { continue; }
 
-            $new_discounted  = round($new_total, 2);
+            // If the user had manually entered a net payable (discounted_total)
+            // that differs from the old total_amount, preserve it; only update
+            // discounted_total when it was equal to the old total (no manual discount).
+            $old_total = (float)$payment->total_amount;
+            $old_discounted = (float)$payment->discounted_total;
+            if (abs($old_discounted - $old_total) > 0.01) {
+                // User had entered a manual net payable — keep it.
+                $new_discounted = $old_discounted;
+            } else {
+                $new_discounted = round($new_total, 2);
+            }
 
             $this->update_payment($payment->property_payment_scheduler_id, array(
                 'total_amount'     => $new_total,
@@ -768,7 +778,9 @@ class Property_reservation_model extends CI_Model {
                 pr.property_reservation_id,
                 pr.blocking_status,
                 pr.confirmation_status,
-                pr.reconfirmation_status
+                pr.reconfirmation_status,
+                pps.discounted_total,
+                pps.total_amount AS scheduler_total_amount
             ')
             ->from('quotation_confirmation qc')
             ->join('quotation_properties qp', 'qp.quotation_properties_id = qc.properties_id_fk', 'inner')
@@ -776,6 +788,7 @@ class Property_reservation_model extends CI_Model {
             ->join('accommodation_plan ap', 'ap.accommodation_plan_id = qpd.accommodation_plan_id_fk', 'left')
             ->join('properties p', 'p.properties_id = qp.properties_id_fk', 'left')
             ->join('property_reservation pr', 'pr.quotation_id_fk = qc.quotation_id_fk AND pr.properties_id_fk = qp.properties_id_fk AND pr.property_reservation_status = 1', 'left')
+            ->join('property_payment_scheduler pps', 'pps.property_reservation_id_fk = pr.property_reservation_id AND pps.property_payment_scheduler_status = 1', 'left')
             ->where('qc.quotation_id_fk', (int)$quotation_id)
             ->where('qc.property_confirmation_status', 1)
             ->group_by('qp.properties_id_fk')
@@ -793,6 +806,7 @@ class Property_reservation_model extends CI_Model {
                 $r->check_out_date = null;
             }
             $r->property_total = $this->get_property_total_amount($quotation_id, $r->properties_id);
+            $r->net_payable = (float)$r->discounted_total;
         }
 
         $total       = count($rows);
