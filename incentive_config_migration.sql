@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS `incentive_config` (
 INSERT INTO `incentive_config` (`slab_label`, `min_profit`, `max_profit`, `calculation_type`, `incentive_value`, `deduction`) VALUES
 ('Upto 5000',     0.00,     5000.00, 'fixed',      500.00, 0.00),
 ('5000 to 10000', 5000.01, 10000.00, 'percentage',  10.00, 500.00),
-('10000 to 20000',10000.01,20000.00, 'percentage',  20.00, 500.00);
+('Above 10000',   10000.01,    NULL, 'percentage',  20.00, 500.00);
